@@ -1,6 +1,6 @@
 // POST /api/quote
 // Creates or updates the contact in HubSpot, opens a deal "Quote request QR-..." and attaches the parts list as a note.
-const { hs, upsertContact, addNote, esc } = require('../lib/hubspot');
+const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
 
 module.exports = async (req, res) => {
@@ -23,6 +23,7 @@ module.exports = async (req, res) => {
     const deal = await hs('/crm/v3/objects/deals', 'POST', {
       properties: {
         dealname: `Quote request ${number} · ${customer.company}`,
+        hubspot_owner_id: OWNER(),
         pipeline: latam ? (process.env.HUBSPOT_PIPELINE_LATAM || '71274341') : (process.env.HUBSPOT_PIPELINE || '71230012'),
         dealstage: latam ? (process.env.HUBSPOT_DEALSTAGE_LATAM || '137586015') : (process.env.HUBSPOT_DEALSTAGE || '137533774'),
         description: `${lines.length} lines, ${units} units. Business: ${customer.type}.\n\n${text}${customer.notes ? '\n\nNotes: ' + customer.notes : ''}`.slice(0, 65000)
@@ -35,6 +36,7 @@ module.exports = async (req, res) => {
       `<table><thead><tr><th>#</th><th>Part number</th><th>Description</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table>` +
       (customer.notes ? `<p><strong>Notes:</strong> ${esc(customer.notes)}</p>` : '');
     await addNote(html, [{ id: deal.id, type: 214 }, { id: contactId, type: 202 }]);
+    await addTask(`Reply to quote ${number} · ${customer.company}`, `${lines.length} lines, ${units} units. ${customer.name} · ${customer.email} · ${customer.phone}`, [{ id: deal.id, type: 216 }, { id: contactId, type: 204 }], 2);
     return res.status(200).json({ ok: true, id: number });
   } catch (e) {
     console.error(e);
