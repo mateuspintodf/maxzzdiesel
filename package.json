@@ -1,0 +1,7 @@
+{
+  "name": "maxzzdiesel-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Maxzz Diesel website: static pages + Vercel functions for the Unleashed catalog and HubSpot forms.",
+  "engines": { "node": ">=18" }
+}
