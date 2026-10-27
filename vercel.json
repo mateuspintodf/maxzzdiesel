@@ -2,16 +2,52 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "api/catalog.js": { "includeFiles": "data/catalog.json", "maxDuration": 30 },
-    "api/quote.js": { "maxDuration": 20 },
-    "api/account.js": { "maxDuration": 20 }
+    "api/catalog.js": {
+      "includeFiles": "data/catalog.json",
+      "maxDuration": 30
+    },
+    "api/quote.js": {
+      "maxDuration": 20
+    },
+    "api/account.js": {
+      "maxDuration": 20
+    }
   },
   "headers": [
-    { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
-    { "source": "/(.*)", "headers": [
-      { "key": "X-Content-Type-Options", "value": "nosniff" },
-      { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-      { "key": "X-Frame-Options", "value": "SAMEORIGIN" }
-    ] }
+    {
+      "source": "/assets/team/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        }
+      ]
+    }
   ]
 }
