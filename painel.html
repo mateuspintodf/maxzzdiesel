@@ -216,7 +216,7 @@ td.r,th.r{text-align:right}
       <div class="card c4">
         <div class="card-h"><div><h3>Revenue, 12 months</h3><p>Unleashed orders, Jul 2025 to Jun 2026</p></div><button class="go" data-open="customers" aria-label="Open customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M7 17 17 7M8 7h9v9"/></svg></button></div>
         <div class="hero">
-          <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1"><span class="brand">MAXZZ DIESEL</span><span class="tag">Snapshot</span></div>
+          <div style="display:flex;justify-content:space-between;align-items:center;position:relative;z-index:1"><span class="brand">MAXZZ DIESEL</span><span class="tag">Fixed 12 months · not affected by the date filter</span></div>
           <div style="position:relative;z-index:1"><div class="tag">Total revenue</div><div class="v" id="h-rev">—</div></div>
           <div class="foot" style="position:relative;z-index:1"><span id="h-orders">— orders</span><span id="h-avg">Avg —</span></div>
         </div>
@@ -667,7 +667,7 @@ td.r,th.r{text-align:right}
     set('#h-top3', pct(d3.sum(D.customers.slice(0, 3), (r) => r.share)));
     const tick = tickFmt(D.b);
     set('#ov-em-sub', { day: 'By day', week: 'By week', month: 'By month' }[D.b] + ' · busiest period highlighted');
-    if (!D.emailOk) empty($('#ov-em-chart'), 'Email data did not load.', true);
+    if (!D.emailOk) empty($('#ov-em-chart'), emailMsg(D), true);
     else pillBars($('#ov-em-chart'), D.emailSeries.map((s) => ({ k: s.k, v: s.delivered, o: s })), { tick: (k) => tick(new Date(k)), tipHead: (s) => tick(new Date(s.k)), tipLines: (s) => ['Delivered: ' + fmt(s.v), 'Open rate: ' + pct(s.o.delivered ? s.o.opens / s.o.delivered : null)], badge: (s) => fmt(s.v), emptyText: 'No marketing email in this period.' });
     // quotes mini
     set('#ov-q', fmt(D.quotes.length)); badge(ensureBadge('#ov-q-b'), D.quotes.length, D.quotesPrev.length);
@@ -690,6 +690,7 @@ td.r,th.r{text-align:right}
     $('#cls-bar').replaceChildren(...cl.map((r) => Object.assign(document.createElement('span'), { style: `width:${r.share * 100}%;background:${avColor(r.c)}`, title: 'Class ' + r.c })));
     $('#cls-rows').replaceChildren(...cl.map((r) => { const d = document.createElement('div'); d.className = 'crow'; const a = document.createElement('span'); a.append(Object.assign(document.createElement('span'), { className: 'dot ' + r.c.toLowerCase(), textContent: 'Class ' + r.c + ' · ' + fmt(r.n) + ' customers' })); const b = document.createElement('span'); b.className = 'num'; b.textContent = money(r.rev) + ' · ' + pct(r.share); d.append(a, b); return d; }));
   }
+  function emailMsg(D) { const m = (D.raw.email && D.raw.email.message) || ''; return /MISSING_SCOPES|403/.test(m) ? 'Email metrics need one more HubSpot permission (content). Add it to the site app in HubSpot and this fills in.' : 'Email data did not load.'; }
   function ensureBadge(sel) { const host = $(sel); if (!host) return null; if (host.classList.contains('badge')) return host; let b = host.querySelector('.badge'); if (!b) { b = document.createElement('span'); host.append(b); } return b; }
 
   function custRows(D) {
@@ -773,7 +774,7 @@ td.r,th.r{text-align:right}
     }
     const tick = tickFmt(D.b);
     const maxweek = (k) => { const d = new Date(k + 'T00:00:00Z'); const e = new Date(+d + (D.b === 'day' ? 0 : D.b === 'week' ? 6 : 30) * DAY); return d <= new Date('2026-10-09') && e >= new Date('2026-10-05'); };
-    if (!D.emailOk) empty($('#x-chart'), 'Email data did not load.', true);
+    if (!D.emailOk) empty($('#x-chart'), emailMsg(D), true);
     else comboChart($('#x-chart'), D.buckets, (k) => (D.emailSeries.find((s) => s.k === k) || {}).delivered || 0, (k) => D.quotes.filter((r) => bucketKey(r.created, D.b) === k).length,
       { tick: (k) => tick(new Date(k)), isHi: maxweek, head: (k) => tick(new Date(k)) + (maxweek(k) ? ' · MaxWeek' : ''), lines: (k) => ['Emails delivered: ' + fmt((D.emailSeries.find((s) => s.k === k) || {}).delivered || 0), 'Quote requests: ' + fmt(D.quotes.filter((r) => bucketKey(r.created, D.b) === k).length)] });
     legend($('#x-legend'), [['Emails delivered', '#d9dce0'], ['MaxWeek', RED], ['Quote requests', INK]]);
