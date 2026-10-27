@@ -32,6 +32,7 @@
         var r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: name.value, phone: phone.value, email: email.value, type: sel ? sel.value : '', hp: hp.value }) });
         if (!r.ok) throw new Error(r.status);
+        if (window.mxIdentify) window.mxIdentify(email.value.trim(), name.value);
         form.reset(); btn.textContent = 'Request sent';
         say('Thanks. Our team will contact you within one business day.', true);
         setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 6000);
@@ -43,6 +44,21 @@
     form.addEventListener('submit', submit);
     btn.addEventListener('click', submit);
   }
+  // Live chat links: open the HubSpot chat when it is loaded, otherwise follow the WhatsApp link
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest && e.target.closest('[data-chat]');
+    if (!a) return;
+    var hc = window.HubSpotConversations;
+    if (hc && hc.widget && hc.widget.status && hc.widget.status().loaded) {
+      e.preventDefault();
+      var m = a.closest('details'); if (m) m.open = false;
+      hc.widget.open();
+    }
+  });
+  // Tie this browser to the contact in HubSpot so chats and visits show on the record
+  window.mxIdentify = function (email, name) {
+    try { var q = window._hsq = window._hsq || []; var p = String(name || '').trim().split(/\s+/); q.push(['identify', { email: email, firstname: p.shift() || '', lastname: p.join(' ') }]); q.push(['trackPageView']); } catch (e) {}
+  };
   function boot() { document.querySelectorAll('.acct-form').forEach(init); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();

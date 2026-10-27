@@ -16,14 +16,15 @@ module.exports = async (req, res) => {
   }
   if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
   try {
-    const contactId = await upsertContact(customer);
+    const contactId = await upsertContact(Object.assign({}, customer, { source: 'Website quote request' }));
     const units = lines.reduce((s, l) => s + l.qty, 0);
+    const latam = /latin/i.test(customer.type);
     const text = lines.map((l, i) => `${i + 1}. ${l.pn} | ${l.name} | qty ${l.qty}`).join('\n');
     const deal = await hs('/crm/v3/objects/deals', 'POST', {
       properties: {
         dealname: `Quote request ${number} · ${customer.company}`,
-        pipeline: process.env.HUBSPOT_PIPELINE || 'default',
-        dealstage: process.env.HUBSPOT_DEALSTAGE || 'appointmentscheduled',
+        pipeline: latam ? (process.env.HUBSPOT_PIPELINE_LATAM || '71274341') : (process.env.HUBSPOT_PIPELINE || '71230012'),
+        dealstage: latam ? (process.env.HUBSPOT_DEALSTAGE_LATAM || '137586015') : (process.env.HUBSPOT_DEALSTAGE || '137533774'),
         description: `${lines.length} lines, ${units} units. Business: ${customer.type}.\n\n${text}${customer.notes ? '\n\nNotes: ' + customer.notes : ''}`.slice(0, 65000)
       },
       associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] }]
