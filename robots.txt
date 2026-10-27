@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /painel
 Sitemap: https://www.maxzzdiesel.com/sitemap.xml
