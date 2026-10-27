@@ -840,7 +840,7 @@ td.r,th.r{text-align:right}
       ['Aug', 'Harvest prep.', 'Ag injectors and pumps, Labor Day offer'],
       ['Sep', 'Harvest. Fleets prep for winter.', 'Contamination kits, Labor Day pricing'],
       ['Oct', 'Pre-winter maintenance. MaxWeek.', 'Bundles across parts and DTA'],
-      ['Nov', 'Year-end buying. Section 179.', 'Test benches, Aftertreatment and NOx boxes'],
+      ['Nov', 'Black Friday Nov 27, Cyber Monday Nov 30. Year-end buying, Section 179.', 'Online store deals, DTA course bundles, test benches'],
       ['Dec', 'Last call for Section 179 by Dec 31.', 'Equipment, bench tools, prepaid stock']
     ];
     const now = new Date().getMonth();
@@ -849,13 +849,17 @@ td.r,th.r{text-align:right}
     // products + campaigns (season-aware)
     const nm = (now + 1) % 12;
     const prods = [
+      ['Black Friday picks', 'Items that ship today and sell without a quote: calibration fluid, contamination kits, repair kits, Robiel kits and DTA course bundles.', 'Keep injectors and pumps at regular price; use the week to bring buyers into the online store.'],
       ['Equipment before Dec 31', 'Test benches, the Aftertreatment Box and the NOx Tester Box qualify as business equipment. Section 179 lets US buyers deduct up to $2.5M placed in service this year.', 'Pitch to class A and B rebuilders now; offer delivery before year end.'],
       ['Winter failure parts', 'Cold starts and fuel contamination raise injector and pump failures from December to February.', 'Stock and promote common rail injectors, CP3 and CP4 pumps and the Ford 6.7L and Cummins contamination kits.'],
       ['Robiel kits with DTA', 'Every DTA course maps to a Robiel bench kit. Course buyers are rebuilders setting up their bench.', 'The Hotmart integration opens a kit offer for each sale; follow up within 24 hours.'],
       ['Fluids on repeat', 'Calibration fluid and cleaners are consumables that every bench reorders.', 'Offer a standing monthly order to repeat buyers, shipped with their parts.']
     ];
     $('#i-products').replaceChildren(...prods.map(([k, p, s]) => insItem(k, p, s)));
+    const bf = new Date(Date.UTC(2026, 10, 27)), cm = new Date(Date.UTC(2026, 10, 30));
+    const daysTo = Math.ceil((bf - Date.now()) / DAY);
     const camps = [
+      ['Black Friday and Cyber Monday' + (daysTo > 0 ? ' · in ' + daysTo + ' days' : ''), 'Nov 27 to Nov 30, 2026. First Black Friday with online ordering: the Unleashed B2B store and Shopify take orders 24/7, and DTA courses on Hotmart sell best in this window.', 'Parts: stock items and kits with a clear deadline, no blanket discount. DTA: bundle offer like MaxWeek. Tease the week before, send Friday morning, last call Monday night.'],
       ['Year-end equipment push', 'Two emails in November and one in mid-December built around Section 179, with a call-back offer.', 'Target: class A and B customers and rebuilder contacts.'],
       ['Reorder reminder for repeat buyers', 'A short email to the ' + fmt(repeat.length) + ' repeat buyers with their usual parts and current stock.', 'Measure replies and orders, not clicks.'],
       ['Win-back for one-order customers', 'Personal note from Michael or Gabriel to the ' + fmt(one.length) + ' one-order customers, with a first-reorder condition.', 'Run it in English and Spanish.'],
