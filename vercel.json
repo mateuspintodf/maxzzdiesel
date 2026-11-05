@@ -52,5 +52,22 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/diagnostic-equipment",
+      "destination": "/aftertreatment",
+      "permanent": true
+    },
+    {
+      "source": "/bench-tools",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/assets/tds/maxzz-fluid-:code-tds.pdf",
+      "destination": "/assets/flyers/maxzz-fluid-:code-flyer.pdf",
+      "permanent": true
+    }
   ]
 }
