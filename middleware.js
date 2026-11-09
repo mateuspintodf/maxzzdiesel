@@ -1,5 +1,5 @@
-// Password gate for the internal dashboard. Set DASH_PASSWORD in Vercel (user: any name).
-export const config = { matcher: ['/painel', '/painel.html', '/api/dash-data', '/private/:path*'] };
+// Password gate for the internal dashboard and the social approval page. Set DASH_PASSWORD in Vercel (user: any name).
+export const config = { matcher: ['/painel', '/painel.html', '/api/dash-data', '/private/:path*', '/agenda', '/agenda/:path*', '/api/agenda'] };
 
 export default function middleware(request) {
   const url = new URL(request.url);

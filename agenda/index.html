@@ -1,0 +1,969 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="/agenda/"><meta name="robots" content="noindex,nofollow"><script src="/agenda/shim.js"></script><title>Agenda Maxzz Diesel</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+@font-face{font-family:"BDO Grotesk";src:url(f/BDOGrotesk-Light.woff2) format("woff2");font-weight:300;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url(f/BDOGrotesk-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url(f/BDOGrotesk-Medium.woff2) format("woff2");font-weight:500;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url(f/BDOGrotesk-DemiBold.woff2) format("woff2");font-weight:600;font-display:swap}
+@font-face{font-family:"BDO Grotesk";src:url(f/BDOGrotesk-Bold.woff2) format("woff2");font-weight:700;font-display:swap}
+/* Layout: one dark editorial column on the site's hairline grid; sections stack, tables scroll inside their own box on phones. Single dark theme by choice (brand look). */
+:root{
+  /* Maxzz: diesel shop black, signal red, pumpkin as the warm accent; BDO Grotesk like the site and the posts */
+  --ink:#16191d; --panel:#1f2328; --line:rgba(255,255,255,.12); --fg:#f1f2f3; --mut:#9aa0a8;
+  --red:#d32a37; --pump:#fc771d; --paper:#dedede;
+  --sans:"BDO Grotesk","Helvetica Neue",Arial,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--ink);color:var(--fg);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:40px 80px}
+.cap{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.eyebrow{display:flex;align-items:center;gap:10px}
+.eyebrow i{display:inline-block;width:18px;height:4px;background:var(--red)}
+.eyebrow i+i{width:10px;background:var(--mut)}
+h1{font-size:clamp(44px,8vw,96px);line-height:.92;letter-spacing:-.05em;font-weight:700;margin:18px 0 0;text-wrap:balance}
+h1 b{color:var(--red);font-weight:700}
+.lead{font-size:clamp(17px,2vw,21px);color:#D6D4D0;max-width:62ch;margin-top:22px}
+.facts{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px}
+.facts span{font-family:var(--mono);font-size:13px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.facts b{color:var(--fg);font-family:var(--sans);font-size:22px;letter-spacing:-.02em;margin-right:6px;text-transform:none}
+section{margin-top:72px;padding-top:28px;border-top:1px solid var(--line)}
+h2{font-size:clamp(30px,4.2vw,48px);letter-spacing:-.04em;line-height:1;font-weight:700;margin:14px 0 0;text-wrap:balance}
+h2 b{color:var(--red)}
+.sub{color:var(--mut);max-width:62ch;margin-top:12px}
+nav.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:32px}
+nav.toc a{font-family:var(--mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg);text-decoration:none;border:1px solid var(--line);padding:9px 12px}
+nav.toc a:hover,nav.toc a:focus-visible{border-color:var(--red);outline:none}
+/* week rhythm */
+.week{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.day{background:var(--ink);padding:18px 16px 20px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.day .d{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;justify-content:space-between}
+.day h3{font-size:22px;letter-spacing:-.03em;margin:0;line-height:1.05}
+.day p{margin:0;color:#CFCCC7;font-size:14.5px}
+.day.on{background:var(--panel)}
+.day.on h3 b{color:var(--red)}
+.tag{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:4px 7px;background:var(--fg);color:var(--ink);align-self:flex-start}
+.tag.r{background:var(--red);color:#fff}
+.tag.p{background:var(--pump);color:var(--ink)}
+.tag.g{background:transparent;color:var(--mut);border:1px solid var(--line)}
+.rituals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:26px}
+.rituals div{border-top:2px solid var(--fg);padding-top:12px;min-width:0}
+.rituals h4{margin:0;font-size:18px;letter-spacing:-.02em}
+.rituals p{margin:6px 0 0;color:#CFCCC7;font-size:14.5px}
+/* mix bar */
+.mix{display:flex;height:54px;margin-top:28px;border:1px solid var(--line)}
+.mix div{display:flex;align-items:flex-end;padding:8px 10px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;min-width:0;overflow:hidden;white-space:nowrap}
+.mixleg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;margin-top:16px}
+.mixleg p{margin:0;font-size:14.5px;color:#CFCCC7}
+.mixleg b{display:block;color:var(--fg);font-size:17px;letter-spacing:-.02em}
+/* calendar of dates */
+.months{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.month{background:var(--ink);padding:18px 16px 20px;min-width:0}
+.month h3{font-size:24px;letter-spacing:-.03em;margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline}
+.month h3 span{font-family:var(--mono);font-size:12px;color:var(--mut);letter-spacing:.08em}
+.ev{display:grid;grid-template-columns:80px 1fr;gap:4px 12px;padding:10px 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0;padding-top:0}
+.ev .dt{font-family:var(--mono);font-size:12.5px;line-height:1.3;color:var(--fg);font-variant-numeric:tabular-nums;padding-top:2px}
+.ev .dt.r{color:var(--red)}
+.ev h4{margin:0;font-size:15.5px;line-height:1.25;letter-spacing:-.01em}
+.ev p{margin:2px 0 0;font-size:14px;color:var(--mut)}
+.ev p em{font-style:normal;color:#D6D4D0}
+/* radar */
+.radar{margin-top:28px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.hype{background:var(--ink);padding:20px 18px;min-width:0;display:grid;grid-template-columns:44px 1fr;gap:4px 14px}
+.hype .n{font-family:var(--mono);font-size:13px;color:var(--red);padding-top:4px}
+.hype h3{margin:0;font-size:20px;letter-spacing:-.03em;line-height:1.1}
+.hype p{margin:6px 0 0;font-size:14.5px;color:#CFCCC7}
+.hype .pauta{margin-top:10px;font-size:15px;color:var(--fg)}
+.hype .pauta::before{content:"Pauta: ";font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+/* next weeks table */
+.tbl{margin-top:28px;overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:760px}
+th,td{text-align:left;padding:12px 14px;border-top:1px solid var(--line);vertical-align:top;font-size:14.5px}
+thead th{border-top:0;font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);font-weight:500;background:var(--panel)}
+td.dt{font-family:var(--mono);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--fg)}
+td.f{white-space:nowrap}
+tr.wk td{background:var(--panel);font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mut);padding-block:8px}
+tr.hl td.t{color:var(--fg)}
+tr.hl td.t b{color:var(--red)}
+td.t b{font-weight:600}
+td small{display:block;color:var(--mut);font-size:13px;margin-top:2px}
+.note{margin-top:14px;color:var(--mut);font-size:14px;max-width:70ch}
+.src{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.src a{color:#D6D4D0;font-size:14px;text-underline-offset:3px}
+footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+a:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+@media (max-width:900px){
+  .week{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .months{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rituals,.mixleg{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:600px){
+  .week,.months,.radar,.rituals,.mixleg{grid-template-columns:1fr}
+  .mix div span{display:none}
+}
+/* ---- tabs ---- */
+.tabs{display:flex;gap:0;margin-top:34px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--ink);z-index:5}
+.tabs button{appearance:none;background:none;border:0;color:var(--mut);font:500 13px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:16px 18px 14px;cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;display:flex;gap:8px;align-items:center}
+.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--red)}
+.tabs button:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.tabs .ct{background:var(--red);color:#fff;padding:3px 6px;font-size:11px;letter-spacing:.04em}
+.view[hidden]{display:none}
+/* ---- approval summary ---- */
+.sum{display:flex;flex-wrap:wrap;gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.sum button{flex:1 1 140px;appearance:none;border:0;background:var(--ink);color:var(--fg);text-align:left;padding:14px 16px;cursor:pointer;min-width:0}
+.sum button b{display:block;font-size:30px;letter-spacing:-.04em;line-height:1;font-weight:700;font-variant-numeric:tabular-nums}
+.sum button span{font:500 11.5px/1.2 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);display:flex;align-items:center;gap:7px;margin-top:8px}
+.sum button[aria-pressed="true"]{background:var(--panel);box-shadow:inset 0 -3px 0 var(--fg)}
+.sum button:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--mut);flex:none}
+.dot.aprovado{background:#3CC37A}.dot.ajuste{background:var(--pump)}.dot.aguardando{background:var(--mut)}.dot.roteiro{background:#8B7CF6}.dot.publicado{background:var(--fg)}
+.banner{margin-top:18px;padding:12px 14px;border:1px solid var(--line);background:var(--panel);font-size:14.5px;color:#D6D4D0;display:flex;gap:10px;align-items:flex-start}
+.banner b{color:var(--fg)}
+.banner.hot{border-color:var(--red)}
+/* ---- week groups + cards ---- */
+.wkhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:44px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.wkhead h3{margin:0;font-size:22px;letter-spacing:-.03em}
+.wkhead h3 span{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);margin-left:10px}
+.btn{appearance:none;border:1px solid var(--line);background:transparent;color:var(--fg);font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:11px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;min-height:40px}
+.btn:hover{border-color:var(--fg)}
+.btn:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.btn.ok{background:#3CC37A;border-color:#3CC37A;color:#0D1F14}
+.btn.ok:hover{background:#4FD48B}
+.btn.adj{border-color:var(--pump);color:var(--pump)}
+.btn.ghost{border-color:transparent;color:var(--mut);padding-inline:6px}
+.btn[disabled]{opacity:.45;cursor:default}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px 18px;margin-top:18px}
+.card{appearance:none;background:none;border:0;padding:0;color:inherit;text-align:left;cursor:pointer;min-width:0;display:flex;flex-direction:column;gap:10px;font:inherit}
+.card:focus-visible{outline:2px solid var(--red);outline-offset:4px}
+.thumb{position:relative;aspect-ratio:4/5;overflow:hidden;background:var(--panel);border:1px solid var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}
+.card:hover .thumb img{transform:scale(1.025)}
+.badge{position:absolute;top:8px;right:8px;background:rgba(10,10,10,.72);color:#fff;font:500 11px/1 var(--mono);letter-spacing:.06em;padding:6px 7px;display:flex;align-items:center;gap:5px}
+.today{position:absolute;top:8px;left:8px;background:var(--red);color:#fff;font:600 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:6px 7px}
+.meta{display:flex;justify-content:space-between;gap:8px;font:500 12px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.card h4{margin:0;font-size:16.5px;line-height:1.2;letter-spacing:-.015em;font-weight:600;text-wrap:pretty}
+.st{display:inline-flex;align-items:center;gap:7px;font:500 11.5px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#D6D4D0}
+.card .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.empty{margin-top:28px;color:var(--mut)}
+/* ---- modal ---- */
+dialog{border:0;padding:0;background:transparent;color:var(--fg);max-width:min(1060px,calc(100vw - 24px));width:100%;max-height:calc(100dvh - 24px)}
+dialog::backdrop{background:rgba(6,6,7,.82)}
+.mbox{background:var(--ink);border:1px solid var(--line);display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);max-height:calc(100dvh - 24px);overflow:hidden}
+.ig{background:#000;display:flex;flex-direction:column;min-width:0;overflow-y:auto}
+.igh{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #222}
+.av{width:32px;height:32px;border-radius:50%;background:#151516;border:1px solid #333;display:grid;place-items:center;flex:none}
+.av img{width:15px;height:15px}
+.igh b{font-size:14px;font-weight:600}
+.igh small{display:block;font-size:12px;color:#8e8e8e}
+.stage{position:relative;background:#0b0b0b;display:flex;justify-content:center}
+.stage .track{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.stage .track::-webkit-scrollbar{display:none}
+.stage .track img{flex:0 0 100%;width:100%;scroll-snap-align:center;display:block;aspect-ratio:4/5;object-fit:cover}
+.stage.reel .track img{aspect-ratio:9/16;max-height:min(70dvh,640px);object-fit:contain;background:#000}
+.arr{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.88);color:#111;display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.4)}
+.arr:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.arr.l{left:10px}.arr.r{right:10px}
+.arr[hidden]{display:none}
+.pg{position:absolute;top:10px;right:10px;background:rgba(10,10,10,.7);color:#fff;font:500 12px/1 var(--sans);padding:6px 9px;border-radius:12px}
+.dots{display:flex;justify-content:center;gap:4px;padding:10px 0 2px}
+.dots i{width:6px;height:6px;border-radius:50%;background:#444}
+.dots i.on{background:#3897F0}
+.acts{display:flex;gap:14px;padding:8px 12px 4px;color:#f5f5f5}
+.acts svg{width:24px;height:24px}
+.acts .sp{flex:1}
+.capt{padding:4px 12px 16px;font-size:14px;line-height:1.45;color:#f5f5f5;white-space:pre-wrap;word-wrap:break-word}
+.capt b{font-weight:600;margin-right:6px}
+.capt .more{background:none;border:0;color:#8e8e8e;font:inherit;padding:0;cursor:pointer}
+.capt.clip .full{display:none}
+.capt:not(.clip) .short,.capt:not(.clip) .more{display:none}
+.side{padding:22px 22px 24px;overflow-y:auto;display:flex;flex-direction:column;gap:16px;min-width:0}
+.side .top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.side h3{margin:0;font-size:clamp(24px,3vw,32px);line-height:1.02;letter-spacing:-.04em;text-wrap:balance}
+.kv{display:grid;grid-template-columns:96px 1fr;gap:8px 14px;font-size:14.5px;margin:0}
+.kv dt{font:500 11.5px/1.5 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.kv dd{margin:0}
+.nt{border-left:3px solid var(--pump);padding:10px 12px;background:var(--panel);font-size:14px;color:#D6D4D0;white-space:pre-wrap}
+.nt.script{border-left-color:#8B7CF6}
+.appr{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:12px}
+.appr .now{display:flex;align-items:center;gap:10px;font-size:15px}
+.appr .who{color:var(--mut);font-size:13.5px}
+.appr .btns{display:flex;flex-wrap:wrap;gap:8px}
+.appr textarea{width:100%;min-height:92px;background:var(--panel);border:1px solid var(--line);color:var(--fg);font:15px/1.45 var(--sans);padding:10px 12px;resize:vertical}
+.appr textarea:focus{outline:2px solid var(--pump);outline-offset:0;border-color:transparent}
+.appr .quote{background:var(--panel);padding:10px 12px;border-left:3px solid var(--pump);font-size:14.5px;white-space:pre-wrap}
+.appr .ro{color:var(--mut);font-size:14px}
+.err{color:var(--red);font-size:14px}
+.nav2{display:flex;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
+.x{appearance:none;border:1px solid var(--line);background:none;color:var(--fg);width:40px;height:40px;display:grid;place-items:center;cursor:pointer;flex:none}
+.x:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+@media (max-width:900px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:760px){
+  dialog{max-width:100vw;max-height:100dvh;margin:0;height:100dvh}
+  .mbox{grid-template-columns:1fr;max-height:100dvh;height:100dvh;overflow-y:auto;border:0}
+  .ig{overflow:visible}
+  .side{overflow:visible}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 12px}
+  .tabs button{padding:14px 12px 12px;font-size:12px}
+}
+@media (max-width:600px){.sum{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}.sum button{padding:10px 8px}.sum button b{font-size:24px}.sum button span{font-size:9.5px;letter-spacing:.04em;flex-wrap:wrap;gap:4px}}
+@media (prefers-reduced-motion:reduce){.thumb img{transition:none}}
+/* ---- histórico ---- */
+.hstats{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:22px}
+.hstats span{font-family:var(--mono);font-size:12.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em}
+.hstats b{color:var(--fg);font-family:var(--sans);font-size:22px;letter-spacing:-.02em;margin-right:6px;text-transform:none;font-variant-numeric:tabular-nums}
+.filters{display:flex;flex-direction:column;gap:12px;margin-top:26px;padding:16px;border:1px solid var(--line);background:var(--panel)}
+.frow{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.frow .cap{min-width:62px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--ink);color:var(--fg);font:500 12px/1 var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:9px 11px;cursor:pointer;min-height:36px;display:inline-flex;align-items:center;gap:6px}
+.chip small{color:var(--mut);font-size:11px}
+.chip[aria-pressed="true"]{background:var(--fg);color:var(--ink);border-color:var(--fg)}
+.chip[aria-pressed="true"] small{color:#55555a}
+.chip:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.mgroup{margin-top:40px}
+.mgroup h3{margin:0;font-size:22px;letter-spacing:-.03em;padding-bottom:12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.mgroup h3 span{font:500 12px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.cover{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:14px 14px 16px;background:var(--panel)}
+.cover.Reels{background:#201A2C}.cover.Carrossel{background:#1F1B1B}
+.cover p{margin:0;font-size:clamp(15px,1.6vw,19px);line-height:1.12;letter-spacing:-.03em;font-weight:700;color:var(--fg);display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden;text-wrap:balance}
+.cover i{display:block;width:18px;height:4px;background:var(--red)}
+.cover em{font:500 11px/1 var(--mono);font-style:normal;letter-spacing:.1em;text-transform:uppercase;color:var(--mut)}
+.mets{display:flex;gap:12px;font:500 12px/1 var(--mono);color:var(--mut);font-variant-numeric:tabular-nums}
+.sty{display:inline-flex;align-items:center;gap:6px;font:500 11px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--pump)}
+.sty::before{content:"";width:7px;height:12px;border:1.5px solid currentColor;border-radius:2px}
+.hcover{aspect-ratio:4/5;position:relative;overflow:hidden;background:var(--panel)}
+.hcover img{width:100%;height:100%;object-fit:cover;display:block}
+.hcover .cover p{font-size:clamp(22px,3.2vw,34px);-webkit-line-clamp:8}
+.metgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.metgrid div{background:var(--ink);padding:10px 8px;min-width:0}
+.metgrid b{display:block;font-size:20px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.metgrid span{font:500 10.5px/1.2 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--mut)}
+.stbox{border-top:1px solid var(--line);padding-top:16px;display:flex;flex-direction:column;gap:12px}
+.stbox h4{margin:0;font-size:17px;letter-spacing:-.02em}
+.stbox p{margin:0;font-size:14px;color:#CFCCC7}
+.stbox textarea{width:100%;min-height:76px;background:var(--panel);border:1px solid var(--line);color:var(--fg);font:15px/1.45 var(--sans);padding:10px 12px;resize:vertical}
+.stbox textarea:focus{outline:2px solid var(--pump);outline-offset:0;border-color:transparent}
+.btn.sto{border-color:var(--pump);background:var(--pump);color:var(--ink)}
+.reqs{margin-top:56px;padding-top:24px;border-top:1px solid var(--line)}
+.req{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 16px;padding:12px 0;border-top:1px solid var(--line);align-items:center}
+.req:first-of-type{border-top:0}
+.req b{font-size:15.5px;letter-spacing:-.01em}
+.req small{display:block;color:var(--mut);font-size:13px;margin-top:2px;white-space:pre-wrap}
+.ext{color:var(--fg);font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;border:1px solid var(--line);padding:11px 14px;display:inline-flex;align-items:center;gap:8px;min-height:40px;align-self:flex-start}
+.ext:hover{border-color:var(--fg)}
+.sstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.sstrip img{width:100%;aspect-ratio:9/16;object-fit:cover;display:block;border:1px solid var(--line)}
+@media (max-width:600px){.metgrid div{padding:9px 6px}.metgrid b{font-size:17px}.metgrid span{font-size:9px;letter-spacing:.02em}.frow .cap{width:100%}}
+
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--ink)}
+.tabs{top:env(safe-area-inset-top,0px)}
+h1 b,h2 b{color:var(--red)}
+.brandrow{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brandrow img{height:34px;width:auto}
+.plats{display:flex;gap:1px;background:#222;border-bottom:1px solid #222}
+.plats button{flex:1;appearance:none;border:0;background:#0b0b0b;color:#8e8e8e;font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:12px 8px;cursor:pointer;min-height:42px}
+.plats button[aria-pressed="true"]{color:#fff;box-shadow:inset 0 -3px 0 var(--pump)}
+.plats button:focus-visible{outline:2px solid var(--pump);outline-offset:-2px}
+.ig.fb .capt,.ig.li .capt{order:-1;padding-top:12px}
+.ig{display:flex;flex-direction:column}
+.ig .igh{order:-2}.ig .plats{order:-3}
+.ig.fb,.ig.li{background:#1b1e22}
+.ig.fb .acts,.ig.li .acts{display:none}
+.lifoot{display:none;padding:10px 12px 14px;color:#9aa0a8;font:500 12px/1.3 var(--mono);letter-spacing:.04em;border-top:1px solid #2a2e33;gap:18px}
+.ig.fb .lifoot,.ig.li .lifoot{display:flex}
+.chan{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:28px}
+.chan > div{background:var(--ink);padding:18px 16px 20px;min-width:0;display:flex;flex-direction:column;gap:10px}
+.chan h3{margin:0;font-size:24px;letter-spacing:-.03em;line-height:1.05}
+.chan h3 b{color:var(--pump)}
+.chan p{margin:0;color:#cfd2d6;font-size:14.5px}
+.chan ul{margin:0;padding-left:18px;color:#cfd2d6;font-size:14px;display:flex;flex-direction:column;gap:4px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px;margin-top:24px}
+.rules p{margin:0;font-size:15px;color:#cfd2d6;padding-left:16px;border-left:3px solid var(--red)}
+.rules p b{color:var(--fg)}
+.copy{align-self:flex-start}
+@media (max-width:900px){.chan{grid-template-columns:1fr}.rules{grid-template-columns:1fr}}
+
+</style>
+
+<div class="wrap">
+<header>
+  <div class="brandrow"><div class="cap eyebrow"><i></i><i></i>Instagram · Facebook · LinkedIn · Estratégia e peças</div></div>
+  <h1>Agenda de<br>publicações<b>.</b></h1>
+  <p class="lead">Posts da Maxzz Diesel de 10 de novembro a 31 de dezembro: a série do novo posicionamento como grupo, a Black Friday Week de peças e da Diesel Tech Academy (23 a 30/11) e as datas de dezembro. Posts em inglês, com legenda própria para cada rede. Aprovou, entra na fila no dia e horário marcados. Pediu ajuste, a peça volta refeita.</p>
+  <div class="tabs" role="tablist" aria-label="Visões">
+    <button type="button" role="tab" id="t-pecas" data-v="pecas" aria-controls="v-pecas">Peças para aprovação <span class="ct" id="tab-ct">30</span></button>
+    <button type="button" role="tab" id="t-historico" data-v="historico" aria-controls="v-historico">Histórico <span class="ct" id="hist-ct" style="background:var(--panel);color:var(--fg)" hidden></span></button>
+    <button type="button" role="tab" id="t-estrategia" data-v="estrategia" aria-controls="v-estrategia">Estratégia</button>
+  </div>
+</header>
+
+<div class="view" id="v-historico" role="tabpanel" aria-labelledby="t-historico" hidden>
+  <section style="margin-top:36px;border-top:0;padding-top:0" aria-labelledby="h-hist">
+    <div class="cap">Tudo que já foi ao ar nas redes da Maxzz</div>
+    <h2 id="h-hist">O que já <b>publicamos.</b></h2>
+    <p class="sub">Cada post publicado, com legenda, link e números. Filtre por mês e formato. Abra uma peça para pedir uma versão para Stories.</p>
+    <div class="hstats" id="hstats"></div>
+    <div class="filters" id="hfilters" aria-label="Filtros do histórico"></div>
+    <div id="hlist"><p class="empty">Carregando o histórico…</p></div>
+    <div class="reqs" id="reqs" hidden>
+      <div class="cap">Pedidos de Stories</div>
+      <h2 style="font-size:clamp(24px,3vw,32px)">Versões para <b>Stories.</b></h2>
+      <p class="sub">Os pedidos ficam aqui até a versão 9:16 ficar pronta.</p>
+      <div id="reqlist" style="margin-top:18px"></div>
+    </div>
+  </section>
+</div>
+
+<div class="view" id="v-pecas" role="tabpanel" aria-labelledby="t-pecas">
+  <section style="margin-top:36px;border-top:0;padding-top:0" aria-labelledby="h-pecas">
+    <div class="cap">10 nov a 31 dez · 30 peças · 102 telas · horário de Miami (ET)</div>
+    <h2 id="h-pecas">Peças para <b>aprovação.</b></h2>
+    <p class="sub">Clique numa peça para ver como fica no Instagram, no Facebook e no LinkedIn, ler cada legenda e aprovar ou pedir ajuste. Códigos de peça e marcas citadas passam pelo Michael antes de aprovar.</p>
+    <div class="sum" id="sum" aria-label="Filtrar por status"></div>
+    <div class="banner" id="banner" hidden></div>
+    <div id="weeks"></div>
+  </section>
+</div>
+
+<div class="view" id="v-estrategia" role="tabpanel" aria-labelledby="t-estrategia" hidden>
+  <div class="facts" style="margin-top:36px">
+    <span><b>3 a 7</b>posts por semana</span>
+    <span><b>3</b>redes, 1 peça</span>
+    <span><b>30</b>peças no período</span>
+    <span><b>8</b>datas dos EUA</span>
+    <span><b>14</b>peças com preço BF</span>
+  </div>
+  <nav class="toc" aria-label="Seções">
+    <a href="#fases">Fases</a><a href="#canais">Cada rede</a><a href="#ritmo">Ritmo semanal</a><a href="#mix">Linhas editoriais</a><a href="#datas">Datas</a><a href="#regras">Regras da casa</a><a href="#radar">Pautas</a><a href="#" data-goto="pecas">Peças</a>
+  </nav>
+
+<section id="fases" aria-labelledby="h-fases">
+  <div class="cap">00 / Fases</div>
+  <h2 id="h-fases">Três momentos <b>até o fim do ano.</b></h2>
+  <p class="sub">Novembro apresenta a Maxzz como grupo. A Black Friday Week alterna peças e cursos. Dezembro fecha o ano com catálogo, prazo de entrega e agradecimento.</p>
+  <div class="months">
+    <div class="month"><h3>10 a 22/11 <span>Grupo</span></h3>
+      <div class="ev"><span class="dt">Marca</span><div><h4>O novo posicionamento</h4><p>Cinco linhas de produto, um parceiro diesel. Institucional, catálogo e a DTA como braço de treinamento do grupo.</p></div></div>
+      <div class="ev"><span class="dt">20/11</span><div><h4>Teaser no feed</h4><p>Anuncia a Black Friday Week. Stories com contagem regressiva de 16 a 22.</p></div></div>
+      <div class="ev"><span class="dt">22/11</span><div><h4>Acesso antecipado</h4><p>Lista da DTA recebe o link no domingo. Link da página pendente.</p></div></div>
+    </div>
+    <div class="month"><h3>23 a 30/11 <span>BF Week</span></h3>
+      <div class="ev"><span class="dt r">Peças</span><div><h4>Tabela de preços</h4><p>14 códigos: Ford 6.7L, Cummins, Caterpillar, Volvo, Mack e Duramax. Carrosséis por família.</p></div></div>
+      <div class="ev"><span class="dt r">DTA</span><div><h4>50% em tudo</h4><p>Complete por US$ 798,50 é a estrela. Termina 30/11 às 23h59, horário da Flórida. Links direto para dieseltechacademy.com.</p></div></div>
+      <div class="ev"><span class="dt">Ritmo</span><div><h4>Intercalado</h4><p>Um dia peças, outro dia cursos. No dia 27 e no dia 30, os dois.</p></div></div>
+    </div>
+    <div class="month"><h3>Dez <span>fechamento</span></h3>
+      <div class="ev"><span class="dt">14 a 21/12</span><div><h4>Catálogo e prazo</h4><p>Aftertreatment, Section 179 e "Order by Dec 21" para chegar antes das festas.</p></div></div>
+      <div class="ev"><span class="dt">24 a 31/12</span><div><h4>Festas</h4><p>Christmas, agradecimento de 2026 e Ano Novo.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="canais" aria-labelledby="h-canais">
+  <div class="cap">01 / Cada rede</div>
+  <h2 id="h-canais">Uma peça, <b>três leituras.</b></h2>
+  <p class="sub">A imagem é a mesma nas três redes. O que muda é a legenda: quem lê, quanto lê e o que faz depois.</p>
+  <div class="chan">
+    <div><span class="tag r">Principal</span><h3>LinkedIn<b>.</b></h3><p>Onde está quem compra: donos de laboratório de injeção, compradores de distribuidores, gestores de frota.</p><ul><li>Legenda mais longa, com contexto de negócio</li><li>Carrossel sobe como documento PDF</li><li>Fecha com o site, sem hashtags demais</li></ul></div>
+    <div><span class="tag p">Prova visual</span><h3>Instagram<b>.</b></h3><p>A bancada, a peça, o estoque. Mostra que a Maxzz existe, tem produto e embarca.</p><ul><li>Legenda curta, gancho na primeira linha</li><li>Hashtags técnicas: #commonrail, #powerstroke</li><li>Link na bio para a loja B2B</li></ul></div>
+    <div><span class="tag g">Espelho</span><h3>Facebook<b>.</b></h3><p>Alcança oficinas e mecânicos que ainda vivem lá, inclusive em grupos.</p><ul><li>Legenda média, tom direto</li><li>Carrossel sobe como álbum</li><li>Telefone e WhatsApp no texto</li></ul></div>
+  </div>
+</section>
+
+<section id="ritmo" aria-labelledby="h-ritmo">
+  <div class="cap">02 / Ritmo semanal</div>
+  <h2 id="h-ritmo">A semana <b>padrão.</b></h2>
+  <p class="sub">Segunda, quarta e sexta, sempre no horário de Miami. Carrosséis às 9h00, quando o LinkedIn está mais lido; posts simples às 12h00.</p>
+  <div class="week">
+    <div class="day on"><div class="d"><span>Segunda</span><span>9h00</span></div><h3>A peça certa<b>.</b></h3><p>Conteúdo técnico que se salva: número de peça, aplicação, inverno, contaminação.</p><span class="tag">Carrossel</span></div>
+    <div class="day"><div class="d"><span>Terça</span><span>Stories</span></div><h3>Bastidor</h3><p>Pedido sendo separado, chegada de estoque, bancada de teste.</p><span class="tag g">Stories</span></div>
+    <div class="day on"><div class="d"><span>Quarta</span><span>9h00</span></div><h3>Ecossistema<b>.</b></h3><p>Fluidos, ferramentas Robiel, equipamentos e a Diesel Tech Academy.</p><span class="tag r">Linha de produto</span></div>
+    <div class="day"><div class="d"><span>Quinta</span><span>Stories</span></div><h3>Pergunta</h3><p>Enquete ou caixa de perguntas: qual peça está faltando na sua bancada?</p><span class="tag g">Stories</span></div>
+    <div class="day on"><div class="d"><span>Sexta</span><span>9h00 ou 12h00</span></div><h3>Desde 1992<b>.</b></h3><p>História, multimarca, oferta do mês ou chamada direta para cotação.</p><span class="tag p">Marca ou oferta</span></div>
+  </div>
+</section>
+
+<section id="mix" aria-labelledby="h-mix">
+  <div class="cap">03 / Linhas editoriais</div>
+  <h2 id="h-mix">Quanto de <b>cada coisa.</b></h2>
+  <p class="sub">As linhas do plano de agosto. Os nomes são internos e nunca aparecem nas peças. Toda linha entra pelo menos duas vezes por mês.</p>
+  <div class="mix" role="img" aria-label="A peça certa 30 por cento, Desde 1992 20 por cento, O ecossistema 20 por cento, Multimarca 10 por cento, Por dentro 10 por cento, Fala com a gente 10 por cento">
+    <div style="width:30%;background:var(--fg);color:var(--ink)">30%<span>&nbsp;A peça certa</span></div>
+    <div style="width:20%;background:var(--red);color:#fff">20%<span>&nbsp;Desde 1992</span></div>
+    <div style="width:20%;background:var(--pump);color:var(--ink)">20%<span>&nbsp;Ecossistema</span></div>
+    <div style="width:10%;background:#5a5a60;color:#fff">10%<span>&nbsp;Multi</span></div>
+    <div style="width:10%;background:var(--panel);color:var(--fg)">10%<span>&nbsp;Dentro</span></div>
+    <div style="width:10%;background:#2b2f35;color:var(--fg)">10%<span>&nbsp;Fala</span></div>
+  </div>
+  <div class="mixleg">
+    <p><b>A peça certa · 30%</b>Técnico e salvável. Prova que a Maxzz entende de injeção.</p>
+    <p><b>Desde 1992 e Ecossistema · 40%</b>Trajetória da família e as cinco linhas de produto.</p>
+    <p><b>Multimarca e Por dentro · 20%</b>Denso, Delphi, Robiel e outras. Estoque e expedição em Coconut Creek.</p>
+    <p><b>Fala com a gente · 10%</b>Chamada direta: mande o número da peça.</p>
+  </div>
+</section>
+
+<section id="datas" aria-labelledby="h-datas">
+  <div class="cap">04 / Datas</div>
+  <h2 id="h-datas">O que muda <b>a agenda.</b></h2>
+  <p class="sub">Datas do varejo entram com linguagem de atacado. Feiras do setor viram pauta antes, durante e depois.</p>
+  <div class="months">
+    <div class="month"><h3>Nov <span>2026</span></h3>
+      <div class="ev"><span class="dt">11/11</span><div><h4>Veterans Day</h4><p>Só um Stories de agradecimento, sem post no feed.</p></div></div>
+      <div class="ev"><span class="dt">26/11</span><div><h4>Thanksgiving</h4><p>Post de agradecimento às oficinas e laboratórios.</p></div></div>
+      <div class="ev"><span class="dt r">27/11</span><div><h4>Black Friday</h4><p>Peças e cursos no mesmo post.</p></div></div>
+      <div class="ev"><span class="dt">28/11</span><div><h4>Small Business Saturday</h4><p>Bundles da DTA e a Maxzz como empresa de família.</p></div></div>
+      <div class="ev"><span class="dt r">30/11</span><div><h4>Cyber Monday</h4><p>Último dia: peças às 9h00, DTA às 17h00.</p></div></div>
+    </div>
+    <div class="month"><h3>Dez <span>2026</span></h3>
+      <div class="ev"><span class="dt r">até 31/12</span><div><h4>Section 179</h4><p>Equipamento precisa estar em uso até 31/12. Limite de 2026: US$ 2,56 milhões.</p></div></div>
+      <div class="ev"><span class="dt">21/12</span><div><h4>Último pedido para as festas</h4><p>Data a confirmar com o Michael.</p></div></div>
+      <div class="ev"><span class="dt">24 e 31/12</span><div><h4>Christmas e New Year</h4><p>Boas festas e um banco limpo para 2027.</p></div></div>
+    </div>
+    <div class="month"><h3>2027 <span>feiras</span></h3>
+      <div class="ev"><span class="dt">18 a 21/01</span><div><h4>HDAW, Grapevine (TX)</h4><p>Heavy Duty Aftermarket Week. Último ano no Texas.</p></div></div>
+      <div class="ev"><span class="dt">9 a 12/03</span><div><h4>Work Truck Week, Indianápolis</h4><p>Frotas e implementadores. Pauta de inverno e manutenção.</p></div></div>
+      <div class="ev"><span class="dt r">18 a 20/03</span><div><h4>MATS, Louisville</h4><p>Mid-America Trucking Show. Maior vitrine de pesados do ano.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="regras" aria-labelledby="h-regras">
+  <div class="cap">05 / Regras da casa</div>
+  <h2 id="h-regras">O que vale <b>em todo post.</b></h2>
+  <div class="rules">
+    <p><b>Preço só na Black Friday Week.</b> Fora da campanha, a conversa de valor acontece na cotação. Estoque nunca em número.</p>
+    <p><b>Segundo curso pausado.</b> A oferta do segundo curso da DTA fica só no email durante a promoção, nunca no feed.</p>
+    <p><b>Código de peça conferido.</b> Todo número publicado passa pelo Michael ou pelo Unleashed.</p>
+    <p><b>Marcas de terceiros em texto.</b> Sem logos de fabricantes nas artes.</p>
+    <p><b>Inglês, com atendimento em três línguas.</b> O post fala inglês; o WhatsApp responde em inglês, espanhol e português.</p>
+    <p><b>Todo post termina num caminho.</b> Site, telefone ou WhatsApp, nunca só a imagem.</p>
+  </div>
+</section>
+
+<section id="radar" aria-labelledby="h-radar">
+  <div class="cap">06 / Pautas</div>
+  <h2 id="h-radar">Assuntos que <b>o setor discute.</b></h2>
+  <p class="sub">Banco de pautas para os próximos lotes, cada uma com um gancho pronto. Revisar a cada trimestre.</p>
+  <div class="radar">
+    <div class="hype"><span class="n">01</span><div><h3>Falta de técnicos diesel</h3><p>Oficinas e frotas disputam mão de obra qualificada.</p><p class="pauta">Treinar a equipe sai mais barato que refazer o serviço. Gancho da Diesel Tech Academy.</p></div></div>
+    <div class="hype"><span class="n">02</span><div><h3>Contaminação de combustível</h3><p>Água e partículas continuam sendo a causa mais comum de injetor condenado.</p><p class="pauta">Como saber se o injetor morreu por contaminação, em 4 telas.</p></div></div>
+    <div class="hype"><span class="n">03</span><div><h3>Pós-tratamento na bancada</h3><p>DPF, SCR e sensor de NOx pesam cada vez mais na conta da oficina.</p><p class="pauta">Teste o sensor de NOx antes de trocar. Aftertreatment Box e NOx Tester Box.</p></div></div>
+    <div class="hype"><span class="n">04</span><div><h3>Prazo de entrega</h3><p>Quando um fabricante atrasa, a bancada para.</p><p class="pauta">Multimarca é plano B pronto: três opções para o mesmo motor.</p></div></div>
+    <div class="hype"><span class="n">05</span><div><h3>Aftermarket de qualidade</h3><p>Pergunta de todo dia no balcão: original ou aftermarket?</p><p class="pauta">Como a Maxzz escolhe o aftermarket que entra no estoque, em 4 telas.</p></div></div>
+    <div class="hype"><span class="n">06</span><div><h3>Inverno e partida a frio</h3><p>De novembro a fevereiro, o assunto volta toda semana.</p><p class="pauta">Checklist de inverno para a frota, em formato salvável.</p></div></div>
+  </div>
+</section>
+
+<section aria-labelledby="h-src">
+  <div class="cap">Fontes</div>
+  <h2 id="h-src" style="font-size:24px">Onde as datas e os números foram conferidos</h2>
+  <div class="src">
+    <a href="https://www.currentfederaltaxdevelopments.com/blog/2025/10/9/2026-inflation-adjustments-for-tax-professionals-revenue-procedure-2025-32-analysis" target="_blank" rel="noopener">Rev. Proc. 2025-32: limite do Section 179 para 2026</a>
+    <a href="https://www.truckpartsandservice.com/business/article/15833331/heavy-duty-aftermarket-week-2027-registration-now-open" target="_blank" rel="noopener">Truck Parts &amp; Service: HDAW 2027, 18 a 21 de janeiro</a>
+    <a href="https://www.worktruckweek.com/WTS/WTSpressreleases/2023/NTEA-announces-wtw-dates-through-2030.aspx" target="_blank" rel="noopener">NTEA: Work Truck Week 2027, 9 a 12 de março</a>
+    <a href="https://truckingshow.com/news/55-years-of-mats-the-trucking-industrys-route-to-success/" target="_blank" rel="noopener">MATS: 18 a 20 de março de 2027</a>
+  </div>
+</section>
+</div>
+
+<footer class="cap"><span>Maxzz Diesel · Diesel is all we do. Since 1992.</span><span>Atualizado em 9 nov 2026</span></footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="side-title">
+  <div class="mbox">
+    <div class="ig" id="igbox">
+      <div class="plats" id="plats" role="group" aria-label="Rede"><button type="button" data-p="ig">Instagram</button><button type="button" data-p="fb">Facebook</button><button type="button" data-p="li">LinkedIn</button></div>
+      <div class="igh"><span class="av"><img src="m/mark.svg" alt=""></span><div><b id="ig-name">maxzzdiesel</b><small id="ig-when"></small></div></div>
+      <div class="stage" id="stage">
+        <div class="track" id="track" tabindex="0" aria-label="Telas da peça"></div>
+        <button type="button" class="arr l" id="al" aria-label="Tela anterior"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button type="button" class="arr r" id="ar" aria-label="Próxima tela"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 6l6 6-6 6"/></svg></button>
+      </div>
+      <div class="dots" id="dots"></div>
+      <div class="acts" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7.5-4.6-9.3-9.2C1.5 8.4 3.6 5 7 5c2 0 3.6 1.1 5 3 1.4-1.9 3-3 5-3 3.4 0 5.5 3.4 4.3 6.8C19.5 16.4 12 21 12 21z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.5 11.5a8.5 8.5 0 1 1-3.9-7.1A8.5 8.5 0 0 1 20.5 11.5zM20.5 20.5l-2.3-4.4"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M22 3L9.2 10.1M22 3l-7 18-3.8-8.8L2 9l20-6z"/></svg>
+        <span class="sp"></span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M19 21l-7-5-7 5V3h14z"/></svg>
+      </div>
+      <div class="capt" id="capt"></div>
+      <div class="lifoot" id="lifoot"></div>
+    </div>
+    <div class="side">
+      <div class="top"><span class="cap" id="side-title">Peça</span><button type="button" class="x" id="x" aria-label="Fechar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div id="side-body" style="display:flex;flex-direction:column;gap:16px;flex:1"></div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="hdlg" aria-labelledby="h-side-title">
+  <div class="mbox">
+    <div class="ig">
+      <div class="igh"><span class="av"><img src="m/mark.svg" alt=""></span><div><b>maxzzdiesel</b><small id="h-when"></small></div></div>
+      <div class="hcover" id="hcover"></div>
+      <div class="capt" id="hcapt" style="padding-top:14px"></div>
+    </div>
+    <div class="side">
+      <div class="top"><span class="cap" id="h-side-title">Publicado</span><button type="button" class="x" id="hx" aria-label="Fechar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div id="h-body" style="display:flex;flex-direction:column;gap:16px;flex:1"></div>
+    </div>
+  </div>
+</dialog>
+
+<script type="application/json" id="posts-data">[{"id": "m01", "date": "2026-11-10", "weekday": "ter", "time": "09h00", "pilar": "Desde 1992", "kind": "Carrossel", "title": "Diesel is all we do.", "cap": {"ig": "Diesel is all we do. Since 1992.\n\nFounded in Brazil, in Florida since 2013, supplying injection labs, rebuilders and distributors across North America and Latin America.\n\nFive lines, one source: injection parts, aftertreatment, fluids, tool sets, and the Diesel Tech Academy.\n\nSend us the part number. Link in bio.\n\n#dieselinjection #commonrail #dieselparts #injectorrebuild #maxzzdiesel", "fb": "Diesel is all we do. Since 1992.\n\nWe started in Brazil and have served the US market from Coconut Creek, Florida since 2013. Today we supply injection labs, rebuilders and distributors across North America and Latin America.\n\nFive lines, one source: injection parts, aftertreatment, fluids, tool sets, and training through the Diesel Tech Academy.\n\nGot a part number? Send it our way: maxzzdiesel.com", "li": "Diesel is all we do. Since 1992.\n\nMaxzz Diesel started in Brazil in 1992 and opened its US operation in Coconut Creek, Florida in 2013. Since then we have supplied injection labs, rebuilders and distributors across North America and Latin America.\n\nThe group now covers five lines under one roof:\n1. Injection parts\n2. Aftertreatment\n3. Fluids\n4. Tool sets\n5. Diesel Tech Academy\n\nOne supplier for the whole bench means fewer purchase orders, one point of contact and parts that work together.\n\nmaxzzdiesel.com\n\n#DieselInjection #Aftermarket #MaxzzDiesel"}, "status": "aguardando", "note": "Peça de retomada do perfil. A foto da tela 4 é do acervo histórico do site. Abre a série de posicionamento do grupo (movido de 02/11).", "imgs": ["m/m01_01.jpg?v=11091317", "m/m01_02.jpg?v=11091317", "m/m01_03.jpg?v=11091317", "m/m01_04.jpg?v=11091317", "m/m01_05.jpg?v=11091317"]}, {"id": "m05", "date": "2026-11-11", "weekday": "qua", "time": "09h00", "pilar": "Por dentro", "kind": "Carrossel", "title": "Checked. Packed. Shipped.", "cap": {"ig": "Checked. Packed. Shipped.\n\nEvery order leaves our Coconut Creek, Florida warehouse after a second check, headed anywhere in North America and Latin America.\n\nNeed it this week? Ask us today.\n\n#dieselparts #warehouse #shipping #maxzzdiesel", "fb": "Checked. Packed. Shipped.\n\nOrders leave our Coconut Creek, Florida warehouse every day for shops across North America and Latin America. Need a part this week? Call +1 (954) 586-4158.", "li": "What happens after you send the PO.\n\nEvery order is picked, checked a second time and packed in our Coconut Creek, Florida warehouse before it ships to North America or Latin America. Simple, and the reason returns stay low.\n\nNeed it this week? +1 (954) 586-4158\n\n#Logistics #DieselParts #Aftermarket"}, "status": "aguardando", "note": "11/11 é Veterans Day: sugiro só um Stories de agradecimento, sem post no feed. A tela 3 pode virar um mapa, se preferir.", "imgs": ["m/m05_01.jpg?v=11091317", "m/m05_02.jpg?v=11091317", "m/m05_03.jpg?v=11091317", "m/m05_04.jpg?v=11091317"]}, {"id": "m03", "date": "2026-11-12", "weekday": "qui", "time": "09h00", "pilar": "Multimarca", "kind": "Carrossel", "title": "One application. More than one right part.", "cap": {"ig": "One application. More than one right part.\n\nWe carry Bosch, Delphi, Denso and more, so the answer starts with your engine and your deadline, not with a single brand.\n\nTell us the application and we'll show you the options.\n\n#commonrail #bosch #delphi #denso #dieselparts #maxzzdiesel", "fb": "One application. More than one right part.\n\nBecause we work with several manufacturers, we can match the part to your engine, your deadline and your budget. Tell us the application and we'll show you the options.", "li": "Most engines have more than one right part.\n\nBeing multibrand changes the conversation. Instead of pushing one catalog, we start from the application and weigh four things: fit for the engine, what is in stock today, lead time to your door and your budget.\n\nThat is how a rebuilder keeps a bench moving when one manufacturer is on backorder.\n\nTell us the engine, we'll show the options: maxzzdiesel.com\n\n#DieselInjection #CommonRail #Aftermarket"}, "status": "aguardando", "note": "Marcas citadas: confirmar com Michael quais podem ser nomeadas.", "imgs": ["m/m03_01.jpg?v=11091317", "m/m03_02.jpg?v=11091317", "m/m03_03.jpg?v=11091317", "m/m03_04.jpg?v=11091317"]}, {"id": "m06", "date": "2026-11-13", "weekday": "sex", "time": "09h00", "pilar": "O ecossistema", "kind": "Carrossel", "title": "Your next bench. Before December 31.", "cap": {"ig": "Your next bench. Before December 31.\n\nUnder Section 179, US businesses can deduct up to $2.56M in qualifying equipment placed in service in 2026. Check with your accountant, then talk to us about test equipment, the Aftertreatment Box and the NOx Tester Box.\n\n#section179 #dieseltech #diagnostics #maxzzdiesel", "fb": "Planning new equipment? Do it before December 31.\n\nSection 179 lets US businesses deduct qualifying equipment placed in service this year, up to $2.56M for 2026. Talk to your accountant, then talk to us about bench equipment, the Aftertreatment Box and the NOx Tester Box.", "li": "If a new bench is on your 2027 list, look at the calendar.\n\nSection 179 allows US businesses to deduct qualifying equipment placed in service during the tax year. The 2026 limit is $2.56M (IRS Rev. Proc. 2025-32). Equipment has to be in service by December 31, so delivery time matters.\n\nWe can help with bench equipment, the Aftertreatment Box and the NOx Tester Box. Your accountant confirms what qualifies.\n\nmaxzzdiesel.com\n\n#Section179 #Diagnostics #DieselTech"}, "status": "aguardando", "note": "Valor do Section 179 para 2026: US$ 2,56 mi (IRS Rev. Proc. 2025-32). Não é aconselhamento fiscal; mantive \"check with your accountant\".", "imgs": ["m/m06_01.jpg?v=11091317", "m/m06_02.jpg?v=11091317", "m/m06_03.jpg?v=11091317", "m/m06_04.jpg?v=11091317", "m/m06_05.jpg?v=11091317"]}, {"id": "m14", "date": "2026-11-16", "weekday": "seg", "time": "09h00", "pilar": "O ecossistema", "kind": "Carrossel", "title": "Five product lines. One diesel partner.", "cap": {"ig": "Five product lines. One diesel partner.\n\nInjection parts, aftertreatment, fluids, tool sets, and the Diesel Tech Academy. One supplier for the whole bench.\n\n#dieselinjection #aftertreatment #dieseltech #maxzzdiesel", "fb": "Five lines, one source: injection parts, aftertreatment, fluids, tool sets, and training through the Diesel Tech Academy.", "li": "Why one supplier for the whole bench?\n\nFewer purchase orders, one point of contact, and parts, fluids and tools that are meant to work together. The Maxzz Diesel Companies cover five lines:\n1. Injection parts\n2. Aftertreatment\n3. Fluids\n4. Tool sets\n5. Diesel Tech Academy\n\nmaxzzdiesel.com\n\n#DieselInjection #Aftertreatment #DieselTech"}, "status": "aguardando", "note": "Série de posicionamento do grupo (movido de 02/12).", "imgs": ["m/m14_01.jpg?v=11091317", "m/m14_02.jpg?v=11091317", "m/m14_03.jpg?v=11091317", "m/m14_04.jpg?v=11091317", "m/m14_05.jpg?v=11091317", "m/m14_06.jpg?v=11091317"]}, {"id": "m07", "date": "2026-11-17", "weekday": "ter", "time": "09h00", "pilar": "A peça certa", "kind": "Carrossel", "title": "Read a Bosch part number.", "cap": {"ig": "Read a Bosch part number.\n\n0 445 marks the common rail family. 110 is light duty CRI, 120 is heavy duty CRIN, 115 to 117 are piezo, 010 and 020 are high-pressure pumps.\n\nSave it for the bench. Not sure about a number? Send it to us.\n\n#bosch #commonrail #crin #dieselinjection #maxzzdiesel", "fb": "Quick guide: reading a Bosch common rail part number.\n\n0 445 110: CRI injectors, light duty\n0 445 120: CRIN injectors, heavy duty\n0 445 115 to 117: piezo injectors\n0 445 010 / 020: high-pressure pumps\n\nNot sure about a number? Send it to us on WhatsApp: +1 (954) 371-6996", "li": "A part number is a spec sheet in ten digits.\n\nFor Bosch common rail, 0 445 marks the family and the next three digits narrow it down:\n0 445 110: CRI injectors, light duty\n0 445 120: CRIN injectors, heavy duty\n0 445 115 to 117: piezo injectors\n0 445 010 / 020: high-pressure pumps\n\nSave it for the next quote. If a number doesn't match what is on the bench, send it to us and we'll check it against stock and cross-reference.\n\n#Bosch #CommonRail #DieselInjection"}, "status": "aguardando", "note": "Conferir a tabela de prefixos com o Michael antes de aprovar. Conteúdo de salvamento.", "imgs": ["m/m07_01.jpg?v=11091317", "m/m07_02.jpg?v=11091317", "m/m07_03.jpg?v=11091317", "m/m07_04.jpg?v=11091317"]}, {"id": "m08", "date": "2026-11-18", "weekday": "qua", "time": "09h00", "pilar": "O ecossistema", "kind": "Carrossel", "title": "The fluid is part of the test.", "cap": {"ig": "The fluid is part of the test.\n\nMaxzz Fluid Series: 4113 CAL calibration fluid, 2271 SONIC for ultrasonic cleaning and 2221S SOLV solvent degreaser. Ships with your parts.\n\n#calibrationfluid #iso4113 #testbench #dieselinjection #maxzzdiesel", "fb": "The fluid is part of the test.\n\nMaxzz Fluid Series for the injection lab:\n4113 CAL: ISO 4113 calibration fluid\n2271 SONIC: ultrasonic cleaning\n2221S SOLV: solvent degreaser\n\nAdd them to your next parts order.", "li": "A test bench is only as consistent as the fluid in it.\n\nThe Maxzz Fluid Series covers the three fluids an injection lab goes through every week:\n4113 CAL: ISO 4113 calibration fluid for test benches\n2271 SONIC: ultrasonic cleaning\n2221S SOLV: solvent degreaser\n\nThey ship with your parts, and technical data sheets are available on request.\n\n#InjectionLab #TestBench #DieselInjection"}, "status": "aguardando", "note": "Descrições batem com as fichas técnicas do site.", "imgs": ["m/m08_01.jpg?v=11091317", "m/m08_02.jpg?v=11091317", "m/m08_03.jpg?v=11091317", "m/m08_04.jpg?v=11091317", "m/m08_05.jpg?v=11091317"]}, {"id": "m19", "date": "2026-11-19", "weekday": "qui", "time": "09h00", "pilar": "O ecossistema", "kind": "Carrossel", "title": "Training from the people who supply the parts.", "cap": {"ig": "Training from the people who supply the parts.\n\nThe Diesel Tech Academy is the training arm of the Maxzz Diesel Companies. Courses are taught by Waldyr Mazzer, in diesel injection since 1982 and a former senior instructor for Bosch and Delphi in Latin America.\n\n10 courses, online and onsite in Florida. Bosch CRIN, Denso, Continental and Cummins ISX15.\n\ndieseltechacademy.com\n\n#dieseltraining #commonrail #injectorrepair #dieseltechacademy #maxzzdiesel", "fb": "Training from the people who supply the parts.\n\nThe Diesel Tech Academy is part of the Maxzz Diesel Companies. Our courses are taught by Waldyr Mazzer, who has worked in diesel injection since 1982 and was a senior instructor for Bosch and Delphi in Latin America.\n\n10 courses, online and onsite in Florida: Bosch CRIN, Denso, Continental and Cummins ISX15.\n\nSee the courses at dieseltechacademy.com", "li": "Training from the people who supply the parts.\n\nThe Diesel Tech Academy is the training arm of the Maxzz Diesel Companies. It exists for a simple reason: the people who supply your injectors should also be able to teach your team how to repair them.\n\nOur courses are taught by Waldyr Mazzer, in diesel injection since 1982, a former senior instructor for Bosch and Delphi in Latin America and the founder of Maxzz Diesel.\n\n10 courses, online and onsite in Florida, covering Bosch CRIN, Denso, Continental and Cummins ISX15 systems.\n\ndieseltechacademy.com\n\n#DieselTraining #CommonRail #InjectorRepair"}, "status": "aguardando", "note": "Série de posicionamento do grupo: DTA como braço de treinamento. Credencial do Waldyr conforme aprovado. Dia seguinte ao estático do Bosch CRIN (Arthur) no perfil da DTA.", "imgs": ["m/m19_01.jpg?v=11091317", "m/m19_02.jpg?v=11091317", "m/m19_03.jpg?v=11091317", "m/m19_04.jpg?v=11091317"]}, {"id": "m20", "date": "2026-11-20", "weekday": "sex", "time": "12h00", "pilar": "Oferta", "kind": "Post", "title": "Black Friday Week is coming.", "cap": {"ig": "Black Friday Week is coming.\n\nStarting Monday, Nov 23: special pricing on in-stock injectors at Maxzz Diesel, and 50% off every Diesel Tech Academy course and bundle.\n\nNov 23 to 30. Turn on notifications.\n\n#blackfriday #dieselparts #dieseltraining #maxzzdiesel", "fb": "Black Friday Week is coming.\n\nFrom Monday, Nov 23 to Monday, Nov 30: special pricing on in-stock injectors at Maxzz Diesel, and 50% off every Diesel Tech Academy course and bundle. Prices go live on Monday.", "li": "Black Friday Week starts Monday.\n\nFrom November 23 to 30, the Maxzz Diesel Companies are running two offers: special pricing on in-stock Bosch, Delphi, Caterpillar and Cummins XPI injectors, and 50% off every Diesel Tech Academy course and bundle.\n\nPrices go live on Monday.\n\n#BlackFriday #DieselParts #DieselTraining"}, "status": "aguardando", "note": "Teaser do grupo no mesmo dia do teaser da DTA (Reel dos bundles terminando com \"Black Friday is coming\"). Stories de contagem regressiva de 16 a 22 no perfil da DTA.", "imgs": ["m/m20_01.jpg?v=11091317"]}, {"id": "m10", "date": "2026-11-23", "weekday": "seg", "time": "09h00", "pilar": "Oferta", "kind": "Carrossel", "title": "Black Friday Week. Injectors on special pricing.", "cap": {"ig": "Black Friday Week. Injectors on special pricing, in stock in Florida.\n\nFord 6.7L Power Stroke from $191.63 + core\nRam Cummins 6.7L 0 445 124 047: $359\nCummins ISX15 XPI from $180\nCaterpillar 10R0963 / 10R8502 / 10R8501: $245\nVolvo D13 / Mack MP8: $300 · Volvo D12: $270\nDuramax LML: $206.27 + core\n\nSwipe for every part number. Through Nov 30.\n\n#blackfriday #dieselparts #powerstroke #cummins #caterpillar #maxzzdiesel", "fb": "Black Friday Week at Maxzz Diesel: injectors on special pricing, in stock in Florida, Nov 23 to 30.\n\nFord 6.7L Power Stroke from $191.63 + core\nRam Cummins 6.7L: $359\nCummins ISX15 XPI from $180\nCaterpillar C10, C12, 3406E, C15, C16: $245\nVolvo D13 / Mack MP8: $300 · Volvo D12: $270\nDuramax LML: $206.27 + core\n\nCall +1 (954) 586-4158, WhatsApp +1 (954) 371-6996 or order at maxzzdiesel.com", "li": "Black Friday Week at Maxzz Diesel: 14 injectors on special pricing, in stock in South Florida, November 23 to 30.\n\nFord 6.7L Power Stroke: Bosch 0 445 117 094 ($269), 0 445 117 096 ($270), reman 0 986 435 415 and 0 986 435 433 ($191.63 + core)\nRam Cummins 6.7L: Bosch 0 445 124 047 ($359)\nCummins ISX15: aftermarket XPI 2872405 ($180) and 2897320 ($347), Delphi reman HPI EX634434 ($225)\nCaterpillar: 10R0963, 10R8502, 10R8501 ($245)\nVolvo / Mack: Delphi reman EX631029 ($300), EX631007 ($270)\nDuramax LML: Bosch reman 0 986 435 410 ($206.27 + core)\n\nMost orders ship the same business day.\nmaxzzdiesel.com · +1 (954) 586-4158\n\n#BlackFriday #DieselParts #B2B"}, "status": "aguardando", "note": "Abre a Black Friday Week de peças com a tabela completa. Preços da tabela de Black Friday enviada pelo Mateus em 9/11. Itens reman com \"+ core\". Conferir com o Michael estoque e códigos antes de aprovar.", "imgs": ["m/m10_01.jpg?v=11091317", "m/m10_02.jpg?v=11091317", "m/m10_03.jpg?v=11091317", "m/m10_04.jpg?v=11091317", "m/m10_05.jpg?v=11091317", "m/m10_06.jpg?v=11091317"]}, {"id": "m21", "date": "2026-11-24", "weekday": "ter", "time": "09h00", "pilar": "Oferta · DTA", "kind": "Carrossel", "title": "All 10 courses. Under $800.", "cap": {"ig": "All 10 courses. Under $800.\n\nBlack Friday Week at the Diesel Tech Academy: the Complete bundle, every course we teach, for $798.50 (regular $1,597). It has never been offered before.\n\nTaught by Waldyr Mazzer, in diesel injection since 1982 and a former senior instructor for Bosch and Delphi in Latin America.\n\nEnds Nov 30 at 11:59 PM ET. dieseltechacademy.com\n\n#blackfriday #dieseltraining #commonrail #dieseltechacademy", "fb": "All 10 courses. Under $800.\n\nFor Black Friday Week, the Diesel Tech Academy Complete bundle is $798.50 instead of $1,597. Every course we teach, online and at your own pace, taught by Waldyr Mazzer (diesel injection since 1982, former senior instructor for Bosch and Delphi in Latin America).\n\nEnds Monday, Nov 30 at 11:59 PM ET. dieseltechacademy.com", "li": "All 10 Diesel Tech Academy courses for $798.50.\n\nFor Black Friday Week, the Complete bundle (regular $1,597) gives your team every course we teach: Bosch CRIN, Denso, Continental, Cummins ISX15 and more, online and at your own pace.\n\nCourses are taught by Waldyr Mazzer, in diesel injection since 1982 and a former senior instructor for Bosch and Delphi in Latin America.\n\nEnds November 30 at 11:59 PM ET.\ndieseltechacademy.com\n\n#BlackFriday #DieselTraining #Workforce"}, "status": "aguardando", "note": "Complete como estrela da campanha. Preços: curso $148.50, Titanium $348.50, Max $598.50, Complete $798.50 (50% em tudo). Link direto para compra.", "imgs": ["m/m21_01.jpg?v=11091317", "m/m21_02.jpg?v=11091317", "m/m21_03.jpg?v=11091317", "m/m21_04.jpg?v=11091317"]}, {"id": "m12", "date": "2026-11-25", "weekday": "qua", "time": "09h00", "pilar": "Oferta", "kind": "Carrossel", "title": "Ford 6.7L Power Stroke. Black Friday pricing.", "cap": {"ig": "Ford 6.7L Power Stroke injectors, Black Friday pricing.\n\nBosch 0 445 117 094 (2015-2019): $269\nBosch 0 445 117 096 (2011-2014): $270\nBosch reman 0 986 435 415 (2011-2014): $191.63 + core\nBosch reman 0 986 435 433 (2015-2019): $191.63 + core\n\nIn stock in Florida. Through Nov 30.\n\n#powerstroke #ford67 #blackfriday #dieselparts", "fb": "Ford 6.7L Power Stroke injectors on Black Friday pricing, in stock in Florida:\n\nBosch 0 445 117 094 (2015-2019 pickups, 2017-2019 chassis cabs): $269\nBosch 0 445 117 096 (2011-2014 pickups, 2011-2016 chassis cabs): $270\nBosch reman 0 986 435 415 (2011-2014): $191.63 + core\nBosch reman 0 986 435 433 (2015-2019): $191.63 + core\n\nThrough Nov 30. Call +1 (954) 586-4158.", "li": "Ford 6.7L Power Stroke injectors on Black Friday pricing, in stock in South Florida.\n\nBosch 0 445 117 094, 2015-2019 pickups and 2017-2019 chassis cabs: $269\nBosch 0 445 117 096, 2011-2014 pickups and 2011-2016 chassis cabs: $270\nBosch reman 0 986 435 415, 2011-2014: $191.63 + core\nBosch reman 0 986 435 433, 2015-2019: $191.63 + core\n\nThrough November 30.\nmaxzzdiesel.com\n\n#PowerStroke #DieselParts #BlackFriday"}, "status": "aguardando", "note": "Preços da tabela de Black Friday enviada pelo Mateus em 9/11. Itens reman com \"+ core\". Conferir com o Michael estoque e códigos antes de aprovar.", "imgs": ["m/m12_01.jpg?v=11091317", "m/m12_02.jpg?v=11091317", "m/m12_03.jpg?v=11091317"]}, {"id": "m11", "date": "2026-11-26", "weekday": "qui", "time": "12h00", "pilar": "Data", "kind": "Post", "title": "Thankful for every shop.", "cap": {"ig": "Thankful for every shop that keeps diesel running.\n\nHappy Thanksgiving from all of us at Maxzz Diesel.\n\n#thanksgiving #dieseltech #maxzzdiesel", "fb": "Thankful for every shop that keeps diesel running. Happy Thanksgiving from the Maxzz Diesel team.", "li": "This Thanksgiving we're thankful for the injection labs, rebuilders and distributors who trust us with their benches, and for the team that ships every order.\n\nHappy Thanksgiving from Maxzz Diesel.\n\n#Thanksgiving #DieselIndustry"}, "status": "aguardando", "note": "Publicar na quarta, véspera do feriado (26/11). Movido para o próprio dia 26/11. Sem promoção.", "imgs": ["m/m11_01.jpg?v=11091317"]}, {"id": "m22", "date": "2026-11-27", "weekday": "sex", "time": "09h00", "pilar": "Oferta", "kind": "Carrossel", "title": "Black Friday. Parts and courses.", "cap": {"ig": "Black Friday. Parts and courses.\n\nMaxzz Diesel: in-stock injectors on special pricing, from Ford 6.7L Power Stroke and Ram Cummins 6.7L to Cummins ISX15, Caterpillar and Volvo.\nDiesel Tech Academy: 50% off every course and bundle. All 10 courses, $798.50.\n\nThrough Monday, Nov 30.\nParts: maxzzdiesel.com\nCourses: dieseltechacademy.com\n\n#blackfriday #dieselparts #dieseltraining #maxzzdiesel", "fb": "Black Friday at the Maxzz Diesel Companies.\n\nParts: in-stock injectors on special pricing for Ford 6.7L Power Stroke, Ram Cummins 6.7L, Cummins ISX15, Caterpillar and Volvo. Call +1 (954) 586-4158 or order at maxzzdiesel.com\n\nTraining: 50% off every Diesel Tech Academy course and bundle. All 10 courses for $798.50 at dieseltechacademy.com\n\nThrough Monday, Nov 30.", "li": "Black Friday at the Maxzz Diesel Companies.\n\nParts: in-stock injectors on special pricing, including Bosch common rail for Ford 6.7L Power Stroke ($269) and Ram Cummins 6.7L ($359), aftermarket XPI for Cummins ISX15 ($180) and electronic unit injectors for Caterpillar and Volvo.\n\nTraining: 50% off every Diesel Tech Academy course and bundle, with all 10 courses for $798.50.\n\nThrough November 30.\nmaxzzdiesel.com · dieseltechacademy.com\n\n#BlackFriday #DieselParts #DieselTraining"}, "status": "aguardando", "note": "Post do dia: os dois lados do grupo juntos. Preços da tabela de Black Friday enviada pelo Mateus em 9/11. Itens reman com \"+ core\". Conferir com o Michael estoque e códigos antes de aprovar.", "imgs": ["m/m22_01.jpg?v=11091317", "m/m22_02.jpg?v=11091317", "m/m22_03.jpg?v=11091317", "m/m22_04.jpg?v=11091317", "m/m22_05.jpg?v=11091317"]}, {"id": "m23", "date": "2026-11-28", "weekday": "sáb", "time": "09h00", "pilar": "Oferta · DTA", "kind": "Carrossel", "title": "Pick your bundle.", "cap": {"ig": "Pick your bundle. 50% off everything at the Diesel Tech Academy.\n\nSingle course: $148.50 (was $297)\nTitanium, 3 courses: $348.50 (was $697)\nMax, 6 courses: $598.50 (was $1,197)\nComplete, all 10: $798.50 (was $1,597)\n\nEnds Nov 30 at 11:59 PM ET. dieseltechacademy.com\n\n#blackfriday #dieseltraining #dieseltechacademy", "fb": "50% off every Diesel Tech Academy course and bundle.\n\nSingle course: $148.50 (was $297)\nTitanium, 3 courses: $348.50 (was $697)\nMax, 6 courses: $598.50 (was $1,197)\nComplete, all 10 courses: $798.50 (was $1,597)\n\nEnds Monday, Nov 30 at 11:59 PM ET. dieseltechacademy.com", "li": "Black Friday Week at the Diesel Tech Academy: 50% off every course and bundle.\n\nSingle course: $148.50\nTitanium (3 courses): $348.50\nMax (6 courses): $598.50\nComplete (all 10 courses): $798.50\n\nEnds November 30 at 11:59 PM ET.\ndieseltechacademy.com\n\n#BlackFriday #DieselTraining"}, "status": "aguardando", "note": "Sábado: público técnico navega mais no fim de semana. Preços conforme retorno aprovado.", "imgs": ["m/m23_01.jpg?v=11091317", "m/m23_02.jpg?v=11091317", "m/m23_03.jpg?v=11091317", "m/m23_04.jpg?v=11091317", "m/m23_05.jpg?v=11091317", "m/m23_06.jpg?v=11091317"]}, {"id": "m24", "date": "2026-11-29", "weekday": "dom", "time": "09h00", "pilar": "Oferta", "kind": "Carrossel", "title": "Heavy duty, Black Friday pricing.", "cap": {"ig": "Heavy duty, Black Friday pricing.\n\nCaterpillar 10R0963, 10R8502, 10R8501: $245\nCummins ISX15 XPI 2872405: $180 · 2897320: $347\nCummins ISX HPI EX634434: $225\nVolvo D13 / Mack MP8 EX631029: $300\nVolvo D12 EX631007: $270\nDuramax LML 0 986 435 410: $206.27 + core\n\nEnds tomorrow. Call +1 (954) 586-4158.\n\n#blackfriday #heavyduty #caterpillar #cummins #volvo #dieselparts", "fb": "Heavy duty injectors on Black Friday pricing, in stock in Florida.\n\nCaterpillar 10R0963, 10R8502 and 10R8501: $245\nCummins ISX15 XPI 2872405: $180 · 2897320: $347\nCummins ISX HPI EX634434: $225\nVolvo D13 / Mack MP8 EX631029: $300\nVolvo D12 EX631007: $270\nDuramax LML 0 986 435 410: $206.27 + core\n\nEnds tomorrow, Nov 30. Call +1 (954) 586-4158 or WhatsApp +1 (954) 371-6996.", "li": "Heavy duty injectors on Black Friday pricing, in stock in South Florida.\n\nCaterpillar 10R0963, 10R8502, 10R8501: $245\nCummins ISX15 XPI 2872405: $180 / 2897320: $347\nCummins ISX HPI EX634434: $225\nVolvo D13 / Mack MP8 EX631029: $300\nVolvo D12 EX631007: $270\nDuramax LML 0 986 435 410: $206.27 + core\n\nPricing ends November 30.\nmaxzzdiesel.com · +1 (954) 586-4158\n\n#BlackFriday #HeavyDuty #DieselParts"}, "status": "aguardando", "note": "Preços da tabela de Black Friday enviada pelo Mateus em 9/11. Itens reman com \"+ core\". Conferir com o Michael estoque e códigos antes de aprovar.", "imgs": ["m/m24_01.jpg?v=11091317", "m/m24_02.jpg?v=11091317", "m/m24_03.jpg?v=11091317", "m/m24_04.jpg?v=11091317", "m/m24_05.jpg?v=11091317"]}, {"id": "m13", "date": "2026-11-30", "weekday": "seg", "time": "09h00", "pilar": "Oferta", "kind": "Post", "title": "Cyber Monday: last day for parts.", "cap": {"ig": "Cyber Monday: last day. Black Friday pricing on in-stock injectors ends tonight at 11:59 PM ET.\n\nCall +1 (954) 586-4158 or WhatsApp +1 (954) 371-6996.\n\n#cybermonday #dieselparts #maxzzdiesel", "fb": "Cyber Monday: last day. Black Friday pricing on in-stock injectors for Ford, Cummins, Caterpillar, Volvo and Duramax ends tonight at 11:59 PM ET. Call +1 (954) 586-4158 or order at maxzzdiesel.com", "li": "Last day: Black Friday pricing on in-stock injectors for Ford 6.7L, Cummins, Caterpillar, Volvo and Duramax ends tonight at 11:59 PM ET.\n\nmaxzzdiesel.com · +1 (954) 586-4158\n\n#CyberMonday #DieselParts"}, "status": "aguardando", "note": "Peças de manhã (9h00), DTA no fim do dia (17h00).", "imgs": ["m/m13_01.jpg?v=11091317"]}, {"id": "m25", "date": "2026-11-30", "weekday": "seg", "time": "17h00", "pilar": "Oferta · DTA", "kind": "Post", "title": "Cyber Monday: last day.", "cap": {"ig": "Cyber Monday: last day.\n\n50% off every Diesel Tech Academy course and bundle ends tonight at 11:59 PM ET. All 10 courses, $798.50.\n\ndieseltechacademy.com\n\n#cybermonday #dieseltraining #dieseltechacademy", "fb": "Cyber Monday: last day. 50% off every Diesel Tech Academy course and bundle ends tonight at 11:59 PM ET. All 10 courses for $798.50 at dieseltechacademy.com", "li": "Last day: 50% off every Diesel Tech Academy course and bundle ends tonight at 11:59 PM ET. The Complete bundle, all 10 courses, is $798.50.\n\ndieseltechacademy.com\n\n#CyberMonday #DieselTraining"}, "status": "aguardando", "note": "Fecha a campanha no fim do dia, depois do post de peças das 9h00.", "imgs": ["m/m25_01.jpg?v=11091317"]}, {"id": "m09", "date": "2026-12-02", "weekday": "qua", "time": "09h00", "pilar": "O ecossistema", "kind": "Carrossel", "title": "The right tool for every injector.", "cap": {"ig": "The right tool for every injector.\n\nRobiel tool sets by family: Bosch, Denso and Continental, Bosch Piezo, Cummins XPI, Caterpillar and CP3 pumps. Proud distributors of Robiel.\n\n#robiel #benchtools #injectorrebuild #commonrail #maxzzdiesel", "fb": "The right tool for every injector.\n\nWe distribute Robiel tool sets for Bosch, Denso and Continental, Bosch Piezo, Cummins XPI, Caterpillar and CP3 pumps. Ask us for kit numbers, stock and lead time.", "li": "A rebuild is only as good as the tools on the bench.\n\nWe distribute Robiel tool sets for the injector families our customers rebuild most: Bosch, Denso and Continental, Bosch Piezo, Cummins XPI, Caterpillar and CP3 pumps. They ship with your parts and fluids in the same order.\n\nAnd when a technician needs to learn a new family, the Diesel Tech Academy teaches it at a working bench.\n\n#Robiel #InjectorRebuild #DieselTech"}, "status": "aguardando", "note": "Códigos tirados do catálogo Robiel que está no site.", "imgs": ["m/m09_01.jpg?v=11091317", "m/m09_02.jpg?v=11091317", "m/m09_03.jpg?v=11091317", "m/m09_04.jpg?v=11091317"]}, {"id": "m15", "date": "2026-12-04", "weekday": "sex", "time": "09h00", "pilar": "Multimarca", "kind": "Carrossel", "title": "Brands we stand behind.", "cap": {"ig": "Brands we stand behind: Delphi, Denso, Fratelli Bosio, LEAD, SLP and Robiel.\n\nYour preference, our stock. Send us the part number.\n\n#bosch #delphi #denso #robiel #dieselparts #maxzzdiesel", "fb": "On our shelves: Delphi, Denso, Fratelli Bosio, LEAD, SLP and Robiel. Send us the part number and we'll find it.", "li": "Multibrand means we answer to your application, not to one manufacturer.\n\nOn our shelves: Delphi, Denso, Fratelli Bosio, LEAD, SLP and Robiel. If you have a preferred brand, we'll quote it. If you need the part this week, we'll show what ships today.\n\nmaxzzdiesel.com\n\n#DieselParts #Aftermarket #CommonRail"}, "status": "aguardando", "note": "Nomes das marcas em texto, sem logos de terceiros. Confirmar a lista com o Michael.", "imgs": ["m/m15_01.jpg?v=11091317", "m/m15_02.jpg?v=11091317", "m/m15_03.jpg?v=11091317"]}, {"id": "m16", "date": "2026-12-07", "weekday": "seg", "time": "12h00", "pilar": "O ecossistema", "kind": "Post", "title": "Placed in service by December 31.", "cap": {"ig": "Section 179 last call: equipment has to be placed in service by December 31. Order this week to make the deadline.\n\n#section179 #diagnostics #maxzzdiesel", "fb": "Section 179 reminder: qualifying equipment has to be placed in service by December 31. Order this week to make the deadline.", "li": "Section 179 reminder: qualifying equipment has to be placed in service by December 31. If a bench, an Aftertreatment Box or a NOx Tester Box is on your list, this is the week to order. Confirm with your accountant.\n\n#Section179 #Diagnostics"}, "status": "aguardando", "note": "", "imgs": ["m/m16_01.jpg?v=11091317"]}, {"id": "m17", "date": "2026-12-09", "weekday": "qua", "time": "09h00", "pilar": "Desde 1992", "kind": "Carrossel", "title": "From Brazil to Florida.", "cap": {"ig": "From Brazil to Florida.\n\nWe started in diesel injection in Brazil in 1992. In 2013 the Mazzer family opened our US operation in Coconut Creek, FL. Same focus since day one.\n\n#since1992 #familybusiness #dieselinjection #maxzzdiesel", "fb": "From Brazil to Florida. Maxzz Diesel started in 1992 in Brazil, and in 2013 the Mazzer family opened our US operation in Coconut Creek, FL. Diesel is all we do.", "li": "Thirty-four years in one trade.\n\nMaxzz Diesel started in Brazil in 1992, working in diesel injection from day one. In 2013 the Mazzer family opened the US operation in Coconut Creek, Florida, to serve North America and Latin America.\n\nThe products have changed. The focus has not. Diesel is all we do.\n\n#FamilyBusiness #DieselInjection #MaxzzDiesel"}, "status": "aguardando", "note": "Confirmar legendas das fotos históricas com o Michael (local e ano).", "imgs": ["m/m17_01.jpg?v=11091317", "m/m17_02.jpg?v=11091317", "m/m17_03.jpg?v=11091317", "m/m17_04.jpg?v=11091317"]}, {"id": "m18", "date": "2026-12-11", "weekday": "sex", "time": "12h00", "pilar": "Fala com a gente", "kind": "Post", "title": "Send us the part number.", "cap": {"ig": "Send us the part number. We'll take it from there.\n\nWhatsApp +1 (954) 371-6996 · sales@maxzzdiesel.com\n\n#dieselparts #commonrail #maxzzdiesel", "fb": "Send us the part number. We'll take it from there.\nWhatsApp +1 (954) 371-6996 · +1 (954) 586-4158 · sales@maxzzdiesel.com", "li": "The fastest way to a quote: send us the part number.\n\nWe check stock, cross-reference and lead time and come back with options. English, Spanish and Portuguese.\n\nWhatsApp +1 (954) 371-6996\nsales@maxzzdiesel.com\n\n#DieselParts #B2B"}, "status": "aguardando", "note": "", "imgs": ["m/m18_01.jpg?v=11091317"]}, {"id": "m26", "date": "2026-12-14", "weekday": "seg", "time": "09h00", "pilar": "A peça certa", "kind": "Carrossel", "title": "Test the sensor before you replace it.", "cap": {"ig": "Test the sensor before you replace it.\n\nThe Aftertreatment Box puts the whole system on one bench: DEF level and temperature sensors, catalyst inlet and outlet temperature, pump, injector and CAN.\n\nThe NOx Tester Box tests NOx, particulate and ammonia sensors, catalyst efficiency and EMITEC dosing pumps, on the vehicle or on the bench.\n\nmaxzzdiesel.com/aftertreatment\n\n#aftertreatment #noxsensor #def #dieseldiagnostics #maxzzdiesel", "fb": "Test the sensor before you replace it.\n\nTwo Maxzz platforms for aftertreatment diagnostics:\nAftertreatment Box: DEF sensors, catalyst temperatures, pump, injector and CAN on one bench.\nNOx Tester Box: NOx, particulate and ammonia sensors, catalyst efficiency and EMITEC dosing pumps, on the vehicle or on the bench.\n\nmaxzzdiesel.com/aftertreatment", "li": "Test the sensor before you replace it.\n\nAftertreatment is where a lot of shop hours disappear. Our two diagnostic platforms help you find the faulty component first:\n\nAftertreatment Box: DEF level and temperature sensors, catalyst inlet and outlet temperature, pump, injector and CAN, on one bench.\nNOx Tester Box: NOx, particulate and ammonia sensors, catalyst efficiency and EMITEC dosing pumps, on the vehicle or on the bench. Euro 5 and Euro 6.\n\nmaxzzdiesel.com/aftertreatment\n\n#Aftertreatment #DieselDiagnostics #Section179"}, "status": "aguardando", "note": "Catálogo: linha Aftertreatment com o texto do site. Gancho de Section 179 até 31/12 na legenda do LinkedIn.", "imgs": ["m/m26_01.jpg?v=11091317", "m/m26_02.jpg?v=11091317", "m/m26_03.jpg?v=11091317", "m/m26_04.jpg?v=11091317"]}, {"id": "m02", "date": "2026-12-16", "weekday": "qua", "time": "09h00", "pilar": "A peça certa", "kind": "Carrossel", "title": "Your parts. Online. 24/7.", "cap": {"ig": "Your parts. Online. 24/7.\n\nThe Maxzz B2B store is open: log in, search by part number, check availability and order. It ships from Florida.\n\nNo wholesale account yet? Request access through the link in bio.\n\n#dieselparts #b2b #commonrail #injectorrebuild #maxzzdiesel", "fb": "Order Maxzz parts online, 24/7.\n\nLog in to the B2B store, search by part number, check availability and place the order. Same inventory our sales team works from, ready to ship from Coconut Creek, FL.\n\nNo account yet? Request wholesale access at maxzzdiesel.com", "li": "Wholesale diesel parts, online 24/7.\n\nOur B2B store is now open to wholesale accounts. Log in, search by part number, see availability and place the order whenever your shop needs it. Orders ship from Coconut Creek, Florida.\n\nPhone and email still work the same way. The store just means you don't have to wait for business hours.\n\nRequest wholesale access: maxzzdiesel.com\n\n#DieselParts #B2B #Aftermarket"}, "status": "aguardando", "note": "Alinhado ao email \"Maxzz parts online, 24/7\" de 26/10.", "imgs": ["m/m02_01.jpg?v=11091317", "m/m02_02.jpg?v=11091317", "m/m02_03.jpg?v=11091317", "m/m02_04.jpg?v=11091317"]}, {"id": "m27", "date": "2026-12-18", "weekday": "sex", "time": "12h00", "pilar": "Fala com a gente", "kind": "Post", "title": "Holiday shipping.", "cap": {"ig": "Need it before the holidays? Order by Dec 21.\n\nStocked in Florida. Most orders ship the same business day.\n\nmaxzzdiesel.com · +1 (954) 586-4158\n\n#dieselparts #holidayshipping #maxzzdiesel", "fb": "Need parts before the holidays? Order by December 21.\n\nStocked in Florida, and most orders ship the same business day. Call +1 (954) 586-4158 or order at maxzzdiesel.com", "li": "Holiday shipping: to receive parts before the holidays, place your order by December 21.\n\nStocked in South Florida. Most orders ship the same business day.\n\nmaxzzdiesel.com · +1 (954) 586-4158\n\n#DieselParts #Logistics"}, "status": "aguardando", "note": "CONFIRMAR com o Michael a data limite real de envio e o horário de fim de ano antes de aprovar (21/12 é sugestão).", "imgs": ["m/m27_01.jpg?v=11091317"]}, {"id": "m04", "date": "2026-12-21", "weekday": "seg", "time": "09h00", "pilar": "A peça certa", "kind": "Carrossel", "title": "Winter starts at the injector.", "cap": {"ig": "Winter starts at the injector.\n\nCold weather exposes what fuel contamination started. Our Contamination Kit Essentials cover Ford 6.7L Power Stroke 2017 to 2019 and Cummins 5th Gen.\n\nStock up before the rush. Link in bio.\n\n#powerstroke #cummins #dieselrepair #commonrail #maxzzdiesel", "fb": "Winter starts at the injector.\n\nWhen temperatures drop, water and debris in the fuel system show up as hard starts and failed injectors. Our Contamination Kit Essentials are ready for Ford 6.7L Power Stroke 2017 to 2019 and Cummins 5th Gen.\n\nStock up before the rush: maxzzdiesel.com", "li": "Winter is when contamination shows its bill.\n\nWater and debris that entered the fuel system months ago tend to surface as hard starts and failed injectors once temperatures drop. Shops that stock the full kit, not just the injector, close those jobs on the first visit.\n\nOur Contamination Kit Essentials are in stock for Ford 6.7L Power Stroke 2017 to 2019 and Cummins 5th Gen.\n\nmaxzzdiesel.com\n\n#DieselRepair #FleetMaintenance #CommonRail"}, "status": "aguardando", "note": "Texto técnico da tela 4: validar com Michael.", "imgs": ["m/m04_01.jpg?v=11091317", "m/m04_02.jpg?v=11091317", "m/m04_03.jpg?v=11091317", "m/m04_04.jpg?v=11091317", "m/m04_05.jpg?v=11091317"]}, {"id": "m28", "date": "2026-12-24", "weekday": "qui", "time": "12h00", "pilar": "Data", "kind": "Post", "title": "Merry Christmas.", "cap": {"ig": "Merry Christmas from our bench to yours.\n\nThank you for trusting us with your parts this year. From the whole Maxzz Diesel family.\n\n#merrychristmas #maxzzdiesel", "fb": "Merry Christmas from our bench to yours. Thank you for trusting us with your parts this year. From the whole Maxzz Diesel family.", "li": "Merry Christmas from the Maxzz Diesel family.\n\nThank you to the rebuilders, injection labs and distributors who trusted us with their parts this year."}, "status": "aguardando", "note": "Publicar na véspera (24/12).", "imgs": ["m/m28_01.jpg?v=11091317"]}, {"id": "m29", "date": "2026-12-28", "weekday": "seg", "time": "09h00", "pilar": "Desde 1992", "kind": "Carrossel", "title": "Thank you for 2026.", "cap": {"ig": "Thank you for 2026.\n\nThis year we launched our new website and B2B store, brought the Aftertreatment platforms and Robiel tool sets to more benches, and added new courses to the Diesel Tech Academy.\n\nSee you in 2027.\n\n#maxzzdiesel #dieselinjection", "fb": "Thank you for 2026. A new website and B2B store, aftertreatment platforms, Robiel tool sets and new Diesel Tech Academy courses. See you in 2027.", "li": "Thank you for 2026.\n\nThis year the Maxzz Diesel Companies launched a new website and B2B store, expanded the Aftertreatment line, brought Robiel tool sets to more US benches and added new courses to the Diesel Tech Academy.\n\nThank you to every rebuilder, injection lab and distributor who worked with us. See you in 2027.\n\n#DieselInjection #ThankYou"}, "status": "aguardando", "note": "Conferir a lista de conquistas do ano com o Michael antes de aprovar.", "imgs": ["m/m29_01.jpg?v=11091317", "m/m29_02.jpg?v=11091317", "m/m29_03.jpg?v=11091317"]}, {"id": "m30", "date": "2026-12-31", "weekday": "qui", "time": "12h00", "pilar": "Data", "kind": "Post", "title": "Happy New Year.", "cap": {"ig": "A clean bench for 2027. Happy New Year from all of us at Maxzz Diesel.\n\n#happynewyear #maxzzdiesel", "fb": "A clean bench for 2027. Happy New Year from all of us at Maxzz Diesel.", "li": "Happy New Year from all of us at Maxzz Diesel. Here's to a busy bench in 2027."}, "status": "aguardando", "note": "", "imgs": ["m/m30_01.jpg?v=11091317"]}]</script>
+<script>
+(() => {
+const POSTS = JSON.parse(document.getElementById('posts-data').textContent);
+const DIAS = ['dom','seg','ter','qua','qui','sex','sáb'];
+const FILA = {};
+function weekdayOf(iso){ return DIAS[new Date(iso+'T12:00:00').getDay()]; }
+function applyFila(){
+  const openId = state.open>=0 ? POSTS[state.open].id : null;
+  POSTS.forEach(p => { const f=FILA[p.id]; if(f && f.data){ p.date=f.data; p.time=f.hora||p.time; p.weekday=weekdayOf(f.data); } });
+  POSTS.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(openId) state.open = POSTS.findIndex(p=>p.id===openId);
+}
+const $ = (s, r = document) => r.querySelector(s);
+const el = (t, cls, txt) => { const e = document.createElement(t); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const LABEL = {aprovado:'Aprovado', ajuste:'Ajuste pedido', aguardando:'Aguardando', roteiro:'Roteiro p/ aprovar', publicado:'Publicado'};
+const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+const state = {plat:'ig', docs:{}, filter:'todas', db:null, user:null, uid:null, canWrite:false, readOnly:false, open:-1, editing:false, busy:false, err:'',
+  hist:null, stories:{}, hf:{mes:'todos', tipo:'todos'}, hopen:null, stEditing:null, stErr:''};
+const MESES_LONGO = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const TIPOS = ['Post','Carrossel','Reels'];
+function spDate(iso){ /* data e hora em Brasília */ const d=new Date(iso); const p=new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(d); const g=t=>(p.find(x=>x.type===t)||{}).value; return {y:g('year'),m:g('month'),d:g('day'),hh:g('hour'),mm:g('minute')}; }
+function monthKey(iso){ const s=spDate(iso); return s.y+'-'+s.m; }
+function monthLabel(k){ const [y,m]=k.split('-'); return MESES_LONGO[+m-1]+' '+y; }
+
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function ddmm(iso){ const [y,m,d]=iso.split('-'); return d+'/'+m; }
+function statusOf(p){ const d=state.docs[p.id]; const s=d&&d.status; if(!s||s==='aguardando') return p.status==='roteiro'?'roteiro':'aguardando'; return s; }
+function isPending(s){ return s==='aguardando'||s==='roteiro'; }
+function monday(iso){ const d=new Date(iso+'T12:00:00'); const k=(d.getDay()+6)%7; d.setDate(d.getDate()-k); return d; }
+function fmtWhen(iso){ try{ const d=new Date(iso); return d.getDate()+' '+MESES[d.getMonth()]+', '+String(d.getHours()).padStart(2,'0')+'h'+String(d.getMinutes()).padStart(2,'0'); }catch(e){ return ''; } }
+function dotEl(s){ return el('i','dot '+s); }
+
+/* ---------- tabs ---------- */
+const tabs = document.querySelectorAll('.tabs [role=tab]');
+function showTab(id, focus){
+  tabs.forEach(t => { const on = t.dataset.v===id; t.setAttribute('aria-selected', on); t.tabIndex = on?0:-1; if(on&&focus) t.focus(); });
+  document.querySelectorAll('.view').forEach(v => v.hidden = v.id !== 'v-'+id);
+  try{ localStorage.setItem('mxz-tab', id); }catch(e){}
+}
+tabs.forEach((t,i) => {
+  t.addEventListener('click', () => showTab(t.dataset.v));
+  t.addEventListener('keydown', e => { if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ const n=tabs[(i+(e.key==='ArrowRight'?1:tabs.length-1))%tabs.length]; showTab(n.dataset.v,true); } });
+});
+let saved=null; try{ saved=localStorage.getItem('mxz-tab'); }catch(e){}
+showTab(saved==='estrategia'||saved==='historico'?saved:'pecas');
+document.querySelectorAll('[data-goto]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); showTab(a.dataset.goto); window.scrollTo({top:0}); }));
+
+/* ---------- summary + grid ---------- */
+function counts(){
+  const c={todas:POSTS.length,aguardando:0,aprovado:0,ajuste:0,publicado:0};
+  POSTS.forEach(p => { const s=statusOf(p); if(isPending(s)) c.aguardando++; else c[s]++; });
+  return c;
+}
+function renderSummary(){
+  const c=counts(); const box=$('#sum'); box.replaceChildren();
+  [['todas','Todas',null],['aguardando','Aguardando','aguardando'],['aprovado','Aprovadas','aprovado'],['ajuste','Com ajuste','ajuste'],['publicado','Publicadas','publicado']].forEach(([k,lab,dot]) => {
+    const b=el('button'); b.type='button'; b.setAttribute('aria-pressed', state.filter===k);
+    b.append(el('b',null,String(c[k])));
+    const sp=el('span'); if(dot) sp.append(dotEl(dot)); sp.append(lab); b.append(sp);
+    b.addEventListener('click', () => { state.filter=k; renderAll(); });
+    box.append(b);
+  });
+  $('#tab-ct').textContent = c.aguardando;
+  $('#tab-ct').hidden = c.aguardando===0;
+}
+function renderBanner(){
+  const box=$('#banner'); const t=todayISO();
+  const soon=POSTS.filter(p => isPending(statusOf(p)) && p.date>=t).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,1)[0];
+  box.replaceChildren(); box.hidden=!soon; if(!soon) return;
+  const diff=Math.round((new Date(soon.date+'T12:00:00')-new Date(t+'T12:00:00'))/864e5);
+  const when= diff===0?'Hoje':diff===1?'Amanhã':soon.weekday+' '+ddmm(soon.date);
+  box.className='banner'+(diff<=1?' hot':'');
+  const p=el('div'); p.append('Próxima a sair: ', el('b',null,when+', '+soon.time+' ET · '+soon.title), ' Ainda aguardando aprovação.');
+  const b=el('button','btn','Abrir'); b.type='button'; b.style.marginLeft='auto'; b.addEventListener('click',()=>openPost(POSTS.indexOf(soon)));
+  box.append(dotEl('aguardando'), p, b);
+}
+function match(p){ const s=statusOf(p); if(state.filter==='todas') return true; if(state.filter==='aguardando') return isPending(s); return s===state.filter; }
+function renderGrid(){
+  const root=$('#weeks'); root.replaceChildren(); const t=todayISO();
+  const groups=new Map();
+  POSTS.forEach((p,i) => { if(!match(p)) return; const m=monday(p.date); const k=m.toISOString().slice(0,10); if(!groups.has(k)) groups.set(k,{m,items:[]}); groups.get(k).items.push(i); });
+  if(!groups.size){ root.append(el('p','empty','Nenhuma peça neste filtro.')); return; }
+  const firstMon=monday(POSTS[0].date);
+  groups.forEach(({m,items}) => {
+    const n=Math.round((m-firstMon)/(7*864e5))+1; const f=new Date(m); f.setDate(f.getDate()+4);
+    const head=el('div','wkhead'); const h=el('h3',null,'Semana '+n);
+    h.append(el('span',null, m.getDate()+(m.getMonth()!==f.getMonth()?' '+MESES[m.getMonth()]:'')+' a '+f.getDate()+' '+MESES[f.getMonth()]));
+    head.append(h);
+    const pend=items.filter(i=>isPending(statusOf(POSTS[i])));
+    if(state.canWrite && !state.readOnly && pend.length>1){
+      const b=el('button','btn','Aprovar as '+pend.length+' da semana'); b.type='button'; b.disabled=state.busy;
+      b.addEventListener('click', async () => { state.busy=true; renderGrid(); for(const i of pend){ await write(POSTS[i].id,{status:'aprovado',nota:''}); } state.busy=false; renderAll(); });
+      head.append(b);
+    }
+    root.append(head);
+    const g=el('div','grid');
+    items.forEach(i => {
+      const p=POSTS[i]; const s=statusOf(p);
+      const c=el('button','card'); c.type='button'; c.setAttribute('aria-label', p.title+', '+p.weekday+' '+ddmm(p.date)+', '+LABEL[s]);
+      const th=el('div','thumb'); const im=el('img'); im.src=p.imgs[0]; im.alt=''; im.loading='lazy'; im.decoding='async'; th.append(im);
+      th.append(el('span','badge', p.kind==='Reels'?'Reels':p.imgs.length>1?'1/'+p.imgs.length:'Post'));
+      if(p.date===t) th.append(el('span','today','Hoje'));
+      const meta=el('div','meta'); meta.append(el('span',null,p.weekday+' '+ddmm(p.date)+' · '+p.time), el('span',null,p.pilar));
+      const row=el('div','row'); const st=el('span','st'); st.append(dotEl(s), LABEL[s]); row.append(st);
+      c.append(th, meta, el('h4',null,p.title), row);
+      c.addEventListener('click', () => openPost(i));
+      g.append(c);
+    });
+    root.append(g);
+  });
+}
+function renderAll(){ renderSummary(); renderBanner(); renderGrid(); renderHist(); if(state.open>=0) renderSide(); if(state.hopen) renderHSide(); }
+
+/* ---------- histórico ---------- */
+function histFiltered(){
+  const H=state.hist||[];
+  return H.filter(h => (state.hf.mes==='todos'||monthKey(h.publicado_em)===state.hf.mes) && (state.hf.tipo==='todos'||h.tipo===state.hf.tipo));
+}
+function chip(label, count, on, fn){ const b=el('button','chip'); b.type='button'; b.setAttribute('aria-pressed', on); b.append(label); if(count!=null) b.append(el('small',null,String(count))); b.addEventListener('click', fn); return b; }
+function coverEl(h, big){
+  if(h.thumb){ const im=el('img'); im.src=h.thumb; im.alt=''; im.loading='lazy'; im.decoding='async'; return im; }
+  const c=el('div','cover '+h.tipo); c.append(el('i'), el('p',null,h.titulo||''), el('em',null,'@maxzzdiesel'));
+  return c;
+}
+function renderHist(){
+  const H=state.hist; const list=$('#hlist'); const ct=$('#hist-ct');
+  if(!H){ if(state.inited && !state.db){ list.replaceChildren(el('p','empty','Abra esta página logado no claude.ai para ver o histórico.')); } return; }
+  if(!H.length){ list.replaceChildren(el('p','empty','O histórico aparece aqui quando as contas da Maxzz forem conectadas: Instagram @maxzzdiesel, a página no Facebook e a página no LinkedIn. Cada post publicado entra com legenda, link e números.')); $('#hstats').replaceChildren(); $('#hfilters').hidden=true; renderReqs(); return; }
+  $('#hfilters').hidden=false;
+  ct.textContent=H.length; ct.hidden=!H.length;
+  // stats
+  const st=$('#hstats'); st.replaceChildren();
+  const byT=t=>H.filter(h=>h.tipo===t).length;
+  const months=[...new Set(H.map(h=>monthKey(h.publicado_em)))].sort().reverse();
+  [[H.length,'publicações'],[byT('Carrossel'),'carrosséis'],[byT('Post'),'posts'],[byT('Reels'),'Reels']].forEach(([n,l])=>{ const s=el('span'); s.append(el('b',null,String(n)), l); st.append(s); });
+  // filters
+  if(state.hf.mes!=='todos' && !months.includes(state.hf.mes)) state.hf.mes='todos';
+  const fb=$('#hfilters'); fb.replaceChildren();
+  const r1=el('div','frow'); r1.append(el('span','cap','Mês'));
+  r1.append(chip('Todos', H.length, state.hf.mes==='todos', ()=>{ state.hf.mes='todos'; renderHist(); }));
+  months.forEach(k=>r1.append(chip(monthLabel(k), H.filter(h=>monthKey(h.publicado_em)===k).length, state.hf.mes===k, ()=>{ state.hf.mes=k; renderHist(); })));
+  const r2=el('div','frow'); r2.append(el('span','cap','Formato'));
+  const baseM=H.filter(h=>state.hf.mes==='todos'||monthKey(h.publicado_em)===state.hf.mes);
+  r2.append(chip('Todos', baseM.length, state.hf.tipo==='todos', ()=>{ state.hf.tipo='todos'; renderHist(); }));
+  TIPOS.forEach(t=>r2.append(chip(t, baseM.filter(h=>h.tipo===t).length, state.hf.tipo===t, ()=>{ state.hf.tipo=t; renderHist(); })));
+  fb.append(r1,r2);
+  // list grouped by month
+  const F=histFiltered(); list.replaceChildren();
+  if(!F.length){ list.append(el('p','empty', H.length?'Nada publicado com esse filtro.':'Nenhuma publicação no histórico ainda.')); }
+  const groups=new Map(); F.forEach(h=>{ const k=monthKey(h.publicado_em); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(h); });
+  groups.forEach((items,k)=>{
+    const g=el('div','mgroup'); const h3=el('h3',null,monthLabel(k)); h3.append(el('span',null,items.length+(items.length===1?' publicação':' publicações'))); g.append(h3);
+    const grid=el('div','grid');
+    items.forEach(h=>{
+      const s=spDate(h.publicado_em); const m=h.metricas||{};
+      const c=el('button','card'); c.type='button'; c.setAttribute('aria-label', (h.titulo||'')+', '+h.tipo+', '+s.d+'/'+s.m);
+      const th=el('div','thumb'); th.append(coverEl(h)); th.append(el('span','badge',h.tipo)); c.append(th);
+      const meta=el('div','meta'); meta.append(el('span',null,s.d+'/'+s.m+' · '+s.hh+'h'+s.mm), el('span',null,h.tipo)); c.append(meta);
+      c.append(el('h4',null,h.titulo||''));
+      const row=el('div','row'); const mets=el('span','mets'); mets.append(el('span',null,'♥ '+(m.curtidas??0)), el('span',null,'◉ '+(m.alcance??0)+' alcance')); row.append(mets);
+      const sr=state.stories['h-'+h.media_id]; if(sr) row.append(el('span','sty', 'Stories: '+(ST_LABEL[sr.status]||'pedido').toLowerCase()));
+      c.append(row);
+      c.addEventListener('click',()=>openHist(h.media_id));
+      grid.append(c);
+    });
+    g.append(grid); list.append(g);
+  });
+  renderReqs();
+}
+function renderReqs(){
+  const box=$('#reqs'); const L=$('#reqlist'); const R=Object.entries(state.stories).sort((a,b)=>(b[1].em||'').localeCompare(a[1].em||''));
+  box.hidden=!R.length; L.replaceChildren();
+  R.forEach(([id,r])=>{
+    const row=el('div','req'); const left=el('div'); left.append(el('b',null,r.titulo||id));
+    left.append(el('small',null,(r.origem==='fila'?'Peça da agenda':'Publicado')+' · pedido em '+fmtWhen(r.em)+(r.nota?'\n'+r.nota:'')));
+    const st=el('span','st'); st.append(dotEl(ST_DOT[r.status]||'aguardando'), ST_LABEL[r.status]||'Pedido');
+    row.append(left, st); L.append(row);
+  });
+}
+const hdlg=$('#hdlg');
+$('#hx').addEventListener('click',()=>hdlg.close());
+hdlg.addEventListener('close',()=>{ state.hopen=null; state.stEditing=null; });
+hdlg.addEventListener('click', e=>{ if(e.target===hdlg) hdlg.close(); });
+function openHist(mid){
+  const h=(state.hist||[]).find(x=>x.media_id===mid); if(!h) return;
+  state.hopen=mid; state.stEditing=null; state.stErr='';
+  const s=spDate(h.publicado_em);
+  $('#h-when').textContent=s.d+'/'+s.m+'/'+s.y+' · '+s.hh+'h'+s.mm;
+  const cv=$('#hcover'); cv.replaceChildren(coverEl(h,true));
+  const cap=$('#hcapt'); cap.replaceChildren(); cap.classList.remove('clip'); const full=el('span','full'); full.append(el('b',null,'maxzzdiesel'), h.legenda||''); cap.append(full);
+  renderHSide();
+  if(!hdlg.open) hdlg.showModal(); $('#hx').focus();
+}
+function renderHSide(){
+  const h=(state.hist||[]).find(x=>x.media_id===state.hopen); if(!h) return;
+  const s=spDate(h.publicado_em); const m=h.metricas||{};
+  const b=$('#h-body'); b.replaceChildren();
+  b.append(el('div','cap',h.tipo+' · publicado'), el('h3',null,h.titulo||''));
+  const kv=el('dl','kv'); [['Quando',s.d+'/'+s.m+'/'+s.y+' · '+s.hh+'h'+s.mm],['Formato',h.tipo]].forEach(([a,c])=>kv.append(el('dt',null,a),el('dd',null,c))); b.append(kv);
+  const mg=el('div','metgrid'); [['curtidas','Curtidas'],['comentarios','Coment.'],['alcance','Alcance'],['salvos','Salvos'],['views','Views']].forEach(([k,l])=>{ const d=el('div'); d.append(el('b',null,String(m[k]??0)), el('span',null,l)); mg.append(d); });
+  b.append(mg);
+  if(m.em){ const [y,mo,d]=m.em.split('-'); b.append(el('p','ro','Números de '+d+'/'+mo+'.')); }
+  if(h.link){ const a=el('a','ext','Ver no Instagram ↗'); a.href=h.link; a.target='_blank'; a.rel='noopener'; b.append(a); }
+  b.append(storiesBlock('h-'+h.media_id,'historico',h.media_id,h.titulo, renderHSide));
+}
+const ST_LABEL={pedido:'Pedido enviado',producao:'Em produção',pronto:'Pronto para aprovar',aprovado:'Aprovado',ajuste:'Ajuste pedido',publicado:'Publicado no Stories'};
+const ST_DOT={pedido:'aguardando',producao:'roteiro',pronto:'roteiro',aprovado:'aprovado',ajuste:'ajuste',publicado:'publicado'};
+function storiesBlock(key, origem, ref, titulo, rerender){
+  const box=el('div','stbox'); box.append(el('h4',null,'Versão para Stories'));
+  const r=state.stories[key]; const writable=state.db && state.canWrite && !state.readOnly;
+  const ref_=state.db?state.db.collection('stories').doc(key):null;
+  const save=async(v)=>{ state.stErr=''; try{ await ref_.update({...v, por_aprov: state.uid||'', em_aprov:new Date().toISOString()}); state.stEditing=null; }catch(e){ state.stErr='Não deu para salvar agora. Tente de novo.'; rerender(); } };
+  if(r){
+    const s=r.status||'pedido';
+    const now=el('div','now'); now.style.cssText='display:flex;align-items:center;gap:10px;font-size:15px';
+    now.append(dotEl(ST_DOT[s]||'aguardando'), el('b',null, ST_LABEL[s]||s), el('span','who','· '+fmtWhen(r.em_aprov||r.em)));
+    box.append(now);
+    if(Array.isArray(r.imagens) && r.imagens.length){
+      const strip=el('div','sstrip');
+      r.imagens.forEach((src,i)=>{ const a=el('a'); a.href=src; a.target='_blank'; a.rel='noopener'; const im=el('img'); im.src=src; im.alt='Stories, tela '+(i+1)+' de '+r.imagens.length; im.loading='lazy'; a.append(im); strip.append(a); });
+      box.append(strip);
+    }
+    if(r.nota) { const q=el('div','quote'); q.textContent='Pedido: '+r.nota; box.append(q); }
+    if(s==='ajuste' && r.nota_ajuste && state.stEditing!==key){ const q=el('div','quote'); q.textContent='Ajuste: '+r.nota_ajuste; box.append(q); }
+    if(s==='publicado' && r.publicado_em) box.append(el('p','ro','Saiu no Stories em '+fmtWhen(r.publicado_em)+'.'));
+    if(s==='aprovado') box.append(el('p','ro','Sai no Stories logo depois do post no feed.'+(r.aviso?' '+r.aviso:'')));
+    if(writable && s!=='publicado'){
+      if(state.stEditing===key){
+        const ta=el('textarea'); ta.placeholder='O que mudar nas telas? Ex.: trocar a foto da tela 1, menos texto na tela 3.'; ta.value=r.nota_ajuste||'';
+        const btns=el('div'); btns.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+        const send=el('button','btn adj','Enviar ajuste'); send.type='button';
+        const cancel=el('button','btn ghost','Cancelar'); cancel.type='button';
+        send.addEventListener('click',()=>{ const v=ta.value.trim(); if(!v){ ta.focus(); return; } send.disabled=true; save({status:'ajuste', nota_ajuste:v}); });
+        cancel.addEventListener('click',()=>{ state.stEditing=null; rerender(); });
+        btns.append(send,cancel); box.append(ta,btns); setTimeout(()=>ta.focus(),0);
+      } else {
+        const btns=el('div'); btns.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+        if(s==='pronto'){ const ok=el('button','btn ok','Aprovar Stories'); ok.type='button'; ok.addEventListener('click',()=>{ ok.disabled=true; save({status:'aprovado'}); }); btns.append(ok); }
+        if(s==='pronto'||s==='aprovado'){ const adj=el('button','btn adj','Pedir ajuste'); adj.type='button'; adj.addEventListener('click',()=>{ state.stEditing=key; rerender(); }); btns.append(adj); }
+        if(s==='aprovado'){ const back=el('button','btn ghost','Voltar para aprovação'); back.type='button'; back.addEventListener('click',()=>save({status:'pronto'})); btns.append(back); }
+        if(s==='pedido'){ const c=el('button','btn ghost','Cancelar pedido'); c.type='button'; c.addEventListener('click', async()=>{ try{ await ref_.delete(); }catch(e){ state.stErr='Não deu para cancelar agora.'; rerender(); } }); btns.append(c); }
+        if(btns.childNodes.length) box.append(btns);
+      }
+    }
+  } else if(!writable){
+    box.append(el('p','ro', state.db?'Esta conta não pode fazer pedidos.':'Abra logado no claude.ai para pedir.'));
+  } else if(state.stEditing===key){
+    const ta=el('textarea'); ta.placeholder='Opcional: o que destacar. Ex.: o código da peça, uma enquete, "arrasta para o post".';
+    const btns=el('div'); btns.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+    const send=el('button','btn sto','Enviar pedido'); send.type='button';
+    const cancel=el('button','btn ghost','Cancelar'); cancel.type='button';
+    send.addEventListener('click', async()=>{ send.disabled=true; state.stErr='';
+      try{ await state.db.collection('stories').doc(key).set({origem, ref, titulo:titulo||'', nota:ta.value.trim(), status:'pedido', por:state.uid||'', em:new Date().toISOString()}); state.stEditing=null; }
+      catch(e){ state.stErr='Não deu para enviar agora. Tente de novo.'; send.disabled=false; rerender(); } });
+    cancel.addEventListener('click',()=>{ state.stEditing=null; rerender(); });
+    btns.append(send,cancel); box.append(ta,btns); setTimeout(()=>ta.focus(),0);
+  } else {
+    box.append(el('p',null,'Telas 1080x1920 desta peça, feitas para Stories. Você aprova antes de sair.'));
+    const go=el('button','btn sto','Pedir versão para Stories'); go.type='button'; go.addEventListener('click',()=>{ state.stEditing=key; rerender(); }); box.append(go);
+  }
+  if(state.stErr) box.append(el('p','err',state.stErr));
+  return box;
+}
+
+/* ---------- platform preview ---------- */
+const PLAT = {ig:{name:'maxzzdiesel', sub:'', label:'Instagram'}, fb:{name:'Maxzz Diesel', sub:'Facebook', label:'Facebook'}, li:{name:'Maxzz Diesel', sub:'LinkedIn · Página da empresa', label:'LinkedIn'}};
+function renderCaption(){
+  const p=POSTS[state.open]; if(!p) return; const k=state.plat; const txt=p.cap[k]||'';
+  const box=$('#igbox'); box.className='ig '+k;
+  document.querySelectorAll('#plats button').forEach(b=>b.setAttribute('aria-pressed', b.dataset.p===k));
+  $('#ig-name').textContent=PLAT[k].name;
+  $('#ig-when').textContent = (PLAT[k].sub?PLAT[k].sub+' · ':'')+p.weekday+' '+ddmm(p.date)+' · '+p.time+' ET';
+  const cap=$('#capt'); cap.replaceChildren(); cap.classList.add('clip');
+  const firstLine=txt.split('\n')[0]; const short=firstLine.length>110?firstLine.slice(0,105).trimEnd()+'…':firstLine;
+  const sh=el('span','short'); if(k==='ig') sh.append(el('b',null,PLAT[k].name)); sh.append(short+' ');
+  const more=el('button','more', k==='li'?'…ver mais':'mais'); more.type='button'; more.addEventListener('click',()=>cap.classList.remove('clip'));
+  const full=el('span','full'); if(k==='ig') full.append(el('b',null,PLAT[k].name)); full.append(txt);
+  cap.append(sh, more, full);
+  if(txt.trim()===firstLine.trim()&&short===firstLine) cap.classList.remove('clip');
+  $('#lifoot').textContent = k==='li' ? (p.imgs.length>1?'No LinkedIn, o carrossel sobe como documento PDF ('+p.imgs.length+' páginas).':'Imagem única, 1080x1350.') : (p.imgs.length>1?'No Facebook, as telas sobem como álbum ('+p.imgs.length+' fotos).':'Imagem única, 1080x1350.');
+}
+document.querySelectorAll('#plats button').forEach(b=>b.addEventListener('click',()=>{ state.plat=b.dataset.p; try{localStorage.setItem('mxz-plat',state.plat);}catch(e){} renderCaption(); renderSide(); }));
+try{ const sp=localStorage.getItem('mxz-plat'); if(sp&&PLAT[sp]) state.plat=sp; }catch(e){}
+
+/* ---------- modal ---------- */
+const dlg=$('#dlg');
+function openPost(i){
+  state.open=i; state.editing=false; state.err=''; state.resched=false; state.rErr='';
+  const p=POSTS[i];
+  const stage=$('#stage'); stage.classList.toggle('reel', p.kind==='Reels');
+  const tr=$('#track'); tr.replaceChildren();
+  p.imgs.forEach((src,k) => { const im=el('img'); im.src=src; im.alt=p.title+' · tela '+(k+1)+' de '+p.imgs.length; im.decoding='async'; tr.append(im); });
+  tr.scrollLeft=0;
+  const dots=$('#dots'); dots.replaceChildren(); p.imgs.forEach(()=>dots.append(el('i'))); dots.hidden=p.imgs.length<2;
+  updateSlide();
+  renderCaption();
+  renderSide();
+  if(!dlg.open) dlg.showModal();
+  $('#x').focus();
+}
+function curSlide(){ const tr=$('#track'); return Math.round(tr.scrollLeft/Math.max(1,tr.clientWidth)); }
+function updateSlide(){
+  const p=POSTS[state.open]; if(!p) return; const k=Math.min(curSlide(),p.imgs.length-1);
+  
+  $('#al').hidden=k===0; $('#ar').hidden=k>=p.imgs.length-1;
+  [...$('#dots').children].forEach((d,j)=>d.classList.toggle('on',j===k));
+}
+function go(dir){ const tr=$('#track'); tr.scrollTo({left:(curSlide()+dir)*tr.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); }
+$('#track').addEventListener('scroll', () => requestAnimationFrame(updateSlide), {passive:true});
+$('#al').addEventListener('click',()=>go(-1)); $('#ar').addEventListener('click',()=>go(1));
+$('#x').addEventListener('click',()=>dlg.close());
+dlg.addEventListener('close',()=>{ state.open=-1; state.stEditing=null; state.resched=false; });
+dlg.addEventListener('click', e => { if(e.target===dlg) dlg.close(); });
+dlg.addEventListener('keydown', e => {
+  if(e.target.tagName==='TEXTAREA') return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); go(1); } else if(e.key==='ArrowLeft'){ e.preventDefault(); go(-1); }
+});
+
+function reschedBlock(p){
+  const box=el('div','stbox'); box.append(el('h4',null,'Dia de publicação'));
+  if(state.db && !state.filaLoaded){ box.append(el('p','ro','Carregando…')); return box; }
+  const writable = state.db && state.canWrite && !state.readOnly && FILA[p.id];
+  if(!writable){ box.append(el('p','ro', state.db?'Não dá para mudar o dia por esta conta.':'Abra logado no claude.ai para mudar o dia.')); return box; }
+  if(!state.resched){
+    box.append(el('p',null, p.weekday+' '+ddmm(p.date)+' às '+p.time+'.'));
+    const b=el('button','btn','Mudar dia'); b.type='button'; b.addEventListener('click',()=>{ state.resched=true; state.rErr=''; renderSide(); }); box.append(b);
+  } else {
+    const row=el('div'); row.style.cssText='display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end';
+    const dl=el('label','cap'); dl.style.cssText='display:flex;flex-direction:column;gap:6px';
+    const di=el('input'); di.type='date'; di.value=p.date; di.min=todayISO(); di.style.cssText='background:var(--panel);border:1px solid var(--line);color:var(--fg);font:15px var(--sans);padding:8px 10px;min-height:40px;color-scheme:dark';
+    dl.append('Data', di);
+    const hl=el('label','cap'); hl.style.cssText='display:flex;flex-direction:column;gap:6px';
+    const hs=el('select'); hs.style.cssText=di.style.cssText; ['09h00','12h00','17h00'].forEach(h=>{ const o=el('option',null,h); o.value=h; if(h===p.time) o.selected=true; hs.append(o); });
+    hl.append('Horário', hs);
+    row.append(dl,hl); box.append(row);
+    const hint=el('p','ro','Horário de Miami (ET). Carrosséis às 9h00, posts simples às 12h00. A aprovação continua valendo.'); box.append(hint);
+    const btns=el('div'); btns.style.cssText='display:flex;gap:8px;flex-wrap:wrap';
+    const save=el('button','btn ok','Salvar novo dia'); save.type='button';
+    const cancel=el('button','btn ghost','Cancelar'); cancel.type='button';
+    save.addEventListener('click', async()=>{
+      const d=di.value, h=hs.value;
+      if(!d || d<todayISO()){ state.rErr='Escolha hoje ou uma data futura.'; renderSide(); return; }
+      if(d===p.date && h===p.time){ state.resched=false; renderSide(); return; }
+      save.disabled=true;
+      const nota='Remarcado de '+ddmm(p.date)+' '+p.time+' para '+ddmm(d)+' '+h+' em '+ddmm(todayISO())+'.';
+      const prev=(FILA[p.id].obs||'').trim();
+      try{ await state.db.collection('fila').doc(p.id).update({data:d, hora:h, obs: prev? prev+' '+nota : nota}); state.resched=false; state.rErr=''; }
+      catch(e){ state.rErr='Não deu para salvar agora. Tente de novo.'; save.disabled=false; renderSide(); }
+    });
+    cancel.addEventListener('click',()=>{ state.resched=false; state.rErr=''; renderSide(); });
+    btns.append(save,cancel); box.append(btns);
+  }
+  if(state.rErr) box.append(el('p','err',state.rErr));
+  return box;
+}
+function renderSide(){
+  const p=POSTS[state.open]; if(!p) return; const s=statusOf(p); const d=state.docs[p.id]||{};
+  const side=$('#side-body'); side.replaceChildren();
+  const cap=el('div','cap'); cap.textContent=p.pilar+' · '+p.kind+(p.imgs.length>1?' · '+p.imgs.length+' telas':'');
+  side.append(cap, el('h3',null,p.title));
+  const kv=el('dl','kv');
+  [['Quando', p.weekday+' '+ddmm(p.date)+'/'+p.date.slice(0,4)+' · '+p.time+' ET'],['Linha',p.pilar],['Redes','Instagram, Facebook e LinkedIn'],['Formato',p.kind+(p.kind==='Reels'?' 9:16, 15 s':'')]].forEach(([a,b])=>{ kv.append(el('dt',null,a), el('dd',null,b)); });
+  side.append(kv);
+  if(p.note){ side.append(el('div','nt'+(p.kind==='Reels'?' script':''), p.note)); }
+  { const cb=el('button','btn copy','Copiar legenda do '+PLAT[state.plat].label); cb.type='button';
+    cb.addEventListener('click', async()=>{ const t=p.cap[state.plat]||''; try{ await navigator.clipboard.writeText(t); cb.textContent='Legenda copiada'; }catch(e){ const r=document.createRange(); r.selectNodeContents($('#capt .full')); $('#capt').classList.remove('clip'); const s=getSelection(); s.removeAllRanges(); s.addRange(r); cb.textContent='Texto selecionado. Copie com Ctrl+C'; } setTimeout(()=>{ if(cb.isConnected) cb.textContent='Copiar legenda do '+PLAT[state.plat].label; },2200); });
+    side.append(cb); }
+  // approval block
+  const ap=el('div','appr');
+  const now=el('div','now'); now.append(dotEl(s), el('b',null,LABEL[s]));
+  if(d.em && !isPending(s)){
+    const who=el('span','who'); who.textContent='· '+fmtWhen(d.em);
+    now.append(who);
+    if(d.por && state.user){ state.user.profiles([d.por]).then(ps => { if(who.isConnected) who.textContent='· '+(ps[d.por]?.name||'alguém da equipe')+', '+fmtWhen(d.em); }).catch(()=>{}); }
+  }
+  ap.append(now);
+  if(s==='ajuste' && d.nota && !state.editing) ap.append(el('div','quote',d.nota));
+  const writable = state.canWrite && !state.readOnly;
+  if(!writable){
+    ap.append(el('p','ro', state.db ? 'Você pode ver as peças, mas não aprovar por esta conta.' : 'Abra esta página logado no claude.ai para aprovar ou pedir ajuste.'));
+  } else if(state.editing){
+    const ta=el('textarea'); ta.id='nota'; ta.placeholder='O que precisa mudar? Ex.: trocar a imagem da tela 3, título mais curto, postar na quinta.'; ta.value=s==='ajuste'?(d.nota||''):'';
+    const lab=el('label','cap','Pedido de ajuste'); lab.htmlFor='nota';
+    const btns=el('div','btns');
+    const send=el('button','btn adj','Enviar ajuste'); send.type='button';
+    const cancel=el('button','btn ghost','Cancelar'); cancel.type='button';
+    send.addEventListener('click', async () => { const v=ta.value.trim(); if(!v){ ta.focus(); return; } state.editing=false; await write(p.id,{status:'ajuste',nota:v}); });
+    cancel.addEventListener('click', () => { state.editing=false; renderSide(); });
+    btns.append(send,cancel); ap.append(lab,ta,btns);
+    setTimeout(()=>ta.focus(),0);
+  } else {
+    const btns=el('div','btns');
+    if(s!=='aprovado' && s!=='publicado'){ const ok=el('button','btn ok','Aprovar'); ok.type='button'; ok.disabled=state.busy; ok.addEventListener('click',()=>write(p.id,{status:'aprovado',nota:''})); btns.append(ok); }
+    if(s!=='publicado'){ const adj=el('button','btn adj', s==='ajuste'?'Editar ajuste':'Pedir ajuste'); adj.type='button'; adj.disabled=state.busy; adj.addEventListener('click',()=>{ state.editing=true; renderSide(); }); btns.append(adj); }
+    if(s==='aprovado'||s==='ajuste'){ const un=el('button','btn ghost','Voltar para aguardando'); un.type='button'; un.disabled=state.busy; un.addEventListener('click',()=>write(p.id,{status:'aguardando',nota:''})); btns.append(un); }
+    ap.append(btns);
+  }
+  if(state.err) ap.append(el('p','err',state.err));
+  side.append(ap);
+  if(s!=='publicado') side.append(reschedBlock(p));
+  if(p.kind!=='Reels') side.append(storiesBlock('f-'+p.id,'fila',p.id,p.title, renderSide));
+  // prev/next post
+  const nav=el('div','nav2');
+  const pv=el('button','btn','← Anterior'); pv.type='button'; pv.disabled=state.open===0; pv.addEventListener('click',()=>openPost(state.open-1));
+  const nx=el('button','btn','Próxima →'); nx.type='button'; nx.disabled=state.open===POSTS.length-1; nx.addEventListener('click',()=>openPost(state.open+1));
+  nav.append(pv,nx); side.append(nav);
+}
+
+/* ---------- data ---------- */
+async function write(id, body){
+  if(!state.db) return;
+  state.busy=true; state.err='';
+  try{
+    await state.db.collection('aprovacoes').doc(id).set({...body, por: state.uid||'', em: new Date().toISOString()});
+  }catch(e){
+    if(e && e.code==='invalid_argument'){ state.readOnly=true; state.err='Esta conta não pode gravar aprovações.'; }
+    else if(e && e.code==='unavailable'){ await new Promise(r=>setTimeout(r,400+Math.random()*600)); try{ await state.db.collection('aprovacoes').doc(id).set({...body, por: state.uid||'', em: new Date().toISOString()}); }catch(e2){ state.err='Não deu para salvar agora. Tente de novo.'; } }
+    else state.err='Não deu para salvar agora. Tente de novo.';
+  }
+  state.busy=false; renderAll();
+}
+
+renderAll();
+
+(async () => {
+  if(!window.claude || !window.claude.use){ state.inited=true; renderHist(); return; }
+  const [db,user]=await Promise.all([window.claude.use('db').catch(()=>null), window.claude.use('user').catch(()=>null)]);
+  state.db=db; state.user=user; state.inited=true;
+  if(user){ try{ state.uid=await user.id(); }catch(e){} }
+  if(db){
+    let cw=null; try{ cw = user ? await user.can('data.write') : null; }catch(e){}
+    state.canWrite = cw!==false;
+    db.collection('aprovacoes').onSnapshot(snap => {
+      const m={}; snap.docs.forEach(d=>{ if(d.exists) m[d.id]=d.data(); }); state.docs=m; renderAll();
+    }, err => { if(err && err.code==='revoked'){ state.db=null; state.canWrite=false; renderAll(); } });
+    db.collection('fila').onSnapshot(snap => {
+      snap.docs.forEach(d=>{ if(d.exists) FILA[d.id]=d.data(); }); state.filaLoaded=true; applyFila(); renderAll();
+    }, ()=>{});
+    db.collection('historico').onSnapshot(snap => {
+      const H=[]; snap.docs.forEach(d=>{ if(d.exists){ const v=d.data(); if(v && v.publicado_em) H.push({media_id:d.id, ...v}); } });
+      H.sort((a,b)=>b.publicado_em.localeCompare(a.publicado_em)); state.hist=H; renderHist(); if(state.hopen) renderHSide();
+    }, ()=>{ state.hist=state.hist||[]; renderHist(); });
+    db.collection('stories').onSnapshot(snap => {
+      const m={}; snap.docs.forEach(d=>{ if(d.exists) m[d.id]=d.data(); }); state.stories=m; renderAll();
+    }, ()=>{});
+  }
+  renderAll();
+})();
+})();
+
+</script>
