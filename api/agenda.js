@@ -54,7 +54,8 @@ module.exports = async (req, res) => {
         docs[id] = op === 'set' ? data : { ...(docs[id] || {}), ...data };
         try { await writeCol(c, docs, etag); return res.status(200).json({ ok: true }); }
         catch (e) {
-          if (!(e && /Precondition/i.test(e.name || e.message || ''))) throw e;
+          console.error('agenda write retry', e && e.name, e && e.message);
+          if (!(e && /precondition|etag|412/i.test(String(e.name) + ' ' + String(e.message)))) throw e;
           await new Promise((r) => setTimeout(r, 150 + Math.random() * 300));
         }
       }
@@ -63,6 +64,7 @@ module.exports = async (req, res) => {
     res.setHeader('Allow', 'GET, POST');
     return res.status(405).json({ error: 'method not allowed' });
   } catch (e) {
+    console.error('agenda error', e && e.name, e && e.message);
     return res.status(500).json({ error: 'storage error' });
   }
 };
