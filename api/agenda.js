@@ -2,25 +2,28 @@
 // One private JSON blob per collection: agenda/<collection>.json = { <docId>: {...fields} }
 // GET  /api/agenda?c=fila            -> { docs: {...} }
 // POST /api/agenda {c, id, op, data} -> op 'set' replaces, 'update' merges
-const { put, get } = require('@vercel/blob');
+const { put, get, head } = require('@vercel/blob');
 
 const COLS = new Set(['aprovacoes', 'fila', 'historico', 'stories']);
 const ID = /^[A-Za-z0-9_\-.:@+]{1,120}$/;
 
 async function readCol(c) {
-  const r = await get(`agenda/${c}.json`, { access: 'private', useCache: false }).catch((e) => {
-    if (e && e.name === 'BlobNotFoundError') return null;
+  // head() hits the metadata API (always fresh); the cache-busting query makes get() skip stale CDN copies.
+  const h = await head(`agenda/${c}.json`).catch((e) => {
+    if (e && /not ?found/i.test(String(e.name) + ' ' + String(e.message))) return null;
     throw e;
   });
-  if (!r || r.statusCode !== 200 || !r.stream) return { docs: {}, etag: null };
+  if (!h) return { docs: {}, etag: null };
+  const r = await get(h.url + '?v=' + encodeURIComponent(h.etag || Date.now()), { access: 'private', useCache: false });
+  if (!r || r.statusCode !== 200 || !r.stream) return { docs: {}, etag: h.etag || null };
   const text = await new Response(r.stream).text();
   let docs = {};
   try { docs = JSON.parse(text) || {}; } catch (e) {}
-  return { docs, etag: r.blob && r.blob.etag ? r.blob.etag : null };
+  return { docs, etag: h.etag || null };
 }
 
 async function writeCol(c, docs, etag) {
-  const opts = { access: 'private', allowOverwrite: true, addRandomSuffix: false, contentType: 'application/json', cacheControlMaxAge: 60 };
+  const opts = { access: 'private', allowOverwrite: true, addRandomSuffix: false, contentType: 'application/json' };
   if (etag) opts.ifMatch = etag;
   await put(`agenda/${c}.json`, JSON.stringify(docs), opts);
 }
