@@ -82,6 +82,7 @@
       var self = this;
       return this.cat.filter(function (p) { var f = self.fit.items[p.code]; return f && f[2] && f[1] === label; });
     },
+    logosOf: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
     monoOf: function (k) { return { ford: 'Ford', ram: 'Ram', gm: 'Chevy · GMC', nissan: 'Nissan', hd: 'Heavy duty' }[k] || k; },
     makeHint: function (m) { return m.engines.map(function (e) { return e.label; }).slice(0, 4).join(' · '); },
     genTitle: function (g) { return g.label; },

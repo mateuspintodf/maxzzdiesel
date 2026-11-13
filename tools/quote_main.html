@@ -27,15 +27,23 @@
 .qx-makes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .qx-make{position:relative;display:flex;flex-direction:column;gap:12px;border:1px solid #e3e6e9;background:#fff;border-radius:20px;padding:16px;text-align:left;font:inherit;color:#1d2126;cursor:pointer;transition:border-color .2s,box-shadow .25s,transform .25s cubic-bezier(.22,1,.36,1)}
 .qx-make:hover{border-color:#1d2126;transform:translateY(-2px);box-shadow:0 10px 24px rgba(29,33,38,.08)}.qx-make:active{transform:scale(.98)}
-.qx-make.on{border-color:#1e1e87;box-shadow:0 0 0 2px #1e1e87 inset}
-.qx-logo{height:56px;border-radius:14px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.qx-logo img{display:none;max-height:36px;max-width:78%;object-fit:contain}
+.qx-make.on{border-color:#fc771d;box-shadow:0 0 0 2px #fc771d inset}
+.qx-logo{height:64px;border-radius:14px;background:#f5f6f7;display:flex;align-items:center;justify-content:center;gap:12px;padding:0 12px;overflow:hidden;transition:background-color .2s}
+.qx-logo img{display:block;height:30px;max-width:100%;width:auto;object-fit:contain;min-width:0}
+.qx-logo img+img{height:20px}
+.qx-logo img[src*="nissan"]{height:46px}
+.qx-logo img[src*="ford"]{height:34px}
+.qx-make:hover .qx-logo{background:#eef0f2}
 .qx-mono{font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#1d2126}
-.qx-make.on .qx-logo{background:#1e1e87}.qx-make.on .qx-mono{color:#fff}
+.qx-make.on .qx-logo{background:#fff4ec}
 .qx-make b{display:block;font-size:16px;font-weight:600;line-height:1.25}
-.qx-pills{display:flex;flex-wrap:wrap;gap:5px}
-.qx-pills span{border-radius:50px;background:#eef0f2;padding:3px 9px;font-size:12px;line-height:1.4;color:#4a5058}
-.qx-make.on .qx-pills span{background:#e4e5fb;color:#1e1e87}
+.qx-pills{display:flex;flex-wrap:wrap;gap:6px 5px;margin-top:-4px}
+.qx-step{display:flex;align-items:center;gap:12px;margin:28px 0 14px}
+.qx-step b{flex-shrink:0;width:34px;height:34px;border-radius:50%;background:#fc771d;color:#fff;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(252,119,29,.35)}
+.qx-step span{font-size:18px;font-weight:600;line-height:1.25}
+.qx-step small{font-size:14px;font-weight:400;color:#8a9099}
+.qx-pills span{border-radius:50px;background:#eef0f2;padding:3px 9px;font-size:12px;line-height:18px;color:#4a5058;white-space:nowrap}
+.qx-make.on .qx-pills span{background:#fff4ec;color:#c2410c}
 .qx-chips{display:flex;flex-wrap:wrap;gap:8px}
 .qx-chip{border:1px solid #d3d7dc;background:#fff;border-radius:50px;padding:8px 14px;font:inherit;font-size:14px;color:#1d2126;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
 .qx-chip:hover{border-color:#1d2126}.qx-chip.on{background:#1d2126;border-color:#1d2126;color:#fff}
@@ -164,16 +172,16 @@ select.qx-in{appearance:auto}
 
 <div v-if="mode === 'vehicle'">
 <div v-if="!gen">
-<span class="qx-label">1. Make or segment</span>
+<div class="qx-step"><b>1</b><span>Choose the make</span></div>
 <div class="qx-makes">
-<button type="button" class="qx-make" v-for="m in tree" :class="make === m.key ? 'on' : ''" @click="pickMake(m.key)"><span class="qx-logo"><img :src="'/assets/makes/' + m.key + '.png'" alt="" @load="$el.style.display = 'block'; $el.nextElementSibling.style.display = 'none'"><span class="qx-mono" v-text="monoOf(m.key)"></span></span><b v-text="m.label"></b><span class="qx-pills"><span v-for="e in m.engines" v-text="e.label"></span></span></button>
+<button type="button" class="qx-make" v-for="m in tree" :class="make === m.key ? 'on' : ''" @click="pickMake(m.key)"><span class="qx-logo"><img v-for="f in logosOf(m.key)" :src="'/assets/makes/' + f" :alt="m.label" loading="lazy"><svg v-if="m.key === 'hd'" width="64" height="40" viewBox="0 0 64 40" fill="none" stroke="#1d2126" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 30V9a2 2 0 0 1 2-2h26a2 2 0 0 1 2 2v21"/><path d="M33 14h12l8 9v7h-4"/><path d="M45 14v9h8"/><path d="M3 30h4M17 30h22M59 30h-6"/><circle cx="12" cy="31" r="4.5"/><circle cx="44" cy="31" r="4.5"/><path d="M9 13h16M9 19h12"/></svg><span class="qx-mono" v-if="!logosOf(m.key).length && m.key !== 'hd'" v-text="monoOf(m.key)"></span></span><b v-text="m.label"></b><span class="qx-pills"><span v-for="e in m.engines" v-text="e.label"></span></span></button>
 </div>
 <div v-if="curMake">
-<span class="qx-label">2. Engine</span>
+<div class="qx-step"><b>2</b><span>Choose the engine <small v-text="'· ' + curMake.label"></small></span></div>
 <div class="qx-chips"><button type="button" class="qx-chip" v-for="(e, i) in curMake.engines" :class="engIdx === i ? 'on' : ''" @click="pickEngine(i)"><span v-text="e.label"></span><small v-text="countEngine(e)"></small></button></div>
 </div>
 <div v-if="curEngine">
-<span class="qx-label">3. Generation and years</span>
+<div class="qx-step"><b>3</b><span>Choose the generation and years <small v-text="'· ' + curEngine.label"></small></span></div>
 <div class="qx-gens"><button type="button" class="qx-gen" v-for="g in curEngine.gens" :class="gen === g.key ? 'on' : ''" @click="pickGen(g.key)"><b v-text="genTitle(g)"></b><small v-text="(g.years || 'All years') + ' · ' + countGen(g.key) + ' parts'"></small></button></div>
 </div>
 </div>
