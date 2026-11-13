@@ -193,6 +193,7 @@
       if (i >= 0) this.lines[i].qty += qty;
       else this.lines.push({ id: code, name: p.name, pn: code, app: p.kind, cat: p.kind, slug: p.slug, img: '', pos: '', qty: qty });
       this.save(); if (!quiet) this.flash('Added ' + code + ' to your list');
+      track('quote_add_item', { item_id: code, item_category: p.kind, quantity: qty });
       return true;
     },
     addRaw: function (pn, name, qty) {
@@ -247,7 +248,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); });
       else window.prompt('Copy this link', url);
     },
-    toDetails: function () { if (!this.lines.length) return; this.phase = 2; this.reviewing = false; this.err = ''; scrollTop(); },
+    toDetails: function () { if (!this.lines.length) return; track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; scrollTop(); },
     validate: function () {
       var d = this.d, bad = [];
       if (!d.name.trim()) bad.push('name'); if (!d.company.trim()) bad.push('company');
@@ -276,13 +277,13 @@
         b2b: !!d.b2b, source: read(SK, ''), hp: val('qx-hp'), t: Date.now() - T0, lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(function () { self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
+        .then(function () { track('generate_lead', { form: 'quote', quote_id: self.number, items: self.lines.length, units: self.units, country: d.country, b2b_interest: !!d.b2b }); self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
         .catch(function () { self.sending = false; self.err = 'We could not send it right now. Please try again, or email the list to sales@maxzzdiesel.com.'; });
     },
     askB2B: function () {
       if (this.b2bSending) return; var self = this, d = this.d; this.b2bSending = true;
       fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hp: val('qx-hp'), t: Date.now() - T0, name: d.name, email: d.email, phone: d.phone, type: 'B2B platform early access · ' + (d.type || '') + ' · ' + d.company }) })
-        .then(function (r) { if (!r.ok) throw new Error(r.status); self.b2bDone = true; self.b2bSending = false; })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); track('b2b_access_request', { form: 'b2b' }); self.b2bDone = true; self.b2bSending = false; })
         .catch(function () { self.b2bSending = false; self.flash('Could not send. Email sales@maxzzdiesel.com and we will add you.'); });
     },
     startOver: function () { this.lines.splice(0); this.save(); this.phase = 1; this.reviewing = false; this.number = ''; this.b2bDone = false; scrollTop(); },
@@ -296,7 +297,9 @@
   function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
   function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
   // after a pick, bring the next step to the top of the screen (below the fixed header), unless it is already well in view
-  function goTo(sel) {
+  // Analytics events go to the dataLayer; GTM decides where they are sent. No personal data in events.
+function track(ev, params) { try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: ev }, params || {})); } catch (e) {} }
+function goTo(sel) {
     setTimeout(function () {
       var el = document.querySelector(sel); if (!el) return;
       var top = el.getBoundingClientRect().top, head = window.innerWidth <= 640 ? 100 : 140;
