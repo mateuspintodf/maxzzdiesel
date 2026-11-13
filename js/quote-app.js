@@ -1,0 +1,248 @@
+/* Quote builder for /quote. petite-vue app on #app.
+   Lines are kept in localStorage 'mx-quote' (same format the quote button on other pages reads).
+   Deep links for campaigns: /quote?add=CODE:QTY,CODE2&utm_source=...  (parts go straight into the list)
+   Other params: q= (search), gen= (engine generation key, e.g. PS67-A), mode=vehicle|search|bench */
+(function () {
+  var QK = 'mx-quote', DK = 'mx-quote-d', SK = 'mx-src';
+  var TBD = 'Part number to confirm';
+  function read(k, dflt) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? dflt : v; } catch (e) { return dflt; } }
+  function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function tidy(desc) {
+    return String(desc || '').replace(/\s+/g, ' ').replace(/\s*\/\s*(Application|application|Suitable for|Suitable)\s*:?\s*/g, ' · ').replace(/\s*\/\s*/g, ' / ').trim();
+  }
+  var POPULAR = [{ label: 'Cummins ISX15 XPI', q: 'isx' }, { label: 'Duramax L5P', q: 'l5p' }, { label: 'Ford 6.7 Power Stroke', q: '6.7 powerstroke' },
+    { label: 'Cummins 6.7', q: '6.7 cummins' }, { label: 'Detroit DD15', q: 'dd15' }, { label: 'Cat C7 / C9', q: 'c7' }, { label: 'CP3 pump', q: 'cp3' },
+    { label: 'CP4 pump', q: 'cp4' }, { label: 'Control valve', q: 'control valve' }, { label: 'Nozzle', q: 'nozzle' }, { label: 'Volvo D13', q: 'd13' }, { label: 'ISO 4113 fluid', q: '4113' }];
+  var SHIP = [{ v: 'Ground', h: 'UPS / FedEx ground' }, { v: 'Express', h: 'Next day or 2nd day air' }, { v: 'Freight (LTL)', h: 'Pallets and heavy items' },
+    { v: 'Pickup in Coconut Creek', h: 'Will call, Florida' }, { v: 'My own carrier', h: 'We ship on your account' }, { v: 'Freight forwarder', h: 'Export to Latin America' }];
+
+  var app = PetiteVue.reactive({
+    phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
+    lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
+    reviewing: false, sent: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
+    popular: POPULAR, shipOpts: SHIP,
+    get tree() { return this.fit.tree; },
+    get curMake() { var m = this.make; return this.fit.tree.filter(function (x) { return x.key === m; })[0] || null; },
+    get curEngine() { var m = this.curMake; return m && this.engIdx >= 0 ? m.engines[this.engIdx] : null; },
+    get curGen() { var g = this.gen, out = null; this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (x) { if (x.key === g) out = x; }); }); }); return out; },
+    get units() { return this.lines.reduce(function (s, l) { return s + (l.qty || 1); }, 0); },
+    get benchGroups() {
+      var self = this;
+      return (this.fit.bench || []).map(function (b) { return { label: b.label, n: self.benchItems(b.label).length }; }).filter(function (b) { return b.n; });
+    },
+    get showList() { return (this.mode === 'vehicle' && !!this.gen) || (this.mode === 'search' && norm(this.q).length >= 2) || (this.mode === 'bench' && !!this.bench); },
+    get baseList() {
+      if (!this.ready) return [];
+      var self = this;
+      if (this.mode === 'vehicle') {
+        var g = this.gen;
+        return this.cat.filter(function (p) { var f = self.fit.items[p.code]; return f && f[0].indexOf(g) >= 0; }).sort(byKind);
+      }
+      if (this.mode === 'bench') return this.benchItems(this.bench);
+      var toks = String(this.q).toLowerCase().split(/\s+/).map(norm).filter(Boolean);
+      if (!toks.length || norm(this.q).length < 2) return [];
+      var out = [], extra = [];
+      for (var i = 0; i < this.cat.length; i++) {
+        var p = this.cat[i];
+        if (toks.every(function (t) { return p.hay.indexOf(t) >= 0; })) (self.fit.items[p.code] ? out : extra).push(p);
+        if (out.length + extra.length > 400) break;
+      }
+      var nq = norm(this.q);
+      var exact = function (p) { return p.ncode.indexOf(nq) >= 0 ? 0 : 1; };
+      return out.concat(extra).sort(function (a, b) { return exact(a) - exact(b); });
+    },
+    get kindChips() {
+      var c = {}; this.baseList.forEach(function (p) { c[p.kind] = (c[p.kind] || 0) + 1; });
+      return Object.keys(c).sort(function (a, b) { return KORDER(a) - KORDER(b); }).map(function (k) { return { label: k, n: c[k] }; });
+    },
+    get filtered() { var k = this.kind; return k ? this.baseList.filter(function (p) { return p.kind === k; }) : this.baseList; },
+    get shown() { return this.filtered.slice(0, this.limit); },
+    get gensForQuery() {
+      var t = norm(this.q); if (t.length < 2) return [];
+      var out = [];
+      this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (g) {
+        var hay = norm(m.label + ' ' + e.label + ' ' + g.label + ' ' + g.key + ' ' + g.years);
+        var toks = String(app.q).toLowerCase().split(/\s+/).map(norm).filter(function (x) { return x.length >= 2; });
+        if (toks.length && toks.every(function (x) { return hay.indexOf(x) >= 0; })) out.push(Object.assign({ make: m.key }, g));
+      }); }); });
+      return out.slice(0, 6);
+    },
+    get suggest() {
+      var self = this, have = {}, out = [], seen = {};
+      this.lines.forEach(function (l) { have[l.id] = 1; });
+      this.lines.forEach(function (l) { (self.fit.rel[l.id] || []).forEach(function (c) {
+        if (have[c] || seen[c] || !self.map[c] || out.length >= 4) return; seen[c] = 1;
+        var p = self.map[c]; out.push({ code: c, name: p.name, why: p.kind });
+      }); });
+      return out;
+    },
+    benchItems: function (label) {
+      var self = this;
+      return this.cat.filter(function (p) { var f = self.fit.items[p.code]; return f && f[2] && f[1] === label; });
+    },
+    makeHint: function (m) { return m.engines.map(function (e) { return e.label; }).slice(0, 4).join(' · '); },
+    genTitle: function (g) { return g.label; },
+    countGen: function (key) { var n = 0, it = this.fit.items; for (var c in it) if (it[c][0].indexOf(key) >= 0 && this.map[c]) n++; return n; },
+    countEngine: function (e) { var self = this; return e.gens.reduce(function (s, g) { return s + self.countGen(g.key); }, 0); },
+    setMode: function (m) { this.mode = m; this.kind = ''; this.limit = 30; if (m === 'search') setTimeout(function () { var el = document.getElementById('qx-q'); if (el) el.focus(); }, 30); },
+    pickMake: function (k) { this.make = k; this.engIdx = -1; this.gen = ''; this.kind = ''; var m = this.curMake; if (m && m.engines.length === 1) this.pickEngine(0); },
+    pickEngine: function (i) { this.engIdx = i; this.gen = ''; this.kind = ''; var e = this.curEngine; if (e && e.gens.length === 1) this.pickGen(e.gens[0].key); },
+    pickGen: function (k) { this.gen = k; this.kind = ''; this.limit = 30; },
+    clearVehicle: function () { this.gen = ''; this.kind = ''; },
+    jumpGen: function (g) {
+      var self = this; this.mode = 'vehicle'; this.make = g.make;
+      var m = this.curMake; m.engines.forEach(function (e, i) { if (e.gens.some(function (x) { return x.key === g.key; })) self.engIdx = i; });
+      this.pickGen(g.key);
+    },
+    pickBench: function (l) { this.bench = l; this.kind = ''; this.limit = 30; },
+    setQ: function (v) { this.q = v; this.kind = ''; this.limit = 30; var el = document.getElementById('qx-q'); if (el && el.value !== v) el.value = v; },
+    qtyOf: function (code) { for (var i = 0; i < this.lines.length; i++) if (this.lines[i].id === code) return this.lines[i].qty; return 0; },
+    save: function () { write(QK, this.lines.map(function (l) { return Object.assign({}, l); })); },
+    add: function (code, qty, quiet) {
+      var p = this.map[code]; if (!p) return false; qty = Math.max(1, parseInt(qty, 10) || 1);
+      var i = this.lines.findIndex(function (l) { return l.id === code; });
+      if (i >= 0) this.lines[i].qty += qty;
+      else this.lines.push({ id: code, name: p.name, pn: code, app: p.kind, cat: p.kind, slug: p.slug, img: '', pos: '', qty: qty });
+      this.save(); if (!quiet) this.flash('Added ' + code + ' to your list');
+      return true;
+    },
+    addRaw: function (pn, name, qty) {
+      this.lines.push({ id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6), name: name || 'Custom part', pn: pn || TBD, app: 'Custom line', cat: 'Other', slug: 'other', img: '', pos: '', qty: Math.max(1, parseInt(qty, 10) || 1), needPn: !pn, custom: true });
+      this.save();
+    },
+    addCustom: function () {
+      var pn = val('qx-cpn'), ds = val('qx-cds'), qt = val('qx-cqt');
+      if (!pn && !ds) { this.flash('Type a part number or a description'); return; }
+      var hit = pn && this.findCode(pn);
+      if (hit) this.add(hit, qt); else { this.addRaw(pn, ds || pn, qt); this.flash('Custom line added'); }
+      setVal('qx-cpn', ''); setVal('qx-cds', ''); setVal('qx-cqt', '1');
+    },
+    findCode: function (s) {
+      var n = norm(s); if (n.length < 4) return '';
+      if (this.map[s]) return s;
+      var best = '';
+      for (var i = 0; i < this.cat.length; i++) {
+        var c = this.cat[i].ncode; if (c === n) return this.cat[i].code;
+        if (!best && c.length > n.length && c.slice(-n.length) === n && /^[a-z]{1,4}$/.test(c.slice(0, c.length - n.length))) best = this.cat[i].code;
+      }
+      return best;
+      return '';
+    },
+    addPaste: function () {
+      var self = this, txt = val('qx-paste'), found = 0, custom = 0;
+      txt.split(/\n+/).forEach(function (line) {
+        line = line.trim(); if (!line) return;
+        var m = line.match(/^(.+?)[\s,;\t]+(\d{1,5})$/), pn = m ? m[1].trim() : line, qty = m ? m[2] : 1;
+        var hit = self.findCode(pn);
+        if (hit) { self.add(hit, qty, true); found++; } else { self.addRaw(pn, pn, qty); custom++; }
+      });
+      setVal('qx-paste', '');
+      this.flash(found + ' matched' + (custom ? ', ' + custom + ' added as custom lines' : ''));
+    },
+    inc: function (i) { this.lines[i].qty++; this.save(); },
+    dec: function (i) { if (this.lines[i].qty > 1) { this.lines[i].qty--; this.save(); } },
+    setQty: function (i, v) { this.lines[i].qty = Math.max(1, Math.min(99999, parseInt(v, 10) || 1)); this.save(); },
+    setPn: function (i, v) { v = String(v || '').trim(); this.lines[i].pnUser = v; this.lines[i].pn = v || TBD; this.save(); },
+    remove: function (i) { this.lines.splice(i, 1); this.save(); },
+    clearAll: function () { if (window.confirm && !window.confirm('Clear every part from your list?')) return; this.lines.splice(0); this.save(); },
+    copyLink: function () {
+      var self = this;
+      var codes = this.lines.filter(function (l) { return self.map[l.id]; }).map(function (l) { return l.id + (l.qty > 1 ? ':' + l.qty : ''); });
+      if (!codes.length) { this.flash('Custom lines cannot go in a link'); return; }
+      var url = location.origin + '/quote?add=' + encodeURIComponent(codes.join(','));
+      var done = function () { self.copied = true; self.flash('Link copied. Anyone who opens it gets the same list.'); setTimeout(function () { self.copied = false; }, 2500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); });
+      else window.prompt('Copy this link', url);
+    },
+    toDetails: function () { if (!this.lines.length) return; this.phase = 2; this.reviewing = false; this.err = ''; scrollTop(); },
+    validate: function () {
+      var d = this.d, bad = [];
+      if (!d.name.trim()) bad.push('name'); if (!d.company.trim()) bad.push('company');
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim())) bad.push('email');
+      if (d.phone.replace(/\D/g, '').length < 7) bad.push('phone');
+      if (!d.type) bad.push('type'); if (!d.country) bad.push('country'); if (!d.zip.trim()) bad.push('zip');
+      document.querySelectorAll('[data-k]').forEach(function (el) { el.classList.toggle('qx-err', bad.indexOf(el.getAttribute('data-k')) >= 0); });
+      return bad;
+    },
+    toReview: function () {
+      write(DK, Object.assign({}, this.d));
+      var bad = this.validate();
+      if (bad.length) { this.err = 'Please fill in the fields marked in orange.'; return; }
+      this.err = '';
+      if (!this.number) { var t = new Date(); this.number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(); }
+      this.reviewing = true; scrollTop();
+    },
+    submit: function () {
+      if (this.sending) return; var self = this, d = this.d;
+      this.sending = true; this.err = '';
+      var body = { number: this.number, customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes },
+        shipping: { country: d.country, state: d.state, city: d.city, zip: d.zip, method: d.ship, needBy: d.needBy, po: d.po },
+        b2b: !!d.b2b, source: read(SK, ''), lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
+      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function () { self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
+        .catch(function () { self.sending = false; self.err = 'We could not send it right now. Please try again, or email the list to sales@maxzzdiesel.com.'; });
+    },
+    askB2B: function () {
+      if (this.b2bSending) return; var self = this, d = this.d; this.b2bSending = true;
+      fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: d.name, email: d.email, phone: d.phone, type: 'B2B platform early access · ' + (d.type || '') + ' · ' + d.company }) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); self.b2bDone = true; self.b2bSending = false; })
+        .catch(function () { self.b2bSending = false; self.flash('Could not send. Email sales@maxzzdiesel.com and we will add you.'); });
+    },
+    startOver: function () { this.lines.splice(0); this.save(); this.phase = 1; this.reviewing = false; this.number = ''; this.b2bDone = false; scrollTop(); },
+    printIt: function () { window.print(); },
+    flash: function (msg) { var self = this; this.toast = msg; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
+  });
+
+  var KO = ['Injectors', 'Pumps', 'Rails and lines', 'Kits', 'Sensors and regulators', 'Install hardware', 'Nozzles', 'Control valves', 'Solenoids', 'Repair kits', 'Pump repair kits', 'Pump components', 'Injector components', 'Shims', 'Seals and O-rings', 'Tool sets and tools', 'Testers', 'Fluids', 'Engine parts', 'Aftertreatment'];
+  function KORDER(k) { var i = KO.indexOf(k); return i < 0 ? 99 : i; }
+  function byKind(a, b) { return KORDER(a.kind) - KORDER(b.kind) || (a.code < b.code ? -1 : 1); }
+  function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
+  function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
+  function scrollTop() { try { document.querySelector('.qx-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }
+
+  var CATLABEL = { injectors: 'Injectors', pumps: 'Pumps', rail: 'Rails and lines', nozzle: 'Nozzles', tool: 'Tool sets and tools', fluids: 'Fluids', kits: 'Kits', engine: 'Engine parts', seal: 'Repair parts' };
+  var P = new URLSearchParams(location.search);
+  // campaign / source tracking (kept for the session, sent with the request)
+  var src = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].map(function (k) { return P.get(k) ? k.replace('utm_', '') + '=' + P.get(k) : ''; }).filter(Boolean).join(' ');
+  if (src) write(SK, src);
+
+  Promise.all([
+    fetch('/api/catalog').then(function (r) { return r.json(); }),
+    fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).catch(function () { return { tree: [], items: {}, rel: {}, bench: [] }; })
+  ]).then(function (res) {
+    var rows = res[0] || [], fit = res[1];
+    var map = {}, cat = rows.map(function (r) {
+      var f = fit.items[r[0]];
+      var p = { code: r[0], name: tidy(r[1]), slug: r[2], kind: f ? f[1] : (CATLABEL[r[2]] || r[3]), brand: r[4] || '', ncode: norm(r[0]) };
+      p.hay = norm(r[0] + ' ' + r[1] + ' ' + (r[4] || '') + ' ' + p.kind);
+      map[r[0]] = p; return p;
+    });
+    app.fit = fit; app.cat = cat; app.map = map; app.ready = true;
+    // refresh names of lines added elsewhere
+    app.lines.forEach(function (l) { if (map[l.id] && (!l.name || l.name === l.id)) l.name = map[l.id].name; if (!l.pn || l.pn === TBD) { l.pn = TBD; l.needPn = true; } });
+    // deep links
+    var add = P.get('add'), n = 0, miss = 0;
+    if (add) {
+      add.split(',').forEach(function (it) {
+        var m = it.trim().match(/^(.+?)(?::(\d{1,5}))?$/); if (!m) return;
+        var code = map[m[1]] ? m[1] : app.findCode(m[1]);
+        if (code && app.add(code, m[2] || 1, true)) n++; else miss++;
+      });
+      if (n) app.flash(n + (n === 1 ? ' part' : ' parts') + ' added from your link' + (miss ? ' (' + miss + ' not found)' : ''));
+    }
+    var g = P.get('gen'), q = P.get('q'), mode = P.get('mode');
+    if (g) { var hit = null; fit.tree.forEach(function (mk) { mk.engines.forEach(function (e) { e.gens.forEach(function (x) { if (x.key.toLowerCase() === g.toLowerCase()) hit = Object.assign({ make: mk.key }, x); }); }); }); if (hit) app.jumpGen(hit); }
+    else if (q) { app.mode = 'search'; app.setQ(q); }
+    else if (mode === 'search' || mode === 'bench') app.mode = mode;
+    if (add || g || q || src) try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  }).catch(function () { app.flash('Parts catalog is loading slowly. Search will work in a moment.'); });
+
+  // keep in sync if the list changes in another tab
+  window.addEventListener('storage', function (e) { if (e.key === QK) app.lines = read(QK, []); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.activeElement && document.activeElement.id === 'qx-q') app.setQ(''); });
+
+  PetiteVue.createApp(app).mount('#app');
+})();

@@ -1,0 +1,316 @@
+<style>
+.qx{font-family:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;color:#1d2126}
+.qx *{box-sizing:border-box}
+.qx-hero{position:relative;background:#1d2126;border-radius:0 0 30px 30px;padding:122px clamp(20px,3.5vw,40px) 28px;color:#fff;overflow:hidden}
+.qx-hero-in{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:30px;align-items:end}
+.qx-crumb{font-size:13px;color:#8a9099;margin-bottom:14px}.qx-crumb a{color:#b9b9be}.qx-crumb a:hover{color:#fff}
+.qx-h1{margin:0;font-weight:700;font-size:clamp(28px,2.8vw,40px);line-height:1.08;letter-spacing:-0.02em}
+.qx-h1 span{color:#fc771d}
+.qx-sub{margin:10px 0 0;color:#b9b9be;font-size:15px;line-height:1.5;max-width:640px}
+.qx-trust{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.qx-trust span{display:inline-flex;align-items:center;gap:8px;border:1px solid #3d444d;border-radius:50px;padding:5px 12px;font-size:12.5px;color:#e6e7e9}
+.qx-trust svg{color:#fc771d}
+.qx-steps{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.qx-steps li{display:flex;align-items:center;gap:10px;padding:10px 16px 10px 10px;border-radius:50px;background:#262b31;color:#8a9099;font-size:14px;white-space:nowrap;transition:background-color .25s,color .25s}
+.qx-steps li b{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#3d444d;color:#fff;font-size:13px;font-weight:600}
+.qx-steps li.on{background:#fff;color:#1d2126}.qx-steps li.on b{background:#d32a37}
+.qx-steps li.done{color:#e6e7e9}.qx-steps li.done b{background:#1e1e87}
+.qx-wrap.solo{grid-template-columns:minmax(0,1fr);max-width:960px}
+.qx-wrap{max-width:1360px;margin:0 auto;padding:30px 20px 110px;display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;align-items:start}
+.qx-card{background:#fff;border-radius:25px;padding:clamp(20px,2.4vw,32px)}
+.qx-modes{display:inline-flex;gap:4px;padding:4px;border-radius:50px;background:#eef0f2;flex-wrap:wrap}
+.qx-mode{border:0;background:transparent;border-radius:50px;padding:10px 18px;font:inherit;font-size:14px;font-weight:500;color:#5a5a60;cursor:pointer;transition:background-color .25s,color .25s}
+.qx-mode.on{background:#1d2126;color:#fff}
+.qx-h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em}
+.qx-muted{color:#6b7178;font-size:14px;line-height:1.5}
+.qx-label{display:block;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#8a9099;margin:22px 0 10px}
+.qx-makes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.qx-make{border:1px solid #e3e6e9;background:#fff;border-radius:18px;padding:14px;text-align:left;font:inherit;cursor:pointer;transition:border-color .2s,background-color .2s,transform .15s}
+.qx-make:hover{border-color:#1d2126}.qx-make:active{transform:scale(.98)}
+.qx-make.on{border-color:#1e1e87;background:#1e1e87;color:#fff}
+.qx-make b{display:block;font-size:15px;font-weight:600;line-height:1.25}.qx-make small{display:block;margin-top:4px;font-size:12px;color:#8a9099}.qx-make.on small{color:#c9cdf5}
+.qx-chips{display:flex;flex-wrap:wrap;gap:8px}
+.qx-chip{border:1px solid #d3d7dc;background:#fff;border-radius:50px;padding:8px 14px;font:inherit;font-size:14px;color:#1d2126;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
+.qx-chip:hover{border-color:#1d2126}.qx-chip.on{background:#1d2126;border-color:#1d2126;color:#fff}
+.qx-chip small{color:#8a9099;margin-left:6px}.qx-chip.on small{color:#b9b9be}
+.qx-gens{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.qx-gen{border:1px solid #e3e6e9;background:#fff;border-radius:14px;padding:12px 14px;text-align:left;font:inherit;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
+.qx-gen:hover{border-color:#1d2126}.qx-gen.on{background:#d32a37;border-color:#d32a37;color:#fff}
+.qx-gen b{display:block;font-size:15px;font-weight:600}.qx-gen small{display:block;margin-top:2px;font-size:12px;color:#8a9099}.qx-gen.on small{color:#ffe1e3}
+.qx-path{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px;padding:12px 16px;border-radius:14px;background:#eef0f2;font-size:14px}
+.qx-path b{font-weight:600}.qx-path button{margin-left:auto;border:0;background:none;color:#d32a37;font:inherit;font-size:14px;cursor:pointer}
+.qx-search{position:relative;margin-top:20px}
+.qx-search input{width:100%;height:58px;border:1px solid #e3e6e9;border-radius:50px;padding:0 20px 0 50px;font:inherit;font-size:16px;outline:none;transition:border-color .2s}
+.qx-search input:focus{border-color:#d32a37}
+.qx-search svg{position:absolute;left:20px;top:50%;transform:translateY(-50%);color:#8a9099}
+.qx-shortcuts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.qx-short{border:0;background:#1e1e87;color:#fff;border-radius:50px;padding:8px 14px;font:inherit;font-size:13px;cursor:pointer}
+.qx-list{margin-top:14px;border-top:1px solid #eceef0}
+.qx-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid #eceef0}
+.qx-row-n{font-size:15px;font-weight:500;line-height:1.35}
+.qx-row-m{margin-top:4px;display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px;color:#6b7178}
+.qx-row-m code{font-family:ui-monospace,Menlo,Consolas,monospace;color:#d32a37;font-size:13px}
+.qx-tag{display:inline-block;border-radius:50px;background:#eef0f2;padding:1px 9px;font-size:12px;color:#5a5a60}
+.qx-add{border:1px solid #d32a37;background:#fff;color:#d32a37;border-radius:50px;height:40px;padding:0 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background-color .2s,color .2s,transform .15s}
+.qx-add:hover{background:#d32a37;color:#fff}.qx-add:active{transform:scale(.96)}
+.qx-add.in{border-color:#1e1e87;color:#1e1e87}.qx-add.in:hover{background:#1e1e87;color:#fff}
+.qx-more{display:block;margin:16px auto 0;border:1px solid #d3d7dc;background:#fff;border-radius:50px;padding:10px 20px;font:inherit;font-size:14px;cursor:pointer}
+.qx-empty{padding:28px 0;text-align:center;color:#6b7178;font-size:14px}
+.qx-sub-card{margin-top:22px;background:#f5f6f7;border-radius:18px;padding:18px}
+.qx-in{width:100%;height:48px;border:1px solid #e3e6e9;border-radius:14px;background:#fff;padding:0 14px;font:inherit;font-size:14px;color:#1d2126;outline:none;transition:border-color .2s}
+.qx-in:focus{border-color:#1d2126}
+textarea.qx-in{height:auto;min-height:96px;padding:12px 14px;line-height:1.5;resize:vertical}
+select.qx-in{appearance:auto}
+.qx-err{border-color:#fc771d !important;background:#fff6ef !important}
+.qx-grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.qx-grid3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px}
+.qx-custom{display:grid;grid-template-columns:1fr 1.4fr 80px auto;gap:8px}
+.qx-btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;border:0;border-radius:50px;height:52px;padding:0 24px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;transition:background-color .2s,color .2s,transform .15s}
+.qx-btn:active{transform:scale(.98)}
+.qx-red{background:#d32a37;color:#fff}.qx-red:hover{background:#fc771d}
+.qx-dark{background:#1d2126;color:#fff}.qx-dark:hover{background:#3d444d}
+.qx-out{background:transparent;border:1px solid #d3d7dc;color:#1d2126}.qx-out:hover{border-color:#1d2126}
+.qx-ghost{background:transparent;color:#b9b9be;height:auto;padding:6px 0;font-size:13px}.qx-ghost:hover{color:#fff}
+.qx-panel{position:sticky;top:120px;background:#1d2126;color:#fff;border-radius:25px;padding:24px}
+.qx-panel-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.qx-panel-h h2{margin:0;font-size:20px;font-weight:600}.qx-panel-h span{font-size:13px;color:#b9b9be}
+.qx-lines{margin-top:14px;max-height:46vh;overflow:auto;border-top:1px solid #3d444d}
+.qx-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 0;border-bottom:1px solid #3d444d}
+.qx-line-n{font-size:14px;line-height:1.35}.qx-line-p{margin-top:3px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#fc771d}
+.qx-line .qx-in{height:36px;margin-top:6px;background:#262b31;border-color:#3d444d;color:#fff;font-size:13px}
+.qx-qty{display:flex;align-items:center;gap:4px}
+.qx-qty button{width:30px;height:30px;border:0;border-radius:50%;background:#262b31;color:#fff;font:inherit;font-size:16px;cursor:pointer;transition:background-color .2s}
+.qx-qty button:hover{background:#3d444d}
+.qx-qty input{width:46px;height:30px;border:1px solid #3d444d;border-radius:10px;background:transparent;color:#fff;text-align:center;font:inherit;font-size:14px}
+.qx-rm{display:block;margin-top:6px;margin-left:auto;border:0;background:none;color:#8a9099;font:inherit;font-size:12px;cursor:pointer}.qx-rm:hover{color:#fc771d}
+.qx-panel-empty{padding:26px 0 18px;color:#b9b9be;font-size:14px;line-height:1.5;border-top:1px solid #3d444d;margin-top:14px}
+.qx-xs{margin-top:18px;background:#262b31;border-radius:18px;padding:14px}
+.qx-xs h3{margin:0 0 8px;font-size:13px;font-weight:600;color:#fc771d;letter-spacing:.6px;text-transform:uppercase}
+.qx-xs-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #3d444d;font-size:13px;line-height:1.35}
+.qx-xs-row:first-of-type{border-top:0}
+.qx-xs-row small{display:block;color:#8a9099;margin-top:2px}
+.qx-xs-row button{border:1px solid #fc771d;background:transparent;color:#fc771d;border-radius:50px;height:32px;padding:0 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.qx-xs-row button:hover{background:#fc771d;color:#1d2126}
+.qx-panel .qx-btn{width:100%;margin-top:16px}
+.qx-tools{display:flex;justify-content:space-between;gap:10px;margin-top:10px}
+.qx-check{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:16px;border-radius:16px;background:#eef0f2;font-size:14px;line-height:1.45;cursor:pointer}
+.qx-check input{margin-top:3px;width:18px;height:18px;accent-color:#d32a37}
+.qx-ship{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.qx-ship label{display:block;border:1px solid #e3e6e9;border-radius:14px;padding:12px 14px;cursor:pointer;font-size:14px;transition:border-color .2s,background-color .2s}
+.qx-ship label.on{border-color:#1d2126;background:#f5f6f7}
+.qx-ship input{position:absolute;opacity:0;pointer-events:none}
+.qx-ship small{display:block;color:#8a9099;font-size:12px;margin-top:2px}
+.qx-review{border:1px solid #e3e6e9;border-radius:18px;overflow:hidden}
+.qx-review table{width:100%;border-collapse:collapse;font-size:14px}
+.qx-review th{text-align:left;font-size:12px;font-weight:600;color:#8a9099;text-transform:uppercase;letter-spacing:.6px;padding:10px 14px;background:#f5f6f7}
+.qx-review td{padding:10px 14px;border-top:1px solid #eceef0;vertical-align:top}
+.qx-review td.pn{font-family:ui-monospace,Menlo,Consolas,monospace;color:#d32a37;font-size:13px;white-space:nowrap}
+.qx-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 24px;margin-top:16px;font-size:14px}
+.qx-kv span{display:block;color:#8a9099;font-size:12px}
+.qx-done{text-align:center;padding:20px 0}
+.qx-done-ic{width:64px;height:64px;margin:0 auto;border-radius:50%;background:#1e1e87;color:#fff;display:flex;align-items:center;justify-content:center}
+.qx-b2b{margin-top:26px;text-align:left;background:#1d2126;color:#fff;border-radius:22px;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center}
+.qx-b2b h3{margin:0;font-size:20px;font-weight:600}.qx-b2b p{margin:6px 0 0;color:#b9b9be;font-size:14px;line-height:1.5}
+.qx-b2b em{font-style:normal;color:#fc771d}
+.qx-toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);opacity:0;z-index:90;background:#1d2126;color:#fff;border-radius:50px;padding:12px 20px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:opacity .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);pointer-events:none;max-width:calc(100vw - 32px)}
+.qx-toast.on{opacity:1;transform:translate(-50%,0)}
+.qx-mbar{display:none}
+@media (max-width:1100px){.qx-wrap{grid-template-columns:1fr}.qx-panel{position:relative;top:auto}.qx-lines{max-height:none}}
+@media (max-width:860px){.qx-hero-in{grid-template-columns:1fr}.qx-steps{overflow-x:auto}}
+@media (max-width:640px){.qx-hero{padding-top:110px}.qx-grid2,.qx-grid3,.qx-custom{grid-template-columns:1fr}.qx-b2b{grid-template-columns:1fr}.qx-row{grid-template-columns:1fr}.qx-add{width:100%}
+.qx-mbar{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:85;align-items:center;justify-content:space-between;gap:12px;background:#1d2126;color:#fff;border-radius:50px;padding:8px 8px 8px 20px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.qx-mbar .qx-btn{height:44px;padding:0 18px}}
+@media print{header,footer,.qx-hero,.qx-panel,.qx-noprint,.qx-mbar,.qb,.qp{display:none !important}.qx-wrap{display:block;padding:0}.qx-card{padding:0}}
+@media (prefers-reduced-motion:reduce){.qx *{transition:none !important}.qx-toast{transition:none}}
+</style>
+
+<div class="qx">
+<section class="qx-hero">
+<div class="qx-hero-in">
+<div>
+<div class="qx-crumb"><a href="/">Home</a> / Request a quote</div>
+<h1 class="qx-h1">Build your parts list. <span>Get the quote in one business&nbsp;day.</span></h1>
+<p class="qx-sub">Find parts by engine and year or search by part number. Wholesale pricing and availability come back from our team, no payment here.</p>
+<div class="qx-trust">
+<span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>5,800+ parts stocked in Florida</span>
+<span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>Most orders ship the same business day</span>
+<span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>North America and Latin America</span>
+</div>
+</div>
+<ol class="qx-steps" aria-label="Quote steps">
+<li :class="phase === 1 ? 'on' : 'done'"><b>1</b>Parts list</li>
+<li :class="phase === 2 ? 'on' : (phase > 2 ? 'done' : '')"><b>2</b>Shipping and details</li>
+<li :class="phase === 3 ? 'on' : ''"><b>3</b>Quote sent</li>
+</ol>
+</div>
+</section>
+
+<section class="qx-wrap" :class="phase === 3 ? 'solo' : ''">
+<div>
+
+<!-- PHASE 1: find parts -->
+<div class="qx-card" v-if="phase === 1">
+<div class="qx-modes" role="tablist" aria-label="How to find parts">
+<button type="button" role="tab" class="qx-mode" :class="mode === 'vehicle' ? 'on' : ''" :aria-selected="mode === 'vehicle' ? 'true' : 'false'" @click="setMode('vehicle')">By engine and year</button>
+<button type="button" role="tab" class="qx-mode" :class="mode === 'search' ? 'on' : ''" :aria-selected="mode === 'search' ? 'true' : 'false'" @click="setMode('search')">Search all parts</button>
+<button type="button" role="tab" class="qx-mode" :class="mode === 'bench' ? 'on' : ''" :aria-selected="mode === 'bench' ? 'true' : 'false'" @click="setMode('bench')">Bench and shop</button>
+</div>
+
+<div v-if="mode === 'vehicle'">
+<div v-if="!gen">
+<span class="qx-label">1. Make or segment</span>
+<div class="qx-makes">
+<button type="button" class="qx-make" v-for="m in tree" :class="make === m.key ? 'on' : ''" @click="pickMake(m.key)"><b v-text="m.label"></b><small v-text="makeHint(m)"></small></button>
+</div>
+<div v-if="curMake">
+<span class="qx-label">2. Engine</span>
+<div class="qx-chips"><button type="button" class="qx-chip" v-for="(e, i) in curMake.engines" :class="engIdx === i ? 'on' : ''" @click="pickEngine(i)"><span v-text="e.label"></span><small v-text="countEngine(e)"></small></button></div>
+</div>
+<div v-if="curEngine">
+<span class="qx-label">3. Generation and years</span>
+<div class="qx-gens"><button type="button" class="qx-gen" v-for="g in curEngine.gens" :class="gen === g.key ? 'on' : ''" @click="pickGen(g.key)"><b v-text="genTitle(g)"></b><small v-text="(g.years || 'All years') + ' · ' + countGen(g.key) + ' parts'"></small></button></div>
+</div>
+</div>
+<div class="qx-path" v-if="curGen"><span>Showing parts for</span><b v-text="curGen.label + (curGen.years ? ' ' + curGen.years : '')"></b><span class="qx-muted" v-text="curGen.vehicles"></span><button type="button" @click="clearVehicle">Change</button></div>
+<div v-if="!make" class="qx-muted" style="margin-top:18px">Pick the make, then the engine and the years. You will see every part we stock for it, from complete injectors and pumps to the repair parts and tools for the bench.</div>
+</div>
+
+<div v-if="mode === 'search'">
+<div class="qx-search"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+<input type="search" id="qx-q" :value="q" @input="setQ($event.target.value)" placeholder="Part number, OE number or description, e.g. 0445120342, F00RJ01714, ISX nozzle" autocomplete="off" aria-label="Search parts"></div>
+<div class="qx-shortcuts" v-if="gensForQuery.length"><span class="qx-muted" style="align-self:center">Engines:</span><button type="button" class="qx-short" v-for="g in gensForQuery" @click="jumpGen(g)" v-text="genTitle(g) + (g.years ? ' ' + g.years : '')"></button></div>
+<div v-if="!q" style="margin-top:14px"><span class="qx-label" style="margin-top:6px">Popular searches</span><div class="qx-chips"><button type="button" class="qx-chip" v-for="t in popular" @click="setQ(t.q)" v-text="t.label"></button></div></div>
+</div>
+
+<div v-if="mode === 'bench'">
+<span class="qx-label">Bench supplies for injection labs and rebuilders</span>
+<div class="qx-chips"><button type="button" class="qx-chip" v-for="b in benchGroups" :class="bench === b.label ? 'on' : ''" @click="pickBench(b.label)"><span v-text="b.label"></span><small v-text="b.n"></small></button></div>
+</div>
+
+<div v-if="showList">
+<div class="qx-chips" style="margin-top:20px" v-if="kindChips.length > 1">
+<button type="button" class="qx-chip" :class="kind === '' ? 'on' : ''" @click="kind = ''; limit = 30">All<small v-text="baseList.length"></small></button>
+<button type="button" class="qx-chip" v-for="k in kindChips" :class="kind === k.label ? 'on' : ''" @click="kind = k.label; limit = 30"><span v-text="k.label"></span><small v-text="k.n"></small></button>
+</div>
+<div class="qx-list">
+<div class="qx-row" v-for="p in shown">
+<div><div class="qx-row-n" v-text="p.name"></div><div class="qx-row-m"><code v-text="p.code"></code><span class="qx-tag" v-text="p.kind"></span><span v-if="p.brand" v-text="p.brand"></span></div></div>
+<button type="button" class="qx-add" :class="qtyOf(p.code) ? 'in' : ''" @click="add(p.code)" v-text="qtyOf(p.code) ? 'In list (' + qtyOf(p.code) + ') · add 1' : '+ Add to list'"></button>
+</div>
+</div>
+<div class="qx-empty" v-if="!filtered.length" v-text="mode === 'search' ? 'No part matches that search. Add it as a custom line below and our team will find it.' : 'No parts listed here yet. Ask us: add a custom line below.'"></div>
+<button type="button" class="qx-more" v-if="filtered.length > limit" @click="limit += 30" v-text="'Show more (' + (filtered.length - limit) + ')'"></button>
+</div>
+
+<div class="qx-sub-card qx-noprint">
+<span class="qx-label" style="margin-top:0">Not in the list? Add a custom line</span>
+<div class="qx-custom"><input class="qx-in" id="qx-cpn" placeholder="Part number" aria-label="Part number"><input class="qx-in" id="qx-cds" placeholder="Description or application" aria-label="Description"><input class="qx-in" id="qx-cqt" type="number" min="1" value="1" aria-label="Quantity"><button type="button" class="qx-btn qx-out" style="height:48px" @click="addCustom">Add line</button></div>
+<details style="margin-top:14px"><summary style="cursor:pointer;font-size:14px;font-weight:500">Paste a list of part numbers</summary>
+<p class="qx-muted" style="margin:10px 0">One part per line. Add the quantity after a space, comma or tab, e.g. <code>0445120342 6</code>. Parts we find are matched to our codes; the rest come in as custom lines.</p>
+<textarea class="qx-in" id="qx-paste" placeholder="0445120342 6&#10;F00RJ01714, 12&#10;DLLA146P2370"></textarea>
+<button type="button" class="qx-btn qx-dark" style="margin-top:10px;height:46px" @click="addPaste">Add to my list</button></details>
+</div>
+</div>
+
+<!-- PHASE 2: details and shipping -->
+<div class="qx-card" v-if="phase === 2 && !reviewing">
+<h2 class="qx-h2">Shipping and details</h2>
+<p class="qx-muted" style="margin:6px 0 0">Tell us who you are and where the parts go, so the quote comes with freight included.</p>
+<span class="qx-label">Contact</span>
+<div class="qx-grid2">
+<input class="qx-in" v-model="d.name" data-k="name" placeholder="Full name *" autocomplete="name">
+<input class="qx-in" v-model="d.company" data-k="company" placeholder="Company *" autocomplete="organization">
+<input class="qx-in" v-model="d.email" data-k="email" type="email" placeholder="Work email *" autocomplete="email">
+<input class="qx-in" v-model="d.phone" data-k="phone" type="tel" placeholder="Phone or WhatsApp *" autocomplete="tel">
+</div>
+<select class="qx-in" v-model="d.type" data-k="type" style="margin-top:10px">
+<option value="">Type of business *</option><option>Rebuilder or injection lab</option><option>Distributor or reseller</option><option>Repair shop or fleet</option><option>Latin America distributor</option><option>Other</option>
+</select>
+<span class="qx-label">Ship to</span>
+<div class="qx-grid3">
+<select class="qx-in" v-model="d.country" data-k="country"><option value="">Country *</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select>
+<input class="qx-in" v-model="d.state" placeholder="State or region">
+<input class="qx-in" v-model="d.zip" data-k="zip" placeholder="ZIP / postal code *" autocomplete="postal-code">
+</div>
+<input class="qx-in" v-model="d.city" placeholder="City" style="margin-top:10px" autocomplete="address-level2">
+<span class="qx-label">Delivery</span>
+<div class="qx-ship">
+<label v-for="s in shipOpts" :class="d.ship === s.v ? 'on' : ''"><input type="radio" name="qx-ship" :value="s.v" v-model="d.ship"><span v-text="s.v"></span><small v-text="s.h"></small></label>
+</div>
+<div class="qx-grid2" style="margin-top:10px">
+<label class="qx-muted">Needed by<input class="qx-in" type="date" v-model="d.needBy" style="margin-top:6px"></label>
+<label class="qx-muted">Your PO or reference<input class="qx-in" v-model="d.po" placeholder="Optional" style="margin-top:6px"></label>
+</div>
+<span class="qx-label">Notes for our team</span>
+<textarea class="qx-in" v-model="d.notes" placeholder="Engine serial, core returns, partial shipments, anything we should know"></textarea>
+<label class="qx-check"><input type="checkbox" v-model="d.b2b"><span><b>I want early access to direct B2B ordering.</b> We are launching a new platform for wholesale customers to see their pricing, stock and order online. We will invite you first.</span></label>
+<p class="qx-muted" v-if="err" style="color:#c2410c;margin-top:14px" v-text="err"></p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px">
+<button type="button" class="qx-btn qx-out" @click="phase = 1">Back to parts</button>
+<button type="button" class="qx-btn qx-red" @click="toReview">Review my quote request</button>
+</div>
+</div>
+
+<!-- review -->
+<div class="qx-card" v-if="phase === 2 && reviewing">
+<div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;align-items:baseline"><h2 class="qx-h2">Review and send</h2><span class="qx-muted" v-text="'Request ' + number"></span></div>
+<div class="qx-kv">
+<div><span>Contact</span><b v-text="d.name"></b><br><span v-text="d.company" style="color:#1d2126;font-size:14px"></span></div>
+<div><span>Email and phone</span><span v-text="d.email" style="color:#1d2126;font-size:14px"></span><span v-text="d.phone" style="color:#1d2126;font-size:14px"></span></div>
+<div><span>Ship to</span><span v-text="[d.city, d.state, d.zip, d.country].filter(Boolean).join(', ')" style="color:#1d2126;font-size:14px"></span><span v-text="d.ship" style="color:#1d2126;font-size:14px"></span></div>
+<div v-if="d.needBy || d.po"><span>Needed by / reference</span><span v-text="[d.needBy, d.po].filter(Boolean).join(' · ')" style="color:#1d2126;font-size:14px"></span></div>
+</div>
+<div class="qx-review" style="margin-top:20px"><table><thead><tr><th>#</th><th>Part number</th><th>Description</th><th style="text-align:right">Qty</th></tr></thead><tbody>
+<tr v-for="(l, i) in lines"><td v-text="i + 1"></td><td class="pn" v-text="l.pn"></td><td v-text="l.name"></td><td style="text-align:right" v-text="l.qty"></td></tr>
+</tbody></table></div>
+<p class="qx-muted" v-if="d.notes" style="margin-top:14px" v-text="'Notes: ' + d.notes"></p>
+<p class="qx-muted" v-if="err" style="color:#c2410c;margin-top:14px" v-text="err"></p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px" class="qx-noprint">
+<button type="button" class="qx-btn qx-out" @click="reviewing = false">Edit details</button>
+<button type="button" class="qx-btn qx-out" @click="printIt">Print or save PDF</button>
+<button type="button" class="qx-btn qx-red" :disabled="sending" @click="submit" v-text="sending ? 'Sending...' : 'Send quote request'"></button>
+</div>
+</div>
+
+<!-- PHASE 3: sent -->
+<div class="qx-card" v-if="phase === 3">
+<div class="qx-done">
+<div class="qx-done-ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg></div>
+<h2 class="qx-h2" style="margin-top:18px" v-text="'Request ' + number + ' sent'"></h2>
+<p class="qx-muted" style="max-width:520px;margin:10px auto 0" v-text="'Thanks, ' + (d.name.split(' ')[0] || 'there') + '. Our team replies to ' + d.email + ' with pricing, availability and freight, usually within one business day.'"></p>
+<div class="qx-review" style="margin:22px auto 0;max-width:760px;text-align:left"><table><thead><tr><th>#</th><th>Part number</th><th>Description</th><th style="text-align:right">Qty</th></tr></thead><tbody>
+<tr v-for="(l, i) in sent"><td v-text="i + 1"></td><td class="pn" v-text="l.pn"></td><td v-text="l.name"></td><td style="text-align:right" v-text="l.qty"></td></tr>
+</tbody></table></div>
+<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:20px" class="qx-noprint"><button type="button" class="qx-btn qx-out" @click="printIt">Print or save PDF</button><button type="button" class="qx-btn qx-dark" @click="startOver">Start a new list</button></div>
+</div>
+<div class="qx-b2b">
+<div v-if="!b2bDone"><h3>Order direct, <em>no waiting for quotes.</em></h3><p>We are building a new B2B platform for wholesale customers: your account pricing, live stock in Florida, reorders and order tracking in one place. Want early access?</p></div>
+<div v-if="b2bDone"><h3>You are on the list.</h3><p>We will invite you as soon as direct ordering opens for your account.</p></div>
+<button type="button" class="qx-btn qx-red" v-if="!b2bDone" :disabled="b2bSending" @click="askB2B" v-text="b2bSending ? 'Sending...' : 'Request B2B access'"></button>
+</div>
+</div>
+</div>
+
+<!-- quote list panel -->
+<aside class="qx-panel" id="qx-list" v-if="phase !== 3" aria-label="Your quote list">
+<div class="qx-panel-h"><h2>Your list</h2><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span></div>
+<div class="qx-panel-empty" v-if="!lines.length">Your list is empty. Find parts by engine or search on the left, or paste a list of part numbers.</div>
+<div class="qx-lines" v-if="lines.length">
+<div class="qx-line" v-for="(l, i) in lines">
+<div><div class="qx-line-n" v-text="l.name"></div><div class="qx-line-p" v-text="l.pn"></div>
+<input class="qx-in" v-if="l.needPn" placeholder="Add a part number (optional)" :value="l.pnUser || ''" @change="setPn(i, $event.target.value)"></div>
+<div><div class="qx-qty"><button type="button" aria-label="Remove one" @click="dec(i)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="Add one" @click="inc(i)">+</button></div><button type="button" class="qx-rm" @click="remove(i)">Remove</button></div>
+</div>
+</div>
+<div class="qx-xs" v-if="suggest.length && phase === 1">
+<h3>Often quoted together</h3>
+<div class="qx-xs-row" v-for="s in suggest"><div><span v-text="s.name"></span><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Add</button></div>
+</div>
+<button type="button" class="qx-btn qx-red" v-if="phase === 1" :disabled="!lines.length" :style="lines.length ? '' : 'opacity:.45;cursor:not-allowed'" @click="toDetails">Continue: shipping and details</button>
+<div class="qx-tools" v-if="lines.length"><button type="button" class="qx-btn qx-ghost" @click="copyLink" v-text="copied ? 'Link copied' : 'Copy a link to this list'"></button><button type="button" class="qx-btn qx-ghost" @click="clearAll">Clear list</button></div>
+<p style="margin:14px 0 0;color:#8a9099;font-size:12px;line-height:1.5">No payment here. Wholesale accounts can also order through the <a href="https://maxzzdiesel.store.unleashedsoftware.com/" target="_blank" rel="noopener" style="color:#fc771d">B2B portal</a>.</p>
+</aside>
+</section>
+
+<div class="qx-mbar" v-if="phase === 1 && lines.length"><span v-text="lines.length + (lines.length === 1 ? ' part' : ' parts') + ' in your list'"></span><a class="qx-btn qx-red" href="#qx-list">View list</a></div>
+<div class="qx-toast" :class="toast ? 'on' : ''" role="status" aria-live="polite" v-text="toast"></div>
+</div>
