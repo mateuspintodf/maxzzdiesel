@@ -268,7 +268,7 @@ select.qx-in{appearance:auto}
 <label class="qx-muted">Needed by<input class="qx-in" type="date" v-model="d.needBy" style="margin-top:6px"></label>
 <label class="qx-muted">Your PO or reference<input class="qx-in" v-model="d.po" placeholder="Optional" style="margin-top:6px"></label>
 </div>
-<span class="qx-label">Notes for our team</span>
+<input id="qx-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"><span class="qx-label">Notes for our team</span>
 <textarea class="qx-in" v-model="d.notes" placeholder="Engine serial, core returns, partial shipments, anything we should know"></textarea>
 <label class="qx-check"><input type="checkbox" v-model="d.b2b"><span><b>I want early access to direct B2B ordering.</b> We are launching a new platform for wholesale customers to see their pricing, stock and order online. We will invite you first.</span></label>
 <p class="qx-muted" v-if="err" style="color:#c2410c;margin-top:14px" v-text="err"></p>

@@ -3,7 +3,7 @@
    Deep links for campaigns: /quote?add=CODE:QTY,CODE2&utm_source=...  (parts go straight into the list)
    Other params: q= (search), gen= (engine generation key, e.g. PS67-A), mode=vehicle|search|bench */
 (function () {
-  var QK = 'mx-quote', DK = 'mx-quote-d', SK = 'mx-src';
+  var QK = 'mx-quote', DK = 'mx-quote-d', SK = 'mx-src', T0 = Date.now();
   var TBD = 'Part number to confirm';
   function read(k, dflt) { try { var v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? dflt : v; } catch (e) { return dflt; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
@@ -201,7 +201,7 @@
       this.sending = true; this.err = '';
       var body = { number: this.number, customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes },
         shipping: { country: d.country, state: d.state, city: d.city, zip: d.zip, method: d.ship, needBy: d.needBy, po: d.po },
-        b2b: !!d.b2b, source: read(SK, ''), lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
+        b2b: !!d.b2b, source: read(SK, ''), hp: val('qx-hp'), t: Date.now() - T0, lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function () { self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
@@ -209,7 +209,7 @@
     },
     askB2B: function () {
       if (this.b2bSending) return; var self = this, d = this.d; this.b2bSending = true;
-      fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: d.name, email: d.email, phone: d.phone, type: 'B2B platform early access · ' + (d.type || '') + ' · ' + d.company }) })
+      fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hp: val('qx-hp'), t: Date.now() - T0, name: d.name, email: d.email, phone: d.phone, type: 'B2B platform early access · ' + (d.type || '') + ' · ' + d.company }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); self.b2bDone = true; self.b2bSending = false; })
         .catch(function () { self.b2bSending = false; self.flash('Could not send. Email sales@maxzzdiesel.com and we will add you.'); });
     },

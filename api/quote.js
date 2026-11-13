@@ -2,11 +2,14 @@
 // Creates or updates the contact in HubSpot, opens a deal "Quote request QR-..." and attaches the parts list as a note.
 const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
+const { guard } = require('../lib/guard');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
+  res.setHeader('Cache-Control', 'no-store');
   const b = readBody(req);
-  if (b.hp) return res.status(200).json({ ok: true });            // honeypot: silently drop bots
+  const g = guard(req, b);
+  if (g) return res.status(g[0]).json(g[1]);
   const c = b.customer || {};
   const customer = { name: clean(c.name, 120), company: clean(c.company, 160), email: clean(c.email, 160).toLowerCase(), phone: clean(c.phone, 40), type: clean(c.type, 80), notes: clean(c.notes, 2000) };
   const lines = (Array.isArray(b.lines) ? b.lines : []).slice(0, 300).map((l) => ({ pn: clean(l.pn, 80), name: clean(l.name, 240), qty: Math.max(1, Math.min(99999, parseInt(l.qty, 10) || 1)) }));
