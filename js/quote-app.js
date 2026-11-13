@@ -125,7 +125,7 @@
       var best = '';
       for (var i = 0; i < this.cat.length; i++) {
         var c = this.cat[i].ncode; if (c === n) return this.cat[i].code;
-        if (!best && c.length > n.length && c.slice(-n.length) === n && /^[a-z]{1,4}$/.test(c.slice(0, c.length - n.length))) best = this.cat[i].code;
+        if ((!best || best.indexOf('BO.') !== 0) && c.length > n.length && c.slice(-n.length) === n && /^[a-z]{1,4}$/.test(c.slice(0, c.length - n.length))) { if (!best || c.indexOf('bo') === 0) best = this.cat[i].code; }
       }
       return best;
       return '';
