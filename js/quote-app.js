@@ -20,7 +20,7 @@
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
     lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, sent: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    reviewing: false, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -85,13 +85,26 @@
     logosOf: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
     monoOf: function (k) { return { ford: 'Ford', ram: 'Ram', gm: 'Chevy · GMC', nissan: 'Nissan', hd: 'Heavy duty' }[k] || k; },
     makeHint: function (m) { return m.engines.map(function (e) { return e.label; }).slice(0, 4).join(' · '); },
-    genTitle: function (g) { return g.label; },
+    genTitle: function (g, e) {
+      if (g.key === 'DMAX') return 'Not sure of the generation?';
+      var same = e && e.gens.filter(function (x) { return x.label === g.label; }).length > 1;
+      return same && g.years ? g.years : g.label;
+    },
+    genSub: function (g, e) {
+      if (g.key === 'DMAX') return 'All 6.6L Duramax parts we stock';
+      var same = e && e.gens.filter(function (x) { return x.label === g.label; }).length > 1;
+      return same ? g.label : (g.years || 'All years');
+    },
+    get zipRequired() { return /United States|Canada|Puerto Rico/.test(this.d.country || 'United States'); },
+    backToMake: function () { this.gen = ''; this.engIdx = -1; this.kind = ''; },
+    backToEngine: function () { var m = this.curMake; this.gen = ''; this.kind = ''; if (m && m.engines.length === 1) this.engIdx = 0; },
+    addQueryAsCustom: function () { var q = String(this.q).trim(); if (!q) return; var hit = this.findCode(q); if (hit) this.add(hit); else { this.addRaw(q, q, 1); this.flash('Added as a custom line'); } this.setQ(''); },
     countGen: function (key) { var n = 0, it = this.fit.items; for (var c in it) if (it[c][0].indexOf(key) >= 0 && this.map[c]) n++; return n; },
     countEngine: function (e) { var self = this; return e.gens.reduce(function (s, g) { return s + self.countGen(g.key); }, 0); },
     setMode: function (m) { this.mode = m; this.kind = ''; this.limit = 30; if (m === 'search') setTimeout(function () { var el = document.getElementById('qx-q'); if (el) el.focus(); }, 30); },
     pickMake: function (k) { this.make = k; this.engIdx = -1; this.gen = ''; this.kind = ''; var m = this.curMake; if (m && m.engines.length === 1) this.pickEngine(0); },
     pickEngine: function (i) { this.engIdx = i; this.gen = ''; this.kind = ''; var e = this.curEngine; if (e && e.gens.length === 1) this.pickGen(e.gens[0].key); },
-    pickGen: function (k) { this.gen = k; this.kind = ''; this.limit = 30; },
+    pickGen: function (k) { this.gen = k; this.kind = ''; this.limit = 30; setTimeout(function () { var el = document.querySelector('.qx-path'); if (el && el.getBoundingClientRect().top < 150) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); },
     clearVehicle: function () { this.gen = ''; this.kind = ''; },
     jumpGen: function (g) {
       var self = this; this.mode = 'vehicle'; this.make = g.make;
@@ -129,19 +142,23 @@
         var c = this.cat[i].ncode; if (c === n) return this.cat[i].code;
         if ((!best || best.indexOf('BO.') !== 0) && c.length > n.length && c.slice(-n.length) === n && /^[a-z]{1,4}$/.test(c.slice(0, c.length - n.length))) { if (!best || c.indexOf('bo') === 0) best = this.cat[i].code; }
       }
+      if (!best && n.length >= 8) { for (var k = 0; k < this.cat.length; k++) { if (this.cat[k].hay.indexOf(n) >= 0) { best = this.cat[k].code; break; } } }
+      if (!best && /^d[ls]la/.test(n)) return this.findCode('b' + n.slice(1));
       return best;
       return '';
     },
     addPaste: function () {
-      var self = this, txt = val('qx-paste'), found = 0, custom = 0;
+      var self = this, txt = val('qx-paste'), found = 0, custom = 0, miss = [];
       txt.split(/\n+/).forEach(function (line) {
         line = line.trim(); if (!line) return;
         var m = line.match(/^(.+?)[\s,;\t]+(\d{1,5})$/), pn = m ? m[1].trim() : line, qty = m ? m[2] : 1;
         var hit = self.findCode(pn);
-        if (hit) { self.add(hit, qty, true); found++; } else { self.addRaw(pn, pn, qty); custom++; }
+        if (hit) { self.add(hit, qty, true); found++; } else { self.addRaw(pn, pn, qty); custom++; miss.push(pn); }
       });
       setVal('qx-paste', '');
-      this.flash(found + ' matched' + (custom ? ', ' + custom + ' added as custom lines' : ''));
+      this.pasteMsg = found + (found === 1 ? ' part matched' : ' parts matched') + (custom ? ', ' + custom + ' added as custom lines' : '') + '.';
+      this.pasteMiss = miss;
+      this.flash(this.pasteMsg);
     },
     inc: function (i) { this.lines[i].qty++; this.save(); },
     dec: function (i) { if (this.lines[i].qty > 1) { this.lines[i].qty--; this.save(); } },
@@ -164,8 +181,11 @@
       if (!d.name.trim()) bad.push('name'); if (!d.company.trim()) bad.push('company');
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim())) bad.push('email');
       if (d.phone.replace(/\D/g, '').length < 7) bad.push('phone');
-      if (!d.type) bad.push('type'); if (!d.country) bad.push('country'); if (!d.zip.trim()) bad.push('zip');
-      document.querySelectorAll('[data-k]').forEach(function (el) { el.classList.toggle('qx-err', bad.indexOf(el.getAttribute('data-k')) >= 0); });
+      if (!d.type) bad.push('type'); if (!d.country) bad.push('country'); if (this.zipRequired && !d.zip.trim()) bad.push('zip');
+      this.bad = bad;
+      var first = null;
+      document.querySelectorAll('[data-k]').forEach(function (el) { var b = bad.indexOf(el.getAttribute('data-k')) >= 0; el.classList.toggle('qx-err', b); el.setAttribute('aria-invalid', b ? 'true' : 'false'); if (b && !first) first = el; });
+      if (first) setTimeout(function () { first.focus(); }, 50);
       return bad;
     },
     toReview: function () {

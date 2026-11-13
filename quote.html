@@ -184,6 +184,13 @@ textarea.q-in{height:auto;padding:12px 16px;line-height:22px}
 </nav>
 </header></section>
 <style>
+.qx-wrap{scroll-margin-top:140px}
+html{scroll-padding-top:140px}
+.qx :focus-visible{outline:2px solid #1e1e87;outline-offset:2px}
+.qx-f{display:block;font-size:13px;font-weight:500;color:#3d444d}.qx-f .qx-in{margin-top:6px}
+.qx-f i{font-style:normal;color:#c2410c}
+.qx-ferr{display:none;margin-top:4px;font-size:12px;color:#c2410c}.qx-f.bad .qx-ferr{display:block}
+.qx-miss{margin-top:10px;padding:12px 14px;border-radius:12px;background:#fff4ec;font-size:13px;line-height:1.5;color:#7c2d12}
 .qx{font-family:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;color:#1d2126}
 .qx *{box-sizing:border-box}
 .qx-hero{position:relative;background:#1d2126;border-radius:0 0 30px 30px;padding:122px clamp(20px,3.5vw,40px) 28px;color:#fff;overflow:hidden}
@@ -208,7 +215,7 @@ textarea.q-in{height:auto;padding:12px 16px;line-height:22px}
 .qx-mode.on{background:#1d2126;color:#fff}
 .qx-h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em}
 .qx-muted{color:#6b7178;font-size:14px;line-height:1.5}
-.qx-label{display:block;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#8a9099;margin:22px 0 10px}
+.qx-label{display:block;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#5f656c;margin:22px 0 10px}
 .qx-makes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .qx-make{position:relative;display:flex;flex-direction:column;gap:12px;border:1px solid #e3e6e9;background:#fff;border-radius:20px;padding:16px;text-align:left;font:inherit;color:#1d2126;cursor:pointer;transition:border-color .2s,box-shadow .25s,transform .25s cubic-bezier(.22,1,.36,1)}
 .qx-make:hover{border-color:#1d2126;transform:translateY(-2px);box-shadow:0 10px 24px rgba(29,33,38,.08)}.qx-make:active{transform:scale(.98)}
@@ -234,10 +241,14 @@ textarea.q-in{height:auto;padding:12px 16px;line-height:22px}
 .qx-chip:hover{border-color:#1d2126}.qx-chip.on{background:#1d2126;border-color:#1d2126;color:#fff}
 .qx-chip small{color:#8a9099;margin-left:6px}.qx-chip.on small{color:#b9b9be}
 .qx-gens{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
-.qx-gen{border:1px solid #e3e6e9;background:#fff;border-radius:14px;padding:12px 14px;text-align:left;font:inherit;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
+.qx-gen{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;gap:4px;min-height:84px;border:1px solid #e3e6e9;background:#fff;border-radius:14px;padding:14px;text-align:left;font:inherit;color:#1d2126;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
+.qx-gen.wide{grid-column:1/-1;min-height:0;border-style:dashed;flex-direction:row;align-items:center;gap:12px}
 .qx-gen:hover{border-color:#1d2126}.qx-gen.on{background:#d32a37;border-color:#d32a37;color:#fff}
-.qx-gen b{display:block;font-size:15px;font-weight:600}.qx-gen small{display:block;margin-top:2px;font-size:12px;color:#8a9099}.qx-gen.on small{color:#ffe1e3}
-.qx-path{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px;padding:12px 16px;border-radius:14px;background:#eef0f2;font-size:14px}
+.qx-gen b{display:block;font-size:16px;font-weight:600;line-height:1.3}.qx-gen small{display:block;font-size:13px;line-height:1.3;color:#5f656c}.qx-gen em{font-style:normal;margin-top:auto;padding-top:6px;font-size:12px;line-height:1.3;color:#c2410c;font-weight:500}
+.qx-gen.on small,.qx-gen.on em{color:#ffe1e3}.qx-gen.wide em{margin:0 0 0 auto;padding:0}
+.qx-path{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px;padding:10px 12px;border-radius:14px;background:#fff4ec;font-size:14px}
+.qx-crumbchip{border:1px solid #f3c7a6;background:#fff;border-radius:50px;padding:6px 12px;font:inherit;font-size:14px;color:#1d2126;cursor:pointer}.qx-crumbchip:hover{border-color:#fc771d}.qx-crumbchip b{font-weight:600}
+.qx-path .qx-sep{color:#c2410c}
 .qx-path b{font-weight:600}.qx-path button{margin-left:auto;border:0;background:none;color:#d32a37;font:inherit;font-size:14px;cursor:pointer}
 .qx-search{position:relative;margin-top:20px}
 .qx-search input{width:100%;height:58px;border:1px solid #e3e6e9;border-radius:50px;padding:0 20px 0 50px;font:inherit;font-size:16px;outline:none;transition:border-color .2s}
@@ -270,15 +281,15 @@ select.qx-in{appearance:auto}
 .qx-dark{background:#1d2126;color:#fff}.qx-dark:hover{background:#3d444d}
 .qx-out{background:transparent;border:1px solid #d3d7dc;color:#1d2126}.qx-out:hover{border-color:#1d2126}
 .qx-ghost{background:transparent;color:#b9b9be;height:auto;padding:6px 0;font-size:13px}.qx-ghost:hover{color:#fff}
-.qx-panel{position:sticky;top:120px;background:#1d2126;color:#fff;border-radius:25px;padding:24px}
+.qx-panel{position:sticky;top:146px;background:#1d2126;color:#fff;border-radius:25px;padding:24px}
 .qx-panel-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .qx-panel-h h2{margin:0;font-size:20px;font-weight:600}.qx-panel-h span{font-size:13px;color:#b9b9be}
-.qx-lines{margin-top:14px;max-height:46vh;overflow:auto;border-top:1px solid #3d444d}
+.qx-lines{margin-top:14px;max-height:max(220px, calc(100vh - 470px));overflow:auto;border-top:1px solid #3d444d}
 .qx-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 0;border-bottom:1px solid #3d444d}
 .qx-line-n{font-size:14px;line-height:1.35}.qx-line-p{margin-top:3px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#fc771d}
 .qx-line .qx-in{height:36px;margin-top:6px;background:#262b31;border-color:#3d444d;color:#fff;font-size:13px}
 .qx-qty{display:flex;align-items:center;gap:4px}
-.qx-qty button{width:30px;height:30px;border:0;border-radius:50%;background:#262b31;color:#fff;font:inherit;font-size:16px;cursor:pointer;transition:background-color .2s}
+.qx-qty button{width:34px;height:34px;border:0;border-radius:50%;background:#262b31;color:#fff;font:inherit;font-size:16px;cursor:pointer;transition:background-color .2s}
 .qx-qty button:hover{background:#3d444d}
 .qx-qty input{width:46px;height:30px;border:1px solid #3d444d;border-radius:10px;background:transparent;color:#fff;text-align:center;font:inherit;font-size:14px}
 .qx-rm{display:block;margin-top:6px;margin-left:auto;border:0;background:none;color:#8a9099;font:inherit;font-size:12px;cursor:pointer}.qx-rm:hover{color:#fc771d}
@@ -299,13 +310,14 @@ select.qx-in{appearance:auto}
 .qx-ship label.on{border-color:#1d2126;background:#f5f6f7}
 .qx-ship input{position:absolute;opacity:0;pointer-events:none}
 .qx-ship small{display:block;color:#8a9099;font-size:12px;margin-top:2px}
-.qx-review{border:1px solid #e3e6e9;border-radius:18px;overflow:hidden}
+.qx-review{border:1px solid #e3e6e9;border-radius:18px;overflow-x:auto}
+.qx-review table{min-width:520px}
 .qx-review table{width:100%;border-collapse:collapse;font-size:14px}
 .qx-review th{text-align:left;font-size:12px;font-weight:600;color:#8a9099;text-transform:uppercase;letter-spacing:.6px;padding:10px 14px;background:#f5f6f7}
 .qx-review td{padding:10px 14px;border-top:1px solid #eceef0;vertical-align:top}
 .qx-review td.pn{font-family:ui-monospace,Menlo,Consolas,monospace;color:#d32a37;font-size:13px;white-space:nowrap}
 .qx-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 24px;margin-top:16px;font-size:14px}
-.qx-kv span{display:block;color:#8a9099;font-size:12px}
+.qx-kv span{display:block;color:#5f656c;font-size:12px}
 .qx-done{text-align:center;padding:20px 0}
 .qx-done-ic{width:64px;height:64px;margin:0 auto;border-radius:50%;background:#1e1e87;color:#fff;display:flex;align-items:center;justify-content:center}
 .qx-b2b{margin-top:26px;text-align:left;background:#1d2126;color:#fff;border-radius:22px;padding:24px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:center}
@@ -316,7 +328,7 @@ select.qx-in{appearance:auto}
 .qx-mbar{display:none}
 @media (max-width:1100px){.qx-wrap{grid-template-columns:1fr}.qx-panel{position:relative;top:auto}.qx-lines{max-height:none}}
 @media (max-width:860px){.qx-hero-in{grid-template-columns:1fr}.qx-steps{overflow-x:auto}}
-@media (max-width:640px){.qx-hero{padding-top:110px}.qx-grid2,.qx-grid3,.qx-custom{grid-template-columns:1fr}.qx-b2b{grid-template-columns:1fr}.qx-row{grid-template-columns:1fr}.qx-add{width:100%}
+@media (max-width:640px){.qx-wrap{scroll-margin-top:110px}.qx-hero{padding-top:110px}.qx-toast{bottom:84px;max-width:320px;text-align:center;border-radius:18px}.qx-modes{display:grid;grid-template-columns:repeat(3,1fr);width:100%;border-radius:18px}.qx-mode{padding:10px 6px;border-radius:14px}.qx-ml{display:none}.qx-gens{grid-template-columns:repeat(2,1fr)}.qx-qty button{width:40px;height:40px}.qx-rm{font-size:14px;padding:6px 0}.qx-grid2,.qx-grid3,.qx-custom{grid-template-columns:1fr}.qx-b2b{grid-template-columns:1fr}.qx-row{grid-template-columns:1fr}.qx-add{width:100%}
 .qx-mbar{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:85;align-items:center;justify-content:space-between;gap:12px;background:#1d2126;color:#fff;border-radius:50px;padding:8px 8px 8px 20px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 .qx-mbar .qx-btn{height:44px;padding:0 18px}}
 @media print{header,footer,.qx-hero,.qx-panel,.qx-noprint,.qx-mbar,.qb,.qp{display:none !important}.qx-wrap{display:block;padding:0}.qx-card{padding:0}}
@@ -350,9 +362,9 @@ select.qx-in{appearance:auto}
 <!-- PHASE 1: find parts -->
 <div class="qx-card" v-if="phase === 1">
 <div class="qx-modes" role="tablist" aria-label="How to find parts">
-<button type="button" role="tab" class="qx-mode" :class="mode === 'vehicle' ? 'on' : ''" :aria-selected="mode === 'vehicle' ? 'true' : 'false'" @click="setMode('vehicle')">By engine and year</button>
-<button type="button" role="tab" class="qx-mode" :class="mode === 'search' ? 'on' : ''" :aria-selected="mode === 'search' ? 'true' : 'false'" @click="setMode('search')">Search all parts</button>
-<button type="button" role="tab" class="qx-mode" :class="mode === 'bench' ? 'on' : ''" :aria-selected="mode === 'bench' ? 'true' : 'false'" @click="setMode('bench')">Bench and shop</button>
+<button type="button" role="tab" class="qx-mode" :class="mode === 'vehicle' ? 'on' : ''" :aria-selected="mode === 'vehicle' ? 'true' : 'false'" @click="setMode('vehicle')">By engine<span class="qx-ml"> and year</span></button>
+<button type="button" role="tab" class="qx-mode" :class="mode === 'search' ? 'on' : ''" :aria-selected="mode === 'search' ? 'true' : 'false'" @click="setMode('search')">Search<span class="qx-ml"> all parts</span></button>
+<button type="button" role="tab" class="qx-mode" :class="mode === 'bench' ? 'on' : ''" :aria-selected="mode === 'bench' ? 'true' : 'false'" @click="setMode('bench')">Bench<span class="qx-ml"> and shop</span></button>
 </div>
 
 <div v-if="mode === 'vehicle'">
@@ -367,10 +379,10 @@ select.qx-in{appearance:auto}
 </div>
 <div v-if="curEngine">
 <div class="qx-step"><b>3</b><span>Choose the generation and years <small v-text="'· ' + curEngine.label"></small></span></div>
-<div class="qx-gens"><button type="button" class="qx-gen" v-for="g in curEngine.gens" :class="gen === g.key ? 'on' : ''" @click="pickGen(g.key)"><b v-text="genTitle(g)"></b><small v-text="(g.years || 'All years') + ' · ' + countGen(g.key) + ' parts'"></small></button></div>
+<div class="qx-gens"><button type="button" class="qx-gen" v-for="g in curEngine.gens" :class="(gen === g.key ? 'on ' : '') + (g.key === 'DMAX' ? 'wide' : '')" @click="pickGen(g.key)"><b v-text="genTitle(g, curEngine)"></b><small v-text="genSub(g, curEngine)"></small><em v-text="countGen(g.key) + (countGen(g.key) === 1 ? ' part' : ' parts')"></em></button></div>
 </div>
 </div>
-<div class="qx-path" v-if="curGen"><span>Showing parts for</span><b v-text="curGen.label + (curGen.years ? ' ' + curGen.years : '')"></b><span class="qx-muted" v-text="curGen.vehicles"></span><button type="button" @click="clearVehicle">Change</button></div>
+<div class="qx-path" v-if="curGen"><span>Parts for</span><button type="button" class="qx-crumbchip" @click="backToMake"><b v-text="curMake ? curMake.label : ''"></b></button><span class="qx-sep">›</span><button type="button" class="qx-crumbchip" @click="backToEngine" v-text="curEngine ? curEngine.label : ''"></button><span class="qx-sep">›</span><button type="button" class="qx-crumbchip" @click="clearVehicle"><b v-text="genTitle(curGen, curEngine) + (curGen.years && genTitle(curGen, curEngine) !== curGen.years ? ' ' + curGen.years : '')"></b></button><span class="qx-muted" v-text="curGen.vehicles" style="margin-left:4px"></span></div>
 <div v-if="!make" class="qx-muted" style="margin-top:18px">Pick the make, then the engine and the years. You will see every part we stock for it, from complete injectors and pumps to the repair parts and tools for the bench.</div>
 </div>
 
@@ -397,7 +409,7 @@ select.qx-in{appearance:auto}
 <button type="button" class="qx-add" :class="qtyOf(p.code) ? 'in' : ''" @click="add(p.code)" v-text="qtyOf(p.code) ? 'In list (' + qtyOf(p.code) + ') · add 1' : '+ Add to list'"></button>
 </div>
 </div>
-<div class="qx-empty" v-if="!filtered.length" v-text="mode === 'search' ? 'No part matches that search. Add it as a custom line below and our team will find it.' : 'No parts listed here yet. Ask us: add a custom line below.'"></div>
+<div class="qx-empty" v-if="!filtered.length"><span v-text="mode === 'search' ? 'No part matches that search.' : 'No parts listed here yet.'"></span><br><button type="button" class="qx-btn qx-out" style="margin-top:12px;height:44px" v-if="mode === 'search'" @click="addQueryAsCustom" v-text="'Add &quot;' + q + '&quot; as a custom line'"></button><span v-if="mode !== 'search'">Add a custom line below and our team will find it.</span></div>
 <button type="button" class="qx-more" v-if="filtered.length > limit" @click="limit += 30" v-text="'Show more (' + (filtered.length - limit) + ')'"></button>
 </div>
 
@@ -407,7 +419,8 @@ select.qx-in{appearance:auto}
 <details style="margin-top:14px"><summary style="cursor:pointer;font-size:14px;font-weight:500">Paste a list of part numbers</summary>
 <p class="qx-muted" style="margin:10px 0">One part per line. Add the quantity after a space, comma or tab, e.g. <code>0445120342 6</code>. Parts we find are matched to our codes; the rest come in as custom lines.</p>
 <textarea class="qx-in" id="qx-paste" placeholder="0445120342 6&#10;F00RJ01714, 12&#10;DLLA146P2370"></textarea>
-<button type="button" class="qx-btn qx-dark" style="margin-top:10px;height:46px" @click="addPaste">Add to my list</button></details>
+<button type="button" class="qx-btn qx-dark" style="margin-top:10px;height:46px" @click="addPaste">Add to my list</button>
+<div class="qx-miss" v-if="pasteMsg"><b v-text="pasteMsg"></b><span v-if="pasteMiss.length"><br>Not matched, added as custom lines for our team to check: <span v-text="pasteMiss.join(', ')"></span></span></div></details>
 </div>
 </div>
 
@@ -417,21 +430,21 @@ select.qx-in{appearance:auto}
 <p class="qx-muted" style="margin:6px 0 0">Tell us who you are and where the parts go, so the quote comes with freight included.</p>
 <span class="qx-label">Contact</span>
 <div class="qx-grid2">
-<input class="qx-in" v-model="d.name" data-k="name" placeholder="Full name *" autocomplete="name">
-<input class="qx-in" v-model="d.company" data-k="company" placeholder="Company *" autocomplete="organization">
-<input class="qx-in" v-model="d.email" data-k="email" type="email" placeholder="Work email *" autocomplete="email">
-<input class="qx-in" v-model="d.phone" data-k="phone" type="tel" placeholder="Phone or WhatsApp *" autocomplete="tel">
+<label class="qx-f" :class="bad.indexOf('name') >= 0 ? 'bad' : ''">Full name <i>*</i><input class="qx-in" v-model="d.name" data-k="name" autocomplete="name"><span class="qx-ferr">Required</span></label>
+<label class="qx-f" :class="bad.indexOf('company') >= 0 ? 'bad' : ''">Company <i>*</i><input class="qx-in" v-model="d.company" data-k="company" autocomplete="organization"><span class="qx-ferr">Required</span></label>
+<label class="qx-f" :class="bad.indexOf('email') >= 0 ? 'bad' : ''">Work email <i>*</i><input class="qx-in" v-model="d.email" data-k="email" type="email" autocomplete="email"><span class="qx-ferr">Enter a valid email</span></label>
+<label class="qx-f" :class="bad.indexOf('phone') >= 0 ? 'bad' : ''">Phone or WhatsApp <i>*</i><input class="qx-in" v-model="d.phone" data-k="phone" type="tel" autocomplete="tel"><span class="qx-ferr">Enter a phone number with area code</span></label>
 </div>
-<select class="qx-in" v-model="d.type" data-k="type" style="margin-top:10px">
-<option value="">Type of business *</option><option>Rebuilder or injection lab</option><option>Distributor or reseller</option><option>Repair shop or fleet</option><option>Latin America distributor</option><option>Other</option>
-</select>
+<label class="qx-f" style="margin-top:10px" :class="bad.indexOf('type') >= 0 ? 'bad' : ''">Type of business <i>*</i><select class="qx-in" v-model="d.type" data-k="type">
+<option value="">Choose one</option><option>Rebuilder or injection lab</option><option>Distributor or reseller</option><option>Repair shop or fleet</option><option>Latin America distributor</option><option>Other</option>
+</select><span class="qx-ferr">Required</span></label>
 <span class="qx-label">Ship to</span>
 <div class="qx-grid3">
-<select class="qx-in" v-model="d.country" data-k="country"><option value="">Country *</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select>
-<input class="qx-in" v-model="d.state" placeholder="State or region">
-<input class="qx-in" v-model="d.zip" data-k="zip" placeholder="ZIP / postal code *" autocomplete="postal-code">
+<label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">Country <i>*</i><select class="qx-in" v-model="d.country" data-k="country"><option value="">Choose one</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select><span class="qx-ferr">Required</span></label>
+<label class="qx-f">State or region<input class="qx-in" v-model="d.state"></label>
+<label class="qx-f" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">ZIP / postal code <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code"><span class="qx-ferr">Required for US and Canada</span></label>
 </div>
-<input class="qx-in" v-model="d.city" placeholder="City" style="margin-top:10px" autocomplete="address-level2">
+<label class="qx-f" style="margin-top:10px">City<input class="qx-in" v-model="d.city" autocomplete="address-level2"></label>
 <span class="qx-label">Delivery</span>
 <div class="qx-ship">
 <label v-for="s in shipOpts" :class="d.ship === s.v ? 'on' : ''"><input type="radio" name="qx-ship" :value="s.v" v-model="d.ship"><span v-text="s.v"></span><small v-text="s.h"></small></label>
@@ -505,7 +518,8 @@ select.qx-in{appearance:auto}
 <h3>Often quoted together</h3>
 <div class="qx-xs-row" v-for="s in suggest"><div><span v-text="s.name"></span><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Add</button></div>
 </div>
-<button type="button" class="qx-btn qx-red" v-if="phase === 1" :disabled="!lines.length" :style="lines.length ? '' : 'opacity:.45;cursor:not-allowed'" @click="toDetails">Continue: shipping and details</button>
+<button type="button" class="qx-btn qx-red" v-if="phase === 1 && !lines.length" disabled style="background:#3d444d;color:#b9b9be;cursor:default">Add a part to continue</button>
+<button type="button" class="qx-btn qx-red" v-if="phase === 1 && lines.length" @click="toDetails">Continue: shipping and details</button>
 <div class="qx-tools" v-if="lines.length"><button type="button" class="qx-btn qx-ghost" @click="copyLink" v-text="copied ? 'Link copied' : 'Copy a link to this list'"></button><button type="button" class="qx-btn qx-ghost" @click="clearAll">Clear list</button></div>
 <p style="margin:14px 0 0;color:#8a9099;font-size:12px;line-height:1.5">No payment here. Wholesale accounts can also order through the <a href="https://maxzzdiesel.store.unleashedsoftware.com/" target="_blank" rel="noopener" style="color:#fc771d">B2B portal</a>.</p>
 </aside>
@@ -567,7 +581,7 @@ select.qx-in{appearance:auto}
 </div>
 <script src="/js/petite-vue.iife.js"></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
-<script src="/js/quote-app.js?v=4"></script>
+<script src="/js/quote-app.js?v=6"></script>
 <script src="/js/motion.js?v=1" defer></script>
 </body>
 </html>
