@@ -17,9 +17,6 @@
     },
     "api/agenda.js": {
       "maxDuration": 20
-    },
-    "api/stock-price.js": {
-      "maxDuration": 60
     }
   },
   "headers": [
