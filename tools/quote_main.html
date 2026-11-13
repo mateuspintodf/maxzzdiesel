@@ -140,6 +140,31 @@ select.qx-in{appearance:auto}
 .qx-b2b em{font-style:normal;color:#fc771d}
 .qx-toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,16px);opacity:0;z-index:90;background:#1d2126;color:#fff;border-radius:50px;padding:12px 20px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:opacity .25s cubic-bezier(.22,1,.36,1),transform .25s cubic-bezier(.22,1,.36,1);pointer-events:none;max-width:calc(100vw - 32px)}
 .qx-toast.on{opacity:1;transform:translate(-50%,0)}
+.qx-p2 .qx-f,.qx-p2 label,.qx-p2 small,.qx-p2 p{line-height:1.4}
+.qx-p2-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
+.qx-p2-count{border-radius:50px;background:#fff4ec;color:#c2410c;padding:6px 12px;font-size:13px;font-weight:500;white-space:nowrap}
+.qx-sec{margin-top:22px;padding-top:18px;border-top:1px solid #eceef0}
+.qx-sec-t{display:block;margin-bottom:10px;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#5f656c}
+.qx-g2{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+.qx-g3{display:grid;grid-template-columns:1.3fr 1fr 1.3fr;gap:12px 14px}
+.qx-p2 .qx-in{height:44px;margin-top:5px;border-radius:12px}
+.qx-p2 textarea.qx-in{height:auto;min-height:72px}
+.qx-seg{display:flex;flex-wrap:wrap;gap:6px}
+.qx-seg label{position:relative;display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid #d3d7dc;border-radius:50px;font-size:14px;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
+.qx-seg label:hover{border-color:#1d2126}
+.qx-seg label.on{background:#1d2126;border-color:#1d2126;color:#fff}
+.qx-seg input{position:absolute;opacity:0;pointer-events:none}
+.qx-seg label:focus-within{outline:2px solid #1e1e87;outline-offset:2px}
+.qx-hint{margin:8px 0 0;font-size:13px;color:#5f656c}
+.qx-more-d{margin-top:22px;padding-top:16px;border-top:1px solid #eceef0}
+.qx-more-d summary{cursor:pointer;font-size:15px;font-weight:600;list-style-position:inside}
+.qx-more-d summary span{font-weight:400;font-size:13px;color:#5f656c;margin-left:6px}
+.qx-p2 .qx-check{margin-top:18px;padding:12px 14px;font-size:13.5px}
+.qx-p2-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:space-between}
+.qx-p2 .qx-in:focus{border-color:#1e1e87;box-shadow:0 0 0 3px rgba(30,30,135,.12)}
+.qx-p2 .qx-in:focus-visible{outline:none}
+@media (max-width:640px){.qx-g2,.qx-g3{grid-template-columns:1fr}.qx-p2-actions .qx-btn{flex:1}}
+.qx-hero.slim .qx-sub,.qx-hero.slim .qx-trust{display:none}
 .qx-mbar{display:none}
 @media (max-width:1100px){.qx-wrap{grid-template-columns:1fr}.qx-panel{position:relative;top:auto}.qx-lines{max-height:none}}
 @media (max-width:860px){.qx-hero-in{grid-template-columns:1fr}.qx-steps{overflow-x:auto}}
@@ -151,7 +176,7 @@ select.qx-in{appearance:auto}
 </style>
 
 <div class="qx">
-<section class="qx-hero">
+<section class="qx-hero" :class="phase > 1 ? 'slim' : ''">
 <div class="qx-hero-in">
 <div>
 <div class="qx-crumb"><a href="/">Home</a> / Request a quote</div>
@@ -240,41 +265,47 @@ select.qx-in{appearance:auto}
 </div>
 
 <!-- PHASE 2: details and shipping -->
-<div class="qx-card" v-if="phase === 2 && !reviewing">
-<h2 class="qx-h2">Shipping and details</h2>
-<p class="qx-muted" style="margin:6px 0 0">Tell us who you are and where the parts go, so the quote comes with freight included.</p>
-<span class="qx-label">Contact</span>
-<div class="qx-grid2">
+<div class="qx-card qx-p2" v-if="phase === 2 && !reviewing">
+<div class="qx-p2-head"><div><h2 class="qx-h2">Where should we send the quote?</h2><p class="qx-muted" style="margin:4px 0 0">Takes under a minute. We quote freight to your ZIP code.</p></div><span class="qx-p2-count" v-text="lines.length + (lines.length === 1 ? ' part' : ' parts') + ' in your list'"></span></div>
+
+<div class="qx-sec"><span class="qx-sec-t">Contact</span>
+<div class="qx-g2">
 <label class="qx-f" :class="bad.indexOf('name') >= 0 ? 'bad' : ''">Full name <i>*</i><input class="qx-in" v-model="d.name" data-k="name" autocomplete="name"><span class="qx-ferr">Required</span></label>
 <label class="qx-f" :class="bad.indexOf('company') >= 0 ? 'bad' : ''">Company <i>*</i><input class="qx-in" v-model="d.company" data-k="company" autocomplete="organization"><span class="qx-ferr">Required</span></label>
 <label class="qx-f" :class="bad.indexOf('email') >= 0 ? 'bad' : ''">Work email <i>*</i><input class="qx-in" v-model="d.email" data-k="email" type="email" autocomplete="email"><span class="qx-ferr">Enter a valid email</span></label>
-<label class="qx-f" :class="bad.indexOf('phone') >= 0 ? 'bad' : ''">Phone or WhatsApp <i>*</i><input class="qx-in" v-model="d.phone" data-k="phone" type="tel" autocomplete="tel"><span class="qx-ferr">Enter a phone number with area code</span></label>
-</div>
-<label class="qx-f" style="margin-top:10px" :class="bad.indexOf('type') >= 0 ? 'bad' : ''">Type of business <i>*</i><select class="qx-in" v-model="d.type" data-k="type">
-<option value="">Choose one</option><option>Rebuilder or injection lab</option><option>Distributor or reseller</option><option>Repair shop or fleet</option><option>Latin America distributor</option><option>Other</option>
-</select><span class="qx-ferr">Required</span></label>
-<span class="qx-label">Ship to</span>
-<div class="qx-grid3">
-<label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">Country <i>*</i><select class="qx-in" v-model="d.country" data-k="country"><option value="">Choose one</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select><span class="qx-ferr">Required</span></label>
-<label class="qx-f">State or region<input class="qx-in" v-model="d.state"></label>
+<label class="qx-f" :class="bad.indexOf('phone') >= 0 ? 'bad' : ''">Phone or WhatsApp <i>*</i><input class="qx-in" v-model="d.phone" data-k="phone" type="tel" autocomplete="tel"><span class="qx-ferr">Enter a number with area code</span></label>
+</div></div>
+
+<div class="qx-sec"><span class="qx-sec-t">Ship to</span>
+<div class="qx-g3">
+<label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">Country <i>*</i><select class="qx-in" v-model="d.country" data-k="country"><option value="">Choose</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select><span class="qx-ferr">Required</span></label>
 <label class="qx-f" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">ZIP / postal code <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code"><span class="qx-ferr">Required for US and Canada</span></label>
+<label class="qx-f">City<input class="qx-in" v-model="d.city" autocomplete="address-level2"></label>
+</div></div>
+
+<div class="qx-sec"><span class="qx-sec-t">Delivery</span>
+<div class="qx-seg" role="radiogroup" aria-label="Delivery">
+<label v-for="s in shipOpts" :class="d.ship === s.v ? 'on' : ''" :title="s.h"><input type="radio" name="qx-ship" :value="s.v" v-model="d.ship"><span v-text="s.v"></span></label>
 </div>
-<label class="qx-f" style="margin-top:10px">City<input class="qx-in" v-model="d.city" autocomplete="address-level2"></label>
-<span class="qx-label">Delivery</span>
-<div class="qx-ship">
-<label v-for="s in shipOpts" :class="d.ship === s.v ? 'on' : ''"><input type="radio" name="qx-ship" :value="s.v" v-model="d.ship"><span v-text="s.v"></span><small v-text="s.h"></small></label>
+<p class="qx-hint" v-text="(shipOpts.filter(function (s) { return s.v === d.ship; })[0] || {}).h"></p>
 </div>
-<div class="qx-grid2" style="margin-top:10px">
-<label class="qx-muted">Needed by<input class="qx-in" type="date" v-model="d.needBy" style="margin-top:6px"></label>
-<label class="qx-muted">Your PO or reference<input class="qx-in" v-model="d.po" placeholder="Optional" style="margin-top:6px"></label>
+
+<details class="qx-more-d"><summary>More details <span>optional: business type, state, needed by, PO, notes</span></summary>
+<div class="qx-g2" style="margin-top:12px">
+<label class="qx-f">Type of business<select class="qx-in" v-model="d.type"><option value="">Choose</option><option>Rebuilder or injection lab</option><option>Distributor or reseller</option><option>Repair shop or fleet</option><option>Latin America distributor</option><option>Other</option></select></label>
+<label class="qx-f">State or region<input class="qx-in" v-model="d.state"></label>
+<label class="qx-f">Needed by<input class="qx-in" type="date" v-model="d.needBy"></label>
+<label class="qx-f">Your PO or reference<input class="qx-in" v-model="d.po"></label>
 </div>
-<input id="qx-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0"><span class="qx-label">Notes for our team</span>
-<textarea class="qx-in" v-model="d.notes" placeholder="Engine serial, core returns, partial shipments, anything we should know"></textarea>
-<label class="qx-check"><input type="checkbox" v-model="d.b2b"><span><b>I want early access to direct B2B ordering.</b> We are launching a new platform for wholesale customers to see their pricing, stock and order online. We will invite you first.</span></label>
-<p class="qx-muted" v-if="err" style="color:#c2410c;margin-top:14px" v-text="err"></p>
-<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px">
+<input id="qx-hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
+<label class="qx-f" style="margin-top:10px">Notes for our team<textarea class="qx-in" v-model="d.notes" placeholder="Engine serial, core returns, partial shipments"></textarea></label>
+</details>
+
+<label class="qx-check"><input type="checkbox" v-model="d.b2b"><span><b>Early access to direct B2B ordering.</b> Your pricing, stock and online orders in one place. We will invite you first.</span></label>
+<p class="qx-muted" v-if="err" style="color:#c2410c;margin:12px 0 0" v-text="err"></p>
+<div class="qx-p2-actions">
 <button type="button" class="qx-btn qx-out" @click="phase = 1">Back to parts</button>
-<button type="button" class="qx-btn qx-red" @click="toReview">Review my quote request</button>
+<button type="button" class="qx-btn qx-red" @click="toReview">Review and send</button>
 </div>
 </div>
 
