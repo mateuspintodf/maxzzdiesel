@@ -307,6 +307,7 @@ select.qx-in{appearance:auto}
 .qx-xs-row button{border:1px solid #fc771d;background:transparent;color:#fc771d;border-radius:50px;height:32px;padding:0 12px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
 .qx-xs-row button:hover{background:#fc771d;color:#1d2126}
 .qx-panel .qx-btn{width:100%;margin-top:16px}
+.qx-go{position:sticky;bottom:0;z-index:2;box-shadow:0 -14px 18px 4px #1d2126}@media (max-width:1100px){.qx-go{position:static;box-shadow:none}}
 .qx-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}.qx-tool{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;border:1px solid #343a42;border-radius:50px;background:transparent;color:#c9cdd2;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s}.qx-tool svg{flex:none;opacity:.8}.qx-tool:hover{background:#2a3037;border-color:#4a525b;color:#fff}.qx-tool.ok{color:#4ade80;border-color:#2f5a3e}.qx-tool:focus-visible{outline:2px solid #fc771d;outline-offset:2px}
 .qx-check{display:flex;gap:12px;align-items:flex-start;margin-top:16px;padding:16px;border-radius:16px;background:#eef0f2;font-size:14px;line-height:1.45;cursor:pointer}
 .qx-check input{margin-top:3px;width:18px;height:18px;accent-color:#d32a37}
@@ -577,7 +578,7 @@ select.qx-in{appearance:auto}
 <div class="qx-xs-row" v-for="s in suggest"><div><span v-text="s.name"></span><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Add</button></div>
 </div>
 <button type="button" class="qx-btn qx-red" v-if="phase === 1 && !lines.length" disabled style="background:#3d444d;color:#b9b9be;cursor:default">Add a part to continue</button>
-<button type="button" class="qx-btn qx-red" v-if="phase === 1 && lines.length" @click="toDetails">Continue: shipping and details</button>
+<button type="button" class="qx-btn qx-red qx-go" v-if="phase === 1 && lines.length" @click="toDetails">Continue: shipping and details</button>
 <div class="qx-tools" v-if="lines.length"><button type="button" class="qx-tool" :class="copied ? 'ok' : ''" @click="copyLink"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span v-text="copied ? 'Link copied' : 'Share list'"></span></button><button type="button" class="qx-tool" @click="clearAll"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Clear list</button></div>
 <p style="margin:14px 0 0;color:#8a9099;font-size:12px;line-height:1.5">No payment here. Wholesale accounts can also order through the <a href="https://maxzzdiesel.store.unleashedsoftware.com/" target="_blank" rel="noopener" style="color:#fc771d">B2B portal</a>.</p>
 </aside>
