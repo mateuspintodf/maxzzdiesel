@@ -110,6 +110,7 @@
           var city = '', state = '', street = '';
           if (br) { if (x.erro) throw 0; city = x.localidade; state = x.uf; street = [x.logradouro, x.bairro].filter(Boolean).join(', '); }
           else { var pl = (x.places || [])[0] || {}; city = pl['place name'] || ''; state = pl['state abbreviation'] || pl.state || ''; }
+          if (!d.country && city) d.country = 'United States';
           if (city && (!d.city || self._autoCity === d.city)) { d.city = city; self._autoCity = city; }
           if (state && (!d.state || self._autoState === d.state)) { d.state = state; self._autoState = state; }
           if (street && (!d.street || self._autoStreet === d.street)) { d.street = street; self._autoStreet = street; }
