@@ -68,3 +68,10 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(start, 0); });
   else setTimeout(start, 0);
 })();
+
+// Fold the language bar away after the first bit of scroll
+(function () {
+  var root = document.documentElement, on = false;
+  function check() { var s = window.scrollY > 40; if (s !== on) { on = s; root.classList.toggle('mx-scrolled', s); } }
+  window.addEventListener('scroll', check, { passive: true }); check();
+})();

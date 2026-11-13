@@ -62,3 +62,9 @@
   .t-swap, .t-swap-media > *, .t-text-in, .t-pop { animation: none !important; }
   .btn:active, .arrow-btn:active, .qp-step:active { transform: none; }
 }
+
+/* Language bar folds away once the page scrolls, so its light text never sits on light content */
+.lang-bar{transition:height .3s cubic-bezier(.22,1,.36,1),opacity .2s ease}
+html.mx-scrolled .lang-bar{height:10px !important;opacity:0;pointer-events:none;overflow:hidden}
+html.mx-scrolled .lang-menu{display:none !important}
+@media (prefers-reduced-motion:reduce){.lang-bar{transition:none}}

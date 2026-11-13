@@ -8,8 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 'injection-parts', 'partners',
          'policies', 'privacy', 'quote', 'terms', 'tool-sets', 'who-we-serve']
-CSS = '<link rel="stylesheet" href="/assets/motion.css?v=1">'
-JS = '<script src="/js/motion.js?v=1" defer></script>'
+CSS = '<link rel="stylesheet" href="/assets/motion.css?v=3">'
+JS = '<script src="/js/motion.js?v=3" defer></script>'
 
 # interaction timings only (hover color, tab state, accordion height); hero/image motion is untouched
 TIMINGS = [
