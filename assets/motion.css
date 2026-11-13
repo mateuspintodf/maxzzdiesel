@@ -1,0 +1,64 @@
+/* Motion layer for maxzzdiesel.com.
+   Timing scale and patterns adapted from transitions.dev (free tier, used under its license:
+   https://transitions.dev). Tabs sliding, panel reveal, accordion, text swap, badge pop. */
+:root {
+  --duration-stagger: 40ms;
+  --duration-micro: 80ms;
+  --duration-quick: 150ms;
+  --duration-fast: 250ms;
+  --duration-medium: 350ms;
+  --duration-slow: 400ms;
+  --duration-very-slow: 500ms;
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: ease-in-out;
+  --ease-bounce: cubic-bezier(0.34, 1.36, 0.64, 1);
+  --distance-micro: 4px;
+  --distance-base: 8px;
+  --blur-small: 2px;
+}
+
+/* Buttons: quicker response on hover, light press feedback */
+.btn { transition-property: background-color, color, border-color, transform !important; transition-duration: 200ms !important; transition-timing-function: var(--ease-smooth-out) !important; }
+.btn .ic { transition-duration: var(--duration-fast) !important; transition-timing-function: var(--ease-smooth-out) !important; }
+.btn:active { transform: scale(0.98); }
+.arrow-btn, .qp-step { transition-duration: 200ms !important; }
+.arrow-btn:active, .qp-step:active { transform: scale(0.94); }
+
+/* Tabs sliding: one pill travels between tabs instead of colors snapping */
+.l-tablist.t-has-pill { position: relative; isolation: isolate; }
+.l-tablist.t-has-pill .l-tab { position: relative; background: transparent !important; transition: color var(--duration-fast) var(--ease-in-out) !important; }
+.l-tablist.t-has-pill .l-tab::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: #ffffff; z-index: -2; }
+.t-pill {
+  position: absolute; left: 0; top: 0; z-index: -1; pointer-events: none;
+  background: #1e1e87;
+  transition: transform var(--duration-fast) var(--ease-smooth-out), width var(--duration-fast) var(--ease-smooth-out), height var(--duration-fast) var(--ease-smooth-out);
+  will-change: transform;
+}
+
+/* Panel reveal when the tab content changes */
+@keyframes t-panel-in { from { opacity: 0; transform: translateY(var(--distance-base)); filter: blur(var(--blur-small)); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes t-media-in { from { opacity: 0; transform: scale(1.02); } to { opacity: 1; transform: none; } }
+.t-swap { animation: t-panel-in var(--duration-slow) var(--ease-smooth-out) both; }
+.t-swap-media > * { animation: t-media-in var(--duration-slow) var(--ease-in-out) both; }
+
+/* Accordion: height via grid rows, content fades in after the panel starts opening */
+.t-acc-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--duration-slow) var(--ease-smooth-out); }
+.t-acc-panel.is-open { grid-template-rows: 1fr; }
+.t-acc-inner { overflow: hidden; min-height: 0; }
+.t-acc-inner > * { opacity: 0; transform: translateY(calc(var(--distance-micro) * -1)); transition: opacity var(--duration-quick) var(--ease-in-out), transform var(--duration-quick) var(--ease-in-out); }
+.t-acc-panel.is-open .t-acc-inner > * { opacity: 1; transform: none; transition-duration: var(--duration-fast); transition-delay: var(--duration-micro); }
+
+/* Text swap: labels that change in place ("Add to my quote" -> "Added to your list") */
+@keyframes t-text-in { from { opacity: 0; transform: translateY(var(--distance-micro)); filter: blur(var(--blur-small)); } to { opacity: 1; transform: none; filter: none; } }
+.t-text-in { display: inline-block; animation: t-text-in var(--duration-quick) var(--ease-in-out) both; }
+
+/* Quote list: panel opens a bit faster and smoother; count pops when it changes */
+.qp { animation-duration: var(--duration-fast) !important; animation-timing-function: var(--ease-smooth-out) !important; }
+@keyframes t-pop { 0% { transform: scale(1); } 40% { transform: scale(1.28); } 100% { transform: scale(1); } }
+.t-pop { animation: t-pop var(--duration-very-slow) var(--ease-bounce) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .t-pill, .l-tablist.t-has-pill .l-tab, .t-acc-panel, .t-acc-inner > * { transition: none !important; }
+  .t-swap, .t-swap-media > *, .t-text-in, .t-pop { animation: none !important; }
+  .btn:active, .arrow-btn:active, .qp-step:active { transform: none; }
+}
