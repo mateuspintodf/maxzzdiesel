@@ -24,11 +24,18 @@
 .qx-h2{margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em}
 .qx-muted{color:#6b7178;font-size:14px;line-height:1.5}
 .qx-label{display:block;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#8a9099;margin:22px 0 10px}
-.qx-makes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.qx-make{border:1px solid #e3e6e9;background:#fff;border-radius:18px;padding:14px;text-align:left;font:inherit;cursor:pointer;transition:border-color .2s,background-color .2s,transform .15s}
-.qx-make:hover{border-color:#1d2126}.qx-make:active{transform:scale(.98)}
-.qx-make.on{border-color:#1e1e87;background:#1e1e87;color:#fff}
-.qx-make b{display:block;font-size:15px;font-weight:600;line-height:1.25}.qx-make small{display:block;margin-top:4px;font-size:12px;color:#8a9099}.qx-make.on small{color:#c9cdf5}
+.qx-makes{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.qx-make{position:relative;display:flex;flex-direction:column;gap:12px;border:1px solid #e3e6e9;background:#fff;border-radius:20px;padding:16px;text-align:left;font:inherit;color:#1d2126;cursor:pointer;transition:border-color .2s,box-shadow .25s,transform .25s cubic-bezier(.22,1,.36,1)}
+.qx-make:hover{border-color:#1d2126;transform:translateY(-2px);box-shadow:0 10px 24px rgba(29,33,38,.08)}.qx-make:active{transform:scale(.98)}
+.qx-make.on{border-color:#1e1e87;box-shadow:0 0 0 2px #1e1e87 inset}
+.qx-logo{height:56px;border-radius:14px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.qx-logo img{display:none;max-height:36px;max-width:78%;object-fit:contain}
+.qx-mono{font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#1d2126}
+.qx-make.on .qx-logo{background:#1e1e87}.qx-make.on .qx-mono{color:#fff}
+.qx-make b{display:block;font-size:16px;font-weight:600;line-height:1.25}
+.qx-pills{display:flex;flex-wrap:wrap;gap:5px}
+.qx-pills span{border-radius:50px;background:#eef0f2;padding:3px 9px;font-size:12px;line-height:1.4;color:#4a5058}
+.qx-make.on .qx-pills span{background:#e4e5fb;color:#1e1e87}
 .qx-chips{display:flex;flex-wrap:wrap;gap:8px}
 .qx-chip{border:1px solid #d3d7dc;background:#fff;border-radius:50px;padding:8px 14px;font:inherit;font-size:14px;color:#1d2126;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
 .qx-chip:hover{border-color:#1d2126}.qx-chip.on{background:#1d2126;border-color:#1d2126;color:#fff}
@@ -159,7 +166,7 @@ select.qx-in{appearance:auto}
 <div v-if="!gen">
 <span class="qx-label">1. Make or segment</span>
 <div class="qx-makes">
-<button type="button" class="qx-make" v-for="m in tree" :class="make === m.key ? 'on' : ''" @click="pickMake(m.key)"><b v-text="m.label"></b><small v-text="makeHint(m)"></small></button>
+<button type="button" class="qx-make" v-for="m in tree" :class="make === m.key ? 'on' : ''" @click="pickMake(m.key)"><span class="qx-logo"><img :src="'/assets/makes/' + m.key + '.png'" alt="" @load="$el.style.display = 'block'; $el.nextElementSibling.style.display = 'none'"><span class="qx-mono" v-text="monoOf(m.key)"></span></span><b v-text="m.label"></b><span class="qx-pills"><span v-for="e in m.engines" v-text="e.label"></span></span></button>
 </div>
 <div v-if="curMake">
 <span class="qx-label">2. Engine</span>
