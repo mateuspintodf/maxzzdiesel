@@ -20,7 +20,7 @@
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
     lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', street: '', num: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, zipMsg: '', sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    reviewing: false, zipMsg: '', addr: [], addrOn: true, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -94,6 +94,51 @@
       if (g.key === 'DMAX') return 'All 6.6L Duramax parts we stock';
       var same = e && e.gens.filter(function (x) { return x.label === g.label; }).length > 1;
       return same ? g.label : (g.years || 'All years');
+    },
+    // Street autocomplete (Google Places via /api/address). Off silently when the server has no key.
+    addrInput: function () {
+      var self = this, d = this.d, q = String(d.street || '').trim();
+      clearTimeout(this._at); this.addrIdx = -1;
+      if (!this.addrOn || q.length < 4 || q === this._addrPicked) { this.addr = []; return; }
+      if (!this._as) this._as = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+      var codes = { 'United States': ['US'], 'Puerto Rico': ['PR'], 'Canada': ['CA'], 'Mexico': ['MX'], 'Brazil': ['BR'], 'Colombia': ['CO'], 'Chile': ['CL'], 'Peru': ['PE'],
+        'Other Latin America': ['AR', 'BO', 'CR', 'DO', 'EC', 'GT', 'HN', 'NI', 'PA', 'PY', 'SV', 'UY', 'VE'] };
+      var regions = codes[d.country] || (d.country ? [] : ['US', 'PR']);
+      var near = [d.city, d.state, d.zip].filter(Boolean).join(' ');
+      var input = q.indexOf(',') < 0 && near ? q + ', ' + near : q;
+      this._at = setTimeout(function () {
+        fetch('/api/address', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: input, session: self._as, regions: regions }) })
+          .then(function (r) { if (r.status === 503 || r.status === 403) { self.addrOn = false; throw 0; } if (!r.ok) throw 0; return r.json(); })
+          .then(function (x) { if (String(self.d.street || '').trim() === q) self.addr = x.items || []; })
+          .catch(function () { self.addr = []; });
+      }, 260);
+    },
+    addrKey: function (e) {
+      if (!this.addr.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); this.addrIdx = (this.addrIdx + 1) % this.addr.length; }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); this.addrIdx = (this.addrIdx - 1 + this.addr.length) % this.addr.length; }
+      else if (e.key === 'Enter' && this.addrIdx >= 0) { e.preventDefault(); this.pickAddr(this.addr[this.addrIdx]); }
+      else if (e.key === 'Escape') { this.addr = []; }
+    },
+    addrBlur: function () { var self = this; setTimeout(function () { self.addr = []; }, 180); },
+    pickAddr: function (a) {
+      var self = this, d = this.d, sess = this._as;
+      this.addr = []; this._as = null;
+      d.street = a.main; this._addrPicked = a.main;
+      fetch('/api/address', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: a.id, session: sess }) })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (x) {
+          var names = { US: 'United States', PR: 'Puerto Rico', CA: 'Canada', MX: 'Mexico', BR: 'Brazil', CO: 'Colombia', CL: 'Chile', PE: 'Peru' };
+          if (x.street) { d.street = x.street; self._addrPicked = x.street; }
+          if (x.city) d.city = x.city;
+          if (x.state) d.state = x.state;
+          if (x.zip) d.zip = x.zip;
+          if (x.country) d.country = names[x.country] || (/^(AR|BO|CR|DO|EC|GT|HN|NI|PA|PY|SV|UY|VE)$/.test(x.country) ? 'Other Latin America' : 'Other');
+          if (x.sub && !d.num) d.num = x.sub;
+          self.zipMsg = [d.city, d.state].filter(Boolean).join(', ');
+          self.save();
+        }).catch(function () {})
+        .then(function () { var n = document.getElementById('qx-num'); if (n) n.focus(); });
     },
     // ZIP / CEP lookup: fills city and state (and the street for Brazilian CEPs), then asks for the number
     lookupZip: function () {
