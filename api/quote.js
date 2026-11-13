@@ -15,10 +15,10 @@ module.exports = async (req, res) => {
   const lines = (Array.isArray(b.lines) ? b.lines : []).slice(0, 300).map((l) => ({ pn: clean(l.pn, 80), name: clean(l.name, 240), qty: Math.max(1, Math.min(99999, parseInt(l.qty, 10) || 1)) }));
   const number = clean(b.number, 40) || ('QR-' + Date.now());
   const s = b.shipping || {};
-  const ship = { country: clean(s.country, 60), state: clean(s.state, 60), city: clean(s.city, 80), zip: clean(s.zip, 20), method: clean(s.method, 60), needBy: clean(s.needBy, 20), po: clean(s.po, 60) };
+  const ship = { street: clean(s.street, 160), country: clean(s.country, 60), state: clean(s.state, 60), city: clean(s.city, 80), zip: clean(s.zip, 20), method: clean(s.method, 60), needBy: clean(s.needBy, 20), po: clean(s.po, 60) };
   const b2b = b.b2b === true;
   const source = clean(b.source, 300);
-  const shipText = [ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
+  const shipText = [ship.street, ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
   const extra = [shipText && ('Ship to: ' + shipText), ship.method && ('Delivery: ' + ship.method), ship.needBy && ('Needed by: ' + ship.needBy),
     ship.po && ('PO / reference: ' + ship.po), b2b && 'Wants early access to the B2B ordering platform', source && ('Source: ' + source)].filter(Boolean);
   if (!customer.name || !customer.company || !EMAIL.test(customer.email) || customer.phone.replace(/\D/g, '').length < 7 || !lines.length) {

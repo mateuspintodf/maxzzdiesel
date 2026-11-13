@@ -19,8 +19,8 @@
 
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
-    lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', street: '', num: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
+    reviewing: false, zipMsg: '', sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -95,6 +95,30 @@
       var same = e && e.gens.filter(function (x) { return x.label === g.label; }).length > 1;
       return same ? g.label : (g.years || 'All years');
     },
+    // ZIP / CEP lookup: fills city and state (and the street for Brazilian CEPs), then asks for the number
+    lookupZip: function () {
+      var self = this, d = this.d, z = String(d.zip || '').trim(), c = d.country || 'United States';
+      clearTimeout(this._zt); this.zipMsg = '';
+      var url = '', br = false;
+      if (/United States|Puerto Rico/.test(c) && /^\d{5}/.test(z)) url = 'https://api.zippopotam.us/us/' + z.slice(0, 5);
+      else if (c === 'Canada' && /^[A-Za-z]\d[A-Za-z]/.test(z)) url = 'https://api.zippopotam.us/ca/' + z.slice(0, 3).toUpperCase();
+      else if (c === 'Mexico' && /^\d{5}$/.test(z)) url = 'https://api.zippopotam.us/mx/' + z;
+      else if (c === 'Brazil' && /^\d{5}-?\d{3}$/.test(z)) { url = 'https://viacep.com.br/ws/' + z.replace('-', '') + '/json/'; br = true; }
+      if (!url) return;
+      this._zt = setTimeout(function () {
+        fetch(url).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (x) {
+          var city = '', state = '', street = '';
+          if (br) { if (x.erro) throw 0; city = x.localidade; state = x.uf; street = [x.logradouro, x.bairro].filter(Boolean).join(', '); }
+          else { var pl = (x.places || [])[0] || {}; city = pl['place name'] || ''; state = pl['state abbreviation'] || pl.state || ''; }
+          if (city && (!d.city || self._autoCity === d.city)) { d.city = city; self._autoCity = city; }
+          if (state && (!d.state || self._autoState === d.state)) { d.state = state; self._autoState = state; }
+          if (street && (!d.street || self._autoStreet === d.street)) { d.street = street; self._autoStreet = street; }
+          self.zipMsg = [city, state].filter(Boolean).join(', ') + (street ? ' · add the number' : ' · add the street and number');
+          var next = document.getElementById(street ? 'qx-num' : 'qx-street'); if (next && !next.value) next.focus();
+        }).catch(function () { self.zipMsg = ''; });
+      }, 350);
+    },
+    fadeLines: function (el) { var w = el.parentElement; if (w) w.classList.toggle('more', el.scrollHeight - el.scrollTop - el.clientHeight > 8); },
     get zipRequired() { return /United States|Canada|Puerto Rico/.test(this.d.country || 'United States'); },
     backToMake: function () { this.gen = ''; this.engIdx = -1; this.kind = ''; },
     backToEngine: function () { var m = this.curMake; this.gen = ''; this.kind = ''; if (m && m.engines.length === 1) this.engIdx = 0; },
@@ -114,7 +138,7 @@
     pickBench: function (l) { this.bench = l; this.kind = ''; this.limit = 30; },
     setQ: function (v) { this.q = v; this.kind = ''; this.limit = 30; var el = document.getElementById('qx-q'); if (el && el.value !== v) el.value = v; },
     qtyOf: function (code) { for (var i = 0; i < this.lines.length; i++) if (this.lines[i].id === code) return this.lines[i].qty; return 0; },
-    save: function () { write(QK, this.lines.map(function (l) { return Object.assign({}, l); })); },
+    save: function () { setTimeout(function () { var el = document.querySelector('.qx-lines'); if (el) app.fadeLines(el); }, 30); write(QK, this.lines.map(function (l) { return Object.assign({}, l); })); },
     add: function (code, qty, quiet) {
       var p = this.map[code]; if (!p) return false; qty = Math.max(1, parseInt(qty, 10) || 1);
       var i = this.lines.findIndex(function (l) { return l.id === code; });
@@ -200,7 +224,7 @@
       if (this.sending) return; var self = this, d = this.d;
       this.sending = true; this.err = '';
       var body = { number: this.number, customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes },
-        shipping: { country: d.country, state: d.state, city: d.city, zip: d.zip, method: d.ship, needBy: d.needBy, po: d.po },
+        shipping: { country: d.country, street: [d.street, d.num].filter(Boolean).join(' '), state: d.state, city: d.city, zip: d.zip, method: d.ship, needBy: d.needBy, po: d.po },
         b2b: !!d.b2b, source: read(SK, ''), hp: val('qx-hp'), t: Date.now() - T0, lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })

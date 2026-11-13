@@ -170,10 +170,27 @@ select.qx-in{appearance:auto}
 .qx-p2 .qx-in:focus-visible{outline:none}
 @media (max-width:640px){.qx-g2,.qx-g3{grid-template-columns:1fr}.qx-p2-actions .qx-btn{flex:1}}
 .qx-hero.slim .qx-sub,.qx-hero.slim .qx-trust{display:none}
+.qx-g4{display:grid;grid-template-columns:1.3fr 1fr 1.3fr .8fr;gap:12px 14px}
+.qx-g-addr{display:grid;grid-template-columns:2fr 1fr;gap:12px 14px;margin-top:12px}
+.qx-zipok{display:block;margin-top:4px;font-size:12px;color:#1e1e87}
+.qx-lines{scrollbar-width:thin;scrollbar-color:#4a525b transparent;padding-right:8px;margin-right:-8px}
+.qx-lines::-webkit-scrollbar{width:6px}.qx-lines::-webkit-scrollbar-track{background:transparent}
+.qx-lines::-webkit-scrollbar-thumb{background:#4a525b;border-radius:6px}.qx-lines::-webkit-scrollbar-thumb:hover{background:#6b7178}
+.qx-line{grid-template-columns:22px minmax(0,1fr) auto !important;gap:10px !important;padding:12px 0 !important}
+.qx-line-i{font-size:12px;color:#6b7178;padding-top:2px;font-variant-numeric:tabular-nums}
+.qx-line-n{font-size:13.5px !important;line-height:1.35 !important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.qx-line-p{margin-top:4px !important}
+.qx-qty button{width:30px !important;height:30px !important;font-size:15px !important}
+.qx-qty input{width:42px !important;height:30px !important}
+.qx-rm{margin-top:6px !important;font-size:12px !important;color:#6b7178 !important;text-align:right;width:100%}
+.qx-lines-wrap{position:relative}
+.qx-lines-wrap::after{content:"";position:absolute;left:0;right:0;bottom:0;height:28px;pointer-events:none;background:linear-gradient(rgba(29,33,38,0),#1d2126);opacity:0;transition:opacity .2s}
+.qx-lines-wrap.more::after{opacity:1}
+@media (max-width:640px){.qx-qty button{width:38px !important;height:38px !important}.qx-qty input{height:38px !important}}
 .qx-mbar{display:none}
 @media (max-width:1100px){.qx-wrap{grid-template-columns:1fr}.qx-panel{position:relative;top:auto}.qx-lines{max-height:none}}
 @media (max-width:860px){.qx-hero-in{grid-template-columns:1fr}.qx-steps{overflow-x:auto}}
-@media (max-width:640px){.qx-path{grid-template-columns:1fr}.qx-change{width:100%}.qx-hero-in{padding:0 20px}.qx-wrap{scroll-margin-top:110px}.qx-hero{padding-top:110px}.qx-toast{bottom:84px;max-width:320px;text-align:center;border-radius:18px}.qx-modes{display:grid;grid-template-columns:repeat(3,1fr);width:100%;border-radius:18px}.qx-mode{padding:10px 6px;border-radius:14px}.qx-ml{display:none}.qx-gens{grid-template-columns:repeat(2,1fr)}.qx-qty button{width:40px;height:40px}.qx-rm{font-size:14px;padding:6px 0}.qx-grid2,.qx-grid3,.qx-custom{grid-template-columns:1fr}.qx-b2b{grid-template-columns:1fr}.qx-row{grid-template-columns:1fr}.qx-add{width:100%}
+@media (max-width:640px){.qx-g4,.qx-g-addr{grid-template-columns:1fr 1fr}.qx-path{grid-template-columns:1fr}.qx-change{width:100%}.qx-hero-in{padding:0 20px}.qx-wrap{scroll-margin-top:110px}.qx-hero{padding-top:110px}.qx-toast{bottom:84px;max-width:320px;text-align:center;border-radius:18px}.qx-modes{display:grid;grid-template-columns:repeat(3,1fr);width:100%;border-radius:18px}.qx-mode{padding:10px 6px;border-radius:14px}.qx-ml{display:none}.qx-gens{grid-template-columns:repeat(2,1fr)}.qx-qty button{width:40px;height:40px}.qx-rm{font-size:14px;padding:6px 0}.qx-grid2,.qx-grid3,.qx-custom{grid-template-columns:1fr}.qx-b2b{grid-template-columns:1fr}.qx-row{grid-template-columns:1fr}.qx-add{width:100%}
 .qx-mbar{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:85;align-items:center;justify-content:space-between;gap:12px;background:#1d2126;color:#fff;border-radius:50px;padding:8px 8px 8px 20px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
 .qx-mbar .qx-btn{height:44px;padding:0 18px}}
 @media print{header,footer,.qx-hero,.qx-panel,.qx-noprint,.qx-mbar,.qb,.qp{display:none !important}.qx-wrap{display:block;padding:0}.qx-card{padding:0}}
@@ -282,10 +299,15 @@ select.qx-in{appearance:auto}
 </div></div>
 
 <div class="qx-sec"><span class="qx-sec-t">Ship to</span>
-<div class="qx-g3">
-<label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">Country <i>*</i><select class="qx-in" v-model="d.country" data-k="country"><option value="">Choose</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select><span class="qx-ferr">Required</span></label>
-<label class="qx-f" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">ZIP / postal code <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code"><span class="qx-ferr">Required for US and Canada</span></label>
+<div class="qx-g4">
+<label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">Country <i>*</i><select class="qx-in" v-model="d.country" data-k="country" @change="lookupZip"><option value="">Choose</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select><span class="qx-ferr">Required</span></label>
+<label class="qx-f" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">ZIP / postal code <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code" inputmode="text" @input="lookupZip"><span class="qx-ferr">Required for US and Canada</span><small class="qx-zipok" v-if="zipMsg" v-text="zipMsg"></small></label>
 <label class="qx-f">City<input class="qx-in" v-model="d.city" autocomplete="address-level2"></label>
+<label class="qx-f">State<input class="qx-in" v-model="d.state" autocomplete="address-level1"></label>
+</div>
+<div class="qx-g-addr">
+<label class="qx-f">Street address<input class="qx-in" id="qx-street" v-model="d.street" autocomplete="address-line1" placeholder="Street name"></label>
+<label class="qx-f">Number, suite<input class="qx-in" id="qx-num" v-model="d.num" autocomplete="address-line2" placeholder="e.g. 6601, Ste H-6"></label>
 </div></div>
 
 <div class="qx-sec"><span class="qx-sec-t">Delivery</span>
@@ -295,10 +317,9 @@ select.qx-in{appearance:auto}
 <p class="qx-hint" v-text="(shipOpts.filter(function (s) { return s.v === d.ship; })[0] || {}).h"></p>
 </div>
 
-<details class="qx-more-d"><summary>More details <span>optional: business type, state, needed by, PO, notes</span></summary>
+<details class="qx-more-d"><summary>More details <span>optional: business type, needed by, PO, notes</span></summary>
 <div class="qx-g2" style="margin-top:12px">
 <label class="qx-f">Type of business<select class="qx-in" v-model="d.type"><option value="">Choose</option><option>Rebuilder or injection lab</option><option>Distributor or reseller</option><option>Repair shop or fleet</option><option>Latin America distributor</option><option>Other</option></select></label>
-<label class="qx-f">State or region<input class="qx-in" v-model="d.state"></label>
 <label class="qx-f">Needed by<input class="qx-in" type="date" v-model="d.needBy"></label>
 <label class="qx-f">Your PO or reference<input class="qx-in" v-model="d.po"></label>
 </div>
@@ -320,7 +341,7 @@ select.qx-in{appearance:auto}
 <div class="qx-kv">
 <div><span>Contact</span><b v-text="d.name"></b><br><span v-text="d.company" style="color:#1d2126;font-size:14px"></span></div>
 <div><span>Email and phone</span><span v-text="d.email" style="color:#1d2126;font-size:14px"></span><span v-text="d.phone" style="color:#1d2126;font-size:14px"></span></div>
-<div><span>Ship to</span><span v-text="[d.city, d.state, d.zip, d.country].filter(Boolean).join(', ')" style="color:#1d2126;font-size:14px"></span><span v-text="d.ship" style="color:#1d2126;font-size:14px"></span></div>
+<div><span>Ship to</span><span v-text="[[d.street, d.num].filter(Boolean).join(' '), d.city, d.state, d.zip, d.country].filter(Boolean).join(', ')" style="color:#1d2126;font-size:14px"></span><span v-text="d.ship" style="color:#1d2126;font-size:14px"></span></div>
 <div v-if="d.needBy || d.po"><span>Needed by / reference</span><span v-text="[d.needBy, d.po].filter(Boolean).join(' · ')" style="color:#1d2126;font-size:14px"></span></div>
 </div>
 <div class="qx-review" style="margin-top:20px"><table><thead><tr><th>#</th><th>Part number</th><th>Description</th><th style="text-align:right">Qty</th></tr></thead><tbody>
@@ -358,13 +379,13 @@ select.qx-in{appearance:auto}
 <aside class="qx-panel" id="qx-list" v-if="phase !== 3" aria-label="Your quote list">
 <div class="qx-panel-h"><h2>Your list</h2><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span></div>
 <div class="qx-panel-empty" v-if="!lines.length">Your list is empty. Find parts by engine or search on the left, or paste a list of part numbers.</div>
-<div class="qx-lines" v-if="lines.length">
-<div class="qx-line" v-for="(l, i) in lines">
+<div class="qx-lines-wrap" v-if="lines.length"><div class="qx-lines" @scroll="fadeLines($event.target)">
+<div class="qx-line" v-for="(l, i) in lines"><span class="qx-line-i" v-text="i + 1"></span>
 <div><div class="qx-line-n" v-text="l.name"></div><div class="qx-line-p" v-text="l.pn"></div>
 <input class="qx-in" v-if="l.needPn" placeholder="Add a part number (optional)" :value="l.pnUser || ''" @change="setPn(i, $event.target.value)"></div>
-<div><div class="qx-qty"><button type="button" aria-label="Remove one" @click="dec(i)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="Add one" @click="inc(i)">+</button></div><button type="button" class="qx-rm" @click="remove(i)">Remove</button></div>
+<div><div class="qx-qty"><button type="button" aria-label="Remove one" @click="dec(i)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="Add one" @click="inc(i)">+</button></div><button type="button" class="qx-rm" @click="remove(i)" :aria-label="'Remove ' + l.pn">Remove</button></div>
 </div>
-</div>
+</div></div>
 <div class="qx-xs" v-if="suggest.length && phase === 1">
 <h3>Often quoted together</h3>
 <div class="qx-xs-row" v-for="s in suggest"><div><span v-text="s.name"></span><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Add</button></div>
