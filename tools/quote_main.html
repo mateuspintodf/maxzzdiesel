@@ -64,7 +64,7 @@ html{scroll-padding-top:140px}
 .qx-path{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:18px;padding:10px 12px;border-radius:14px;background:#fff4ec;font-size:14px}
 .qx-crumbchip{border:1px solid #f3c7a6;background:#fff;border-radius:50px;padding:6px 12px;font:inherit;font-size:14px;color:#1d2126;cursor:pointer}.qx-crumbchip:hover{border-color:#fc771d}.qx-crumbchip b{font-weight:600}
 .qx-path .qx-sep{color:#c2410c}
-.qx-path b{font-weight:600}.qx-path button{margin-left:auto;border:0;background:none;color:#d32a37;font:inherit;font-size:14px;cursor:pointer}
+.qx-path b{font-weight:600}
 .qx-search{position:relative;margin-top:20px}
 .qx-search input{width:100%;height:58px;border:1px solid #e3e6e9;border-radius:50px;padding:0 20px 0 50px;font:inherit;font-size:16px;outline:none;transition:border-color .2s}
 .qx-search input:focus{border-color:#d32a37}
@@ -189,15 +189,15 @@ select.qx-in{appearance:auto}
 <button type="button" class="qx-make" v-for="m in tree" :class="make === m.key ? 'on' : ''" @click="pickMake(m.key)"><span class="qx-logo"><img v-for="f in logosOf(m.key)" :src="'/assets/makes/' + f" :alt="m.label" loading="lazy"><svg v-if="m.key === 'hd'" width="64" height="40" viewBox="0 0 64 40" fill="none" stroke="#1d2126" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 30V9a2 2 0 0 1 2-2h26a2 2 0 0 1 2 2v21"/><path d="M33 14h12l8 9v7h-4"/><path d="M45 14v9h8"/><path d="M3 30h4M17 30h22M59 30h-6"/><circle cx="12" cy="31" r="4.5"/><circle cx="44" cy="31" r="4.5"/><path d="M9 13h16M9 19h12"/></svg><span class="qx-mono" v-if="!logosOf(m.key).length && m.key !== 'hd'" v-text="monoOf(m.key)"></span></span><b v-text="m.label"></b><span class="qx-pills"><span v-for="e in m.engines" v-text="e.label"></span></span></button>
 </div>
 <div v-if="curMake">
-<div class="qx-step"><b>2</b><span>Choose the engine <small v-text="'· ' + curMake.label"></small></span></div>
+<div class="qx-step" id="qx-s2"><b>2</b><span>Choose the engine <small v-text="'· ' + curMake.label"></small></span></div>
 <div class="qx-chips"><button type="button" class="qx-chip" v-for="(e, i) in curMake.engines" :class="engIdx === i ? 'on' : ''" @click="pickEngine(i)"><span v-text="e.label"></span><small v-text="countEngine(e)"></small></button></div>
 </div>
 <div v-if="curEngine">
-<div class="qx-step"><b>3</b><span>Choose the generation and years <small v-text="'· ' + curEngine.label"></small></span></div>
+<div class="qx-step" id="qx-s3"><b>3</b><span>Choose the generation and years <small v-text="'· ' + curEngine.label"></small></span></div>
 <div class="qx-gens"><button type="button" class="qx-gen" v-for="g in curEngine.gens" :class="(gen === g.key ? 'on ' : '') + (g.key === 'DMAX' ? 'wide' : '')" @click="pickGen(g.key)"><b v-text="genTitle(g, curEngine)"></b><small v-text="genSub(g, curEngine)"></small><em v-text="countGen(g.key) + (countGen(g.key) === 1 ? ' part' : ' parts')"></em></button></div>
 </div>
 </div>
-<div class="qx-path" v-if="curGen"><span>Parts for</span><button type="button" class="qx-crumbchip" @click="backToMake"><b v-text="curMake ? curMake.label : ''"></b></button><span class="qx-sep">›</span><button type="button" class="qx-crumbchip" @click="backToEngine" v-text="curEngine ? curEngine.label : ''"></button><span class="qx-sep">›</span><button type="button" class="qx-crumbchip" @click="clearVehicle"><b v-text="genTitle(curGen, curEngine) + (curGen.years && genTitle(curGen, curEngine) !== curGen.years ? ' ' + curGen.years : '')"></b></button><span class="qx-muted" v-text="curGen.vehicles" style="margin-left:4px"></span></div>
+<div class="qx-path" v-if="curGen"><span>Parts for</span><button type="button" class="qx-crumbchip" @click="backToMake"><b v-text="curMake ? curMake.label : ''"></b></button><span class="qx-sep" v-if="curEngine && curEngine.gens.length > 1">›</span><button type="button" class="qx-crumbchip" v-if="curEngine && curEngine.gens.length > 1" @click="backToEngine" v-text="curEngine.label"></button><span class="qx-sep">›</span><button type="button" class="qx-crumbchip" @click="clearVehicle"><b v-text="genTitle(curGen, curEngine) + (curGen.years && genTitle(curGen, curEngine) !== curGen.years ? ' ' + curGen.years : '')"></b></button><span class="qx-muted" v-text="curGen.vehicles" style="margin-left:4px"></span></div>
 <div v-if="!make" class="qx-muted" style="margin-top:18px">Pick the make, then the engine and the years. You will see every part we stock for it, from complete injectors and pumps to the repair parts and tools for the bench.</div>
 </div>
 

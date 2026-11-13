@@ -102,9 +102,9 @@
     countGen: function (key) { var n = 0, it = this.fit.items; for (var c in it) if (it[c][0].indexOf(key) >= 0 && this.map[c]) n++; return n; },
     countEngine: function (e) { var self = this; return e.gens.reduce(function (s, g) { return s + self.countGen(g.key); }, 0); },
     setMode: function (m) { this.mode = m; this.kind = ''; this.limit = 30; if (m === 'search') setTimeout(function () { var el = document.getElementById('qx-q'); if (el) el.focus(); }, 30); },
-    pickMake: function (k) { this.make = k; this.engIdx = -1; this.gen = ''; this.kind = ''; var m = this.curMake; if (m && m.engines.length === 1) this.pickEngine(0); },
-    pickEngine: function (i) { this.engIdx = i; this.gen = ''; this.kind = ''; var e = this.curEngine; if (e && e.gens.length === 1) this.pickGen(e.gens[0].key); },
-    pickGen: function (k) { this.gen = k; this.kind = ''; this.limit = 30; setTimeout(function () { var el = document.querySelector('.qx-path'); if (el && el.getBoundingClientRect().top < 150) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60); },
+    pickMake: function (k) { this.make = k; this.engIdx = -1; this.gen = ''; this.kind = ''; var m = this.curMake; if (m && m.engines.length === 1) this.pickEngine(0); else goTo('#qx-s2'); },
+    pickEngine: function (i) { this.engIdx = i; this.gen = ''; this.kind = ''; var e = this.curEngine; if (e && e.gens.length === 1) this.pickGen(e.gens[0].key); else goTo('#qx-s3'); },
+    pickGen: function (k) { this.gen = k; this.kind = ''; this.limit = 30; goTo('.qx-path'); },
     clearVehicle: function () { this.gen = ''; this.kind = ''; },
     jumpGen: function (g) {
       var self = this; this.mode = 'vehicle'; this.make = g.make;
@@ -223,6 +223,17 @@
   function byKind(a, b) { return KORDER(a.kind) - KORDER(b.kind) || (a.code < b.code ? -1 : 1); }
   function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ''; }
   function setVal(id, v) { var el = document.getElementById(id); if (el) el.value = v; }
+  // after a pick, bring the next step to the top of the screen (below the fixed header), unless it is already well in view
+  function goTo(sel) {
+    setTimeout(function () {
+      var el = document.querySelector(sel); if (!el) return;
+      var top = el.getBoundingClientRect().top, head = window.innerWidth <= 640 ? 100 : 140;
+      if (top < head || top > window.innerHeight * 0.45) {
+        var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: window.scrollY + top - head - 10, behavior: reduce ? 'auto' : 'smooth' });
+      }
+    }, 60);
+  }
   function scrollTop() { try { document.querySelector('.qx-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {} }
 
   var CATLABEL = { injectors: 'Injectors', pumps: 'Pumps', rail: 'Rails and lines', nozzle: 'Nozzles', tool: 'Tool sets and tools', fluids: 'Fluids', kits: 'Kits', engine: 'Engine parts', seal: 'Repair parts' };
