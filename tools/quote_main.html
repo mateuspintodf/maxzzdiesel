@@ -42,7 +42,7 @@ html{scroll-padding-top:140px}
 .qx-logo img[src*="ford"]{height:34px}
 .qx-make:hover .qx-logo{background:#eef0f2}
 .qx-mono{font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:#1d2126}
-.qx-make.on .qx-logo{background:#fff4ec}
+.qx-make.on .qx-logo{background:#f4f5f6}
 .qx-make b{display:block;font-size:16px;font-weight:600;line-height:1.25}
 .qx-pills{display:flex;flex-wrap:wrap;gap:6px 5px;margin-top:-4px}
 .qx-step{display:flex;align-items:center;gap:12px;margin:28px 0 14px}
@@ -50,7 +50,7 @@ html{scroll-padding-top:140px}
 .qx-step span{font-size:18px;font-weight:600;line-height:1.25}
 .qx-step small{font-size:14px;font-weight:400;color:#8a9099}
 .qx-pills span{border-radius:50px;background:#eef0f2;padding:3px 9px;font-size:12px;line-height:18px;color:#4a5058;white-space:nowrap}
-.qx-make.on .qx-pills span{background:#fff4ec;color:#c2410c}
+.qx-make.on .qx-pills span{background:#1d2126;color:#fff}
 .qx-chips{display:flex;flex-wrap:wrap;gap:8px}
 .qx-chip{border:1px solid #d3d7dc;background:#fff;border-radius:50px;padding:8px 14px;font:inherit;font-size:14px;color:#1d2126;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
 .qx-chip:hover{border-color:#1d2126}.qx-chip.on{background:#1d2126;border-color:#1d2126;color:#fff}
@@ -59,12 +59,12 @@ html{scroll-padding-top:140px}
 .qx-gen{display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-start;gap:4px;min-height:84px;border:1px solid #e3e6e9;background:#fff;border-radius:14px;padding:14px;text-align:left;font:inherit;color:#1d2126;cursor:pointer;transition:border-color .2s,background-color .2s,color .2s}
 .qx-gen.wide{grid-column:1/-1;min-height:0;border-style:dashed;flex-direction:row;align-items:center;gap:12px}
 .qx-gen:hover{border-color:#1d2126}.qx-gen.on{background:#d32a37;border-color:#d32a37;color:#fff}
-.qx-gen b{display:block;font-size:16px;font-weight:600;line-height:1.3}.qx-gen small{display:block;font-size:13px;line-height:1.3;color:#5f656c}.qx-gen em{font-style:normal;margin-top:auto;padding-top:6px;font-size:12px;line-height:1.3;color:#c2410c;font-weight:500}
+.qx-gen b{display:block;font-size:16px;font-weight:600;line-height:1.3}.qx-gen small{display:block;font-size:13px;line-height:1.3;color:#5f656c}.qx-gen em{font-style:normal;margin-top:auto;padding-top:6px;font-size:12px;line-height:1.3;color:#4a5058;font-weight:500}
 .qx-gen.on small,.qx-gen.on em{color:#ffe1e3}.qx-gen.wide em{margin:0 0 0 auto;padding:0}
-.qx-path{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 16px;margin-top:18px;padding:14px 16px;border-radius:16px;background:#fff4ec;font-size:14px;line-height:1.4}
-.qx-path-t span{color:#7c2d12}.qx-path-t b{font-weight:600}.qx-path-t small{display:block;color:#7c4a2d;font-size:13px}
-.qx-change{border:1px solid #fc771d;background:#fff;color:#c2410c;border-radius:50px;height:38px;padding:0 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background-color .2s,color .2s}
-.qx-change:hover{background:#fc771d;color:#fff}
+.qx-path{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px 16px;margin-top:18px;padding:14px 16px;border-radius:16px;background:#f4f5f6;border-left:3px solid #fc771d;font-size:14px;line-height:1.4}
+.qx-path-t span{color:#5f656c}.qx-path-t b{font-weight:600}.qx-path-t small{display:block;color:#5f656c;font-size:13px}
+.qx-change{border:1px solid #c9ced3;background:#fff;color:#1d2126;border-radius:50px;height:38px;padding:0 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap;transition:background-color .2s,color .2s}
+.qx-change:hover{background:#1d2126;border-color:#1d2126;color:#fff}
 .qx-sib{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-top:10px;border-top:1px solid #f6d5bd}
 .qx-sib span{font-size:13px;color:#7c4a2d;margin-right:2px}
 .qx-sib button{border:1px solid #f3c7a6;background:#fff;border-radius:50px;height:32px;padding:0 12px;font:inherit;font-size:13px;color:#1d2126;cursor:pointer}
@@ -147,7 +147,7 @@ select.qx-in{appearance:auto}
 .qx-toast.on{opacity:1;transform:translate(-50%,0)}
 .qx-p2 .qx-f,.qx-p2 label,.qx-p2 small,.qx-p2 p{line-height:1.4}
 .qx-p2-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-.qx-p2-count{border-radius:50px;background:#fff4ec;color:#c2410c;padding:6px 12px;font-size:13px;font-weight:500;white-space:nowrap}
+.qx-p2-count{display:inline-flex;align-items:center;gap:8px;border:1px solid #e3e6e9;border-radius:50px;background:#fff;color:#1d2126;padding:6px 14px 6px 10px;font-size:13px;font-weight:500;white-space:nowrap}.qx-p2-count svg{flex:none;color:#fc771d}
 .qx-sec{margin-top:22px;padding-top:18px;border-top:1px solid #eceef0}
 .qx-sec-t{display:block;margin-bottom:10px;font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:#5f656c}
 .qx-g2{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
@@ -172,7 +172,7 @@ select.qx-in{appearance:auto}
 .qx-hero.slim .qx-sub,.qx-hero.slim .qx-trust{display:none}
 .qx-g4{display:grid;grid-template-columns:1.3fr 1fr 1.3fr .8fr;gap:12px 14px}
 .qx-g-addr{display:grid;grid-template-columns:2fr 1fr;gap:12px 14px;margin-top:12px}
-.qx-zipok{display:block;margin-top:4px;font-size:12px;color:#1e1e87}
+.qx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}.qx-zipf{position:relative}.qx-zipf .qx-in{padding-right:40px}.qx-zipok{position:absolute;right:14px;top:39px;width:20px;height:20px;border-radius:50%;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center}
 .qx-lines{scrollbar-width:thin;scrollbar-color:#4a525b transparent;padding-right:8px;margin-right:-8px}
 .qx-lines::-webkit-scrollbar{width:6px}.qx-lines::-webkit-scrollbar-track{background:transparent}
 .qx-lines::-webkit-scrollbar-thumb{background:#4a525b;border-radius:6px}.qx-lines::-webkit-scrollbar-thumb:hover{background:#6b7178}
@@ -288,7 +288,7 @@ select.qx-in{appearance:auto}
 
 <!-- PHASE 2: details and shipping -->
 <div class="qx-card qx-p2" v-if="phase === 2 && !reviewing">
-<div class="qx-p2-head"><div><h2 class="qx-h2">Where should we send the quote?</h2><p class="qx-muted" style="margin:4px 0 0">Takes under a minute. We quote freight to your ZIP code.</p></div><span class="qx-p2-count" v-text="lines.length + (lines.length === 1 ? ' part' : ' parts') + ' in your list'"></span></div>
+<div class="qx-p2-head"><div><h2 class="qx-h2">Where should we send the quote?</h2><p class="qx-muted" style="margin:4px 0 0">Takes under a minute. We quote freight to your ZIP code.</p></div><span class="qx-p2-count"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><span v-text="lines.length + (lines.length === 1 ? ' part' : ' parts') + ' to quote'"></span></span></div>
 
 <div class="qx-sec"><span class="qx-sec-t">Contact</span>
 <div class="qx-g2">
@@ -301,7 +301,7 @@ select.qx-in{appearance:auto}
 <div class="qx-sec"><span class="qx-sec-t">Ship to</span>
 <div class="qx-g4">
 <label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">Country <i>*</i><select class="qx-in" v-model="d.country" data-k="country" @change="lookupZip"><option value="">Choose</option><option>United States</option><option>Canada</option><option>Mexico</option><option>Puerto Rico</option><option>Brazil</option><option>Colombia</option><option>Chile</option><option>Peru</option><option>Other Latin America</option><option>Other</option></select><span class="qx-ferr">Required</span></label>
-<label class="qx-f" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">ZIP / postal code <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code" inputmode="text" @input="lookupZip"><span class="qx-ferr">Required for US and Canada</span><small class="qx-zipok" v-if="zipMsg" v-text="zipMsg"></small></label>
+<label class="qx-f qx-zipf" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">ZIP / postal code <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code" inputmode="text" @input="lookupZip"><span class="qx-ferr">Required for US and Canada</span><small class="qx-zipok" v-if="zipMsg" :title="zipMsg" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></small><span class="qx-sr" role="status" v-text="zipMsg"></span></label>
 <label class="qx-f">City<input class="qx-in" v-model="d.city" autocomplete="address-level2"></label>
 <label class="qx-f">State<input class="qx-in" v-model="d.state" autocomplete="address-level1"></label>
 </div>
