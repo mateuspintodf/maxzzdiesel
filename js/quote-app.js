@@ -20,7 +20,7 @@
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
     lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', street: '', num: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, zipMsg: '', addr: [], addrOn: true, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    reviewing: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -73,11 +73,13 @@
       var self = this, have = {}, out = [], seen = {};
       this.lines.forEach(function (l) { have[l.id] = 1; });
       this.lines.forEach(function (l) { (self.fit.rel[l.id] || []).forEach(function (c) {
-        if (have[c] || seen[c] || !self.map[c] || out.length >= 4) return; seen[c] = 1;
+        if (have[c] || seen[c] || !self.map[c] || out.length >= 8) return; seen[c] = 1;
         var p = self.map[c]; out.push({ code: c, name: p.name, why: p.kind });
       }); });
       return out;
     },
+    get xsShown() { var a = this.suggest, n = a.length; if (n <= 2) return a; var at = this.xsAt % n; return [a[at], a[(at + 1) % n]]; },
+    xsNext: function () { this.xsAt = (this.xsAt + 2) % Math.max(1, this.suggest.length); },
     benchItems: function (label) {
       var self = this;
       return this.cat.filter(function (p) { var f = self.fit.items[p.code]; return f && f[2] && f[1] === label; });
