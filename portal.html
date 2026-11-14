@@ -975,6 +975,13 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 @media (min-width:761px){.px-fab{display:none!important}.px-fbar{margin-right:0!important}}
 .px-eng b{white-space:nowrap}
 .px-thph{display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#b0b5bb}
+@media (max-width:760px){
+  .px .px-ltab tr{grid-template-columns:56px minmax(0,1fr) auto;grid-template-areas:"th nm nm" "th st st" "th up up" "qt qt rm" "am am am";align-items:center}
+  .px .px-ltab td.th{grid-area:th;grid-row:auto;align-self:start}.px .px-ltab td.lnm{grid-area:nm}.px .px-ltab td.lst{grid-area:st}.px .px-ltab td.lup{grid-area:up;text-align:left}
+  .px .px-ltab td.lqt{grid-area:qt;margin-top:8px}.px .px-ltab td.lrm{grid-area:rm;margin-top:8px;text-align:right}.px .px-ltab td.lam{grid-area:am;text-align:right}
+  .px .px-ltab td.lqt .px-qty{width:auto}
+  .px .px-ltab .px-code2{white-space:nowrap}
+}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1396,17 +1403,17 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-test" v-if="flow === 'order' && me && !me.ordersLive">Test mode: orders are e-mailed to our team and not yet sent to the warehouse system.</div></div>
 <div class="px-card px-lt">
 <div class="px-clr-top" v-if="lines.length"><button type="button" class="px-link" @click="clearFlow">Clear list</button></div>
-<div class="px-empty" v-if="!lines.length">Nothing here yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a> or paste a list of part numbers below.<span v-if="flow === 'order' && quoteN" style="display:block;margin-top:8px">You have <b v-text="quoteN"></b> in your quote list. <a href="#/quote" style="color:#d32a37;font-weight:500">View quote list</a></span></div>
+<div class="px-empty" v-if="!lines.length">Nothing here yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a> or paste a list of part numbers below.<span v-if="flow === 'order' && quoteN" style="display:block;margin-top:8px">You have <b v-text="quoteN + (quoteN === 1 ? ' part' : ' parts')"></b> in your quote list. <a href="#/quote" style="color:#d32a37;font-weight:500">View quote list</a></span></div>
 <table class="px-ltab" v-if="lines.length">
 <thead><tr><th colspan="2">Part</th><th v-if="showPrice">Availability</th><th class="r" v-if="showPrice">Unit price</th><th class="c">Qty</th><th class="r" v-if="showPrice">Amount</th><th></th></tr></thead>
 <tbody><tr v-for="l in lines" :key="l.code">
 <td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" @error="imgFail(l.code)" alt=""><span v-else class="px-thph" v-html="icon(catIc(map[l.code] && map[l.code][3]))"></span></a></td>
-<td><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-html="pnw(l.code)"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
-<td v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
-<td class="r" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
-<td class="c"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
-<td class="r" v-if="showPrice"><b v-text="price(l.code) == null ? '–' : fmt(price(l.code) * l.qty)"></b></td>
-<td class="c"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
+<td class="lnm"><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-html="pnw(l.code)"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
+<td class="lst" v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
+<td class="r lup" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
+<td class="c lqt"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
+<td class="r lam" v-if="showPrice"><b v-text="price(l.code) == null ? 'On request' : fmt(price(l.code) * l.qty)"></b></td>
+<td class="c lrm"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
 </tr></tbody>
 </table>
 <details class="px-paste" :open="!lines.length">
@@ -1646,7 +1653,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-list">
 <div class="px-ordw" v-for="o in orders" :key="o.id">
 <button type="button" class="px-ord" @click="cur = o; nav('o', o.id)">
-<div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + ' parts'"></small></div>
+<div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + (o.lines.length === 1 ? ' part' : ' parts')"></small></div>
 <span class="px-ord-t" v-text="fmt(o.total)"></span>
 <span class="px-st" :class="o.status" v-text="label(o.status)"></span>
 </button>
@@ -1659,7 +1666,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-empty" v-if="!myQuotes.length">No quote requests yet. Add parts to your quote list and send it from there.</div>
 <div class="px-list">
 <div class="px-ord" v-for="q in myQuotes" :key="q.id">
-<div><b v-text="q.id"></b><small v-text="date(q.created) + (q.po ? ' · PO ' + q.po : '') + ' · ' + (q.lines || []).length + ' parts'"></small></div>
+<div><b v-text="q.id"></b><small v-text="date(q.created) + (q.po ? ' · PO ' + q.po : '') + ' · ' + (q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></small></div>
 <span class="px-ord-t"></span>
 <span class="px-st Parked" v-text="q.status === 'Sent' ? 'In review' : q.status"></span>
 </div>
@@ -1748,7 +1755,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 <div class="px-qp-f" v-if="quote.length"><a class="px-btn px-red" href="#/quote" @click="qOpen = false" style="width:100%;justify-content:space-between;padding:4px 4px 4px 22px;height:54px">Continue to my quote<span class="px-qp-ar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></a><small>Add your details on the next step. Our team replies with pricing within one business day.</small></div>
 </div>
-<div class="px-fab">
+<div class="px-fab" v-if="['home', 'c', 's', 'g', 'all', 'p'].indexOf(route) >= 0">
 <a class="px-fab-b" href="#/cart" v-if="canOrder && cart.length && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="t">My cart</span><span class="n" v-text="cart.length"></span></a>
 <button type="button" class="px-fab-b red" v-if="quoteN && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0 && (route !== 'p' || mbarOn)" @click="qOpen ? qClose() : (qOpen = true)" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
 </div>
