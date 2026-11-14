@@ -251,3 +251,21 @@ input:not([type=checkbox]):not([type=radio]):focus-visible, select:focus-visible
 .qx-search input:focus { border-color: #1d2126 !important; box-shadow: 0 0 0 3px rgba(29,33,38,.08); }
 .qx .qx-in:focus { border-color: #1d2126; box-shadow: 0 0 0 3px rgba(29,33,38,.08); }
 .acct-form label:focus-within { box-shadow: inset 0 0 0 1px #1d2126; border-radius: 18px; }
+
+/* FAQ blocks (home + product pages) */
+.fq-in{max-width:1320px;margin:0 auto;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:50px;align-items:start}
+.fq-k{display:inline-block;border:1px solid rgba(29,33,38,.2);color:#d32a37;border-radius:50px;padding:0 14px;font-weight:600;font-size:12px;line-height:25px;letter-spacing:.6px;text-transform:uppercase}
+.fq-h h2{margin:18px 0 0;font-weight:600;color:#1d2126;font-size:clamp(30px,3.2vw,46px);line-height:1.1}
+.fq-h p{margin:18px 0 0;max-width:420px}.fq-h a{color:#d32a37}
+.fq-list{display:flex;flex-direction:column;gap:10px}
+.fq-i{background:#fff;border-radius:20px;padding:0 26px;transition:box-shadow .3s}.fq-i:hover{box-shadow:0 10px 24px rgba(29,33,38,.06)}
+.fq-i summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-weight:500;font-size:18px;color:#1d2126;line-height:1.35}
+.fq-i summary::-webkit-details-marker{display:none}.fq-i summary:focus{outline:none}.fq-i:has(summary:focus-visible){outline:2px solid #1e1e87;outline-offset:3px}
+.fq-ic{flex:none;width:36px;height:36px;border-radius:50%;background:#eef0f2;position:relative;transition:background-color .3s,transform .35s cubic-bezier(.22,1,.36,1)}
+.fq-ic::before,.fq-ic::after{content:"";position:absolute;left:50%;top:50%;width:12px;height:1.6px;background:#1d2126;transform:translate(-50%,-50%);transition:transform .35s cubic-bezier(.22,1,.36,1),background-color .3s}
+.fq-ic::after{transform:translate(-50%,-50%) rotate(90deg)}
+.fq-i[open] .fq-ic{background:#1e1e87;transform:rotate(180deg)}.fq-i[open] .fq-ic::before,.fq-i[open] .fq-ic::after{background:#fff}.fq-i[open] .fq-ic::after{transform:translate(-50%,-50%) rotate(0deg)}
+.fq-i p{margin:0;padding:0 50px 22px 0;line-height:1.6}
+.fq-i::details-content{block-size:0;overflow:hidden;transition:block-size .35s cubic-bezier(.22,1,.36,1),content-visibility .35s allow-discrete}.fq-i[open]::details-content{block-size:auto}
+@media (max-width:640px){#faq{padding-bottom:88px !important}}@media (max-width:900px){.fq-in{grid-template-columns:1fr;gap:28px}.fq-i{padding:0 18px}.fq-i summary{font-size:16px;padding:18px 0}.fq-i p{padding:0 0 18px}}
+@media (prefers-reduced-motion:reduce){.fq-i::details-content,.fq-ic,.fq-ic::before,.fq-ic::after{transition:none}}

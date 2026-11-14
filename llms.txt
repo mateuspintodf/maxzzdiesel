@@ -29,3 +29,14 @@
 
 ## Training
 - [Diesel Tech Academy](https://www.dieseltechacademy.com/): diesel injector repair courses, online or onsite
+
+## Languages
+- Spanish (Latin America): https://www.maxzzdiesel.com/es
+- Portuguese (Brazil): https://www.maxzzdiesel.com/pt
+
+## Key facts
+- Brands: Bosch, Delphi, Denso, Continental, Cummins, LEAD, Fratelli Bosio, Robiel, SLP
+- Engines: Cummins 5.9/6.7, ISX15, XPI; Duramax 6.6 LB7 to L5P; Power Stroke 6.0/6.4/6.7; Detroit DD15, Series 60; Caterpillar C7 to C15; Volvo D13; Paccar MX13
+- Calibration fluid: ISO 4113, 20 L pails and 200 L drums
+- Aftertreatment: Maxzz Aftertreatment Box (SCR / DEF pump bench, 11 pump systems) and NOx Tester Box (Euro 5 and Euro 6)
+- Contamination kits: Ford 6.7L Power Stroke 2017-2019, Cummins 6.7L 5th Gen

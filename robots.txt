@@ -1,8 +1,33 @@
+# Search engines
+User-agent: Googlebot
+User-agent: Bingbot
+User-agent: Slurp
+User-agent: DuckDuckBot
+User-agent: Applebot
+# AI search and assistants
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: GPTBot
+User-agent: Google-Extended
+User-agent: PerplexityBot
+User-agent: Perplexity-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: Applebot-Extended
+User-agent: CCBot
+Allow: /
+Disallow: /api/
+Disallow: /painel
+Disallow: /portal
+Disallow: /agenda
+
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /painel
 Disallow: /portal
 Disallow: /agenda
+
 Sitemap: https://www.maxzzdiesel.com/sitemap.xml
 Sitemap: https://www.maxzzdiesel.com/sitemap-parts.xml
