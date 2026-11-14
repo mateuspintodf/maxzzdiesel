@@ -81,8 +81,9 @@
     get featured() {
       var self = this, picks = Object.keys(BENCH).concat(['BO.0.986.435.433', 'BO.0.986.435.410', 'BO.0.445.117.023', 'BO.0.445.020.146']);
       var out = picks.map(function (c) { return self.map[c]; }).filter(Boolean);
-      this.cat.some(function (r) { if (out.length >= 8) return true; if ((r[3] === 'Injector' || r[3] === 'Pump') && self.imgs[r[0]] && out.indexOf(r) < 0) out.push(r); return false; });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if (r[3] === 'Injector' && out.indexOf(r) < 0) out.push(r); return false; });
+      out = out.filter(function (r) { return self.img(r[0]); });
+      this.cat.some(function (r) { if (out.length >= 8) return true; if ((r[3] === 'Injector' || r[3] === 'Pump') && self.img(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
+      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.img(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
       return out.slice(0, 8);
     },
     get engs() { return ENG; },
@@ -192,8 +193,8 @@
     get moreRow() {
       var self = this, out = [], feat = this.featured;
       ['Pump', 'Tool', 'Nozzle'].forEach(function (k) { var n = 0; self.cat.some(function (r) { if (r[3] === k && self.img(r[0]) && out.indexOf(r) < 0 && feat.indexOf(r) < 0) { out.push(r); n++; } return n >= (k === 'Pump' ? 2 : 1); }); });
-      this.cat.some(function (r) { if (out.length >= 4) return true; if (r[3] === 'Pump' && out.indexOf(r) < 0 && feat.indexOf(r) < 0) out.push(r); return false; });
-      return out.slice(0, 4);
+      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.img(r[0]) && r[3] !== 'Injector' && out.indexOf(r) < 0 && feat.indexOf(r) < 0) out.push(r); return false; });
+      return out.slice(0, 8);
     },
     get shown() { return this.results.slice(0, this.limit); },
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
