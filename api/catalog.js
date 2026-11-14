@@ -1,47 +1,22 @@
 // GET /api/catalog
 // Returns the public part catalog (code, description, category, brand, market, engines).
-// Reads live from Unleashed when UNLEASHED_API_ID and UNLEASHED_API_KEY are set,
-// otherwise serves the bundled snapshot in data/catalog.json. No prices or stock leave the server.
-const crypto = require('crypto');
+// Serves the copy refreshed from Unleashed by the cron job (api/cron-catalog.js),
+// or the bundled snapshot in data/catalog.json when there is none. No prices or stock leave the server.
 const fs = require('fs');
 const path = require('path');
 const { toRow } = require('../lib/catalog-map');
 
-const API = 'https://api.unleashedsoftware.com';
+const { head, get } = require('@vercel/blob');
 let memo = { at: 0, rows: null, src: 'snapshot' };
 const TTL = 30 * 60 * 1000;
 
-async function unleashedPage(page, id, key) {
-  const query = 'pageSize=1000&includeObsolete=false';
-  const sig = crypto.createHmac('sha256', key).update(query).digest('base64');
-  const r = await fetch(`${API}/Products/${page}?${query}`, {
-    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'api-auth-id': id, 'api-auth-signature': sig, 'client-type': 'maxzzdiesel/website' }
-  });
-  if (!r.ok) throw new Error('Unleashed ' + r.status + ' page ' + page);
-  return r.json();
-}
-
+// Live catalog = the copy api/cron-catalog.js refreshes from Unleashed every 30 minutes.
 async function loadLive() {
-  const id = process.env.UNLEASHED_API_ID, key = process.env.UNLEASHED_API_KEY;
-  if (!id || !key) return null;
-  const rows = [];
-  let page = 1, pages = 1;
-  do {
-    const data = await unleashedPage(page, id, key);
-    pages = (data.Pagination && data.Pagination.NumberOfPages) || 1;
-    for (const p of data.Items || []) {
-      if (p.Obsolete || p.IsSellable === false) continue;
-      const row = toRow({
-        code: p.ProductCode,
-        description: p.ProductDescription,
-        group: p.ProductGroup && p.ProductGroup.GroupName,
-        brand: p.ProductBrand && p.ProductBrand.BrandName
-      });
-      if (row) rows.push(row);
-    }
-    page++;
-  } while (page <= pages && page <= 50);
-  return rows;
+  const h = await head('catalog/live.json').catch(() => null);
+  if (!h) return null;
+  const r = await get(h.url + '?v=' + encodeURIComponent(h.etag || Date.now()), { access: 'private', useCache: false });
+  if (!r || r.statusCode !== 200 || !r.stream) return null;
+  return JSON.parse(await new Response(r.stream).text());
 }
 
 function loadSnapshot() {
@@ -54,7 +29,7 @@ module.exports = async (req, res) => {
       let rows = null;
       const t0 = Date.now();
       try {
-        rows = await Promise.race([loadLive(), new Promise((_, no) => setTimeout(() => no(new Error('timeout 8s')), 8000))]);
+        rows = await Promise.race([loadLive(), new Promise((_, no) => setTimeout(() => no(new Error('timeout 5s')), 5000))]);
         console.log('catalog live ok', rows && rows.length, Date.now() - t0 + 'ms');
       } catch (e) { console.error('catalog live failed', e.message, Date.now() - t0 + 'ms'); }
       const live = !!(rows && rows.length);

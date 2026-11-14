@@ -17,6 +17,9 @@
     },
     "api/agenda.js": {
       "maxDuration": 20
+    },
+    "api/cron-catalog.js": {
+      "maxDuration": 300
     }
   },
   "headers": [
@@ -96,6 +99,12 @@
       "source": "/assets/tds/maxzz-fluid-:code-tds.pdf",
       "destination": "/assets/flyers/maxzz-fluid-:code-flyer.pdf",
       "permanent": true
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron-catalog",
+      "schedule": "*/30 * * * *"
     }
   ]
 }
