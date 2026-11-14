@@ -83,6 +83,7 @@
         self.busy = false;
         if (r._status === 429) { self.err = 'Too many attempts. Wait a few minutes and try again.'; return; }
         if (r._status !== 200) { self.err = 'Check the e-mail address.'; return; }
+        if (r.direct) { location.href = '/portal'; return; }
         self.sentPending = !!r.pending; self.view = 'sent';
       }).catch(function () { self.busy = false; self.err = 'Connection problem. Try again.'; });
     },

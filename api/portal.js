@@ -81,6 +81,12 @@ A.login = async (req, res) => {
   const db = await loadDb();
   const u = db.users[email];
   const ok = isAdmin(email) || (u && u.status === 'approved');
+  // Temporary, preview only: sign in without the e-mail step (preview URLs sit behind Vercel's own login).
+  // Production always uses the e-mailed link. Turn off with PORTAL_PREVIEW_LOGIN=0.
+  if (ok && process.env.VERCEL_ENV === 'preview' && process.env.PORTAL_PREVIEW_LOGIN !== '0') {
+    setSession(res, email);
+    return res.json({ ok: true, direct: true });
+  }
   if (ok) {
     const link = base(req) + '/api/portal/verify?t=' + encodeURIComponent(loginToken(email));
     await send(email, 'Your Maxzz Diesel sign-in link', 'Sign in to the Maxzz B2B portal',
