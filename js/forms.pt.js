@@ -26,20 +26,20 @@
       if (ev) ev.preventDefault();
       if (btn.disabled) return;
       var bad = [mark(name, !name.value.trim()), mark(phone, phone.value.replace(/\D/g, '').length < 7), mark(email, !EMAIL.test(email.value.trim()))];
-      if (bad.some(Boolean)) { say('Please fill in your name, phone and a valid email.'); return; }
-      var label = btn.textContent; btn.disabled = true; btn.textContent = 'Sending…'; say('');
+      if (bad.some(Boolean)) { say('Preencha seu nome, telefone e um e-mail válido.'); return; }
+      var label = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…'; say('');
       try {
         var r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: name.value, phone: phone.value, email: email.value, type: sel ? sel.value : '', hp: hp.value }) });
         if (!r.ok) throw new Error(r.status);
         if (window.mxIdentify) window.mxIdentify(email.value.trim(), name.value);
         try { (window.dataLayer = window.dataLayer || []).push({ event: 'generate_lead', form: 'account', business_type: sel ? sel.value : '' }); } catch (e) {}
-        form.reset(); btn.textContent = 'Request sent';
-        say('Thanks. Our team will contact you within one business day.', true);
+        form.reset(); btn.textContent = 'Solicitação enviada';
+        say('Obrigado. Nossa equipe vai falar com você em até um dia útil.', true);
         setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 6000);
       } catch (e) {
         btn.textContent = label; btn.disabled = false;
-        say('We could not send your request. Please try again or call +1 (954) 586-4158.');
+        say('Não conseguimos enviar sua solicitação. Tente de novo ou ligue +1 (954) 586-4158.');
       }
     }
     form.addEventListener('submit', submit);

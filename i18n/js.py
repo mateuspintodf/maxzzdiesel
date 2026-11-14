@@ -40,6 +40,21 @@ T = {
 'Thanks. Our team will contact you within one business day.': ('Gracias. Nuestro equipo te contactará en un día hábil.', 'Obrigado. Nossa equipe vai falar com você em até um dia útil.'),
 'We could not send your request. Please try again or call +1 (954) 586-4158.': ('No pudimos enviar tu solicitud. Inténtalo de nuevo o llama al +1 (954) 586-4158.', 'Não conseguimos enviar sua solicitação. Tente de novo ou ligue +1 (954) 586-4158.'),
 }
+
+# js/gate.js (gated catalog download)
+T.update({
+'Free download': ('Descarga gratis', 'Download grátis'),
+'Get the Robiel Electronic Line catalog': ('Descarga el catálogo Robiel Electronic Line', 'Baixe o catálogo Robiel Electronic Line'),
+'294 pages, English and Spanish. Tell us where to send updates and new kits.': ('294 páginas, en inglés y español. Dinos a dónde enviarte novedades y kits nuevos.', '294 páginas, em inglês e espanhol. Diga para onde enviamos novidades e kits novos.'),
+'Work e-mail': ('Correo de trabajo', 'E-mail de trabalho'),
+'you@yourshop.com': ('tu@tutaller.com', 'voce@suaoficina.com'),
+'Name': ('Nombre', 'Nome'), 'Optional': ('Opcional', 'Opcional'), 'Company': ('Empresa', 'Empresa'),
+'Download the catalog': ('Descargar el catálogo', 'Baixar o catálogo'),
+'We only use your e-mail for Maxzz Diesel updates. No spam.': ('Solo usamos tu correo para novedades de Maxzz Diesel. Sin spam.', 'Usamos seu e-mail só para novidades da Maxzz Diesel. Sem spam.'),
+'Enter a valid e-mail.': ('Ingresa un correo válido.', 'Informe um e-mail válido.'),
+'Preparing…': ('Preparando…', 'Preparando…'), 'Close': ('Cerrar', 'Fechar'), 'Request a quote': ('Pedir cotización', 'Pedir cotação'), 'My quote list': ('Mi lista de cotización', 'Minha lista de cotação'),
+})
+
 # code-bearing fragments in quote.html markup (raw replace)
 RAW = {
 '</b>Shipping and details': ('</b>Envío y datos', '</b>Envio e dados'),

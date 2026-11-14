@@ -163,3 +163,33 @@ html.io .io-in{opacity:1!important;transform:none!important}
 @keyframes l-fade { from { opacity: 0; transform: scale(1.03); } to { opacity: 1; transform: none; } }
 .l-tabmedia img { animation: l-fade .55s cubic-bezier(.22,1,.36,1) both; }
 @media (prefers-reduced-motion: reduce) { .l-tabmedia img { animation: none; } }
+/* mobile header quote button: list icon + count (text is hidden at this width) */
+.nav-cta .ic { position: relative; }
+.nav-ic-list, .nav-cnt { display: none; }
+.nav-cnt { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; box-sizing: border-box; border-radius: 50px; background: #d32a37; color: #fff; font: 600 11px/20px 'BDO Grotesk', Arial, sans-serif; text-align: center; box-shadow: 0 0 0 2px #1d2126; }
+@media (max-width: 640px) {
+  .nav-cta .ic > svg:not(.nav-ic-list) { display: none; }
+  .nav-cta .ic .nav-ic-list { display: block; color: #1d2126; }
+  .nav-cta .nav-cnt:not(:empty) { display: block; }
+}
+/* mobile bottom bar */
+.mbar { display: none; }
+@media (max-width: 640px) {
+  .mbar { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 90; display: flex; gap: 8px; padding: 6px; border-radius: 50px; background: rgba(29,33,38,.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); box-shadow: 0 14px 34px rgba(14,15,17,.3); font-family: 'BDO Grotesk', 'Helvetica Neue', Arial, sans-serif; animation: mbar-in .5s cubic-bezier(.2,.8,.2,1) .4s both; }
+  .mbar a { display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 50px; font-size: 15px; font-weight: 500; text-decoration: none; }
+  .mbar-q { flex: 1; background: #d32a37; color: #fff; }
+  .mbar-q .nav-ic-list { display: block; }
+  .mbar-n { min-width: 22px; height: 22px; padding: 0 6px; box-sizing: border-box; border-radius: 50px; background: #fff; color: #d32a37; font: 600 12px/22px inherit; text-align: center; }
+  .mbar-wa { padding: 0 16px; background: #fff; color: #1d2126; }
+  .mbar-wa svg { color: #25d366; }
+  html.has-mbar body { padding-bottom: 76px; }
+  html.has-mbar .qb, html.has-mbar .qp ~ * .qb { display: none !important; }
+  html.has-mbar .qp { bottom: 84px !important; }
+  html.has-mbar #hubspot-messages-iframe-container { bottom: 72px !important; }
+}
+@keyframes mbar-in { from { opacity: 0; transform: translateY(20px); } }
+@media (prefers-reduced-motion: reduce) { .mbar { animation: none; } }
+/* mobile: one closing block per page (the call card and the how-to-order block repeat the CTA below) */
+@media (max-width: 760px) { .call-blue, .l-how { display: none !important; } }
+/* home hero on mobile: darker wash behind the text */
+@media (max-width: 640px) { [style*="background: linear-gradient(90deg, rgba(14,15,17,0.9) 0%"], [style*="background: linear-gradient(90deg, rgba(14,15,17,0.88) 0%"] { background: linear-gradient(180deg, rgba(14,15,17,.45) 0%, rgba(14,15,17,.72) 40%, rgba(14,15,17,.88) 75%, rgba(14,15,17,.6) 100%) !important; } }

@@ -177,13 +177,13 @@ def js_localize():
     sys.path.insert(0, str(ROOT / 'i18n')); import js as JS
     out = {}
     for lang, idx in (('es', 0), ('pt', 1)):
-        for f in ('quote-app.js', 'forms.js'):
+        for f in ('quote-app.js', 'forms.js', 'gate.js', 'motion.js'):
             src = (ROOT / 'js' / f).read_text(encoding='utf-8')
-            def rep(m):
-                v = m.group(1) if m.group(1) is not None else m.group(2); q = '"' if m.group(1) is not None else "'"
-                if v in JS.T: return q + JS.T[v][idx].replace('\\', '\\\\').replace(q, '\\' + q) + q
-                return m.group(0)
-            (ROOT / 'js' / f.replace('.js', f'.{lang}.js')).write_text(JS_STR.sub(rep, src), encoding='utf-8')
+            # exact quoted literals only (a regex scan over a whole file can lose track of quotes in comments)
+            for k in sorted(JS.T, key=len, reverse=True):
+                for q in ("'", '"'):
+                    src = src.replace(q + k + q, q + JS.T[k][idx].replace('\\', '\\\\').replace(q, '\\' + q) + q)
+            (ROOT / 'js' / f.replace('.js', f'.{lang}.js')).write_text(src, encoding='utf-8')
         out[lang] = ({k: v[idx] for k, v in JS.RAW.items()}, {k: v[idx] for k, v in JS.EXPR.items()})
     return out
 
@@ -216,7 +216,7 @@ def build():
             for a, b in RAW[lang][0].items(): src2 = src2.replace(a, b)
             EX = RAW[lang][1]
             src2 = re.sub(r'((?:v-text|v-html|:[a-z-]+)=")([^"]*)(")', lambda m: m.group(1) + re.sub(r"'([^'\\]*)'", lambda n: "'" + EX[n.group(1)].replace("'", "\\'") + "'" if n.group(1) in EX else n.group(0), m.group(2)) + m.group(3), src2)
-            src2 = re.sub(r'/js/(quote-app|forms)\.js', lambda m: f'/js/{m.group(1)}.{lang}.js', src2)
+            src2 = re.sub(r'/js/(quote-app|forms|gate|motion)\.js', lambda m: f'/js/{m.group(1)}.{lang}.js', src2)
             src2 = re.sub(r'<script type="application/ld\+json">.*?</script>', lambda m: tr_ld(m.group(0), d, lang), src2, flags=re.S)
             (outdir / f'{pg}.html').write_text(src2, encoding='utf-8')
     # hreflang on every version

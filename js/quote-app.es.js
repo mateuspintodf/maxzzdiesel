@@ -14,8 +14,8 @@
   var POPULAR = [{ label: 'Cummins ISX15 XPI', q: 'isx' }, { label: 'Duramax L5P', q: 'l5p' }, { label: 'Ford 6.7 Power Stroke', q: '6.7 powerstroke' },
     { label: 'Cummins 6.7', q: '6.7 cummins' }, { label: 'Detroit DD15', q: 'dd15' }, { label: 'Cat C7 / C9', q: 'c7' }, { label: 'CP3 pump', q: 'cp3' },
     { label: 'CP4 pump', q: 'cp4' }, { label: 'Control valve', q: 'control valve' }, { label: 'Nozzle', q: 'nozzle' }, { label: 'Volvo D13', q: 'd13' }, { label: 'ISO 4113 fluid', q: '4113' }];
-  var SHIP = [{ v: 'Ground', h: 'UPS or FedEx ground, the most economical' }, { v: 'Express', h: 'Next day or 2nd day air' }, { v: 'LTL freight', h: 'Pallets and heavy items' },
-    { v: 'Pickup', h: 'Will call at our Coconut Creek, Florida warehouse' }, { v: 'My carrier', h: 'We ship on your UPS / FedEx / freight account' }, { v: 'Forwarder', h: 'We deliver to your freight forwarder for export' }];
+  var SHIP = [{ v: 'Ground', h: 'UPS o FedEx terrestre, la opción más económica' }, { v: 'Express', h: 'Aéreo al día siguiente o en 2 días' }, { v: 'LTL freight', h: 'Pallets y artículos pesados' },
+    { v: 'Pickup', h: 'Retiro en nuestro almacén de Coconut Creek, Florida' }, { v: 'My carrier', h: 'Enviamos con tu cuenta de UPS / FedEx / carga' }, { v: 'Forwarder', h: 'Entregamos a tu agente de carga para exportación' }];
 
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
@@ -85,17 +85,17 @@
       return this.cat.filter(function (p) { var f = self.fit.items[p.code]; return f && f[2] && f[1] === label; });
     },
     logosOf: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
-    monoOf: function (k) { return { ford: 'Ford', ram: 'Ram', gm: 'Chevy · GMC', nissan: 'Nissan', hd: 'Heavy duty' }[k] || k; },
+    monoOf: function (k) { return { ford: 'Ford', ram: 'Ram', gm: 'Chevy · GMC', nissan: 'Nissan', hd: 'Pesados' }[k] || k; },
     makeHint: function (m) { return m.engines.map(function (e) { return e.label; }).slice(0, 4).join(' · '); },
     genTitle: function (g, e) {
-      if (g.key === 'DMAX') return 'Not sure of the generation?';
+      if (g.key === 'DMAX') return '¿No sabes la generación?';
       var same = e && e.gens.filter(function (x) { return x.label === g.label; }).length > 1;
       return same && g.years ? g.years : g.label;
     },
     genSub: function (g, e) {
-      if (g.key === 'DMAX') return 'All 6.6L Duramax parts we stock';
+      if (g.key === 'DMAX') return 'Todos los repuestos Duramax 6.6L que tenemos';
       var same = e && e.gens.filter(function (x) { return x.label === g.label; }).length > 1;
-      return same ? g.label : (g.years || 'All years');
+      return same ? g.label : (g.years || 'Todos los años');
     },
     // Street autocomplete (Google Places via /api/address). Off silently when the server has no key.
     addrInput: function () {
@@ -161,7 +161,7 @@
           if (city && (!d.city || self._autoCity === d.city)) { d.city = city; self._autoCity = city; }
           if (state && (!d.state || self._autoState === d.state)) { d.state = state; self._autoState = state; }
           if (street && (!d.street || self._autoStreet === d.street)) { d.street = street; self._autoStreet = street; }
-          self.zipMsg = [city, state].filter(Boolean).join(', ') + (street ? ' · add the number' : ' · add the street and number');
+          self.zipMsg = [city, state].filter(Boolean).join(', ') + (street ? ' · agrega el número' : ' · agrega la calle y el número');
           var next = document.getElementById(street ? 'qx-num' : 'qx-street'); if (next && !next.value) next.focus();
         }).catch(function () { self.zipMsg = ''; });
       }, 350);
@@ -170,7 +170,7 @@
     get zipRequired() { return /United States|Canada|Puerto Rico/.test(this.d.country || 'United States'); },
     backToMake: function () { this.gen = ''; this.engIdx = -1; this.kind = ''; },
     backToEngine: function () { var m = this.curMake; this.gen = ''; this.kind = ''; if (m && m.engines.length === 1) this.engIdx = 0; },
-    addQueryAsCustom: function () { var q = String(this.q).trim(); if (!q) return; var hit = this.findCode(q); if (hit) this.add(hit); else { this.addRaw(q, q, 1); this.flash('Added as a custom line'); } this.setQ(''); },
+    addQueryAsCustom: function () { var q = String(this.q).trim(); if (!q) return; var hit = this.findCode(q); if (hit) this.add(hit); else { this.addRaw(q, q, 1); this.flash('Agregado como línea libre'); } this.setQ(''); },
     countGen: function (key) { var n = 0, it = this.fit.items; for (var c in it) if (it[c][0].indexOf(key) >= 0 && this.map[c]) n++; return n; },
     countEngine: function (e) { var self = this; return e.gens.reduce(function (s, g) { return s + self.countGen(g.key); }, 0); },
     setMode: function (m) { this.mode = m; this.kind = ''; this.limit = 30; if (m === 'search') setTimeout(function () { var el = document.getElementById('qx-q'); if (el) el.focus(); }, 30); },
@@ -192,19 +192,19 @@
       var i = this.lines.findIndex(function (l) { return l.id === code; });
       if (i >= 0) this.lines[i].qty += qty;
       else this.lines.push({ id: code, name: p.name, pn: code, app: p.kind, cat: p.kind, slug: p.slug, img: '', pos: '', qty: qty });
-      this.save(); if (!quiet) this.flash('Added ' + code + ' to your list');
+      this.save(); if (!quiet) this.flash('Agregado ' + code + ' a tu lista');
       track('quote_add_item', { item_id: code, item_category: p.kind, quantity: qty });
       return true;
     },
     addRaw: function (pn, name, qty) {
-      this.lines.push({ id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6), name: name || 'Custom part', pn: pn || TBD, app: 'Custom line', cat: 'Other', slug: 'other', img: '', pos: '', qty: Math.max(1, parseInt(qty, 10) || 1), needPn: !pn, custom: true });
+      this.lines.push({ id: 'c' + Date.now() + Math.random().toString(36).slice(2, 6), name: name || 'Pieza libre', pn: pn || TBD, app: 'Línea libre', cat: 'Other', slug: 'other', img: '', pos: '', qty: Math.max(1, parseInt(qty, 10) || 1), needPn: !pn, custom: true });
       this.save();
     },
     addCustom: function () {
       var pn = val('qx-cpn'), ds = val('qx-cds'), qt = val('qx-cqt');
-      if (!pn && !ds) { this.flash('Type a part number or a description'); return; }
+      if (!pn && !ds) { this.flash('Escribe un número de parte o una descripción'); return; }
       var hit = pn && this.findCode(pn);
-      if (hit) this.add(hit, qt); else { this.addRaw(pn, ds || pn, qt); this.flash('Custom line added'); }
+      if (hit) this.add(hit, qt); else { this.addRaw(pn, ds || pn, qt); this.flash('Línea libre agregada'); }
       setVal('qx-cpn', ''); setVal('qx-cds', ''); setVal('qx-cqt', '1');
     },
     findCode: function (s) {
@@ -229,7 +229,7 @@
         if (hit) { self.add(hit, qty, true); found++; } else { self.addRaw(pn, pn, qty); custom++; miss.push(pn); }
       });
       setVal('qx-paste', '');
-      this.pasteMsg = found + (found === 1 ? ' part matched' : ' parts matched') + (custom ? ', ' + custom + ' added as custom lines' : '') + '.';
+      this.pasteMsg = found + (found === 1 ? ' pieza encontrada' : ' piezas encontradas') + (custom ? ', ' + custom + ' agregadas como líneas libres' : '') + '.';
       this.pasteMiss = miss;
       this.flash(this.pasteMsg);
     },
@@ -238,15 +238,15 @@
     setQty: function (i, v) { this.lines[i].qty = Math.max(1, Math.min(99999, parseInt(v, 10) || 1)); this.save(); },
     setPn: function (i, v) { v = String(v || '').trim(); this.lines[i].pnUser = v; this.lines[i].pn = v || TBD; this.save(); },
     remove: function (i) { this.lines.splice(i, 1); this.save(); },
-    clearAll: function () { if (window.confirm && !window.confirm('Clear every part from your list?')) return; this.lines.splice(0); this.save(); },
+    clearAll: function () { if (window.confirm && !window.confirm('¿Quitar todas las piezas de tu lista?')) return; this.lines.splice(0); this.save(); },
     copyLink: function () {
       var self = this;
       var codes = this.lines.filter(function (l) { return self.map[l.id]; }).map(function (l) { return l.id + (l.qty > 1 ? ':' + l.qty : ''); });
-      if (!codes.length) { this.flash('Custom lines cannot go in a link'); return; }
+      if (!codes.length) { this.flash('Las líneas libres no se pueden compartir por enlace'); return; }
       var url = location.origin + '/quote?add=' + encodeURIComponent(codes.join(','));
-      var done = function () { self.copied = true; self.flash('Link copied. Anyone who opens it gets the same list.'); setTimeout(function () { self.copied = false; }, 2500); };
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); });
-      else window.prompt('Copy this link', url);
+      var done = function () { self.copied = true; self.flash('Enlace copiado. Quien lo abra verá la misma lista.'); setTimeout(function () { self.copied = false; }, 2500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copia este enlace', url); });
+      else window.prompt('Copia este enlace', url);
     },
     toDetails: function () { if (!this.lines.length) return; this.sheet = false; track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; this.toast = ''; scrollTop(); },
     validate: function () {
@@ -264,7 +264,7 @@
     toReview: function () {
       write(DK, Object.assign({}, this.d));
       var bad = this.validate();
-      if (bad.length) { this.err = 'Please fill in the fields marked in orange.'; return; }
+      if (bad.length) { this.err = 'Completa los campos marcados en naranja.'; return; }
       this.err = '';
       if (!this.number) { var t = new Date(); this.number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(); }
       this.reviewing = true; scrollTop();
@@ -278,13 +278,13 @@
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function () { track('generate_lead', { form: 'quote', quote_id: self.number, items: self.lines.length, units: self.units, country: d.country, b2b_interest: !!d.b2b }); self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
-        .catch(function () { self.sending = false; self.err = 'We could not send it right now. Please try again, or email the list to sales@maxzzdiesel.com.'; });
+        .catch(function () { self.sending = false; self.err = 'No pudimos enviarla ahora. Inténtalo de nuevo o envía la lista a sales@maxzzdiesel.com.'; });
     },
     askB2B: function () {
       if (this.b2bSending) return; var self = this, d = this.d; this.b2bSending = true;
       fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hp: val('qx-hp'), t: Date.now() - T0, name: d.name, email: d.email, phone: d.phone, type: 'B2B platform early access · ' + (d.type || '') + ' · ' + d.company }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); track('b2b_access_request', { form: 'b2b' }); self.b2bDone = true; self.b2bSending = false; })
-        .catch(function () { self.b2bSending = false; self.flash('Could not send. Email sales@maxzzdiesel.com and we will add you.'); });
+        .catch(function () { self.b2bSending = false; self.flash('No se pudo enviar. Escríbenos a sales@maxzzdiesel.com y te agregamos.'); });
     },
     startOver: function () { this.lines.splice(0); this.save(); this.phase = 1; this.reviewing = false; this.number = ''; this.b2bDone = false; scrollTop(); },
     printIt: function () { window.print(); },
@@ -344,7 +344,7 @@ function goTo(sel) {
         var code = map[m[1]] ? m[1] : app.findCode(m[1]);
         if (code && app.add(code, m[2] || 1, true)) n++; else miss++;
       });
-      if (n) app.flash(n + (n === 1 ? ' part' : ' parts') + ' added from your link' + (miss ? ' (' + miss + ' not found)' : ''));
+      if (n) app.flash(n + (n === 1 ? ' pieza' : ' piezas') + ' agregadas desde tu enlace' + (miss ? ' (' + miss + ' no encontradas)' : ''));
     }
     var g = P.get('gen'), q = P.get('q'), mode = P.get('mode'), mk = P.get('make');
     if (g) { var hit = null; fit.tree.forEach(function (mk) { mk.engines.forEach(function (e) { e.gens.forEach(function (x) { if (x.key.toLowerCase() === g.toLowerCase()) hit = Object.assign({ make: mk.key }, x); }); }); }); if (hit) app.jumpGen(hit); }
@@ -352,7 +352,7 @@ function goTo(sel) {
     else if (q) { app.mode = 'search'; app.setQ(q); }
     else if (mode === 'search' || mode === 'bench') app.mode = mode;
     if (add || g || q || src || mk) try { history.replaceState(null, '', location.pathname); } catch (e) {}
-  }).catch(function () { app.flash('Parts catalog is loading slowly. Search will work in a moment.'); });
+  }).catch(function () { app.flash('El catálogo está tardando en cargar. La búsqueda funcionará en un momento.'); });
 
   // keep in sync if the list changes in another tab
   window.addEventListener('storage', function (e) { if (e.key === QK) app.lines = read(QK, []); });

@@ -100,3 +100,33 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scan); else scan();
   setTimeout(scan, 600); setTimeout(scan, 2000);
 })();
+
+/* Mobile: quote button in the header shows a list icon with the number of parts, and a fixed bottom bar
+   with "Request a quote" and WhatsApp (LATAM line on the Spanish and Portuguese pages). */
+(function () {
+  var M = { quote: 'Request a quote', wa: 'WhatsApp', list: 'My quote list' };
+  var lang = (document.documentElement.lang || 'en').slice(0, 2);
+  var path = location.pathname;
+  if (/\/portal|\/painel|\/agenda/.test(path)) return;
+  var onQuote = /\/quote(\.html)?$/.test(path);
+  function count() { try { var v = JSON.parse(localStorage.getItem('mx-quote') || '[]'); return Array.isArray(v) ? v.length : 0; } catch (e) { return 0; } }
+  var LIST = '<svg class="nav-ic-list" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1"></path><path d="M9 10h6M9 14h6M9 18h3"></path></svg>';
+  function setup() {
+    var cta = document.querySelector('.nav-cta'), ic = cta && cta.querySelector('.ic');
+    if (ic && !ic.querySelector('.nav-ic-list')) { ic.insertAdjacentHTML('beforeend', LIST + '<b class="nav-cnt" aria-hidden="true"></b>'); }
+    if (!onQuote && !document.querySelector('.mbar')) {
+      var wa = (lang === 'es' || lang === 'pt') ? 'https://wa.me/17867164857' : 'https://wa.me/19543716996';
+      var href = (cta && cta.getAttribute('href')) || '/quote';
+      document.body.insertAdjacentHTML('beforeend', '<div class="mbar"><a class="mbar-q" href="' + href + '">' + LIST + '<span>' + M.quote + '</span><b class="mbar-n"></b></a>' +
+        '<a class="mbar-wa" href="' + wa + '" target="_blank" rel="noopener" aria-label="' + M.wa + '"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 2s.8 2.3 1 2.5c.1.2 1.6 2.5 4 3.5 1.5.6 2 .7 2.8.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3Z"/></svg><span>' + M.wa + '</span></a></div>');
+      document.documentElement.classList.add('has-mbar');
+    }
+    sync();
+  }
+  function sync() {
+    var n = count();
+    document.querySelectorAll('.nav-cnt,.mbar-n').forEach(function (b) { b.textContent = n ? String(n) : ''; b.style.display = n ? '' : 'none'; });
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
+  window.addEventListener('storage', sync); setInterval(sync, 1500);
+})();
