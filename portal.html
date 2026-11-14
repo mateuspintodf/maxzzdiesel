@@ -778,7 +778,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-rsteps{display:flex;gap:18px;margin-bottom:18px;font-size:14px;color:#8a9097}
 .px-rsteps span{display:flex;align-items:center;gap:8px}.px-rsteps b{width:24px;height:24px;border-radius:50%;border:1px solid #c9ced3;display:flex;align-items:center;justify-content:center;font-size:12px}
 .px-rsteps span.on{color:#1d2126;font-weight:500}.px-rsteps span.on b{background:#1d2126;border-color:#1d2126;color:#fff}
-.px-g2c{display:grid;grid-template-columns:1fr 1.3fr;gap:12px}.px-g3c{display:grid;grid-template-columns:110px 1fr 90px;gap:12px}
+.px-g2c{display:grid;grid-template-columns:minmax(170px,1.2fr) 1fr;gap:12px}.px-g2c select{white-space:nowrap}.px-g3c{display:grid;grid-template-columns:110px 1fr 90px;gap:12px}
 .px-in.bad{border-color:#d32a37;background:#fff8f8}
 .px-fe{color:#b42318;font-size:12px}
 .px-ok2{font-size:13px;color:#15803d;margin-top:-4px}
@@ -952,7 +952,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
   .px-mbar .px-btn{white-space:nowrap;padding:0 16px}
   .sc-act .px-qty{height:40px}.sc-act .px-qty button{width:40px}
   .sc-act .px-btn,.sc-buy .sc-act .px-ghost,.sc-act .px-btn.px-sm{flex:none!important;height:44px!important;min-height:44px}
-  .px-qrow{flex-direction:column;align-items:stretch}.px-qrow .px-qty{width:100%;justify-content:space-between}.px-qrow .px-qty input{flex:1}
+  .px-qrow{flex-direction:column;align-items:stretch}.px .px-qrow .px-btn{flex:none;width:100%;height:48px}.px-qrow .px-qty{width:100%;justify-content:space-between}.px-qrow .px-qty input{flex:1}
   .px-x{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center}
   .px-lt{padding-bottom:12px}
   .px-flowp .px-fbar{left:12px;right:12px;margin-right:0;padding:10px 10px 10px 16px;flex-direction:row;align-items:center;flex-wrap:nowrap}
@@ -963,6 +963,12 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
   .px-lb img{padding:12px;border-radius:10px}
 }
 .px-clr-top{display:none;justify-content:flex-end;margin:-6px 0 4px}@media (max-width:760px){.px-clr-top{display:flex}}
+.px-ltab .px-code2,.px .px-ltab td .px-code2{overflow-wrap:normal;word-break:keep-all}
+.px-trust{margin:14px 0 0;font-size:14px;color:#c9ced3;display:flex;flex-wrap:wrap;gap:4px 14px}.px-trust span{white-space:nowrap}.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}
+.px-nf{margin-top:18px;background:#fff;border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.px-nf b{font-weight:500;color:#1d2126}.px-nf p{margin:2px 0 0;font-size:14px;color:#5f656c}
+@media (max-width:760px){.px-kpis{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.px-kpis>a{min-width:0}.px-kpis .px-rw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.px-eng{display:grid;grid-template-columns:72px 1fr;gap:8px}.px-eng b{min-width:0}.px-eng .px-gen{grid-column:2}}
+@media (min-width:761px){.px-pd-info{padding-bottom:72px}}
+@media (max-width:760px){.px-acc-line{flex-direction:column;gap:2px}.px-kpis .px-rw .bar{margin-top:8px}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -974,6 +980,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <h1 v-if="!logged && route === 'home'">Wholesale diesel injection, <em>in stock</em></h1>
 <h1 v-if="logged && route === 'home'"><span v-text="greet + ', '"></span><em v-text="firstName"></em></h1>
 <p v-if="!logged" class="px-lead">Injectors, pumps, nozzles, tools, fluids and kits shipped from Florida. <br>Sign in for your price list, live stock and online ordering.</p>
+<p v-if="!logged && route === 'home'" class="px-trust"><span>Since 1992</span><span>Warehouse in Coconut Creek, FL</span><span>Bosch, Denso, Delphi, Zexel, Robiel</span><span>Ships to the US and Latin America</span></p>
 <div class="px-acc-line" v-else>
 <span class="co" v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span>
 <span v-if="me.account && me.account.code" v-text="'Account ' + me.account.code"></span>
@@ -998,7 +1005,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <a href="#/orders" v-if="canOrder"><b v-text="openOrders"></b><span>Open orders</span></a>
 <a href="#/cart" v-if="canOrder"><b v-text="cart.length"></b><span>In cart</span></a>
 <a href="#" @click.prevent="qOpen = true"><b v-text="quoteN"></b><span>Quote list</span></a>
-<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="'Rewards · ' + rwLevel.n"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
+<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="(REWARDS.demo ? 'Rewards preview · ' : 'Rewards · ') + rwLevel.n"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
 </div>
 </div>
 </section>
@@ -1113,7 +1120,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 
 <div class="px-sec" v-if="moreRow.length">
-<div class="px-sh"><h2>Pumps, nozzles and tools</h2><a href="#/c/Pump">All pumps</a></div>
+<div class="px-sh"><h2>More from the catalog</h2><a href="#/all">All parts</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in moreRow" :key="r[0]">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
@@ -1151,7 +1158,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <!-- LIST: category, search, vehicle -->
 <div v-if="route === 'c' || route === 's' || route === 'g' || route === 'all'">
 <div class="px-crumb"><a href="#/">Store</a> / <span v-text="listTitle"></span></div>
-<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span v-text="cat.length ? results.length + ' parts' : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="">Best match</option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
+<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span style="white-space:nowrap" v-text="cat.length ? results.length.toLocaleString('en-US') + (results.length === 1 ? ' part' : ' parts') : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="">Best match</option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
 <div class="px-hint" v-if="!logged"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><a href="#/login">Sign in</a> to see your prices, live stock and order online.</span></div>
 <div class="px-chips" v-if="chips.length"><button type="button" class="px-chip" v-for="c in chips" @click="toggle(c.g, c.k)"><span v-text="c.label"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 <div class="px-empty" v-if="cat.length && !results.length">
@@ -1181,6 +1188,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </article>
 
 </div>
+<div class="px-nf" v-if="(route === 'g' || route === 's') && results.length && results.length < 12"><div><b>Don't see your part?</b><p>Send the part number, engine serial or VIN and our team finds it.</p></div><div class="px-btns"><a class="px-btn px-dark px-sm" :href="'https://wa.me/19543716996?text=' + encodeURIComponent('Hi Maxzz, I need a part for ' + listTitle + '.')" target="_blank" rel="noopener">WhatsApp US</a><a class="px-btn px-ghost px-sm" :href="'https://wa.me/17867164857?text=' + encodeURIComponent('Hi Maxzz, I need a part for ' + listTitle + '.')" target="_blank" rel="noopener">Latin America</a><a class="px-btn px-ghost px-sm" href="tel:+19545864158">Call</a></div></div>
 <button type="button" class="px-btn px-ghost px-more" v-if="results.length > shown.length" @click="limit += 24"><span v-text="'Show ' + Math.min(24, results.length - shown.length) + ' more · ' + (results.length - shown.length).toLocaleString('en-US') + ' left'"></span></button>
 </div>
 
@@ -1202,7 +1210,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div v-if="fits.length"><div class="px-muted" style="margin-bottom:8px">Shop this vehicle</div><div class="px-fits"><a v-for="g in fits" :href="'#/g/' + g.key" v-text="g.label + ' ' + (g.years || '')"></a></div></div>
 <div class="px-buybox" v-if="logged">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
-<div class="px-tier" v-if="canOrder && price(pr[0]) != null">Your wholesale price<span v-if="REWARDS.on" v-text="' · earns ' + pts(pr[0]).toLocaleString('en-US') + ' pts'"></span></div>
+<div class="px-tier" v-if="canOrder && price(pr[0]) != null">Your wholesale price<span v-if="REWARDS.on && !REWARDS.demo" v-text="' · earns ' + pts(pr[0]).toLocaleString('en-US') + ' pts'"></span></div>
 <div class="px-qrow" v-if="canOrder && price(pr[0]) != null"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(pr[0], cs(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(pr[0])" @change="csSet(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(pr[0], cs(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red px-buy" :class="inCart(pr[0]) ? 'in' : ''" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? 'In cart · View cart' : 'Add to cart'"></button></div>
 <p class="px-por-note" v-if="canOrder && price(pr[0]) == null">No online price for this part. Add it to a quote and our team replies within one business day.</p>
 <div class="px-qrow" v-if="!canOrder || price(pr[0]) == null"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(pr[0], sq(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(pr[0])" @change="sqSet(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(pr[0], sq(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red px-buy" :class="inQuote(pr[0]) ? 'in' : ''" @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote · View list' : 'Add to quote'"></button></div>
@@ -1225,7 +1233,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <nav class="px-dtabs" aria-label="Part details" v-effect="tab; product && $nextTick(() => moveInd($el))"><i class="px-dind" aria-hidden="true"></i><a href="#" @click.prevent="dtab = 'ov'" :class="tab === 'ov' ? 'on' : ''" v-if="spec.desc">Overview</a><a href="#" @click.prevent="dtab = 'sp'" :class="tab === 'sp' ? 'on' : ''">Specifications</a><a href="#" @click.prevent="dtab = 'ap'" :class="tab === 'ap' ? 'on' : ''">Applications</a><a href="#" @click.prevent="dtab = 'xr'" :class="tab === 'xr' ? 'on' : ''">Cross references<span class="px-cnt" v-if="xrefs.length" v-text="xrefs.length"></span></a><a href="#" @click.prevent="dtab = 'fq'" :class="tab === 'fq' ? 'on' : ''" v-if="faqs.length">FAQ</a></nav>
 <div class="px-dbody">
 <div class="px-rich" v-if="tab === 'ov' && spec.desc" v-html="spec.desc"></div>
-<table class="px-spec" v-if="tab === 'sp'"><tbody><tr v-for="row in specRows"><th v-text="row[0]"></th><td v-text="row[1]"></td></tr></tbody></table>
+<table class="px-spec" v-if="tab === 'sp'"><tbody><tr v-for="row in specRows"><th v-text="row[0]"></th><td :class="/part number|number$/i.test(row[0]) ? 'pn' : ''" v-text="row[1]"></td></tr></tbody></table>
 <div v-if="tab === 'ap'">
 <div class="px-apps" v-if="appRows.length"><div class="px-app" v-for="a in appRows"><b v-text="a.t"></b><span v-text="a.d"></span><a v-if="a.g" :href="'#/g/' + a.g">See all parts for this vehicle</a></div></div>
 <p class="px-muted" v-else>Application not listed yet. Send us the engine serial or VIN and our team confirms the fit.</p>
@@ -1268,7 +1276,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 </div>
 <div class="px-sec" v-if="related.length">
-<div class="px-sh"><h2>Often bought together</h2><button type="button" class="px-link" @click="addAll(relShown)" v-text="canOrder ? 'Add all to cart' : 'Add all to quote'"></button></div>
+<div class="px-sh"><h2>Often bought together</h2><button type="button" class="px-link" @click="addAll(relShown)" v-text="!canOrder ? 'Add all to quote' : relShown.every(function (r) { return price(r[0]) != null; }) ? 'Add all to cart' : 'Add all'"></button></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in relShown" :key="r[0]">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
@@ -1382,12 +1390,12 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-test" v-if="flow === 'order' && me && !me.ordersLive">Test mode: orders are e-mailed to our team and not yet sent to the warehouse system.</div></div>
 <div class="px-card px-lt">
 <div class="px-clr-top" v-if="lines.length"><button type="button" class="px-link" @click="clearFlow">Clear list</button></div>
-<div class="px-empty" v-if="!lines.length">Nothing here yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a> or paste a list of part numbers below.</div>
+<div class="px-empty" v-if="!lines.length">Nothing here yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a> or paste a list of part numbers below.<span v-if="flow === 'order' && quoteN" style="display:block;margin-top:8px">You have <b v-text="quoteN"></b> in your quote list. <a href="#/quote" style="color:#d32a37;font-weight:500">View quote list</a></span></div>
 <table class="px-ltab" v-if="lines.length">
 <thead><tr><th colspan="2">Part</th><th v-if="showPrice">Availability</th><th class="r" v-if="showPrice">Unit price</th><th class="c">Qty</th><th class="r" v-if="showPrice">Amount</th><th></th></tr></thead>
 <tbody><tr v-for="l in lines" :key="l.code">
 <td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" @error="imgFail(l.code)" alt=""></a></td>
-<td><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-text="l.code"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
+<td><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-html="pnw(l.code)"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
 <td v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
 <td class="r" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
 <td class="c"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
@@ -1397,18 +1405,18 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </table>
 <details class="px-paste" :open="!lines.length">
 <summary v-text="flow === 'order' ? 'Quick order: paste part numbers' : 'Paste a list of part numbers'"></summary>
-<p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: "0445120231, 6".</p>
+<p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: “0445120231, 6”.</p>
 <textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
 <button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste" v-text="flow === 'order' ? 'Add to cart' : 'Add to quote list'"></button>
 <div class="px-ok" v-if="pasteMsg" v-text="pasteMsg"></div>
 </details>
 </div>
-<div class="px-perk" v-if="flow === 'order' && showPrice && lines.length && REWARDS.on">
+<div class="px-perk" v-if="flow === 'order' && showPrice && lines.length && REWARDS.on && !REWARDS.demo">
 <div class="px-perk-t"><span v-if="REWARDS.demo"></span><span v-else-if="flowTotal < 1500" v-text="'Add ' + fmt(1500 - flowTotal) + ' for free ground freight (Technician perk)'"></span><span v-else>Free ground freight on this order (Technician perk)</span><b v-if="REWARDS.on" v-text="'This order earns ' + Math.round(flowTotal * REWARDS.rate).toLocaleString('en-US') + ' pts'"></b></div>
 <div class="px-perk-bar" v-if="!REWARDS.demo"><i :style="{ width: Math.min(100, flowTotal / 15) + '%' }"></i></div>
 </div>
 <div class="px-fbar" v-if="lines.length">
-<div class="px-fbar-t"><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span><b v-if="showPrice" v-text="'Subtotal ' + fmt(flowTotal)"></b></div>
+<div class="px-fbar-t"><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span><b v-if="showPrice" v-text="subLabel"></b></div>
 <div class="px-fbar-a"><button type="button" class="px-clr2" @click="clearFlow">Clear list</button><a class="px-btn px-ghost" href="#/all">Keep shopping</a><button type="button" class="px-btn px-red" @click="next">Continue</button></div>
 </div>
 </div>
@@ -1441,8 +1449,8 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 <aside class="px-panel" aria-label="Summary">
 <div class="px-ph"><h2>Summary</h2><span v-text="lines.length + ' parts, ' + units + ' units'"></span></div>
-<div class="px-lines"><div class="px-line" v-for="l in lines" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r" v-if="showPrice"><span class="px-line-t" v-text="fmt((price(l.code) || 0) * l.qty)"></span></div></div></div>
-<div class="px-sum" v-if="showPrice"><span>Subtotal</span><b v-text="fmt(flowTotal)"></b></div>
+<div class="px-lines"><div class="px-line" v-for="l in lines" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r" v-if="showPrice"><span class="px-line-t" v-text="price(l.code) == null ? 'On request' : fmt(price(l.code) * l.qty)"></span></div></div></div>
+<div class="px-sum" v-if="showPrice"><span>Subtotal</span><b v-text="subLabel.replace(/^Subtotal /, '')"></b></div>
 </aside>
 </div>
 
@@ -1476,7 +1484,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <p class="px-paper-fine" v-text="doc.kind === 'order' ? 'Orders are reviewed by Maxzz Diesel sales before release. Freight, taxes and ship date are confirmed in the approval e-mail. Prices in USD.' : 'Not an order. Our sales team confirms price, availability and lead time in writing.'"></p>
 </article>
 <div class="px-fbar px-fbar-s" v-if="step === 3">
-<div class="px-fbar-t"><span v-text="doc.lines.length + ' parts, ' + doc.units + ' units'"></span><b v-if="doc.priced" v-text="'Subtotal ' + fmt(doc.total)"></b></div>
+<div class="px-fbar-t"><span v-text="doc.lines.length + (doc.lines.length === 1 ? ' part, ' : ' parts, ') + doc.units + (doc.units === 1 ? ' unit' : ' units')"></span><b v-if="doc.priced" v-text="'Subtotal ' + fmt(doc.total)"></b></div>
 <div class="px-fbar-a"><a class="px-btn px-ghost" :href="flow === 'order' ? '#/checkout' : '#/quote/details'">Edit</a><button type="button" class="px-btn px-red" :disabled="busy" @click="confirmFlow" v-text="busy ? 'Sending...' : (flow === 'order' ? 'Place order' : 'Send quote request')"></button></div>
 </div>
 <div class="px-err" v-if="err && step === 3" v-text="err" style="margin-top:12px"></div>
@@ -1554,7 +1562,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <span class="px-rwk">Maxzz wholesale</span>
 <h1 v-text="route === 'login' || route === 'sent' ? 'Welcome back to Maxzz wholesale' : 'Wholesale diesel injection, with your prices and live stock'"></h1>
 <p>For repair shops, injection labs, distributors and fleets.</p>
-<ul class="px-ben"><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><b>Your price list</b><span>Your account prices on every part.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><b>Live stock</b><span>On the shelf in Coconut Creek, Florida.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><b>Same-day shipping</b><span>In stock and ordered by 3 pm Eastern.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>Quotes in one day</b><span>Price, stock and lead time by the next business day.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><b>Order and track online</b><span>From review to invoice, with e-mails at every step.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg><b>Max Rewards</b><span>Points on every order.</span></li></ul>
+<ul class="px-ben"><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><b>Your price list</b><span>Your account prices on every part.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><b>Live stock</b><span>On the shelf in Coconut Creek, Florida.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><b>Same-day shipping</b><span>In stock and ordered by 3 pm Eastern.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>Quotes in one day</b><span>Price, stock and lead time by the next business day.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><b>Order and track online</b><span>From review to invoice, with e-mails at every step.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg><b>Max Rewards</b><span v-text="REWARDS.demo ? 'Coming soon: points on every order.' : 'Points on every order.'"></span></li></ul>
 </div>
 <div class="px-stage-r">
 <!-- sign in -->
@@ -1736,13 +1744,13 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 <div class="px-fab">
 <a class="px-fab-b" href="#/cart" v-if="canOrder && cart.length && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="t">My cart</span><span class="n" v-text="cart.length"></span></a>
-<button type="button" class="px-fab-b red" v-if="quoteN && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0" @click="qOpen ? qClose() : (qOpen = true)" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
+<button type="button" class="px-fab-b red" v-if="quoteN && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0 && (route !== 'p' || mbarOn)" @click="qOpen ? qClose() : (qOpen = true)" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
 </div>
 </div>
 <!-- FOOTER -->
 <footer class="pxf">
 <div class="pxf-in">
-<div class="pxf-b"><img width="1015" height="224" src="/assets/logo-negative.svg" alt="Maxzz Diesel" style="height:34px; max-width: 100%; width: auto;"><p>Wholesale diesel injection parts. Warehouse in Coconut Creek, Florida. In-stock orders placed by 3 pm Eastern ship the same day.</p></div>
+<div class="pxf-b"><img width="1015" height="224" src="/assets/logo-negative.svg" alt="Maxzz Diesel" style="height:34px; max-width: 100%; width: auto;"><p>Wholesale diesel injection parts since 1992. Warehouse at 6601 Lyons Road, Ste H-6, Coconut Creek, Florida 33073. In-stock orders placed by 3 pm Eastern ship the same day.</p></div>
 <div class="pxf-c"><b>Sales team</b><a href="tel:+19545864158">+1 (954) 586-4158</a><a href="https://wa.me/19543716996" target="_blank" rel="noopener">WhatsApp US +1 (954) 371-6996</a><a href="https://wa.me/17867164857" target="_blank" rel="noopener">WhatsApp LATAM +1 (786) 716-4857</a><a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a></div>
 <div class="pxf-c"><b>Store</b><a href="#/all">Catalog</a><a href="#/quote">Quote list</a><a href="#/request" v-if="!me">Request wholesale access</a><a href="#/orders" v-if="me">My orders and quotes</a><a href="/policies">Shipping, returns and warranty</a></div>
 </div>

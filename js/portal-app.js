@@ -319,6 +319,8 @@
     get lines() { return this.flow === 'quote' ? this.quote.map(function (l, i) { return { code: l.id, qty: l.qty, i: i }; }) : this.cart.map(function (l, i) { return { code: l.code, qty: l.qty, i: i }; }); },
     get units() { return this.lines.reduce(function (a, l) { return a + l.qty; }, 0); },
     get showPrice() { return this.logged && !!this.book; },
+    get noPriceN() { var self = this; return this.lines.filter(function (l) { return self.price(l.code) == null; }).length; },
+    get subLabel() { var n = this.noPriceN; if (n && n === this.lines.length) return 'Prices confirmed by sales'; return 'Subtotal ' + this.fmt(this.flowTotal) + (n ? ' · ' + n + (n === 1 ? ' part' : ' parts') + ' priced by sales' : ''); },
     get flowTotal() { var self = this; return this.lines.reduce(function (a, l) { return a + (self.price(l.code) || 0) * l.qty; }, 0); },
     get doc() {
       var self = this, me = this.me, acc = me && me.account, now = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -345,7 +347,7 @@
       var d = this.qd;
       return { kind: 'quote', number: 'Number on confirmation', email: me ? me.email : d.email, billTo: who().filter(Boolean),
         shipTo: [me && acc ? acc.company : d.company, d.city, d.country].filter(Boolean), refs: ['Date ' + now, d.po ? 'PO ' + d.po : 'No PO', d.needBy ? 'Needed by ' + d.needBy : ''].filter(Boolean),
-        lines: ls, priced: this.showPrice, total: this.flowTotal, units: this.units, notes: d.notes };
+        lines: ls, priced: this.showPrice && this.noPriceN < this.lines.length, total: this.flowTotal, units: this.units, notes: d.notes };
     },
     setLn: function (i, n) { n = parseInt(n, 10) || 0; if (this.flow === 'quote') return this.qSet(i, n); if (n <= 0) this.remove(i); else { this.cart[i].qty = Math.min(9999, n); this.save(); } },
     moveToQuote: function (i) { var c = this.cart[i]; if (!c) return; this.addQuote(c.code); var l = this.quote.filter(function (x) { return x.id === c.code; })[0]; if (l) { l.qty = c.qty; write(QK, this.quote); } this.remove(i); },
