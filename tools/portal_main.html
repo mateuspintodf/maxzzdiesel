@@ -3,7 +3,7 @@
 .px *{box-sizing:border-box}
 .px :focus-visible{outline:2px solid #fc771d;outline-offset:2px}
 .px-hero{background:#1d2126;color:#fff;padding:150px 0 34px}
-.px-hero-in{max-width:1360px;margin:0 auto;padding:0 40px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.px-hero-in{max-width:1360px;margin:0 auto;padding:0 20px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}.px-hero-in>div{flex:1}
 .px-hero h1{margin:0;font-size:40px;line-height:1.05;letter-spacing:-.02em;font-weight:500}
 .px-hero h1 em{font-style:normal;color:#fc771d}
 .px-hero p{margin:10px 0 0;color:#b9b9be;font-size:16px;line-height:1.5;max-width:560px}
@@ -151,6 +151,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .sc:hover{box-shadow:0 12px 28px rgba(29,33,38,.08)}
 .sc-img{aspect-ratio:4/3;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .sc-img img{width:100%;height:100%;object-fit:contain;padding:12px;mix-blend-mode:multiply}
+.px img.bench{object-fit:cover;padding:0;mix-blend-mode:normal}
 .sc-ph{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#b9b9be}
 .sc-body{padding:14px 16px 0;display:flex;flex-direction:column;gap:5px;flex:1}
 .sc-cat{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#fc771d;font-weight:600}
@@ -185,6 +186,67 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 @media (max-width:760px){.px-ctiles{grid-template-columns:repeat(2,minmax(0,1fr))}.px-grid4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.px-makes{grid-template-columns:repeat(2,1fr)}.px-pd{grid-template-columns:1fr}.px-promo{grid-template-columns:1fr}
 .px-bar-in{flex-wrap:wrap}.px-bar form{order:3;flex:1 1 100%;max-width:none}.px-ib .t{display:none}
 .sc-act{flex-direction:column;align-items:stretch}.sc-act .px-btn{width:100%}.px-cl{grid-template-columns:56px minmax(0,1fr) auto}.px-cl .px-line-t{display:none}.px-kv{grid-template-columns:1fr}}
+
+.px-hs{position:relative;margin-top:24px;width:min(880px,100%)}
+.px-hs form{display:flex;gap:8px;background:#fff;border-radius:50px;padding:6px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.px-hs input{flex:1;min-width:0;height:52px;border:0;border-radius:50px;padding:0 20px;font:inherit;font-size:17px;color:#1d2126;background:transparent}
+.px-hs input:focus{outline:none}
+.px-hs .px-btn{height:52px;padding:0 26px}
+.px-sug{position:absolute;left:0;right:0;top:calc(100% + 8px);background:#fff;color:#1d2126;border-radius:20px;box-shadow:0 18px 40px rgba(0,0,0,.22);padding:8px;z-index:30;max-height:460px;overflow:auto}
+.px-sug a{display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 10px;border-radius:14px;color:#1d2126}
+.px-sug a:hover,.px-sug a.on{background:#f4f5f6}
+.px-sug .th{width:48px;height:48px;border-radius:10px;background:#f4f5f6;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.px-sug .th img{width:100%;height:100%;object-fit:cover}
+.px-sug .nm{font-size:14px;font-weight:500;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.px-sug .pn{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#8a9097}
+.px-sug .ct{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#fc771d;font-weight:600}
+.px-sug .all{display:block;text-align:center;padding:10px;font-size:14px;color:#d32a37;font-weight:500}
+.px-sug .none{padding:14px;font-size:14px;color:#5f656c}
+.px-bar-in{justify-content:space-between}
+.px-bar .px-catnav{padding:0;margin:0;flex:1;min-width:0}
+.px-shop{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start}
+.px-side{background:#fff;border-radius:25px;padding:20px;position:sticky;top:124px;max-height:calc(100vh - 144px);overflow:auto;scrollbar-width:thin}
+.px-side h3{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#8a9097;font-weight:600}
+.px-fg{padding:16px 0;border-top:1px solid #eef0f2;display:flex;flex-direction:column;gap:2px}.px-fg:first-of-type{border-top:0;padding-top:4px}
+.px-fg h3{margin-bottom:8px}
+.px-fo{display:flex;align-items:center;gap:10px;padding:6px 8px;margin:0 -8px;border-radius:10px;font-size:14px;cursor:pointer;color:#1d2126}
+.px-fo:hover{background:#f4f5f6}
+.px-fo input{position:absolute;opacity:0;pointer-events:none}
+.px-fo .bx{flex:none;width:18px;height:18px;border-radius:5px;border:1.5px solid #c4c9ce;display:flex;align-items:center;justify-content:center;transition:background-color .15s,border-color .15s}
+.px-fo.on .bx{background:#1d2126;border-color:#1d2126}
+.px-fo.on .bx:after{content:'';width:9px;height:5px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.px-fo input:focus-visible + .bx{outline:2px solid #fc771d;outline-offset:2px}
+.px-fo .l{flex:1}.px-fo .n{color:#8a9097;font-size:12px}
+.px-fo.dis{opacity:.45}
+.px-fmore{border:0;background:none;padding:6px 0 0;font:inherit;font-size:13px;color:#d32a37;cursor:pointer;text-align:left}
+.px-side-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.px-side-h b{font-size:17px;font-weight:500}
+.px-side-h button{border:0;background:none;font:inherit;font-size:13px;color:#d32a37;cursor:pointer;padding:0}
+.px-chips{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 16px}
+.px-chip{border:1px solid #dfe2e6;background:#fff;border-radius:50px;height:32px;padding:0 10px 0 14px;font:inherit;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:#1d2126}
+.px-chip:hover{border-color:#1d2126}
+.px-ftog{display:none}
+.px-side-close{display:none}
+.px-side-h{gap:14px}.px-side-h b{margin-right:auto}
+.px-bn2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.px .px-bn{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;min-height:300px;border-radius:25px;overflow:hidden;padding:28px;color:#fff;background:#1d2126 var(--bg) center/cover no-repeat;isolation:isolate}
+.px-bn:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(18,20,23,.05) 0%,rgba(18,20,23,.55) 40%,rgba(18,20,23,.94) 100%)}
+.px-bn img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.px-bn:hover img{transform:scale(1.04)}
+.px-bn .k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#fc771d;font-weight:600}
+.px-bn b{font-size:26px;font-weight:500;line-height:1.15;letter-spacing:-.01em;max-width:440px}
+.px-bn p{margin:0;color:#d4d6d9;font-size:15px;line-height:1.5;max-width:460px}
+.px-bn .go{margin-top:8px;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;border-radius:50px;background:#fff;color:#1d2126;font-size:14px;font-weight:500;align-self:flex-start}
+.px-bn.full{min-height:340px;justify-content:center}
+.px-bn.full:before{background:linear-gradient(90deg,rgba(18,20,23,.92) 0%,rgba(18,20,23,.7) 45%,rgba(18,20,23,0) 80%)}
+.px-bn.full b{font-size:34px}
+@media (max-width:1280px){.px-shop .px-grid4{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:960px){.px-shop{grid-template-columns:1fr}
+.px-side{display:none;position:fixed;inset:0;top:0;max-height:none;border-radius:0;z-index:200;padding:20px 20px 90px}
+.px-side.open{display:block}
+.px-ftog{display:inline-flex}
+.px .px-side .px-side-close{display:inline-flex}}
+@media (max-width:760px){.px-bn2{grid-template-columns:1fr}.px-bn{min-height:240px}.px-bn.full b{font-size:26px}.px-hs input{font-size:16px;height:46px}.px-hs .px-btn{height:46px;padding:0 18px}}
 </style>
 
 <div class="px" @vue:mounted="init">
@@ -196,13 +258,29 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <h1 v-else v-text="me.account ? me.account.company : 'Maxzz parts store'"></h1>
 <p v-if="!logged">Diesel injection parts in stock in Florida. Browse the full catalog; approved wholesale customers sign in for their prices, live stock and online ordering.</p>
 <p v-else>Prices from <span v-text="me.account ? 'your account price list' : 'the default price list (admin preview)'"></span>. Stock updated <span v-text="ago(book && book.stockAt)"></span>.</p>
+<div class="px-hs">
+<form @submit.prevent="search" role="search" autocomplete="off"><input type="search" v-model="qInput" @input="sugInput" @focus="sugOn = true" @blur="sugBlur" @keydown="sugKey" placeholder="Part number, cross reference, engine or description" aria-label="Search parts" aria-autocomplete="list" aria-controls="px-sug"><button class="px-btn px-red">Search</button></form>
+<div class="px-sug" id="px-sug" role="listbox" v-if="sugOn && qInput.trim().length >= 2">
+<a v-for="(r, i) in sug" :key="r[0]" :class="i === sugI ? 'on' : ''" role="option" :href="'#/p/' + encodeURIComponent(r[0])" @mousedown.prevent="nav('p', r[0])">
+<span class="th"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt=""></span>
+<span style="min-width:0"><span class="nm" style="display:block" v-text="info(r).title + (info(r).app ? ' · ' + info(r).app : '')"></span><span class="pn" v-text="r[0]"></span></span>
+<span class="ct" v-text="r[3]"></span>
+</a>
+<div class="none" v-if="!sug.length">No parts match. Press Enter to search everything, or ask us for a quote.</div>
+<a class="all" v-if="sug.length" href="#" @mousedown.prevent="sugOn = false; nav('s', qInput.trim())">See all results for "<span v-text="qInput.trim()"></span>"</a>
+</div>
+</div>
 </div>
 </div>
 </section>
 
 <div class="px-bar">
 <div class="px-bar-in">
-<form @submit.prevent="search" role="search"><input class="px-in" type="search" v-model="qInput" placeholder="Search part number, cross reference, engine or description" aria-label="Search parts"><button class="px-btn px-dark" style="height:46px">Search</button></form>
+<nav class="px-catnav" aria-label="Categories">
+<a href="#/" :class="route === 'home' ? 'on' : ''">Home</a>
+<a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" :class="route === 'c' && arg === c.k ? 'on' : ''" v-text="c.label"></a>
+<a href="#/all" :class="route === 'all' ? 'on' : ''">All parts</a>
+</nav>
 <div class="px-acts">
 <a class="px-ib" href="/quote" v-if="!canOrder"><span class="t">Quote list</span><span class="px-n" v-if="quoteN" v-text="quoteN"></span><svg v-if="!quoteN" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h6"/></svg></a>
 <a class="px-ib" :class="route === 'cart' || route === 'checkout' ? 'on' : ''" href="#/cart" v-if="canOrder"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="t">Cart</span><span class="px-n" v-if="cart.length" v-text="cart.length"></span></a>
@@ -212,44 +290,40 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <a class="px-btn px-red px-sm" href="#/login" v-if="!me">Sign in</a>
 </div>
 </div>
-<nav class="px-catnav" aria-label="Categories">
-<a href="#/" :class="route === 'home' ? 'on' : ''">Home</a>
-<a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" :class="route === 'c' && arg === c.k ? 'on' : ''" v-text="c.label"></a>
-</nav>
 </div>
 
 <div class="px-wrap">
+<div :class="side ? 'px-shop' : ''">
+<aside class="px-side" :class="showF ? 'open' : ''" v-if="side" aria-label="Filters">
+<div class="px-side-h"><b>Filters</b><button type="button" v-if="fCount" @click="clearF">Clear all</button><button type="button" class="px-side-close" @click="showF = false">Done</button></div>
+<div class="px-fg">
+<h3>Category</h3>
+<label class="px-fo" v-for="o in fCats" :class="[on('cat', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('cat', o.k)" @change="toggle('cat', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+</div>
+<div class="px-fg">
+<h3>Application</h3>
+<label class="px-fo" v-for="o in fEngs" :class="[on('eng', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('eng', o.k)" @change="toggle('eng', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+</div>
+<div class="px-fg">
+<h3>Brand</h3>
+<label class="px-fo" v-for="o in fBrands.items" :class="[on('brand', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('brand', o.k)" @change="toggle('brand', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+<button type="button" class="px-fmore" v-if="fBrands.more" @click="allBrands = !allBrands" v-text="allBrands ? 'Show fewer' : 'Show all brands'"></button>
+</div>
+<div class="px-fg">
+<h3>Availability</h3>
+<label class="px-fo" :class="on('photo') ? 'on' : ''"><input type="checkbox" :checked="on('photo')" @change="toggle('photo')"><span class="bx"></span><span class="l">With photo</span></label>
+<label class="px-fo" v-if="logged" :class="on('stock') ? 'on' : ''"><input type="checkbox" :checked="on('stock')" @change="toggle('stock')"><span class="bx"></span><span class="l">In stock</span></label>
+</div>
+</aside>
+<div class="px-main">
 
 <!-- HOME -->
 <div v-if="route === 'home'">
 <div class="px-sec">
-<div class="px-sh"><h2>Shop by category</h2></div>
-<div class="px-ctiles">
-<a class="px-ctile" v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)">
-<span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="9" y="2" width="6" height="14" rx="2"/><path d="M12 16v6M10 6h4"/></svg></span>
-<span><b v-text="c.label"></b><br><small v-text="c.n + ' parts'"></small></span>
-</a>
-</div>
-</div>
-
-<div class="px-sec">
-<div class="px-sh"><h2>Shop by vehicle</h2><a href="/quote">Advanced finder</a></div>
-<div class="px-makes">
-<button type="button" class="px-make" v-for="m in fit.tree" :class="vMake === m.key ? 'on' : ''" @click="pickMake(m.key)">
-<span class="lg"><img v-for="f in logos(m.key)" :src="'/assets/makes/' + f" alt=""><svg v-if="!logos(m.key).length" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 16V8h11v8M13 11h4l3 3v2h-7"/><circle cx="6" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
-<b v-text="m.label"></b>
-</button>
-</div>
-<div class="px-engs" v-if="curMake">
-<div class="px-eng" v-for="e in curMake.engines"><b v-text="e.label"></b><button type="button" class="px-gen" v-for="g in e.gens" @click="nav('g', g.key)" v-text="(g.years || g.label)"></button></div>
-</div>
-</div>
-
-<div class="px-sec">
 <div class="px-sh"><h2>Featured parts</h2><a href="#/c/Injector">All injectors</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in featured" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <div class="sc-body">
 <span class="sc-cat" v-text="r[3]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
@@ -265,7 +339,52 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])">Add to quote</button>
 </div>
 </article>
+</div>
+</div>
 
+<div class="px-sec">
+<div class="px-bn2">
+<a class="px-bn" href="/fluids"><img src="/assets/mg/fluids-final.jpg" alt="" loading="lazy"><span class="k">Fluids</span><b>Calibration fluid and degreasers</b><p>ISO 4113 calibration fluid for test benches, plus degreasers for parts washing and ultrasonic cleaning.</p><span class="go">Shop fluids <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+<a class="px-bn" href="/contamination-kits"><img src="/assets/mg/contam-kit.jpg" alt="" loading="lazy"><span class="k">Contamination kits</span><b>The whole fuel system repair, in one box</b><p>Everything needed after a pump failure, under one part number.</p><span class="go">See the kits <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+</div>
+</div>
+
+<div class="px-sec" v-if="moreRow.length">
+<div class="px-sh"><h2>Pumps, nozzles and tools</h2><a href="#/c/Pump">All pumps</a></div>
+<div class="px-grid4">
+<article class="sc" v-for="r in moreRow" :key="r[0]">
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<div class="sc-body">
+<span class="sc-cat" v-text="r[3]"></span>
+<a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
+<span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
+<span class="sc-pn" v-text="r[0]"></span>
+</div>
+<div class="sc-buy" v-if="logged">
+<div class="sc-pr"><b v-text="fmt(price(r[0]))"></b><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-dark px-sm" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))">Add</button></div>
+</div>
+<div class="sc-buy" v-else>
+<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])">Add to quote</button>
+</div>
+</article>
+</div>
+</div>
+
+<div class="px-sec">
+<a class="px-bn full" href="/aftertreatment"><img src="/assets/mg/nox-final.jpg" alt="" loading="lazy" style="object-position:right center"><span class="k">Aftertreatment</span><b>Test NOx sensors and SCR systems<br>on the bench or on the vehicle</b><p>Maxzz test platforms for Euro 5 and Euro 6 aftertreatment systems.</p><span class="go">Explore aftertreatment <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+</div>
+<div class="px-sec">
+<div class="px-sh"><h2>Shop by vehicle</h2><a href="/quote">Advanced finder</a></div>
+<div class="px-makes">
+<button type="button" class="px-make" v-for="m in fit.tree" :class="vMake === m.key ? 'on' : ''" @click="pickMake(m.key)">
+<span class="lg"><img v-for="f in logos(m.key)" :src="'/assets/makes/' + f" alt=""><svg v-if="!logos(m.key).length" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 16V8h11v8M13 11h4l3 3v2h-7"/><circle cx="6" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg></span>
+<b v-text="m.label"></b>
+</button>
+</div>
+<div class="px-engs" v-if="curMake">
+<div class="px-eng" v-for="e in curMake.engines"><b v-text="e.label"></b><button type="button" class="px-gen" v-for="g in e.gens" @click="nav('g', g.key)" v-text="(g.years || g.label)"></button></div>
 </div>
 </div>
 
@@ -280,11 +399,12 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <!-- LIST: category, search, vehicle -->
 <div v-if="route === 'c' || route === 's' || route === 'g' || route === 'all'">
 <div class="px-crumb"><a href="#/">Store</a> / <span v-text="listTitle"></span></div>
-<div class="px-list-h"><h1 v-text="listTitle"></h1><span v-text="results.length + ' parts'"></span></div>
+<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span v-text="results.length + ' parts'"></span><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
+<div class="px-chips" v-if="chips.length"><button type="button" class="px-chip" v-for="c in chips" @click="toggle(c.g, c.k)"><span v-text="c.label"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 <div class="px-empty" v-if="cat.length && !results.length">Nothing found. Try the part number without dots, or <a href="/quote" style="color:#d32a37;font-weight:500">ask us for a quote</a>.</div>
 <div class="px-grid4">
 <article class="sc" v-for="r in shown" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <div class="sc-body">
 <span class="sc-cat" v-text="r[3]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
@@ -311,7 +431,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div v-if="product">
 <div class="px-crumb"><a href="#/">Store</a> / <a :href="'#/c/' + encodeURIComponent(product[3])" v-text="product[3]"></a> / <span v-text="product[0]"></span></div>
 <div class="px-pd">
-<div class="px-pd-img"><img v-if="img(product[0])" :src="img(product[0])" :alt="info(product).title"><span v-else class="sc-ph" v-text="product[3]"></span></div>
+<div class="px-pd-img"><img v-if="img(product[0])" :class="bench(product[0]) ? 'bench' : ''" :src="img(product[0])" :alt="info(product).title"><span v-else class="sc-ph" v-text="product[3]"></span></div>
 <div class="px-pd-info">
 <span class="sc-cat" v-text="product[3]"></span>
 <h1 v-text="info(product).title"></h1>
@@ -336,7 +456,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sh"><h2>Often bought together</h2></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in related" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <div class="sc-body">
 <span class="sc-cat" v-text="r[3]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
@@ -546,7 +666,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 
-
+</div>
+</div>
 </div>
 
 <div class="px-toast" v-if="toast" role="status"><span v-text="toast"></span> <a v-if="!canOrder && /quote/.test(toast)" href="/quote" style="color:#fc771d;margin-left:8px;font-weight:500">Open list</a></div>
