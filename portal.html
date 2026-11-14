@@ -1045,6 +1045,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
   .sc-pn{font-size:12px;overflow-wrap:break-word}
   .px-make .lg img{max-height:28px;max-width:80%}
 }
+.px .px-sum{gap:12px;align-items:baseline}.px .px-sum b.sm{font-size:15px;font-weight:500;text-align:right}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1512,7 +1513,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <div class="px-pickup" v-if="flow === 'order' && pickup">Pick up at 6601 Lyons Road, Ste H-6, Coconut Creek, FL 33073. We e-mail you when the order is ready.</div>
 <label class="px-f" v-if="flow === 'order' && !pickup">Ship to (name or company)<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg><input class="px-in" v-model="co.name" autocomplete="organization"></span></label>
 <label class="px-f" v-if="flow === 'order' && !pickup">Street address *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><input class="px-in" v-model="co.street" autocomplete="street-address" required placeholder="Number and street"></span></label>
-<div class="px-g3" v-if="flow === 'order' && !pickup"><label class="px-f">City *<input class="px-in" v-model="co.city" autocomplete="address-level2" required></label><label class="px-f">State<input class="px-in" v-model="co.state" autocomplete="address-level1"></label><label class="px-f">ZIP<input class="px-in" v-model="co.zip" autocomplete="postal-code"></label></div>
+<div class="px-g3" v-if="flow === 'order' && !pickup"><label class="px-f">City *<input class="px-in" v-model="co.city" autocomplete="address-level2" required></label><label class="px-f"><span v-text="/United States|Puerto Rico|Canada/.test(co.country || '') && !pickup ? 'State *' : 'State'"></span><input class="px-in" v-model="co.state" autocomplete="address-level1"></label><label class="px-f"><span v-text="/United States|Puerto Rico|Canada/.test(co.country || '') && !pickup ? 'ZIP *' : 'ZIP'"></span><input class="px-in" v-model="co.zip" autocomplete="postal-code"></label></div>
 <label class="px-f" v-if="flow === 'order' && !pickup">Country<select class="px-in" v-model="co.country"><option v-for="c in countries" v-text="c"></option></select></label>
 <label class="px-f" v-if="flow === 'order' && !pickup && co.country !== 'United States'">Freight forwarder and consignee tax ID<input class="px-in" v-model="co.fwd" maxlength="160" placeholder="Forwarder name, Miami address, consignee CNPJ / RUT / NIT"></label>
 <div class="px-g2" v-if="flow === 'quote'"><label class="px-f">PO or reference<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg><input class="px-in" v-model="qd.po" maxlength="60" placeholder="Optional"></span></label><label class="px-f">Needed by<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><input class="px-in" type="date" v-model="qd.needBy"></span></label></div>
@@ -1526,7 +1527,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <aside class="px-panel" aria-label="Summary">
 <div class="px-ph"><h2>Summary</h2><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span></div>
 <div class="px-lines"><div class="px-line" v-for="l in lines" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r" v-if="showPrice"><span class="px-line-t" v-text="price(l.code) == null ? 'On request' : fmt(price(l.code) * l.qty)"></span></div></div></div>
-<div class="px-sum" v-if="showPrice"><span>Subtotal</span><b v-text="subLabel.replace(/^Subtotal /, '')"></b></div>
+<div class="px-sum" v-if="showPrice"><span v-text="noPriceN === lines.length ? 'Prices' : 'Subtotal'"></span><b :class="noPriceN ? 'sm' : ''" v-text="noPriceN === lines.length ? 'Confirmed by sales' : subLabel.replace(/^Subtotal /, '')"></b></div>
 </aside>
 </div>
 
@@ -1544,7 +1545,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
 <div class="px-paper-meta">
 <div><small>From</small><b v-text="doc.billTo[0]"></b><span v-for="x in doc.billTo.slice(1)" v-text="x"></span></div>
-<div><small v-text="doc.kind === 'order' ? 'Ship to' : 'Deliver to'"></small><span v-for="x in doc.shipTo" v-text="x"></span></div>
+<div><small v-text="doc.kind === 'order' ? 'Ship to' : 'Deliver to'"></small><span v-for="x in doc.shipTo" v-text="x"></span><span v-if="!doc.shipTo.length">Confirmed by sales</span></div>
 <div><small>Details</small><span v-for="x in doc.refs" v-text="x"></span></div>
 <div><small>To</small><b>Maxzz Diesel</b><span>6601 Lyons Road, Ste H-6</span><span>Coconut Creek, FL 33073</span><span>sales@maxzzdiesel.com</span></div>
 </div>
@@ -1753,7 +1754,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
 <div class="px-paper-meta">
 <div><small>From</small><b v-text="doc.billTo[0]"></b><span v-for="x in doc.billTo.slice(1)" v-text="x"></span></div>
-<div><small v-text="doc.kind === 'order' ? 'Ship to' : 'Deliver to'"></small><span v-for="x in doc.shipTo" v-text="x"></span></div>
+<div><small v-text="doc.kind === 'order' ? 'Ship to' : 'Deliver to'"></small><span v-for="x in doc.shipTo" v-text="x"></span><span v-if="!doc.shipTo.length">Confirmed by sales</span></div>
 <div><small>Details</small><span v-for="x in doc.refs" v-text="x"></span></div>
 <div><small>To</small><b>Maxzz Diesel</b><span>6601 Lyons Road, Ste H-6</span><span>Coconut Creek, FL 33073</span><span>sales@maxzzdiesel.com</span></div>
 </div>
