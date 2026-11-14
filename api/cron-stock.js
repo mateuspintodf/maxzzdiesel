@@ -10,7 +10,8 @@ function stamp(ms) { return new Date(ms).toISOString().slice(0, 19); }
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const secret = process.env.CRON_SECRET;
-  if (secret && req.headers.authorization !== `Bearer ${secret}`) return res.status(401).json({ error: 'unauthorized' });
+  // with CRON_SECRET set, only Vercel Cron (which sends it) may run this; without it, only requests from Vercel Cron's agent
+  if (secret ? req.headers.authorization !== `Bearer ${secret}` : !/vercel-cron/i.test(req.headers['user-agent'] || '')) return res.status(401).json({ error: 'unauthorized' });
   if (!configured()) return res.status(503).json({ error: 'not configured' });
   if (running) return res.status(429).json({ error: 'already running' });
   running = true;

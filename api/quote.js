@@ -3,6 +3,7 @@
 const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
 const { guard } = require('../lib/guard');
+const { createSalesQuote } = require('../lib/unleashed-quote');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -24,6 +25,9 @@ module.exports = async (req, res) => {
   if (!customer.name || !customer.company || !EMAIL.test(customer.email) || customer.phone.replace(/\D/g, '').length < 7 || !lines.length) {
     return res.status(400).json({ error: 'missing fields' });
   }
+  // store quotes also go to Unleashed as a Draft sales quote (when PORTAL_QUOTES_LIVE=1); never blocks the request
+  const ulq = /B2B store/.test(source) ? await createSalesQuote(req, { number, customer, lines, notes: customer.notes }) : { skipped: true };
+  if (ulq.ok) extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid));
   if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
   try {
     const contactId = await upsertContact(Object.assign({}, customer, { source: 'Website quote request' }));

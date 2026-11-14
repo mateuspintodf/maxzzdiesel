@@ -62,11 +62,13 @@
     "kit": "<path d=\"M3.5 8L12 4l8.5 4v8.5L12 20.5 3.5 16.5z\"/><path d=\"M3.5 8L12 12l8.5-4\"/><path d=\"M12 12v8.5\"/><path d=\"M7.75 6l8.5 4\"/>",
     "all": "<rect x=\"4\" y=\"4\" width=\"6.5\" height=\"6.5\" rx=\"1.5\"/><rect x=\"13.5\" y=\"4\" width=\"6.5\" height=\"6.5\" rx=\"1.5\"/><rect x=\"4\" y=\"13.5\" width=\"6.5\" height=\"6.5\" rx=\"1.5\"/><rect x=\"13.5\" y=\"13.5\" width=\"6.5\" height=\"6.5\" rx=\"1.5\"/>"
     };
+  var MEMO = {};
+  var ROUTES = ['home', 'c', 's', 'g', 'all', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
-    err: '', busy: false, toast: '', toastKind: '', email: '', sentPending: false,
+    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, tier: 'Silver', next: 'Gold', nextAt: 25000, rate: 1 }, sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
@@ -97,7 +99,13 @@
       return 'All parts';
     },
     // base set for the route; the sidebar filters stack on top of it
+    get memoKey() { return [this.route, this.arg, this.cat.length, JSON.stringify(this.f), this.sortBy, this.book ? this.book.at : 0, Object.keys(this.imgs).length].join('|'); },
     get base() {
+      var k = this.route + '|' + this.arg + '|' + this.cat.length + '|' + (this.fit.tree.length);
+      if (MEMO.baseK === k) return MEMO.base;
+      MEMO.baseK = k; MEMO.base = this.baseCalc(); return MEMO.base;
+    },
+    baseCalc: function () {
       var r = this.route, a = this.arg, self = this, list = this.cat;
       if (r === 'g') return list.filter(function (x) { var f = self.fit.items[x[0]]; return f && f[0].indexOf(a) >= 0; });
       if (r === 's') return matchSearch(list, a);
@@ -113,6 +121,10 @@
       return true;
     },
     get results() {
+      var k = this.memoKey; if (MEMO.resK === k) return MEMO.res;
+      MEMO.resK = k; MEMO.res = this.resultsCalc(); return MEMO.res;
+    },
+    resultsCalc: function () {
       var self = this, out = this.base.filter(function (x) { return self.pass(x); }), s = this.sortBy;
       if (!s) return out;
       out = out.slice();
@@ -161,6 +173,10 @@
     get greet() { var h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; },
     get openOrders() { return this.orders.filter(function (o) { return ['Completed', 'Deleted'].indexOf(o.status) < 0; }).length; },
     facet: function (g) {
+      var k = this.memoKey + '|' + g; if (MEMO['f' + g + 'K'] === k) return MEMO['f' + g];
+      MEMO['f' + g + 'K'] = k; MEMO['f' + g] = this.facetCalc(g); return MEMO['f' + g];
+    },
+    facetCalc: function (g) {
       var self = this, n = {};
       this.base.forEach(function (x) {
         if (!self.pass(x, g)) return;
@@ -206,6 +222,8 @@
     },
     get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
+    get needLogin() { var r = this.route; if (r === 'admin') return !(this.me && this.me.admin); return ['cart', 'checkout', 'orders', 'o'].indexOf(r) >= 0 && !this.canOrder && this.meLoaded; },
+    get noPriceLines() { var self = this; return this.cart.filter(function (l) { return self.price(l.code) == null; }).map(function (l) { return l.code; }); },
     get pickup() { return /will call/i.test(this.co.method); },
     get blurb() {
       var p = this.product; if (!p) return '';
@@ -281,26 +299,30 @@
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
+        self.meLoaded = true;
         if (me._status === 200) {
           self.me = me;
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
-          if (me.account) api('orders').then(function (o) { if (o.orders) self.orders = o.orders; });
+          if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
         }
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { self.qOpen = false; self.showF = false; } });
       this.readHash();
     },
     readHash: function () {
-      var h = decodeURIComponent((location.hash || '').replace(/^#\/?/, '')), i = h.indexOf('/');
+      var raw = (location.hash || '').replace(/^#\/?/, ''), h; try { h = decodeURIComponent(raw); } catch (e) { h = raw; }
+      var i = h.indexOf('/');
       var r = i < 0 ? h : h.slice(0, i), a = i < 0 ? '' : h.slice(i + 1);
+      if (r && ROUTES.indexOf(r) < 0) { location.replace('#/'); return; }
       this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false;
       if (r === 's') this.qInput = a;
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], photo: false, stock: false };
       if (r === 's' || r === 'g') this.f = { cat: [], brand: [], eng: [], photo: false, stock: false };
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
-      if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || this.cur;
+      if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
@@ -348,8 +370,8 @@
     fmt: function (n) { return n == null ? (this.logged ? 'Price on request' : 'Ask us') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
-    label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped', Deleted: 'Cancelled' }[s] || s; },
-    stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 2 }[o.status] || 0; },
+    label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
+    stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 3 }[o.status] || 0; },
     bench: function (code) { return !!BENCH[code]; },
     title: function (r) {
       if (!r || !r[0]) return '';
@@ -396,30 +418,35 @@
       return hit ? hit[0] : null;
     },
     addPaste: function () {
-      var self = this, ok = 0, miss = [];
+      var self = this, ok = 0, miss = [], noPrice = [];
       this.paste.split(/\n+/).forEach(function (line) {
         line = line.trim(); if (!line) return;
-        var m = line.match(/^(.*?)[\s,;\t]+(\d{1,4})\s*$/), code = m ? m[1] : line, n = m ? parseInt(m[2], 10) : 1, hit = self.find(code);
+        var m = line.match(/^(.*?)[\s,;\t]+(\d{1,5})\s*$/), code = m ? m[1] : line, n = m ? Math.min(9999, parseInt(m[2], 10)) : 1, hit = self.find(code);
+        if (hit && self.price(hit) == null) { noPrice.push(hit); return; }
         if (hit) { var l = self.cart.filter(function (x) { return x.code === hit; })[0]; if (l) l.qty += n; else self.cart.push({ code: hit, qty: n }); ok++; } else miss.push(code);
       });
       this.save();
-      this.pasteMsg = ok + ' added' + (miss.length ? '. Not found: ' + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') : '');
-      if (!miss.length) this.paste = '';
+      this.pasteMsg = ok + ' added' + (miss.length ? '. Not found: ' + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') : '') + (noPrice.length ? '. No online price, add to a quote: ' + noPrice.slice(0, 6).join(', ') : '');
+      if (!miss.length && !noPrice.length) this.paste = '';
     },
     reorder: function (o) {
       var self = this;
-      o.lines.forEach(function (x) { var l = self.cart.filter(function (c) { return c.code === x.code; })[0]; if (l) l.qty += x.qty; else self.cart.push({ code: x.code, qty: x.qty }); });
-      this.save(); this.nav('cart'); this.flash(o.lines.length + ' parts added to your cart');
+      var skipped = 0;
+      o.lines.forEach(function (x) { if (self.price(x.code) == null) { skipped++; return; } var l = self.cart.filter(function (c) { return c.code === x.code; })[0]; if (l) l.qty += x.qty; else self.cart.push({ code: x.code, qty: x.qty }); });
+      this.save(); this.nav('cart'); this.flash((o.lines.length - skipped) + ' parts added to your cart' + (skipped ? '. ' + skipped + ' without online price were left out' : ''));
     },
     placeOrder: function () {
-      var self = this; this.busy = true; this.err = '';
-      var body = { po: this.co.po, notes: this.co.notes, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }),
+      var self = this; if (this.busy) return; this.busy = true; this.err = '';
+      if (this.noPriceLines.length) { this.busy = false; this.err = 'Remove the parts without online price first (' + this.noPriceLines.join(', ') + '). You can send them as a quote request.'; return; }
+      if (!this.idem) this.idem = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      var body = { idem: this.idem, po: this.co.po, notes: this.co.notes, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }),
         ship: { name: this.co.name, street: this.pickup ? '' : this.co.street, city: this.pickup ? '' : this.co.city, state: this.co.state, zip: this.co.zip, country: this.co.country, method: this.co.method, fwd: this.co.fwd } };
       write('mx-portal-ship', { method: this.co.method, name: this.co.name, street: this.co.street, city: this.co.city, state: this.co.state, zip: this.co.zip, country: this.co.country, fwd: this.co.fwd });
       api('order', { body: body }).then(function (r) {
         self.busy = false;
         if (r._status !== 200) { self.err = r.error || 'We could not place the order. Please try again.'; return; }
         track('generate_lead', { form: 'portal_order', quote_id: r.order.number, items: r.order.lines.length });
+        self.idem = '';
         self.orders.unshift(r.order); self.cur = r.order; self.justPlaced = r.order.id; self.co.po = ''; self.co.notes = '';
         self.nav('o', r.order.id); self.flash('Order received. We will e-mail you when it is approved.');
         setTimeout(function () { self.cart.splice(0); self.save(); }, 0);

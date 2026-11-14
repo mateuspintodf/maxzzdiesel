@@ -612,8 +612,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <section class="px-hero" :class="route === 'home' ? '' : 'compact'">
 <div class="px-hero-in">
 <div>
-<h1 v-if="!logged">Maxzz <em>parts store</em></h1>
-<h1 v-else><span v-text="greet + ', '"></span><em v-text="firstName"></em></h1>
+<h1 v-if="!logged && route === 'home'">Maxzz <em>parts store</em></h1>
+<h1 v-if="logged && route === 'home'"><span v-text="greet + ', '"></span><em v-text="firstName"></em></h1>
 <p v-if="!logged">Diesel injection parts in stock in Florida. Browse the full catalog; approved wholesale customers sign in for their prices, live stock and online ordering.</p>
 <div class="px-acc-line" v-else>
 <span class="co" v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span>
@@ -623,9 +623,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 <div class="px-pend" v-if="me && !logged && me.account && me.account.status === 'pending'">Your wholesale access is under review. We will e-mail you as soon as it is approved; meanwhile you can browse and build a quote list.</div>
 <div class="px-hs">
-<form @submit.prevent="search" role="search" autocomplete="off"><input type="search" v-model="qInput" @input="sugInput" @focus="sugOn = true" @blur="sugBlur" @keydown="sugKey" placeholder="Part number, cross reference, engine or description" aria-label="Search parts" aria-autocomplete="list" aria-controls="px-sug"><button class="px-btn px-red">Search</button></form>
+<form @submit.prevent="search" role="search" autocomplete="off"><input type="search" role="combobox" :aria-expanded="sugOn && sug.length ? 'true' : 'false'" :aria-activedescendant="sugI >= 0 ? 'px-sug-' + sugI : ''" v-model="qInput" @input="sugInput" @focus="sugOn = true" @blur="sugBlur" @keydown="sugKey" placeholder="Part number, cross reference, engine or description" aria-label="Search parts" aria-autocomplete="list" aria-controls="px-sug"><button class="px-btn px-red">Search</button></form>
 <div class="px-sug" id="px-sug" role="listbox" v-if="sugOn && qInput.trim().length >= 2">
-<a v-for="(r, i) in sug" :key="r[0]" :class="i === sugI ? 'on' : ''" role="option" :href="'#/p/' + encodeURIComponent(r[0])" @mousedown.prevent="nav('p', r[0])">
+<a v-for="(r, i) in sug" :key="r[0]" :id="'px-sug-' + i" :class="i === sugI ? 'on' : ''" role="option" :href="'#/p/' + encodeURIComponent(r[0])" @mousedown.prevent="nav('p', r[0])">
 <span class="th"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt=""></span>
 <span style="min-width:0"><span class="nm" style="display:block" v-text="title(r)"></span><span class="pn" v-text="r[0]"></span></span>
 <span class="ct" v-text="r[3]"></span>
@@ -977,7 +977,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- REWARDS -->
-<div v-if="route === 'rewards'">
+<div class="px-card px-auth" v-if="route === 'rewards' && !logged"><h2>Max Rewards</h2><p class="px-muted">Points for approved wholesale customers. Sign in to see your balance.</p><a class="px-btn px-red" href="#/login" style="margin-top:14px">Sign in</a></div>
+<div v-if="route === 'rewards' && logged">
 <div class="px-crumb"><a href="#/">Store</a> / Max Rewards</div>
 <div class="px-rwh">
 <div><span class="px-rwk">Max Rewards<span class="px-demo" v-if="REWARDS.demo">Preview, sample numbers</span></span><h1><span v-text="REWARDS.points.toLocaleString('en-US')"></span> <small>points</small></h1><p v-text="(me && me.account ? me.account.company : 'Your company') + ' · ' + REWARDS.tier + ' member'"></p></div>
@@ -993,7 +994,12 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- CART -->
-<div class="px-cartg" v-if="route === 'cart'">
+<div class="px-card px-auth" v-if="needLogin">
+<h2 v-text="route === 'admin' ? 'Admins only' : 'Sign in to continue'"></h2>
+<p class="px-muted" v-text="route === 'admin' ? 'This area is for the Maxzz sales team.' : 'Cart, checkout and orders are for approved wholesale customers. You can still build a quote list without an account.'"></p>
+<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><a class="px-btn px-red" href="#/login" v-if="!me">Sign in</a><a class="px-btn px-ghost" href="#/request" v-if="!me">Request access</a><a class="px-btn px-ghost" href="#/quote">Open my quote list</a></div>
+</div>
+<div class="px-cartg" v-if="route === 'cart' && canOrder">
 <div class="px-card">
 <h2>Cart</h2>
 <div class="px-test" v-if="me && !me.ordersLive" style="margin-top:10px">Test mode: orders are saved here and e-mailed to our team, not yet sent to the warehouse system.</div>
@@ -1004,6 +1010,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-qty"><button type="button" aria-label="Less" @click="setQty(i, l.qty - 1)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setQty(i, l.qty + 1)">+</button></div>
 <b class="px-line-t" v-text="fmt(lineTotal(l))"></b>
 </div>
+<div class="px-err" v-if="noPriceLines.length" style="margin-top:12px">These parts have no online price and cannot be ordered here: <span v-text="noPriceLines.join(', ')"></span>. Remove them and send them as a quote request.</div>
 <details class="px-paste">
 <summary>Paste a list of part numbers</summary>
 <p class="px-muted" style="margin:8px 0 0">One per line. Add the quantity after a space, comma or tab: "0445120231, 6".</p>
@@ -1080,7 +1087,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- checkout -->
-<div class="px-grid" v-if="route === 'checkout'">
+<div class="px-grid" v-if="route === 'checkout' && canOrder">
 <div class="px-card">
 <div class="px-flow"><span class="on">Cart</span><span class="on">Shipping</span><span>Confirmation</span></div>
 <h2>Ship to and reference</h2>
@@ -1120,7 +1127,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- orders -->
-<div class="px-card" v-if="route === 'orders'">
+<div class="px-card" v-if="route === 'orders' && canOrder">
 <h2>Orders</h2>
 <p class="px-muted">Every order placed in the portal, with its current status.</p>
 <div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/" style="color:#d32a37;font-weight:500">Browse the store</a>.</div>
@@ -1133,7 +1140,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 </div>
 
-<div class="px-card" v-if="route === 'o' && cur">
+<div class="px-card" v-if="route === 'o' && canOrder && !cur"><p class="px-muted" v-text="ordersLoaded ? 'We could not find this order.' : 'Loading your order...'"></p><a class="px-btn px-ghost px-sm" href="#/orders" style="margin-top:12px">All orders</a></div>
+<div class="px-card" v-if="route === 'o' && cur && canOrder">
 <div class="px-done" v-if="justPlaced === cur.id"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Order received. Thank you.</b><p>We e-mailed a copy to <span v-text="me && me.email"></span>. Our sales team reviews it, confirms stock and freight, and you get an e-mail at every step.</p></div></div>
 <button type="button" class="px-btn px-ghost px-sm" @click="nav('orders')">&larr; All orders</button>
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-top:16px">
@@ -1156,7 +1164,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- admin -->
-<div class="px-card" v-if="route === 'admin'">
+<div class="px-card" v-if="route === 'admin' && me && me.admin">
 <h2>Access requests and accounts</h2>
 <p class="px-muted">Link each request to its Unleashed customer. The customer sees the prices of that customer's sell price tier.</p>
 <div class="px-note" v-if="sync" v-text="'Unleashed sync: ' + sync.products + ' products with prices (' + ago(sync.pricesAt) + '), stock ' + ago(sync.stockAt) + '. Price tiers: ' + (sync.tiers || []).join(', ') + '. Orders to Unleashed: ' + (sync.ordersLive ? 'on' : 'off (test mode)') + '. E-mail: ' + (sync.mail ? 'on' : 'not configured') + '.'"></div>
@@ -1173,7 +1181,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-search" style="margin-top:14px"><input class="px-in" v-model="a._q" placeholder="Unleashed customer code or name" @keydown.enter.prevent="lookup(a)"><button type="button" class="px-btn px-dark" @click="lookup(a)" v-text="a._busy ? 'Searching...' : 'Find'"></button></div>
 <div class="px-cust" v-if="a._res">
 <button type="button" v-for="c in a._res" :class="a._pick === c ? 'on' : ''" @click="a._pick = c" v-text="c.code + ' · ' + c.name + (c.tier ? ' · ' + c.tier : ' · default prices') + (c.stopCredit ? ' · credit stopped' : '')"></button>
-<span class="px-muted" v-if="!a._res.length">No Unleashed customer found. Create the customer in Unleashed first, then search again.</span>
+<span class="px-muted" v-if="a._res && !a._res.length">No Unleashed customer found. Create the customer in Unleashed first, then search again.</span>
 </div>
 <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
 <button type="button" class="px-btn px-red px-sm" :disabled="!a._pick" @click="approve(a)">Approve and send access</button>
@@ -1221,7 +1229,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=16"></script>
+<script src="/js/portal-app.js?v=17"></script>
 <script src="/js/motion.js?v=3" defer></script>
 </body>
 </html>

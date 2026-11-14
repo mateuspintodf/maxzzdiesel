@@ -20,13 +20,14 @@ const hits = new Map();
 const admins = () => String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
 const isAdmin = (email) => !!email && admins().includes(email);
 const liveOrders = () => process.env.PORTAL_ORDERS_LIVE === '1';
-const base = (req) => 'https://' + (req.headers['x-forwarded-host'] || req.headers.host);
+const base = (req) => process.env.SITE_URL || (process.env.VERCEL_ENV === 'production' ? 'https://maxzzdiesel.com' : 'https://' + (req.headers['x-forwarded-host'] || req.headers.host));
 
 function limited(req, key, max, windowMs) {
   const k = key + '|' + String(req.headers['x-forwarded-for'] || '').split(',')[0].trim(), now = Date.now();
   const list = (hits.get(k) || []).filter((x) => now - x < windowMs);
   if (list.length >= max) return true;
-  list.push(now); hits.set(k, list); if (hits.size > 5000) hits.clear();
+  list.push(now); hits.set(k, list);
+  if (hits.size > 5000) for (const [kk, v] of hits) if (!v.length || now - v[v.length - 1] > windowMs) hits.delete(kk);
   return false;
 }
 function originOk(req) { const o = req.headers.origin || ''; return !o || ALLOWED.some((re) => re.test(o)); }
@@ -80,7 +81,7 @@ A.images = async (req, res) => {
 };
 
 // configuration check without revealing any value
-A.health = async (req, res) => res.json({ mail: !!process.env.RESEND_API_KEY, admins: admins().length, unleashed: configured(), ordersLive: liveOrders(), env: process.env.VERCEL_ENV || '' });
+A.health = async (req, res) => res.json({ ok: true });
 
 // ---- sign in -------------------------------------------------------------
 A.login = async (req, res) => {
@@ -107,18 +108,20 @@ A.login = async (req, res) => {
   return res.json({ ok: true, pending: !!(u && u.status === 'pending') });
 };
 
+const usedLinks = new Map();
 A.verify = async (req, res) => {
-  const p = verify(String(req.query.t || ''));
+  const t = String(req.query.t || ''), p = verify(t);
+  if (p && usedLinks.has(t)) { res.statusCode = 302; res.setHeader('Location', '/portal?e=link'); return res.end(); }
+  if (p) { usedLinks.set(t, Date.now()); if (usedLinks.size > 2000) usedLinks.clear(); }
   if (!p || p.k !== 'login') { res.statusCode = 302; res.setHeader('Location', '/portal?e=link'); return res.end(); }
   const db = await loadDb();
   const u = db.users[p.e];
   if (!isAdmin(p.e) && !(u && u.status === 'approved')) { res.statusCode = 302; res.setHeader('Location', '/portal?e=access'); return res.end(); }
-  if (u) { u.lastLogin = Date.now(); await writeJson(DB, db).catch(() => {}); }
   setSession(res, p.e);
   res.statusCode = 302; res.setHeader('Location', '/portal'); return res.end();
 };
 
-A.logout = async (req, res) => { clearSession(res); return res.json({ ok: true }); };
+A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); clearSession(res); return res.json({ ok: true }); };
 
 A.me = async (req, res) => {
   const w = await whoami(req);
@@ -152,7 +155,7 @@ A.request = async (req, res) => {
     await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).', [{ id: cid, type: 204 }], 4);
   } catch (e) { console.error('hubspot', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
-    `<p>Hi ${esc(f.name.split(' ')[0])}, thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`);
+    `<p>Hi ${esc(f.name.split(' ')[0].slice(0, 30))}, thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`);
   if (admins().length) await send(admins(), 'New B2B portal request: ' + f.company, 'New access request',
     `<p><b>${esc(f.company)}</b> · ${esc(f.name)} · ${esc(f.email)} · ${esc(f.phone)}</p><p>${esc([f.type, f.city, f.state, f.country].filter(Boolean).join(' · '))}</p>${f.customerNumber ? `<p>Says Unleashed customer: ${esc(f.customerNumber)}</p>` : ''}`,
     { url: base(req) + '/portal#admin', label: 'Review in the portal' });
@@ -177,16 +180,17 @@ A.orders = async (req, res) => {
   // refresh status of recent live orders from Unleashed
   if (configured()) {
     let changed = false;
-    for (const o of list.slice(0, 10)) {
-      if (!o.guid || ['Completed', 'Deleted'].includes(o.status) || Date.now() - (o.checked || 0) < 5 * 60 * 1000) continue;
+    const todo = list.slice(0, 10).filter((o) => o.guid && !['Completed', 'Deleted'].includes(o.status) && Date.now() - (o.checked || 0) >= 5 * 60 * 1000);
+    const budget = new Promise((r) => setTimeout(r, 8000));
+    await Promise.race([budget, Promise.all(todo.map(async (o) => {
       try {
-        const so = await ul('SalesOrders/' + o.guid, '', { timeoutMs: 15000 });
+        const so = await ul('SalesOrders/' + o.guid, '', { timeoutMs: 8000 });
         const st = so && (so.OrderStatus || (so.Items && so.Items[0] && so.Items[0].OrderStatus));
         if (st && st !== o.status) { o.history = (o.history || []).concat([{ s: st, at: Date.now() }]); o.status = st; }
         if (so && so.OrderNumber) o.unleashedNumber = so.OrderNumber;
         o.checked = Date.now(); changed = true;
       } catch (e) { console.error('order status', e.message); }
-    }
+    }))]);
     if (changed) await writeJson('portal/orders/' + w.account.id + '.json', list).catch(() => {});
   }
   res.setHeader('Cache-Control', 'private, no-store');
@@ -204,27 +208,31 @@ A.order = async (req, res) => {
   const names = {}; const cat = await cached('catalog/live.json', 30 * 60 * 1000);
   (cat || []).forEach((r) => { names[r[0]] = r[1]; });
   const lines = [];
+  const key = 'portal/orders/' + w.account.id + '.json';
+  const idem = clean(b.idem, 60);
+  if (idem) { const prev = ((await readJson(key)) || []).find((x) => x.idem === idem); if (prev) return res.json({ ok: true, order: prev }); }
   for (const l of (Array.isArray(b.lines) ? b.lines : []).slice(0, 200)) {
+    if (!l || typeof l !== 'object') continue;
     const code = clean(l.code, 60), qty = Math.min(9999, Math.max(1, parseInt(l.qty, 10) || 0));
     const p = book && book.items[code];
-    if (!p || p[0] == null) return res.status(400).json({ error: 'unknown part ' + code });
+    if (!p || p[0] == null) return res.status(400).json({ error: 'Part ' + code + ' has no online price. Remove it from the cart and add it to a quote request instead.', code });
     lines.push({ code, name: names[code] || code, qty, price: p[0], total: money(p[0] * qty) });
   }
   if (!lines.length) return res.status(400).json({ error: 'empty' });
   const s = b.ship || {};
   const ship = { name: clean(s.name, 120) || w.account.company, street: clean(s.street, 160), city: clean(s.city, 80), state: clean(s.state, 60), zip: clean(s.zip, 20), country: clean(s.country, 60) || 'United States', method: clean(s.method, 40), fwd: clean(s.fwd, 160) };
   const pickup = /will call/i.test(ship.method);
-  if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'address' });
+  if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
   const subtotal = money(lines.reduce((a, l) => a + l.total, 0));
   const t = new Date();
   const o = { id: id(), number: 'WEB-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase(),
-    created: Date.now(), by: w.email, po: clean(b.po, 40), notes: clean(b.notes, 800), ship, lines, subtotal, total: subtotal, status: 'Received', live: false, history: [{ s: 'Received', at: Date.now() }] };
+    idem, created: Date.now(), by: w.email, po: clean(b.po, 40), notes: clean(b.notes, 800), ship, lines, subtotal, total: subtotal, status: 'Received', live: false, history: [{ s: 'Received', at: Date.now() }] };
 
   if (liveOrders() && configured() && w.account.customerCode) {
     const guid = crypto.randomUUID();
     const body = {
       Guid: guid, OrderStatus: 'Parked', OrderDate: t.toISOString(), Customer: { CustomerCode: w.account.customerCode },
-      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
+      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
       SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, LineTotal: l.total, LineTax: 0 })),
@@ -238,14 +246,15 @@ A.order = async (req, res) => {
       return res.status(502).json({ error: 'We could not place the order right now. Your cart is saved; please try again or call us.' });
     }
   }
-  const key = 'portal/orders/' + w.account.id + '.json';
-  const list = (await readJson(key)) || [];
-  list.unshift(o); await writeJson(key, list.slice(0, 500));
+  // once Unleashed has the order, the customer must get a success answer even if saving or e-mail fails
+  try { const list = (await readJson(key)) || []; list.unshift(o); await writeJson(key, list.slice(0, 500)); } catch (e) { console.error('order save', e.message); }
+  try {
   await send(w.email, 'Order received ' + o.number, 'We received your order',
     `<p>Thanks. Our sales team reviews every order and you will get an e-mail when it is approved, with confirmed quantities and ship date.</p>${orderMail(o)}`,
     { url: base(req) + '/portal#orders', label: 'Track your order' });
   if (admins().length) await send(admins(), 'Portal order ' + o.number + ' · ' + w.account.company, 'New portal order',
-    `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${orderMail(o)}`);
+    `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${w.account.stopCredit ? '<p><b>Credit hold:</b> this customer is on stop credit in Unleashed. Check payment before releasing.</p>' : ''}${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${orderMail(o)}`);
+  } catch (e) { console.error('order mail', e.message); }
   return res.json({ ok: true, order: o });
 };
 
@@ -282,9 +291,22 @@ A['admin-approve'] = async (req, res) => {
   if (!acc) return res.status(404).json({ error: 'account' });
   const c = b.customer || {};
   if (!c.code || !c.guid) return res.status(400).json({ error: 'pick the Unleashed customer first' });
-  Object.assign(acc, { status: 'approved', customerCode: clean(c.code, 40), customerGuid: clean(c.guid, 60), customerName: clean(c.name, 160), tier: clean(c.tier, 60), approvedBy: w.email, approvedAt: Date.now() });
+  // read the customer from Unleashed itself; the browser only says which one
+  let cust = null;
+  if (configured()) {
+    const guid = clean(c.guid, 60);
+    if (!/^[0-9a-f-]{36}$/i.test(guid)) return res.status(400).json({ error: 'customer' });
+    const data = await ul('Customers/' + guid, '', { timeoutMs: 30000 });
+    cust = data && (data.Items ? data.Items[0] : data);
+    if (!cust || !cust.CustomerCode) return res.status(404).json({ error: 'Unleashed customer not found' });
+  }
+  const code = cust ? cust.CustomerCode : clean(c.code, 40);
+  const other = Object.values(w.db.accounts).find((a) => a.id !== acc.id && a.status === 'approved' && a.customerCode === code);
+  if (other && !b.force) return res.status(409).json({ error: 'Customer ' + code + ' is already linked to ' + other.company + '. Check before linking it again.' });
+  Object.assign(acc, { status: 'approved', customerCode: code, customerGuid: cust ? cust.Guid : clean(c.guid, 60), customerName: cust ? cust.CustomerName : clean(c.name, 160), tier: cust ? (cust.SellPriceTier || '') : clean(c.tier, 60),
+    terms: cust ? (cust.PaymentTerm || '') : '', stopCredit: cust ? !!cust.StopCredit : false, approvedBy: w.email, approvedAt: Date.now() });
   const people = Object.values(w.db.users).filter((u) => u.account === acc.id);
-  people.forEach((u) => { if (u.status === 'pending') u.status = 'approved'; });
+  people.forEach((u) => { if (u.status === 'pending' || u.status === 'rejected') u.status = 'approved'; });
   await writeJson(DB, w.db);
   for (const u of people) await send(u.email, 'Your Maxzz B2B portal access is ready', 'Welcome to the Maxzz B2B portal',
     `<p>Hi ${esc(String(u.name || '').split(' ')[0])}, your account for <b>${esc(acc.company)}</b> is approved. You can now see your prices and stock, place orders and track them.</p>`,
