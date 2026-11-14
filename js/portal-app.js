@@ -93,6 +93,9 @@
     };
   var MEMO = {};
   var RWI = {"app": "<path d=\"M14.7 4.3a4 4 0 0 0-4.6 5.4L4 15.8 6.2 18l6.1-6.1a4 4 0 0 0 5.4-4.6l-2.4 2.4-2.1-.6-.6-2.1z\"/>", "tech": "<path d=\"M10 3h4v3h-4z\"/><rect x=\"8.5\" y=\"6\" width=\"7\" height=\"9\" rx=\"1.5\"/><path d=\"M11 15h2l-.4 4.5h-1.2z\"/>", "spec": "<circle cx=\"12\" cy=\"13\" r=\"8\"/><path d=\"M12 13l4-4M12 5V3M7 13H5M19 13h-2\"/>", "master": "<path d=\"M4 8l4 3 4-6 4 6 4-3-2 10H6z\"/><path d=\"M6 21h12\"/>", "off": "<path d=\"M20 12l-8 8-8-8V4h8z\"/><circle cx=\"8.5\" cy=\"8.5\" r=\"1.5\"/>", "ship": "<path d=\"M3 7h11v9H3zM14 10h4l3 3v3h-7\"/><circle cx=\"7\" cy=\"17.5\" r=\"1.5\"/><circle cx=\"17\" cy=\"17.5\" r=\"1.5\"/>", "fast": "<path d=\"M13 2L4 14h7l-1 8 9-12h-7z\"/>", "fluid": "<path d=\"M7 7h8l3.5 3.5V20H7z\"/><path d=\"M9.5 7V4.5h4V7\"/><path d=\"M12.75 11.5c1.3 1.6 2 2.6 2 3.5a2 2 0 0 1-4 0c0-.9.7-1.9 2-3.5z\"/>", "tool": "<path d=\"M14.7 4.3a4 4 0 0 0-4.6 5.4L4 15.8 6.2 18l6.1-6.1a4 4 0 0 0 5.4-4.6l-2.4 2.4-2.1-.6-.6-2.1z\"/>", "shirt": "<path d=\"M8 3l-5 3 2 4 3-1v12h8V9l3 1 2-4-5-3a4 4 0 0 1-8 0z\"/>", "school": "<path d=\"M2 9l10-5 10 5-10 5z\"/><path d=\"M6 11v5c3 2 9 2 12 0v-5\"/>", "bench": "<path d=\"M3 10h18M5 10v10M19 10v10M8 10V6h8v4\"/>", "people": "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6\"/><circle cx=\"17\" cy=\"9\" r=\"2.5\"/><path d=\"M15.5 14.2c3 .2 5.5 2.6 5.5 5.8\"/>", "mic": "<rect x=\"9\" y=\"3\" width=\"6\" height=\"11\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0M12 18v3\"/>"};
+  // empty document/tracker: returned instead of null so bindings of a view being torn down never read null
+  var DOC0 = { none: true, kind: '', number: '', email: '', billTo: [], shipTo: [], refs: [], lines: [], priced: false, total: 0, units: 0, notes: '' };
+  var TRK0 = { none: true, label: '', steps: [], at: 0 };
   var ROUTES = ['home', 'c', 's', 'g', 'all', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
   var T0 = Date.now();
 
@@ -337,7 +340,7 @@
         var q = this.qSent;
         return { kind: 'quote', number: q.id, email: q.email, billTo: q.from, shipTo: q.ship, refs: q.refs, lines: q.lines, priced: false, units: q.lines.reduce(function (a, l) { return a + l.qty; }, 0), notes: q.notes };
       }
-      if (this.step !== 3) return null;
+      if (this.step !== 3) return DOC0;
       var ls = this.lines.map(function (l) { return { code: l.code, name: self.name(l.code), qty: l.qty, price: self.price(l.code) }; });
       if (this.flow === 'order') {
         var c = this.co;
@@ -369,7 +372,7 @@
     get adminBar() { return !!(this.me && this.me.admin && this.pendingCount); },
     // what the customer follows after sending: the number and the stages it goes through
     get track() {
-      var d = this.doc; if (!d) return null;
+      var d = this.doc; if (!d || d.none) return TRK0;
       if (d.kind === 'order') {
         var st = this.cur ? this.stepOf(this.cur) + 1 : 1;
         return { label: 'Your order number', steps: ['Order placed', 'In review', 'Approved', 'Shipped', 'Invoiced'], at: st };
@@ -719,7 +722,7 @@
       if (!this.quote.length || this.busy) return;
       var me = this.me, acc = me && me.account, d = Object.assign({}, this.qd);
       if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = (acc && acc.phone) || '0000000'; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
-      var snap = this.doc;
+      var snap = this.doc; if (snap && snap.none) snap = null;
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: self.title(self.map[l.id]) || l.name, qty: l.qty }; });
       this.busy = true; this.err = '';

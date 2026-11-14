@@ -1468,8 +1468,8 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 
 <!-- step 3 and 4: the paper -->
-<div v-if="step >= 3 && doc">
-<div class="px-conf" v-if="step === 4 && track">
+<div v-if="step >= 3 && !doc.none">
+<div class="px-conf" v-if="step === 4 && !track.none">
 <div class="px-conf-h"><span class="px-ck"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
 <div><b v-text="(firstName ? 'Thanks, ' + firstName + '. ' : 'Thank you. ') + (doc.kind === 'order' ? 'Your order is with our sales team.' : 'Your quote request is with our sales team.')"></b><p v-text="'A copy went to ' + doc.email + '. ' + (doc.kind === 'order' ? 'We confirm stock, freight and ship date and e-mail you at every step.' : 'We reply with price, stock and lead time within one business day.')"></p></div></div>
 <div class="px-conf-n"><span v-text="track.label"></span><b v-text="doc.number"></b><button type="button" @click="copy(doc.number)" aria-label="Copy number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button><small>Use it to follow this request in My orders and quotes, or when you call us.</small></div>
@@ -1477,7 +1477,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 
 <div class="px-review-h" v-if="step === 3"><div><h1 v-text="firstName ? 'Almost there, ' + firstName : 'Review and confirm'"></h1><p class="px-muted" v-text="'This is exactly what our sales team will receive. Check it before you ' + (flow === 'order' ? 'place the order.' : 'send.')"></p></div></div>
-<article class="px-paper" v-if="doc">
+<article class="px-paper" v-if="!doc.none">
 <header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
 <div class="px-paper-meta">
 <div><small>From</small><b v-text="doc.billTo[0]"></b><span v-for="x in doc.billTo.slice(1)" v-text="x"></span></div>
@@ -1678,14 +1678,14 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div v-if="route === 'o' && cur && canOrder">
 
 <div class="px-oh"><a class="px-btn px-ghost px-sm" href="#/orders">&larr; All orders</a><span class="px-st" :class="cur.status" v-text="label(cur.status)"></span></div>
-<div class="px-conf" v-if="true && track">
+<div class="px-conf" v-if="!track.none">
 <div class="px-conf-h" v-if="justPlaced === cur.id"><span class="px-ck"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
 <div><b v-text="(firstName ? 'Thanks, ' + firstName + '. ' : 'Thank you. ') + (doc.kind === 'order' ? 'Your order is with our sales team.' : 'Your quote request is with our sales team.')"></b><p v-text="'A copy went to ' + doc.email + '. ' + (doc.kind === 'order' ? 'We confirm stock, freight and ship date and e-mail you at every step.' : 'We reply with price, stock and lead time within one business day.')"></p></div></div>
 <div class="px-conf-n"><span v-text="track.label"></span><b v-text="doc.number"></b><button type="button" @click="copy(doc.number)" aria-label="Copy number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button><small>Use it to follow this request in My orders and quotes, or when you call us.</small></div>
 <ol class="px-tl"><li v-for="(t, i) in track.steps" :class="[i < track.at ? 'on' : '', i === track.at - 1 ? 'cur' : '']" :style="'--i:' + i"><i></i><span v-text="t"></span></li></ol>
 </div>
 
-<article class="px-paper" v-if="doc">
+<article class="px-paper" v-if="!doc.none">
 <header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
 <div class="px-paper-meta">
 <div><small>From</small><b v-text="doc.billTo[0]"></b><span v-for="x in doc.billTo.slice(1)" v-text="x"></span></div>
