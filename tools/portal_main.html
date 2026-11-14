@@ -248,6 +248,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-hero.compact .px-hbg i{background-position:right 55%}
 @media (prefers-reduced-motion:reduce){.px-hbg i{animation:none}.px-hbg i:first-child{opacity:1}}
 @media (max-width:760px){.px-hbg i{background-position:70% 30%}}
+.px-stage-ph{margin-top:28px;height:220px;border-radius:10px;background:url(/assets/mg/cart-injectors.jpg) 55% 62% / cover no-repeat;box-shadow:0 18px 40px rgba(0,0,0,.35);animation:pxUp .6s .35s cubic-bezier(.22,1,.36,1) both}
+@media (max-width:1000px){.px-stage-ph{display:none}}
 </style>
 <style>
 .px-bar{background:#fff;border-bottom:1px solid #e3e6e9}
@@ -569,6 +571,30 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 @media (max-width:560px){.px-lvls,.px-earn{grid-template-columns:1fr}.px-rwhero{padding:24px}.px-rwhero h1{font-size:42px}.px-path{padding:28px 26px 64px}.px-path-n b{font-size:12px}}
 .px-oh,.px-pdp ~ .x{max-width:900px}
 .px-oh{max-width:900px;margin:0 auto 10px}
+
+.px-stage{position:relative;isolation:isolate;border-radius:12px;overflow:hidden;background:#16191d;color:#fff}
+.px-stage-bg{position:absolute;inset:0;z-index:-1;background:url(/assets/mg/hero-2.jpg) 62% 60% / cover no-repeat #121417}
+.px-stage-bg:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(18,20,23,.9) 0%,rgba(18,20,23,.55) 38%,rgba(18,20,23,.1) 58%,rgba(18,20,23,.55) 100%),linear-gradient(180deg,rgba(18,20,23,.8) 0%,rgba(18,20,23,.35) 45%,rgba(18,20,23,0) 70%)}
+.px-stage-in{display:grid;grid-template-columns:1fr 460px;gap:48px;padding:48px;align-items:start}
+.px-stage-l h1{margin:10px 0 0;font-size:40px;font-weight:500;letter-spacing:-.02em;line-height:1.1}
+.px-stage-l>p{margin:12px 0 0;color:#c9cdd2;font-size:16px;max-width:520px}
+.px-ben{list-style:none;margin:28px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:18px 24px}
+.px-ben li{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:#b9b9be;line-height:1.5;animation:pxUp .5s cubic-bezier(.22,1,.36,1) both}
+.px-ben li:nth-child(2){animation-delay:.06s}.px-ben li:nth-child(3){animation-delay:.12s}.px-ben li:nth-child(4){animation-delay:.18s}.px-ben li:nth-child(5){animation-delay:.24s}.px-ben li:nth-child(6){animation-delay:.3s}
+.px-ben .ic{flex:none;width:38px;height:38px;border-radius:10px;background:rgba(252,119,29,.14);color:#fc771d;display:flex;align-items:center;justify-content:center}
+.px-ben b{display:block;color:#fff;font-weight:500;font-size:15px;margin-bottom:2px}
+.px-scard{background:#fff;color:#1d2126;border-radius:12px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.35);animation:pxUp .55s .1s cubic-bezier(.22,1,.36,1) both}
+.px-scard h2{margin:0 0 6px;font-size:24px;font-weight:500}
+.px-sw{margin:16px 0 0;padding-top:14px;border-top:1px solid #eef0f2;font-size:14px;color:#5f656c}.px .px-sw a{color:#d32a37;font-weight:500}
+.px-rsteps{display:flex;gap:18px;margin-bottom:18px;font-size:14px;color:#8a9097}
+.px-rsteps span{display:flex;align-items:center;gap:8px}.px-rsteps b{width:24px;height:24px;border-radius:50%;border:1px solid #c9ced3;display:flex;align-items:center;justify-content:center;font-size:12px}
+.px-rsteps span.on{color:#1d2126;font-weight:500}.px-rsteps span.on b{background:#1d2126;border-color:#1d2126;color:#fff}
+.px-g2c{display:grid;grid-template-columns:1fr 1.3fr;gap:12px}.px-g3c{display:grid;grid-template-columns:110px 1fr 90px;gap:12px}
+.px-in.bad{border-color:#d32a37;background:#fff8f8}
+.px-fe{color:#b42318;font-size:12px}
+.px-ok2{font-size:13px;color:#15803d;margin-top:-4px}
+@media (max-width:1000px){.px-stage-in{grid-template-columns:1fr;padding:28px}.px-ben{grid-template-columns:1fr}}
+@media (max-width:560px){.px-stage-in{padding:20px 14px}.px-stage-l h1{font-size:30px}.px-g2c,.px-g3c{grid-template-columns:1fr}.px-scard{padding:20px}}
 </style>
 
 <div class="px" @vue:mounted="init">
@@ -1085,16 +1111,54 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><a class="px-btn px-red" href="#/login" v-if="!me">Sign in</a><a class="px-btn px-ghost" href="#/request" v-if="!me">Request access</a><a class="px-btn px-ghost" href="#/quote">Open my quote list</a></div>
 </div>
 <!-- sign in -->
-<div class="px-card px-auth" v-if="route === 'login'">
+<section class="px-stage" v-if="route === 'request' || route === 'login'">
+<div class="px-stage-bg" aria-hidden="true"></div>
+<div class="px-stage-in">
+<div class="px-stage-l">
+<span class="px-rwk">Maxzz wholesale</span>
+<h1 v-text="route === 'login' ? 'Welcome back' : 'Open your wholesale account'"></h1>
+<p>For repair shops, injection labs, distributors and fleets in the US and Latin America.</p>
+<ul class="px-ben"><li><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg></span><span><b>Your own price list</b>The prices of your account, on every part, as soon as you sign in.</span></li><li><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg></span><span><b>Live stock from Florida</b>See what is on the shelf in Coconut Creek before you order.</span></li><li><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg></span><span><b>Fast quotes, fast shipping</b>Quotes answered within one business day. In-stock parts ship the same day when ordered before our daily cutoff.</span></li><li><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><span><b>Order online, track every step</b>Cart, quick order by part number, reorder and status e-mails from review to invoice.</span></li><li><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg></span><span><b>Max Rewards</b>Points on every order, redeemable for savings, tools and training. Launching with the first accounts.</span></li><li><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M17 11l2 2 4-4"/></svg></span><span><b>A team that knows injection</b>Diesel is all we do, since 1992. Real people on the phone and WhatsApp.</span></li></ul>
+</div>
+<div class="px-stage-r">
+<!-- sign in -->
+<div class="px-scard" v-if="route === 'login'">
 <h2>Sign in</h2>
 <p class="px-muted">Enter the e-mail on your account. We send you a sign-in link, no password needed.</p>
-<form @submit.prevent="sendLink" style="margin-top:18px">
-<label class="px-f">E-mail<input class="px-in" type="email" v-model="email" autocomplete="email" required></label>
-<button class="px-btn px-red" :disabled="busy" v-text="busy ? 'Sending...' : 'E-mail me a sign-in link'"></button>
+<form @submit.prevent="sendLink" style="margin-top:18px;display:flex;flex-direction:column;gap:12px" novalidate>
+<label class="px-f">Work e-mail<input class="px-in" type="email" v-model="email" autocomplete="email" required :class="email && !okEmail(email) ? 'bad' : ''"></label>
+<button class="px-btn px-red" :disabled="busy || !okEmail(email)" v-text="busy ? 'Sending...' : 'E-mail me a sign-in link'"></button>
 </form>
 <div class="px-err" v-if="err" v-text="err"></div>
-<div class="px-note">New to the portal? <a href="#/request" style="color:#d32a37;font-weight:500">Request access</a>. Our team connects your account to your price list, usually within one business day.</div>
+<p class="px-sw">New here? <a href="#/request">Request wholesale access</a></p>
 </div>
+<!-- request access, two steps -->
+<div class="px-scard" v-if="route === 'request'">
+<div class="px-rsteps"><span :class="rqStep >= 1 ? 'on' : ''"><b>1</b>About you</span><span :class="rqStep >= 2 ? 'on' : ''"><b>2</b>Your business</span></div>
+<form v-if="rqStep === 1" @submit.prevent="rqNext" style="display:flex;flex-direction:column;gap:12px" novalidate>
+<label class="px-f">Your name *<input class="px-in" v-model="rq.name" autocomplete="name" :class="rqTried && !rq.name.trim() ? 'bad' : ''"><span class="px-fe" v-if="rqTried && !rq.name.trim()">Tell us your name.</span></label>
+<label class="px-f">Work e-mail *<input class="px-in" type="email" v-model="rq.email" autocomplete="email" :class="(rqTried || rq.email) && !okEmail(rq.email) ? 'bad' : ''"><span class="px-fe" v-if="(rqTried || rq.email.length > 5) && !okEmail(rq.email)">Use an e-mail like name@company.com.</span></label>
+<div class="px-g2c"><label class="px-f">Country<select class="px-in" v-model="rq.country" @change="rq.phone = maskPhone(rq.phone)"><option v-for="c in countries" v-text="c"></option></select></label>
+<label class="px-f">Phone or WhatsApp *<input class="px-in" type="tel" v-model="rq.phone" @input="rq.phone = maskPhone(rq.phone)" autocomplete="tel" :placeholder="usPhone ? '(954) 555-0123' : '+55 11 91234-5678'" :class="rqTried && !okPhone(rq.phone) ? 'bad' : ''"><span class="px-fe" v-if="rqTried && !okPhone(rq.phone)">Add a phone with area code.</span></label></div>
+<button class="px-btn px-red">Continue</button>
+</form>
+<form v-if="rqStep === 2" @submit.prevent="sendRequest" style="display:flex;flex-direction:column;gap:12px" novalidate>
+<label class="px-f">Company *<input class="px-in" v-model="rq.company" autocomplete="organization" :class="rqTried2 && !rq.company.trim() ? 'bad' : ''"><span class="px-fe" v-if="rqTried2 && !rq.company.trim()">Company name, please.</span></label>
+<label class="px-f">Type of business<select class="px-in" v-model="rq.type"><option value="">Choose</option><option>Diesel repair shop</option><option>Injection lab / rebuilder</option><option>Distributor / parts store</option><option>Fleet</option><option>Other</option></select></label>
+<div class="px-g3c"><label class="px-f"><span v-text="zipLabel"></span><input class="px-in" v-model="rq.zip" @input="rqZip" autocomplete="postal-code" inputmode="numeric" maxlength="10"></label><label class="px-f">City<input class="px-in" v-model="rq.city" autocomplete="address-level2"></label><label class="px-f">State<input class="px-in" v-model="rq.state" autocomplete="address-level1" maxlength="30"></label></div>
+<span class="px-ok2" v-if="zipMsg" v-text="zipMsg"></span>
+<label class="px-f">Maxzz customer number, if you have one<input class="px-in" v-model="rq.customerNumber" maxlength="40"></label>
+<label class="px-f">Anything we should know<textarea class="px-in" v-model="rq.notes" placeholder="Brands and engines you work with, monthly volume, current supplier..."></textarea></label>
+<input type="text" id="px-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+<div class="px-err" v-if="err" v-text="err"></div>
+<div style="display:flex;gap:10px"><button type="button" class="px-btn px-ghost" @click="rqStep = 1">Back</button><button class="px-btn px-red" style="flex:1" :disabled="busy" v-text="busy ? 'Sending...' : 'Request access'"></button></div>
+<p class="px-muted" style="font-size:13px;margin:0">We review every request and link it to your price list, usually within one business day.</p>
+</form>
+<p class="px-sw">Already have access? <a href="#/login">Sign in</a></p>
+</div>
+</div>
+</div>
+</section>
 
 <div class="px-card px-auth" v-if="route === 'sent'">
 <h2>Check your e-mail</h2>
@@ -1104,34 +1168,6 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- request access -->
-<div class="px-card px-auth" style="max-width:760px" v-if="route === 'request'">
-<h2>Request portal access</h2>
-<p class="px-muted">For repair shops, injection labs, distributors and fleets. We review every request and link it to your price list.</p>
-<form @submit.prevent="sendRequest" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
-<div class="px-g2">
-<label class="px-f">Your name *<input class="px-in" v-model="rq.name" autocomplete="name" required></label>
-<label class="px-f">Company *<input class="px-in" v-model="rq.company" autocomplete="organization" required></label>
-<label class="px-f">Work e-mail *<input class="px-in" type="email" v-model="rq.email" autocomplete="email" required></label>
-<label class="px-f">Phone *<input class="px-in" type="tel" v-model="rq.phone" autocomplete="tel" required></label>
-</div>
-<div class="px-g3">
-<label class="px-f">City<input class="px-in" v-model="rq.city" autocomplete="address-level2"></label>
-<label class="px-f">State<input class="px-in" v-model="rq.state" autocomplete="address-level1"></label>
-<label class="px-f">Country<input class="px-in" v-model="rq.country" autocomplete="country-name"></label>
-</div>
-<div class="px-g2">
-<label class="px-f">Type of business
-<select class="px-in" v-model="rq.type"><option value="">Choose</option><option>Diesel repair shop</option><option>Injection lab / rebuilder</option><option>Distributor / parts store</option><option>Fleet</option><option>Other</option></select></label>
-<label class="px-f">Maxzz customer number (if you have one)<input class="px-in" v-model="rq.customerNumber"></label>
-</div>
-<label class="px-f">Anything we should know<textarea class="px-in" v-model="rq.notes"></textarea></label>
-<input type="text" id="px-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
-<button class="px-btn px-red" style="width:100%" :disabled="busy" v-text="busy ? 'Sending...' : 'Request access'"></button>
-<div class="px-err" v-if="err" v-text="err"></div>
-<button type="button" class="px-btn px-ghost" @click="nav('login')">I already have access</button>
-</form>
-</div>
-
 <div class="px-card px-auth" v-if="route === 'requested'">
 <h2>Request received</h2>
 <p class="px-muted">Thanks. Our team reviews it and links it to your price list. You get an e-mail as soon as it is approved, usually within one business day.</p>

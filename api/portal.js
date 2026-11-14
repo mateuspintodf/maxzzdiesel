@@ -145,7 +145,7 @@ A.request = async (req, res) => {
   if (b.hp) return res.json({ ok: true });
   if (limited(req, 'request', 4, 60 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
   const f = { name: clean(b.name, 120), company: clean(b.company, 160), email: clean(b.email, 160).toLowerCase(), phone: clean(b.phone, 40),
-    country: clean(b.country, 60), state: clean(b.state, 60), city: clean(b.city, 80), type: clean(b.type, 80), customerNumber: clean(b.customerNumber, 40), notes: clean(b.notes, 800) };
+    country: clean(b.country, 60), state: clean(b.state, 60), city: clean(b.city, 80), zip: clean(b.zip, 12), type: clean(b.type, 80), customerNumber: clean(b.customerNumber, 40), notes: clean(b.notes, 800) };
   if (!f.name || !f.company || !EMAIL.test(f.email) || f.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'missing fields' });
   const db = await loadDb();
   if (db.users[f.email] && db.users[f.email].status !== 'rejected') return res.json({ ok: true, already: db.users[f.email].status });
@@ -155,7 +155,7 @@ A.request = async (req, res) => {
   await writeJson(DB, db);
   try {
     const cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company });
-    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.country].filter(Boolean).join(', '))}${f.customerNumber ? ' · Unleashed customer ' + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
+    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? ' · Unleashed customer ' + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
     await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).', [{ id: cid, type: 204 }], 4);
   } catch (e) { console.error('hubspot', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
