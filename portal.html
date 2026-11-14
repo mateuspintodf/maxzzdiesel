@@ -1014,7 +1014,7 @@ a[href^="tel:"]{white-space:nowrap}
 .px-lb img{background:none;padding:0;border-radius:8px;max-width:min(1200px,94vw);max-height:88vh}
 /* r4 ui */
 @media (max-width:560px){.px .px-path{padding-left:46px;padding-right:46px}}
-@media (max-width:760px){.px .px-toast{left:20px;right:20px}.px .px-mbar,.px .px-mbar.solo{left:20px;right:20px}.px-meta span{white-space:normal}.px .px-ltab td.lam:has(b:only-child){}}
+@media (max-width:760px){.px .px-toast{left:20px;right:20px}.px .px-mbar,.px .px-mbar.solo{left:20px;right:20px}.px .px-ltab td.lam:has(b:only-child){}}
 .px-lb img{max-width:min(92vw,1280px);max-height:86vh}
 @media (max-width:760px){.px .px-ltab td.lam.nop{display:none}}
 /* r4 b2b: paper lines stack on phones so unit and amount stay visible */
@@ -1034,6 +1034,17 @@ a[href^="tel:"]{white-space:nowrap}
 }
 html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-top:120px}
 @media (max-width:760px){html{scroll-padding-top:92px}.px-main :is(input,select,textarea){scroll-margin-top:100px}}
+/* r5 visual */
+@media (max-width:760px){
+  .px .px-ord{grid-template-areas:"n c" "m m" "t t"}
+  .px .px-ord>div{display:contents}
+  .px .px-ord>div>b{grid-area:n;align-self:center}.px .px-ord>div>small{grid-area:m;margin-top:0}
+  .px .px-ord .px-ord-t{grid-area:t}
+  .px .px-acc-line{flex-direction:column;gap:0}
+  .px .px-acc-line>span+span::before{display:none}
+  .sc-pn{font-size:12px;overflow-wrap:break-word}
+  .px-make .lg img{max-height:28px;max-width:80%}
+}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
