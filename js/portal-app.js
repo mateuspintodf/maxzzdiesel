@@ -267,13 +267,14 @@
     stockClass: function (code) { var n = this.qty(code); return n == null || n <= 0 ? 'out' : n < 5 ? 'low' : ''; },
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },
     name: function (code) { var r = this.map[code]; return r ? parse(r[1]).title : code; },
-    fmt: function (n) { return n == null ? 'Ask us' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+    fmt: function (n) { return n == null ? (this.logged ? 'Price on request' : 'Ask us') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped', Deleted: 'Cancelled' }[s] || s; },
     stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 2 }[o.status] || 0; },
     bench: function (code) { return !!BENCH[code]; },
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },
+    cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },
     inQuote: function (code) { return this.quoteIds.indexOf(code) >= 0; },
     copy: function (txt) { var self = this; try { navigator.clipboard.writeText(txt).then(function () { self.flash('Part number copied'); }); } catch (e) {} },
     pick: function (code) { return this.picks[code] || 1; },
@@ -294,7 +295,7 @@
       n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.cart.filter(function (x) { return x.code === code; })[0];
       if (l) l.qty += n; else this.cart.push({ code: code, qty: n });
-      this.picks[code] = 1; this.save(); this.flash('Added to cart');
+      this.picks[code] = 1; this.save(); this.flash('Added to cart. ' + this.cart.length + (this.cart.length === 1 ? ' part' : ' parts') + ' in your cart');
       track('add_to_cart', { item_id: code, quantity: n, source: 'store' });
     },
     setQty: function (i, v) { var n = parseInt(v, 10) || 0; if (n <= 0) return this.remove(i); this.cart[i].qty = Math.min(9999, n); this.save(); },
