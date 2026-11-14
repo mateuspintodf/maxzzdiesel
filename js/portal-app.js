@@ -364,6 +364,7 @@
       }
       if (this.step === 2) {
         if (this.flow === 'order' && !this.pickup && (!this.co.street.trim() || !this.co.city.trim())) { this.err = 'Fill in the street address and city, or choose Will call.'; return; }
+        if (this.flow === 'order' && !this.pickup && /United States|Puerto Rico|Canada/.test(this.co.country || '') && (!String(this.co.state || '').trim() || !String(this.co.zip || '').trim())) { this.err = 'Fill in the state and ZIP code, or choose Will call.'; return; }
         if (this.flow === 'quote' && !this.me) { var d = this.qd; if (!d.name.trim() || !d.company.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email) || d.phone.replace(/\D/g, '').length < 7) { this.err = 'Fill in name, company, e-mail and phone.'; return; } }
         return this.nav(this.flow === 'order' ? 'checkout' : 'quote', 'review');
       }
@@ -374,7 +375,7 @@
     get track() {
       var d = this.doc; if (!d || d.none) return TRK0;
       if (d.kind === 'order') {
-        var st = this.cur ? this.stepOf(this.cur) + 1 : 1;
+        var st = this.cur ? this.stepOf(this.cur) : 1;
         return { label: 'Your order number', steps: ['Order placed', 'In review', 'Approved', 'Shipped', 'Invoiced'], at: st };
       }
       return { label: 'Your quote number', steps: ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Shipped'], at: 1 };
@@ -395,6 +396,7 @@
       var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').trim();
       // an international number typed with + and a non-NANP code keeps its format whatever the country select says
       if (raw === '+') return '+';
+      if (d.length > 10 && d[0] !== '1') return '+' + d.slice(0, 15);
       if (raw.charAt(0) === '+' && d && d[0] !== '1') return '+' + d.slice(0, 15);
       var us = country ? /United States|Puerto Rico|Canada/.test(country) : this.usPhone;
       if (us) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
@@ -587,7 +589,8 @@
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
-    stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 4 }[o.status] || 0; },
+    // tracker steps filled: Order placed, In review, Approved, Shipped, Invoiced (matches the status pill)
+    stepOf: function (o) { return { Received: 1, Parked: 2, Placed: 3, Backordered: 3, Completed: 5 }[o.status] || 1; },
     bench: function (code) { return !!BENCH[code]; },
     title: function (r) {
       if (!r || !r[0]) return '';

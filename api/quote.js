@@ -60,12 +60,12 @@ module.exports = async (req, res) => {
     });
     const rows = lines.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.pn)}</td><td>${esc(l.name)}</td><td style="text-align:right">${l.qty}</td></tr>`).join('');
     const html = `<p><strong>Quote request ${esc(number)}</strong> from the website.</p>` +
-      `<p>${esc(customer.name)} · ${esc(customer.company)} · ${esc(customer.email)} · ${esc(customer.phone)} · ${esc(customer.type)}</p>` +
+      `<p>${[customer.name, customer.company, customer.email, customer.phone, customer.type].filter(Boolean).map(esc).join(' · ')}</p>` +
       (extra.length ? `<p>${extra.map(esc).join('<br>')}</p>` : '') +
       `<table><thead><tr><th>#</th><th>Part number</th><th>Description</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table>` +
       (customer.notes ? `<p><strong>Notes:</strong> ${esc(customer.notes)}</p>` : '');
     await addNote(html, [{ id: deal.id, type: 214 }, { id: contactId, type: 202 }]);
-    await addTask(`Reply to quote ${number} · ${customer.company}${b2b ? ' · B2B interest' : ''}`, `${lines.length} lines, ${units} units. ${customer.name} · ${customer.email} · ${customer.phone}${shipText ? ' · ' + shipText : ''}`, [{ id: deal.id, type: 216 }, { id: contactId, type: 204 }], 2);
+    await addTask(`Reply to quote ${number} · ${customer.company}${b2b ? ' · B2B interest' : ''}`, `${lines.length} lines, ${units} units. ${[customer.name, customer.email, customer.phone].filter(Boolean).join(' · ')}${shipText ? ' · ' + shipText : ''}`, [{ id: deal.id, type: 216 }, { id: contactId, type: 204 }], 2);
     return res.status(200).json({ ok: true, id: number });
   } catch (e) {
     console.error(e);

@@ -1017,6 +1017,21 @@ a[href^="tel:"]{white-space:nowrap}
 @media (max-width:760px){.px .px-toast{left:20px;right:20px}.px .px-mbar,.px .px-mbar.solo{left:20px;right:20px}.px-meta span{white-space:normal}.px .px-ltab td.lam:has(b:only-child){}}
 .px-lb img{max-width:min(92vw,1280px);max-height:86vh}
 @media (max-width:760px){.px .px-ltab td.lam.nop{display:none}}
+/* r4 b2b: paper lines stack on phones so unit and amount stay visible */
+@media (max-width:640px){
+  .px .px-paper-t thead{display:none}
+  .px .px-paper-t,.px .px-paper-t tbody{display:block;width:100%}
+  .px .px-paper-t tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:12px 18px;border-bottom:1px solid #eef0f2}
+  .px .px-paper-t td{display:block;padding:0!important;border:0!important;text-align:left}
+  .px .px-paper-t td:nth-child(1){display:none!important}
+  .px .px-paper-t td:nth-child(2){display:block!important;grid-column:1/-1;font-weight:600}
+  .px .px-paper-t td:nth-child(3){display:block!important;grid-column:1/-1;color:#5f656c;font-size:13.5px;overflow-wrap:anywhere}
+  .px .px-paper-t td:nth-child(4){display:block!important;grid-column:1}
+  .px .px-paper-t td:nth-child(4)::before{content:'Qty '}
+  .px .px-paper-t td:nth-child(5){display:block!important;grid-column:1;color:#5f656c;font-size:13.5px}
+  .px .px-paper-t td:nth-child(5)::before{content:'Unit '}
+  .px .px-paper-t td:nth-child(6){display:block!important;grid-column:2;grid-row:3 / span 2;align-self:center;font-weight:600;text-align:right}
+}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
