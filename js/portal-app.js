@@ -27,7 +27,7 @@
     { k: 'Rail', label: 'Rails', ic: 'rail' }, { k: 'Repair part', label: 'Repair parts', ic: 'rep' }, { k: 'Tool', label: 'Tool sets', ic: 'tool' },
     { k: 'Engine parts', label: 'Engine parts', ic: 'eng' }, { k: 'Fluid', label: 'Fluids', ic: 'fl' }, { k: 'Kit', label: 'Contamination kits', ic: 'kit' }
   ];
-  var ENG = [{ k: 'c', label: 'Cummins' }, { k: 'd', label: 'Duramax' }, { k: 'f', label: 'Power Stroke' }, { k: 'h', label: 'Heavy duty' }];
+  var ENG = [{ k: 'f', label: 'Ford · Power Stroke' }, { k: 'c', label: 'Ram / Dodge · Cummins' }, { k: 'd', label: 'Chevy / GMC · Duramax' }, { k: 'h', label: 'Heavy duty trucks' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
   var BENCH = {
     'BO.0.414.702.010': 'https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png',
@@ -70,7 +70,7 @@
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '' },
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, tier: 'Silver', next: 'Gold', nextAt: 25000, rate: 1 }, sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
     vMake: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
@@ -222,6 +222,61 @@
     },
     get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
+    // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
+    get inFlow() { var r = this.route; return (r === 'quote') || ((r === 'cart' || r === 'checkout') && this.canOrder); },
+    get flow() { return this.route === 'quote' ? 'quote' : 'order'; },
+    get step() {
+      if (this.route === 'quote') return this.qSent ? 4 : this.arg === 'review' ? 3 : this.arg === 'details' ? 2 : 1;
+      if (this.route === 'checkout') return this.arg === 'review' ? 3 : 2;
+      return 1;
+    },
+    get lines() { return this.flow === 'quote' ? this.quote.map(function (l, i) { return { code: l.id, qty: l.qty, i: i }; }) : this.cart.map(function (l, i) { return { code: l.code, qty: l.qty, i: i }; }); },
+    get units() { return this.lines.reduce(function (a, l) { return a + l.qty; }, 0); },
+    get showPrice() { return this.logged && !!this.book; },
+    get flowTotal() { var self = this; return this.lines.reduce(function (a, l) { return a + (self.price(l.code) || 0) * l.qty; }, 0); },
+    get doc() {
+      var self = this, me = this.me, acc = me && me.account, now = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      var who = function () { return me ? [(me.name || self.firstName), acc ? acc.company + (acc.code ? ' · ' + acc.code : '') : 'Maxzz Diesel team', me.email] : [self.qd.name, self.qd.company, self.qd.email, self.qd.phone]; };
+      if (this.route === 'o' && this.cur) {
+        var o = this.cur, sh = o.ship || {};
+        return { kind: 'order', number: o.number, email: o.by || (me && me.email), billTo: who().filter(Boolean),
+          shipTo: /will call/i.test(sh.method || '') ? ['Will call', 'Pick up in Coconut Creek, FL'] : [sh.name, sh.street, [sh.city, sh.state, sh.zip].filter(Boolean).join(', '), sh.country].filter(Boolean),
+          refs: ['Date ' + this.date(o.created), o.po ? 'PO ' + o.po : 'No PO', sh.method || '', o.unleashedNumber ? 'Ref ' + o.unleashedNumber : ''].filter(Boolean),
+          lines: o.lines.map(function (l) { return { code: l.code, name: self.name(l.code) || l.name, qty: l.qty, price: l.price }; }), priced: true, total: o.total, units: o.lines.reduce(function (a, l) { return a + l.qty; }, 0), notes: o.notes };
+      }
+      if (this.route === 'quote' && this.qSent) {
+        var q = this.qSent;
+        return { kind: 'quote', number: q.id, email: q.email, billTo: q.from, shipTo: q.ship, refs: q.refs, lines: q.lines, priced: false, units: q.lines.reduce(function (a, l) { return a + l.qty; }, 0), notes: q.notes };
+      }
+      if (this.step !== 3) return null;
+      var ls = this.lines.map(function (l) { return { code: l.code, name: self.name(l.code), qty: l.qty, price: self.price(l.code) }; });
+      if (this.flow === 'order') {
+        var c = this.co;
+        return { kind: 'order', number: 'Number on confirmation', email: me && me.email, billTo: who().filter(Boolean),
+          shipTo: this.pickup ? ['Will call', 'Pick up in Coconut Creek, FL'] : [c.name, c.street, [c.city, c.state, c.zip].filter(Boolean).join(', '), c.country, c.fwd ? 'Forwarder: ' + c.fwd : ''].filter(Boolean),
+          refs: ['Date ' + now, c.po ? 'PO ' + c.po : 'No PO', c.method].filter(Boolean), lines: ls, priced: true, total: this.flowTotal, units: this.units, notes: c.notes };
+      }
+      var d = this.qd;
+      return { kind: 'quote', number: 'Number on confirmation', email: me ? me.email : d.email, billTo: who().filter(Boolean),
+        shipTo: [me && acc ? acc.company : d.company, d.city, d.country].filter(Boolean), refs: ['Date ' + now, d.po ? 'PO ' + d.po : 'No PO', d.needBy ? 'Needed by ' + d.needBy : ''].filter(Boolean),
+        lines: ls, priced: this.showPrice, total: this.flowTotal, units: this.units, notes: d.notes };
+    },
+    setLn: function (i, n) { n = parseInt(n, 10) || 0; if (this.flow === 'quote') return this.qSet(i, n); if (n <= 0) this.remove(i); else { this.cart[i].qty = Math.min(9999, n); this.save(); } },
+    moveToQuote: function (i) { var c = this.cart[i]; if (!c) return; this.addQuote(c.code); var l = this.quote.filter(function (x) { return x.id === c.code; })[0]; if (l) { l.qty = c.qty; write(QK, this.quote); } this.remove(i); },
+    clearFlow: function () { if (!confirm('Remove every part from this list?')) return; if (this.flow === 'quote') { this.quote.splice(0); write(QK, []); } else this.clearCart(); },
+    next: function () {
+      this.err = '';
+      if (this.step === 1) {
+        if (this.flow === 'order' && this.noPriceLines.length) { this.err = ''; this.flash('Move the parts without online price to a quote first'); return; }
+        return this.nav(this.flow === 'order' ? 'checkout' : 'quote', this.flow === 'order' ? '' : 'details');
+      }
+      if (this.step === 2) {
+        if (this.flow === 'order' && !this.pickup && (!this.co.street.trim() || !this.co.city.trim())) { this.err = 'Fill in the street address and city, or choose Will call.'; return; }
+        if (this.flow === 'quote' && !this.me) { var d = this.qd; if (!d.name.trim() || !d.company.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email) || d.phone.replace(/\D/g, '').length < 7) { this.err = 'Fill in name, company, e-mail and phone.'; return; } }
+        return this.nav(this.flow === 'order' ? 'checkout' : 'quote', 'review');
+      }
+    },
+    confirmFlow: function () { return this.flow === 'order' ? this.placeOrder() : this.sendQuote(); },
     get needLogin() { var r = this.route; if (r === 'admin') return !(this.me && this.me.admin); return ['cart', 'checkout', 'orders', 'o'].indexOf(r) >= 0 && !this.canOrder && this.meLoaded; },
     get noPriceLines() { var self = this; return this.cart.filter(function (l) { return self.price(l.code) == null; }).map(function (l) { return l.code; }); },
     get pickup() { return /will call/i.test(this.co.method); },
@@ -324,6 +379,7 @@
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
+      if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
@@ -474,17 +530,21 @@
       }).catch(function () { self.busy = false; self.err = 'Connection problem. Try again.'; });
     },
     sendQuote: function () {
-      var self = this, d = this.qd, hp = document.getElementById('px-qhp'), t = new Date();
-      if (!this.quote.length) return;
+      var self = this, hp = document.getElementById('px-qhp'), t = new Date();
+      if (!this.quote.length || this.busy) return;
+      var me = this.me, acc = me && me.account, d = Object.assign({}, this.qd);
+      if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = '0000000'; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
+      var snap = this.doc;
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: self.title(self.map[l.id]) || l.name, qty: l.qty }; });
       this.busy = true; this.err = '';
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', t: Date.now() - T0,
-        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: { country: d.country, city: d.city, po: d.po }, lines: lines }) })
+        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: { country: d.country, city: d.city, po: d.po, needBy: d.needBy }, lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function () {
           track('generate_lead', { form: 'store_quote', quote_id: number, items: lines.length });
-          self.busy = false; self.qSent = { id: number, email: d.email, lines: self.quote.map(function (l) { return { id: l.id, qty: l.qty }; }) };
+          self.busy = false; self.qSent = { id: number, email: d.email, from: snap ? snap.billTo : [d.name, d.company, d.email], ship: snap ? snap.shipTo : [], refs: snap ? snap.refs : [], notes: d.notes, lines: lines.map(function (l) { return { code: l.pn, name: l.name, qty: l.qty, price: null }; }) };
+          self.qd.notes = ''; self.qd.po = ''; self.qd.needBy = '';
           setTimeout(function () { self.quote.splice(0); write(QK, []); }, 0); window.scrollTo({ top: 0, behavior: 'smooth' });
         })
         .catch(function () { self.busy = false; self.err = 'We could not send it right now. Try again, or e-mail the list to sales@maxzzdiesel.com.'; });

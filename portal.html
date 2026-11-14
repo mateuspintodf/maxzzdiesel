@@ -6,7 +6,7 @@
 <!-- End Google Tag Manager -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Parts store | Maxzz Diesel</title>
+<title>Wholesale store | Maxzz Diesel</title>
 <meta name="description" content="Maxzz Diesel B2B portal for approved wholesale customers: prices, stock and order tracking."><meta name="robots" content="noindex, nofollow">
 <meta property="og:title" content="Maxzz B2B portal">
 <meta property="og:description" content="Find diesel injectors, pumps, nozzles, valves and bench tools by engine and year or by part number. Build your list and get wholesale pricing from Maxzz Diesel.">
@@ -160,7 +160,7 @@ textarea.q-in{height:auto;padding:12px 16px;line-height:22px}
 <div class="noise" style="position: relative; font-family: 'BDO Grotesk', 'Helvetica Neue', Arial, sans-serif; font-weight: 400; color: #5a5a60; font-size: 16px; line-height: 28px; background: #eef0f2; width: 100%; overflow-x: clip;">
 <header class="pxh">
 <nav class="pxh-in" aria-label="Parts store">
-<a class="pxh-logo" href="#/" aria-label="Maxzz parts store home"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><span class="pxh-tag">Parts store</span></a>
+<a class="pxh-logo" href="#/" aria-label="Maxzz wholesale store home"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><span class="pxh-tag">Wholesale</span></a>
 <div class="pxh-links">
 <a href="#/" :class="route === 'home' ? 'on' : ''">Store</a>
 <a href="#/all" :class="route === 'all' || route === 'c' || route === 's' || route === 'g' ? 'on' : ''">Catalog</a>
@@ -416,6 +416,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-toast{left:auto;right:24px;transform:none;top:100px;bottom:auto;white-space:nowrap;z-index:120}
 @media (max-width:760px){.px-toast{left:12px;right:12px;top:84px;bottom:auto;white-space:normal;border-radius:10px}}
 .px .px-clr{border:0;background:none;color:#b9b9be;font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;margin-top:12px;align-self:center}
+.px-fbar-s{position:static;max-width:900px;margin:16px auto 0}
+@media (max-width:760px){.px-stepper{flex-wrap:nowrap;gap:4px}.px-stepper li+li:before{width:12px}.px-stepper li:not(.cur) span{display:none}
+.px-fbar{flex-direction:column;align-items:stretch;gap:10px}.px-fbar-a{flex-wrap:nowrap}.px-fbar-a .px-ghost{display:none}.px-fbar-a .px-btn{flex:1}.px-fh .px-test{font-size:13px}}
 </style>
 <style>
 .px-bar{background:#fff;border-bottom:1px solid #e3e6e9}
@@ -605,6 +608,59 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-line-c{color:#5f656c}
 .px-crumb,.px-list-h span,.px-fo .n{color:#5f656c}
 .px-hint{margin:0 0 14px}
+
+.px a.px-btn.px-red,.px a.px-btn.px-dark{color:#fff}.px a.px-btn.px-ghost{color:#1d2126}
+.px-stepper{list-style:none;margin:0 0 22px;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.px-stepper li{display:flex;align-items:center;gap:8px;font-size:14px;color:#8a9097}
+.px-stepper li+li:before{content:'';width:28px;height:1px;background:#c9ced3;margin-right:2px}
+.px-stepper b{width:26px;height:26px;border-radius:50%;border:1px solid #c9ced3;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.px-stepper li.on{color:#1d2126}.px-stepper li.on b{background:#1d2126;border-color:#1d2126;color:#fff}
+.px .px-stepper a{display:flex;align-items:center;gap:8px;color:inherit}
+.px-fh{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:14px}.px-fh h1,.px-review-h h1{margin:0;font-size:28px;font-weight:500;letter-spacing:-.01em}.px-fh p,.px-review-h p{margin:4px 0 0}
+.px-review-h{margin-bottom:16px}
+.px-lt{padding:8px 24px 20px}
+.px-ltab{width:100%;border-collapse:collapse;font-size:14px}
+.px-ltab th{text-align:left;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5f656c;font-weight:600;padding:14px 10px;border-bottom:1px solid #eef0f2}
+.px-ltab td{padding:12px 10px;border-bottom:1px solid #eef0f2;vertical-align:middle}
+.px-ltab .r{text-align:right;white-space:nowrap}.px-ltab .c{text-align:center}
+.px-ltab .th{width:64px}.px-ltab .th a{display:block;width:56px;height:56px;border-radius:6px;background:#f4f5f6;overflow:hidden}.px-ltab .th img{width:100%;height:100%;object-fit:cover}
+.px .px-ltab .nm{display:block;color:#1d2126;font-weight:500;line-height:1.3;margin-bottom:3px}
+.px-warn{display:block;color:#b45309;font-size:12px;margin-top:3px}
+.px-x{border:0;background:none;color:#8a9097;cursor:pointer;padding:6px}.px-x:hover{color:#d32a37}
+.px-fbar{position:sticky;bottom:12px;z-index:5;margin-top:14px;background:#1d2126;color:#fff;border-radius:12px;padding:12px 12px 12px 22px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 12px 28px rgba(29,33,38,.18)}
+.px-fbar-t{display:flex;gap:18px;align-items:baseline;font-size:14px;color:#b9b9be}.px-fbar-t b{color:#fff;font-size:18px;font-weight:500}
+.px-fbar-a{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.px-fbar .px-ghost{background:transparent;color:#fff;border-color:#4a525b}.px .px-fbar a.px-ghost{color:#fff}
+.px-clr2{border:0;background:none;color:#b9b9be;font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;margin-right:6px}
+.px-asme{display:flex;gap:12px;align-items:center;background:#f4f5f6;border-radius:10px;padding:12px 14px;margin-top:12px}
+.px-asme .av{width:38px;height:38px;border-radius:50%;background:#fc771d;color:#1d2126;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex:none}
+.px-asme b{display:block;font-weight:500}.px-asme small{color:#5f656c;font-size:13px}
+.px-paper{background:#fff;border:1px solid #e3e6e9;border-radius:4px;box-shadow:0 1px 0 #e3e6e9,0 18px 40px rgba(29,33,38,.08);max-width:900px;margin:0 auto;font-size:14px;color:#1d2126}
+.px-paper-h{background:#1d2126;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 32px;border-radius:4px 4px 0 0}
+.px-paper-h img{height:30px}.px-paper-h div{text-align:right;display:flex;flex-direction:column;gap:2px}.px-paper-h b{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:#fc771d;font-weight:600}.px-paper-h span{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:15px}
+.px-paper-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:24px 32px;border-bottom:1px solid #e3e6e9}
+.px-paper-meta div{display:flex;flex-direction:column;gap:2px;line-height:1.45;font-size:13px;color:#3a4048}
+.px-paper-meta small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5f656c;font-weight:600;margin-bottom:4px}.px-paper-meta b{font-weight:600;color:#1d2126}
+.px-paper-t{width:100%;border-collapse:collapse}
+.px-paper-t th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5f656c;font-weight:600;text-align:left;padding:12px 10px;border-bottom:1px solid #1d2126}
+.px-paper-t th:first-child,.px-paper-t td:first-child{padding-left:32px;width:44px;color:#8a9097}.px-paper-t th:last-child,.px-paper-t td:last-child{padding-right:32px}
+.px-paper-t td{padding:11px 10px;border-bottom:1px solid #eef0f2;vertical-align:top}
+.px-paper-t .r{text-align:right;white-space:nowrap}.px-paper-t .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600;white-space:nowrap}
+.px-paper-f{display:grid;grid-template-columns:1fr 300px;gap:24px;padding:20px 32px}
+.px-paper-f small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#5f656c;font-weight:600}.px-paper-f p{margin:4px 0 0;color:#3a4048;line-height:1.5}
+.px-paper-f .tt div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:13px;color:#3a4048}.px-paper-f .tt .g{border-top:2px solid #1d2126;margin-top:6px;padding-top:10px;font-size:15px;color:#1d2126}.px-paper-f .tt b{font-weight:600}
+.px-paper-fine{margin:0;padding:14px 32px 22px;border-top:1px dashed #dfe2e6;font-size:12px;color:#5f656c}
+.px-oh{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+@media (max-width:760px){.px-ltab thead{display:none}.px-ltab tr{display:grid;grid-template-columns:56px 1fr auto;gap:4px 12px;padding:12px 0;border-bottom:1px solid #eef0f2}.px-ltab td{border:0;padding:0}.px-ltab td.th{grid-row:span 3}.px-ltab td.r,.px-ltab td.c{text-align:left}
+.px-paper-meta{grid-template-columns:1fr 1fr;padding:18px}.px-paper-h{padding:16px 18px}.px-paper-t th:first-child,.px-paper-t td:first-child{display:none}.px-paper-t th:last-child,.px-paper-t td:last-child{padding-right:18px}.px-paper-t th:nth-child(2),.px-paper-t td:nth-child(2){padding-left:18px}.px-paper-f{grid-template-columns:1fr;padding:16px 18px}.px-paper-fine{padding:12px 18px 18px}.px-fbar{padding:12px}.px-lt{padding:4px 14px 14px}}
+@media print{.pxh,.px-hero,.px-bar,.pxf,.px-fab,.px-stepper,.px-fbar,.px-done,.px-oh,.px-steps,.px-btn,.px-side{display:none!important}.px-paper{box-shadow:none;border:0}}
+
+.px-hero{position:relative;isolation:isolate;background:#16191d url(/assets/mg/hero-3.jpg) right 40% / cover no-repeat}
+.px-hero:before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(22,25,29,.97) 0%,rgba(22,25,29,.9) 38%,rgba(22,25,29,.45) 70%,rgba(22,25,29,.25) 100%),linear-gradient(0deg,rgba(22,25,29,.6),rgba(22,25,29,0) 40%)}
+.px-hero.compact{background-position:right 55%}
+.px-hero.compact:before{background:linear-gradient(90deg,rgba(22,25,29,.97) 0%,rgba(22,25,29,.88) 50%,rgba(22,25,29,.6) 100%)}
+.px-hero h1{font-size:44px;letter-spacing:-.02em}
+.px .px-lead{max-width:none;font-size:17px;line-height:1.55;color:#c9cdd2}
+@media (max-width:760px){.px-hero{background-position:70% 30%}.px-hero:before{background:linear-gradient(180deg,rgba(22,25,29,.75),rgba(22,25,29,.95))}.px-hero h1{font-size:30px}.px .px-lead{font-size:15px}.px-lead br{display:none}}
 </style>
 
 <div class="px" @vue:mounted="init">
@@ -612,9 +668,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <section class="px-hero" :class="route === 'home' ? '' : 'compact'">
 <div class="px-hero-in">
 <div>
-<h1 v-if="!logged && route === 'home'">Maxzz <em>parts store</em></h1>
+<h1 v-if="!logged && route === 'home'">Wholesale diesel injection, <em>in stock</em></h1>
 <h1 v-if="logged && route === 'home'"><span v-text="greet + ', '"></span><em v-text="firstName"></em></h1>
-<p v-if="!logged">Diesel injection parts in stock in Florida. Browse the full catalog; approved wholesale customers sign in for their prices, live stock and online ordering.</p>
+<p v-if="!logged" class="px-lead">Injectors, pumps, nozzles, tools, fluids and kits shipped from Florida.<br>Sign in for your price list, live stock and online ordering.</p>
 <div class="px-acc-line" v-else>
 <span class="co" v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span>
 <span v-if="me.account && me.account.code" v-text="'Account ' + me.account.code"></span>
@@ -664,11 +720,11 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <label class="px-fo" v-for="o in fCats" :class="[on('cat', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('cat', o.k)" @change="toggle('cat', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
 </div>
 <div class="px-fg">
-<h3>Application</h3>
+<h3>Vehicle</h3>
 <label class="px-fo" v-for="o in fEngs" :class="[on('eng', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('eng', o.k)" @change="toggle('eng', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
 </div>
 <div class="px-fg">
-<h3>Brand</h3>
+<h3>Part brand</h3>
 <label class="px-fo" v-for="o in fBrands.items" :class="[on('brand', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('brand', o.k)" @change="toggle('brand', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
 <button type="button" class="px-fmore" v-if="fBrands.more" @click="allBrands = !allBrands" v-text="allBrands ? 'Show fewer' : 'Show all brands'"></button>
 </div>
@@ -945,35 +1001,109 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 </div>
 
-<!-- QUOTE -->
-<div class="px-grid" v-if="route === 'quote'">
-<div class="px-card" v-if="!qSent">
-<div class="px-flow"><span class="on">Quote list</span><span :class="quote.length ? 'on' : ''">Your details</span><span>Sent</span></div>
-<h2>Request a quote</h2>
-<p class="px-muted">Send the list to our sales team. We reply with price, stock and lead time within one business day.</p>
-<div class="px-empty" v-if="!quote.length" style="margin-top:14px">Your quote list is empty. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a>.</div>
-<form v-else @submit.prevent="sendQuote" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
-<div class="px-g2"><label class="px-f">Your name *<input class="px-in" v-model="qd.name" required autocomplete="name"></label><label class="px-f">Company *<input class="px-in" v-model="qd.company" required autocomplete="organization"></label></div>
-<div class="px-g2"><label class="px-f">E-mail *<input class="px-in" type="email" v-model="qd.email" required autocomplete="email"></label><label class="px-f">Phone or WhatsApp *<input class="px-in" type="tel" v-model="qd.phone" required autocomplete="tel"></label></div>
-<div class="px-g2"><label class="px-f">Business type<select class="px-in" v-model="qd.type"><option value="">Select</option><option>Repair shop</option><option>Injection lab / rebuilder</option><option>Distributor</option><option>Fleet</option><option>Other</option></select></label><label class="px-f">Country<select class="px-in" v-model="qd.country"><option v-for="c in countries" v-text="c"></option></select></label></div>
-<div class="px-g2"><label class="px-f">City and state<input class="px-in" v-model="qd.city"></label><label class="px-f">PO or reference<input class="px-in" v-model="qd.po" maxlength="60"></label></div>
-<label class="px-f">Notes<textarea class="px-in" v-model="qd.notes" placeholder="Engine serial, VIN, needed-by date, core return..."></textarea></label>
+<!-- ORDER AND QUOTE FLOW: list, details, review (paper), done -->
+<div class="px-flowp" v-if="inFlow">
+<ol class="px-stepper" aria-label="Progress">
+<li :class="[step >= 1 ? 'on' : '', step === 1 ? 'cur' : '']"><a :href="flow === 'order' ? '#/cart' : '#/quote'"><b>1</b><span v-text="flow === 'order' ? 'Cart' : 'Quote list'"></span></a></li>
+<li :class="[step >= 2 ? 'on' : '', step === 2 ? 'cur' : '']"><b>2</b><span v-text="flow === 'order' ? 'Shipping' : 'Details'"></span></li>
+<li :class="[step >= 3 ? 'on' : '', step === 3 ? 'cur' : '']"><b>3</b><span>Review</span></li>
+<li :class="[step >= 4 ? 'on' : '', step === 4 ? 'cur' : '']"><b>4</b><span>Done</span></li>
+</ol>
+
+<!-- step 1: the list -->
+<div v-if="step === 1">
+<div class="px-fh"><div><h1 v-text="flow === 'order' ? 'Cart' : 'Quote list'"></h1><p class="px-muted" v-text="flow === 'order' ? 'Check quantities, then continue to shipping.' : 'Every part you want priced. Our team replies within one business day.'"></p></div>
+<div class="px-test" v-if="flow === 'order' && me && !me.ordersLive">Test mode: orders are e-mailed to our team and not yet sent to the warehouse system.</div></div>
+<div class="px-card px-lt">
+<div class="px-empty" v-if="!lines.length">Nothing here yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a><span v-if="flow === 'order'"> or paste a list of part numbers below</span>.</div>
+<table class="px-ltab" v-if="lines.length">
+<thead><tr><th colspan="2">Part</th><th v-if="showPrice">Availability</th><th class="r" v-if="showPrice">Unit price</th><th class="c">Qty</th><th class="r" v-if="showPrice">Amount</th><th></th></tr></thead>
+<tbody><tr v-for="l in lines" :key="l.code">
+<td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" alt=""></a></td>
+<td><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-text="l.code"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
+<td v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
+<td class="r" v-if="showPrice" v-text="fmt(price(l.code))"></td>
+<td class="c"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
+<td class="r" v-if="showPrice"><b v-text="price(l.code) == null ? '–' : fmt(price(l.code) * l.qty)"></b></td>
+<td class="c"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
+</tr></tbody>
+</table>
+<details class="px-paste" v-if="flow === 'order'">
+<summary>Quick order: paste part numbers</summary>
+<p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: "0445120231, 6".</p>
+<textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
+<button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste">Add to cart</button>
+<div class="px-ok" v-if="pasteMsg" v-text="pasteMsg"></div>
+</details>
+</div>
+<div class="px-fbar" v-if="lines.length">
+<div class="px-fbar-t"><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span><b v-if="showPrice" v-text="'Subtotal ' + fmt(flowTotal)"></b></div>
+<div class="px-fbar-a"><button type="button" class="px-clr2" @click="clearFlow">Clear list</button><a class="px-btn px-ghost" href="#/all">Keep shopping</a><button type="button" class="px-btn px-red" @click="next">Continue</button></div>
+</div>
+</div>
+
+<!-- step 2: details -->
+<div class="px-grid" v-if="step === 2">
+<div class="px-card">
+<h2 v-text="flow === 'order' ? 'Shipping and reference' : 'Your details'"></h2>
+<div class="px-asme" v-if="me"><span class="av" v-text="initials"></span><span><b v-text="(me.name || firstName) + ' · ' + (me.account ? me.account.company : 'Maxzz Diesel team')"></b><small v-text="me.email + (me.account && me.account.code ? ' · account ' + me.account.code : '')"></small></span></div>
+<form @submit.prevent="next" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+<div class="px-g2" v-if="flow === 'quote' && !me"><label class="px-f">Your name *<input class="px-in" v-model="qd.name" required autocomplete="name"></label><label class="px-f">Company *<input class="px-in" v-model="qd.company" required autocomplete="organization"></label></div>
+<div class="px-g2" v-if="flow === 'quote' && !me"><label class="px-f">E-mail *<input class="px-in" type="email" v-model="qd.email" required autocomplete="email"></label><label class="px-f">Phone or WhatsApp *<input class="px-in" type="tel" v-model="qd.phone" required autocomplete="tel"></label></div>
+<div class="px-g2" v-if="flow === 'quote' && !me"><label class="px-f">Business type<select class="px-in" v-model="qd.type"><option value="">Select</option><option>Repair shop</option><option>Injection lab / rebuilder</option><option>Distributor</option><option>Fleet</option><option>Other</option></select></label><label class="px-f">Country<select class="px-in" v-model="qd.country"><option v-for="c in countries" v-text="c"></option></select></label></div>
+<label class="px-f" v-if="flow === 'quote' && me && !qd.phone && !(me.account)">Phone or WhatsApp<input class="px-in" type="tel" v-model="qd.phone" autocomplete="tel"></label>
+<div class="px-g2" v-if="flow === 'order'"><label class="px-f">Your PO or job reference<input class="px-in" v-model="co.po" maxlength="40"></label><label class="px-f">Shipping<select class="px-in" v-model="co.method"><option>Ground</option><option>2nd Day Air</option><option>Next Day Air</option><option>Will call (pick up in Coconut Creek)</option><option>Freight forwarder</option></select></label></div>
+<div class="px-pickup" v-if="flow === 'order' && pickup">Pick up at 6601 Lyons Road, Ste H-6, Coconut Creek, FL 33073. We e-mail you when the order is ready.</div>
+<label class="px-f" v-if="flow === 'order' && !pickup">Ship to (name or company)<input class="px-in" v-model="co.name" autocomplete="organization"></label>
+<label class="px-f" v-if="flow === 'order' && !pickup">Street address *<input class="px-in" v-model="co.street" autocomplete="street-address" required></label>
+<div class="px-g3" v-if="flow === 'order' && !pickup"><label class="px-f">City *<input class="px-in" v-model="co.city" autocomplete="address-level2" required></label><label class="px-f">State<input class="px-in" v-model="co.state" autocomplete="address-level1"></label><label class="px-f">ZIP<input class="px-in" v-model="co.zip" autocomplete="postal-code"></label></div>
+<label class="px-f" v-if="flow === 'order' && !pickup">Country<select class="px-in" v-model="co.country"><option v-for="c in countries" v-text="c"></option></select></label>
+<label class="px-f" v-if="flow === 'order' && !pickup && co.country !== 'United States'">Freight forwarder and consignee tax ID<input class="px-in" v-model="co.fwd" maxlength="160" placeholder="Forwarder name, Miami address, consignee CNPJ / RUT / NIT"></label>
+<div class="px-g2" v-if="flow === 'quote'"><label class="px-f">PO or reference<input class="px-in" v-model="qd.po" maxlength="60"></label><label class="px-f">Needed by<input class="px-in" type="date" v-model="qd.needBy"></label></div>
+<label class="px-f" v-if="flow === 'quote' && !me">City and state<input class="px-in" v-model="qd.city"></label>
+<label class="px-f">Notes for our team<textarea class="px-in" v-if="flow === 'order'" v-model="co.notes" placeholder="Delivery window, core return, anything sales should know"></textarea><textarea class="px-in" v-else v-model="qd.notes" placeholder="Engine serial, VIN, core return, anything sales should know"></textarea></label>
 <input type="text" id="px-qhp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 <div class="px-err" v-if="err" v-text="err"></div>
-<button class="px-btn px-red" :disabled="busy" v-text="busy ? 'Sending...' : 'Send quote request'"></button>
+<div style="display:flex;gap:10px;flex-wrap:wrap"><a class="px-btn px-ghost" :href="flow === 'order' ? '#/cart' : '#/quote'">Back</a><button class="px-btn px-red">Review</button></div>
 </form>
 </div>
-<div class="px-card" v-else>
-<div class="px-done"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b v-text="'Quote request ' + qSent.id + ' sent'"></b><p>Our sales team replies within one business day to <span v-text="qSent.email"></span>.</p></div></div>
-<table class="px-tbl" style="margin-top:16px"><thead><tr><th>Part</th><th class="r">Qty</th></tr></thead><tbody><tr v-for="l in qSent.lines"><td><div v-text="name(l.id)"></div><div class="px-code" v-text="l.id"></div></td><td class="r" v-text="l.qty"></td></tr></tbody></table>
-<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><a class="px-btn px-dark" href="#/all">Keep browsing</a><a class="px-btn px-ghost" href="#/request" v-if="!me">Request wholesale access</a></div>
-</div>
-<aside class="px-panel" aria-label="Quote list" v-if="!qSent">
-<div class="px-ph"><h2>Quote list</h2><span v-text="quoteN + ' parts, ' + quoteUnits + ' units'"></span></div>
-<div class="px-lines">
-<div class="px-line" v-for="(l, i) in quote" :key="l.id"><div><div class="px-line-n" v-text="name(l.id)"></div><div class="px-line-c" v-text="l.id"></div></div><div class="px-line-r"><div class="px-qty"><button type="button" aria-label="Less" @click="qSet(i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="qSet(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="qSet(i, l.qty + 1)">+</button></div></div></div>
-</div>
+<aside class="px-panel" aria-label="Summary">
+<div class="px-ph"><h2>Summary</h2><span v-text="lines.length + ' parts, ' + units + ' units'"></span></div>
+<div class="px-lines"><div class="px-line" v-for="l in lines" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r" v-if="showPrice"><span class="px-line-t" v-text="fmt((price(l.code) || 0) * l.qty)"></span></div></div></div>
+<div class="px-sum" v-if="showPrice"><span>Subtotal</span><b v-text="fmt(flowTotal)"></b></div>
 </aside>
+</div>
+
+<!-- step 3 and 4: the paper -->
+<div v-if="step >= 3 && doc">
+<div class="px-done" v-if="step === 4"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b v-text="doc.kind === 'order' ? 'Order received. Thank you.' : 'Quote request sent. Thank you.'"></b><p v-text="'A copy went to ' + doc.email + '. ' + (doc.kind === 'order' ? 'Our sales team reviews it, confirms stock and freight, and e-mails you at every step.' : 'Our sales team replies with price, stock and lead time within one business day.')"></p></div></div>
+<div class="px-review-h" v-if="step === 3"><div><h1>Review and confirm</h1><p class="px-muted">This is what our sales team will receive. Check it before you send.</p></div></div>
+<article class="px-paper" v-if="doc">
+<header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
+<div class="px-paper-meta">
+<div><small>From</small><b v-text="doc.billTo[0]"></b><span v-for="x in doc.billTo.slice(1)" v-text="x"></span></div>
+<div><small v-text="doc.kind === 'order' ? 'Ship to' : 'Deliver to'"></small><span v-for="x in doc.shipTo" v-text="x"></span></div>
+<div><small>Details</small><span v-for="x in doc.refs" v-text="x"></span></div>
+<div><small>To</small><b>Maxzz Diesel</b><span>6601 Lyons Road, Ste H-6</span><span>Coconut Creek, FL 33073</span><span>sales@maxzzdiesel.com</span></div>
+</div>
+<table class="px-paper-t">
+<thead><tr><th>#</th><th>Part number</th><th>Description</th><th class="r">Qty</th><th class="r" v-if="doc.priced">Unit</th><th class="r" v-if="doc.priced">Amount</th></tr></thead>
+<tbody><tr v-for="(l, i) in doc.lines"><td v-text="i + 1"></td><td class="mono" v-text="l.code"></td><td v-text="l.name"></td><td class="r" v-text="l.qty"></td><td class="r" v-if="doc.priced" v-text="fmt(l.price)"></td><td class="r" v-if="doc.priced" v-text="l.price == null ? '–' : fmt(l.price * l.qty)"></td></tr></tbody>
+</table>
+<div class="px-paper-f">
+<div class="nt"><small>Notes</small><p v-text="doc.notes || 'None'"></p></div>
+<div class="tt" v-if="doc.priced"><div><span>Subtotal</span><b v-text="fmt(doc.total)"></b></div><div><span>Freight</span><span>Confirmed by sales</span></div><div><span>Sales tax</span><span>Confirmed by sales</span></div><div class="g"><span>Estimated total</span><b v-text="fmt(doc.total) + ' + freight'"></b></div></div>
+<div class="tt" v-else><div><span>Lines</span><b v-text="doc.lines.length"></b></div><div><span>Units</span><b v-text="doc.units"></b></div><div class="g"><span>Prices</span><span>Sent by our sales team</span></div></div>
+</div>
+<p class="px-paper-fine" v-text="doc.kind === 'order' ? 'Orders are reviewed by Maxzz Diesel sales before release. Freight, taxes and ship date are confirmed in the approval e-mail. Prices in USD.' : 'Not an order. Our sales team confirms price, availability and lead time in writing.'"></p>
+</article>
+<div class="px-fbar px-fbar-s" v-if="step === 3">
+<div class="px-fbar-t"><span v-text="doc.lines.length + ' parts, ' + doc.units + ' units'"></span><b v-if="doc.priced" v-text="'Subtotal ' + fmt(doc.total)"></b></div>
+<div class="px-fbar-a"><a class="px-btn px-ghost" :href="flow === 'order' ? '#/checkout' : '#/quote/details'">Edit</a><button type="button" class="px-btn px-red" :disabled="busy" @click="confirmFlow" v-text="busy ? 'Sending...' : (flow === 'order' ? 'Place order' : 'Send quote request')"></button></div>
+</div>
+<div class="px-err" v-if="err && step === 3" v-text="err" style="margin-top:12px"></div>
+<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap" v-if="step === 4"><a class="px-btn px-dark" href="#/all">Keep shopping</a><a class="px-btn px-ghost" href="#/orders" v-if="doc.kind === 'order'">My orders</a><button type="button" class="px-btn px-ghost" onclick="window.print()">Print</button></div>
+</div>
 </div>
 
 <!-- REWARDS -->
@@ -999,34 +1129,6 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <p class="px-muted" v-text="route === 'admin' ? 'This area is for the Maxzz sales team.' : 'Cart, checkout and orders are for approved wholesale customers. You can still build a quote list without an account.'"></p>
 <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><a class="px-btn px-red" href="#/login" v-if="!me">Sign in</a><a class="px-btn px-ghost" href="#/request" v-if="!me">Request access</a><a class="px-btn px-ghost" href="#/quote">Open my quote list</a></div>
 </div>
-<div class="px-cartg" v-if="route === 'cart' && canOrder">
-<div class="px-card">
-<h2>Cart</h2>
-<div class="px-test" v-if="me && !me.ordersLive" style="margin-top:10px">Test mode: orders are saved here and e-mailed to our team, not yet sent to the warehouse system.</div>
-<div class="px-empty" v-if="!cart.length">Your cart is empty. <a href="#/" style="color:#d32a37;font-weight:500">Browse the store</a> or paste a list of part numbers below.</div>
-<div class="px-cl" v-for="(l, i) in cart" :key="l.code">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" alt=""><span v-else class="sc-ph" style="font-size:9px">part</span></a>
-<div class="px-cl-i"><a class="sc-t" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-cl-m"><span class="px-code2" v-text="l.code"></span><span v-text="fmt(price(l.code)) + ' each'"></span></span><button type="button" class="px-rm" @click="remove(i)">Remove</button></div>
-<div class="px-qty"><button type="button" aria-label="Less" @click="setQty(i, l.qty - 1)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setQty(i, l.qty + 1)">+</button></div>
-<b class="px-line-t" v-text="fmt(lineTotal(l))"></b>
-</div>
-<div class="px-err" v-if="noPriceLines.length" style="margin-top:12px">These parts have no online price and cannot be ordered here: <span v-text="noPriceLines.join(', ')"></span>. Remove them and send them as a quote request.</div>
-<details class="px-paste">
-<summary>Paste a list of part numbers</summary>
-<p class="px-muted" style="margin:8px 0 0">One per line. Add the quantity after a space, comma or tab: "0445120231, 6".</p>
-<textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
-<button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste">Add to cart</button>
-<div class="px-ok" v-if="pasteMsg" v-text="pasteMsg"></div>
-</details>
-</div>
-<aside class="px-sumbox" v-if="cart.length">
-<div class="px-sum" style="margin-top:0"><span>Subtotal</span><b v-text="fmt(subtotal)"></b></div>
-<p class="px-sum-n">Freight and taxes are confirmed by our team when the order is approved.</p>
-<a class="px-btn px-red" href="#/checkout">Checkout</a>
-<button type="button" class="px-clr" @click="confirm('Remove all parts from the cart?') && clearCart()">Clear cart</button>
-</aside>
-</div>
-
 <!-- sign in -->
 <div class="px-card px-auth" v-if="route === 'login'">
 <h2>Sign in</h2>
@@ -1087,45 +1189,6 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- checkout -->
-<div class="px-grid" v-if="route === 'checkout' && canOrder">
-<div class="px-card">
-<div class="px-flow"><span class="on">Cart</span><span class="on">Shipping</span><span>Confirmation</span></div>
-<h2>Ship to and reference</h2>
-<p class="px-muted">Your order goes to our sales team for review. You get an e-mail when it is approved and when it ships.</p>
-<form @submit.prevent="placeOrder" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
-<div class="px-g2">
-<label class="px-f">Your PO or job reference<input class="px-in" v-model="co.po" maxlength="40"></label>
-<label class="px-f">Shipping
-<select class="px-in" v-model="co.method"><option>Ground</option><option>2nd Day Air</option><option>Next Day Air</option><option>Will call (pick up in Coconut Creek)</option><option>Freight forwarder</option></select></label>
-</div>
-<label class="px-f">Ship to (name or company)<input class="px-in" v-model="co.name" autocomplete="organization"></label>
-<div class="px-pickup" v-if="pickup">Pick up at 6601 Lyons Road, Ste H-6, Coconut Creek, FL 33073. We e-mail you when the order is ready.</div>
-<label class="px-f" v-if="!pickup">Street address *<input class="px-in" v-model="co.street" autocomplete="street-address" :required="!pickup"></label>
-<div class="px-g3" v-if="!pickup">
-<label class="px-f">City *<input class="px-in" v-model="co.city" autocomplete="address-level2" :required="!pickup"></label>
-<label class="px-f">State<input class="px-in" v-model="co.state" autocomplete="address-level1"></label>
-<label class="px-f">ZIP<input class="px-in" v-model="co.zip" autocomplete="postal-code"></label>
-</div>
-<label class="px-f" v-if="!pickup">Country<select class="px-in" v-model="co.country"><option v-for="c in countries" v-text="c"></option></select></label>
-<label class="px-f" v-if="!pickup && co.country !== 'United States'">Freight forwarder and consignee tax ID<input class="px-in" v-model="co.fwd" maxlength="160" placeholder="Forwarder name, Miami address, consignee CNPJ / RUT / NIT"></label>
-<label class="px-f">Notes for our team<textarea class="px-in" v-model="co.notes"></textarea></label>
-<div class="px-err" v-if="err" v-text="err"></div>
-<div style="display:flex;gap:10px;flex-wrap:wrap">
-<button type="button" class="px-btn px-ghost" @click="nav('cart')">Back to cart</button>
-<button class="px-btn px-red" :disabled="busy" v-text="busy ? 'Placing order...' : 'Place order · ' + fmt(subtotal)"></button>
-</div>
-</form>
-</div>
-<aside class="px-panel" aria-label="Order summary">
-<div class="px-ph"><h2>Summary</h2><span v-text="cart.length + ' parts'"></span></div>
-<div class="px-lines">
-<div class="px-line" v-for="l in cart" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r"><span class="px-line-t" v-text="fmt(lineTotal(l))"></span></div></div>
-</div>
-<div class="px-sum"><span>Subtotal</span><b v-text="fmt(subtotal)"></b></div>
-<p class="px-sum-n">Freight and taxes are confirmed on approval.</p>
-</aside>
-</div>
-
 <!-- orders -->
 <div class="px-card" v-if="route === 'orders' && canOrder">
 <h2>Orders</h2>
@@ -1141,26 +1204,35 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <div class="px-card" v-if="route === 'o' && canOrder && !cur"><p class="px-muted" v-text="ordersLoaded ? 'We could not find this order.' : 'Loading your order...'"></p><a class="px-btn px-ghost px-sm" href="#/orders" style="margin-top:12px">All orders</a></div>
-<div class="px-card" v-if="route === 'o' && cur && canOrder">
-<div class="px-done" v-if="justPlaced === cur.id"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Order received. Thank you.</b><p>We e-mailed a copy to <span v-text="me && me.email"></span>. Our sales team reviews it, confirms stock and freight, and you get an e-mail at every step.</p></div></div>
-<button type="button" class="px-btn px-ghost px-sm" @click="nav('orders')">&larr; All orders</button>
-<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-top:16px">
-<div><h2 v-text="'Order ' + cur.number"></h2><p class="px-muted" v-text="date(cur.created) + (cur.po ? ' · PO ' + cur.po : '') + (cur.unleashedNumber ? ' · Ref ' + cur.unleashedNumber : '')"></p></div>
-<span class="px-st" :class="cur.status" v-text="label(cur.status)"></span>
-</div>
+<div v-if="route === 'o' && cur && canOrder">
+<div class="px-done" v-if="justPlaced === cur.id"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Order received. Thank you.</b><p>We e-mailed a copy to <span v-text="me && me.email"></span>. Our sales team reviews it, confirms stock and freight, and e-mails you at every step.</p></div></div>
+<div class="px-oh"><a class="px-btn px-ghost px-sm" href="#/orders">&larr; All orders</a><span class="px-st" :class="cur.status" v-text="label(cur.status)"></span></div>
 <div class="px-steps">
 <div class="px-step" :class="stepOf(cur) >= 0 ? 'on' : ''">Received</div>
 <div class="px-step" :class="stepOf(cur) >= 1 ? 'on' : ''">Approved</div>
 <div class="px-step" :class="stepOf(cur) >= 2 ? 'on' : ''">Shipped</div>
 <div class="px-step" :class="stepOf(cur) >= 3 ? 'on' : ''">Invoiced</div>
 </div>
-<table class="px-tbl">
-<thead><tr><th>Part</th><th class="r">Qty</th><th class="r">Price</th><th class="r">Total</th></tr></thead>
-<tbody><tr v-for="l in cur.lines"><td><div v-text="l.name"></div><div class="px-code" v-text="l.code"></div></td><td class="r" v-text="l.qty"></td><td class="r" v-text="fmt(l.price)"></td><td class="r" v-text="fmt(l.total)"></td></tr></tbody>
-<tfoot><tr><td colspan="3"><b>Subtotal</b></td><td class="r"><b v-text="fmt(cur.total)"></b></td></tr></tfoot>
+<article class="px-paper" v-if="doc">
+<header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
+<div class="px-paper-meta">
+<div><small>From</small><b v-text="doc.billTo[0]"></b><span v-for="x in doc.billTo.slice(1)" v-text="x"></span></div>
+<div><small v-text="doc.kind === 'order' ? 'Ship to' : 'Deliver to'"></small><span v-for="x in doc.shipTo" v-text="x"></span></div>
+<div><small>Details</small><span v-for="x in doc.refs" v-text="x"></span></div>
+<div><small>To</small><b>Maxzz Diesel</b><span>6601 Lyons Road, Ste H-6</span><span>Coconut Creek, FL 33073</span><span>sales@maxzzdiesel.com</span></div>
+</div>
+<table class="px-paper-t">
+<thead><tr><th>#</th><th>Part number</th><th>Description</th><th class="r">Qty</th><th class="r" v-if="doc.priced">Unit</th><th class="r" v-if="doc.priced">Amount</th></tr></thead>
+<tbody><tr v-for="(l, i) in doc.lines"><td v-text="i + 1"></td><td class="mono" v-text="l.code"></td><td v-text="l.name"></td><td class="r" v-text="l.qty"></td><td class="r" v-if="doc.priced" v-text="fmt(l.price)"></td><td class="r" v-if="doc.priced" v-text="l.price == null ? '–' : fmt(l.price * l.qty)"></td></tr></tbody>
 </table>
-<p class="px-muted" style="margin-top:14px" v-text="'Ship to: ' + [cur.ship.name, cur.ship.street, cur.ship.city, cur.ship.state, cur.ship.zip, cur.ship.country].filter(Boolean).join(', ') + (cur.ship.method ? ' · ' + cur.ship.method : '')"></p>
-<button type="button" class="px-btn px-dark" style="margin-top:10px" @click="reorder(cur)">Buy these again</button>
+<div class="px-paper-f">
+<div class="nt"><small>Notes</small><p v-text="doc.notes || 'None'"></p></div>
+<div class="tt" v-if="doc.priced"><div><span>Subtotal</span><b v-text="fmt(doc.total)"></b></div><div><span>Freight</span><span>Confirmed by sales</span></div><div><span>Sales tax</span><span>Confirmed by sales</span></div><div class="g"><span>Estimated total</span><b v-text="fmt(doc.total) + ' + freight'"></b></div></div>
+<div class="tt" v-else><div><span>Lines</span><b v-text="doc.lines.length"></b></div><div><span>Units</span><b v-text="doc.units"></b></div><div class="g"><span>Prices</span><span>Sent by our sales team</span></div></div>
+</div>
+<p class="px-paper-fine" v-text="doc.kind === 'order' ? 'Orders are reviewed by Maxzz Diesel sales before release. Freight, taxes and ship date are confirmed in the approval e-mail. Prices in USD.' : 'Not an order. Our sales team confirms price, availability and lead time in writing.'"></p>
+</article>
+<div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><button type="button" class="px-btn px-dark" @click="reorder(cur)">Buy these again</button><button type="button" class="px-btn px-ghost" onclick="window.print()">Print</button></div>
 </div>
 
 <!-- admin -->
@@ -1229,7 +1301,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=17"></script>
+<script src="/js/portal-app.js?v=18"></script>
 <script src="/js/motion.js?v=3" defer></script>
 </body>
 </html>
