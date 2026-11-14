@@ -81,7 +81,11 @@ A.images = async (req, res) => {
 };
 
 // configuration check without revealing any value
-A.health = async (req, res) => res.json({ ok: true });
+A.health = async (req, res) => {
+  let db = 'ok';
+  try { await readJson(DB); } catch (e) { db = 'error: ' + String(e && (e.name + ' ' + e.message)).slice(0, 160); }
+  return res.json({ ok: db === 'ok', db });
+};
 
 // ---- sign in -------------------------------------------------------------
 A.login = async (req, res) => {
