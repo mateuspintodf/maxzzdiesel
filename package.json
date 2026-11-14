@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Maxzz Diesel website: static pages + Vercel functions for the Unleashed catalog and HubSpot forms.",
   "engines": {
-    "node": ">=18"
+    "node": "24.x"
   },
   "dependencies": {
     "@vercel/blob": "2.9.0"
