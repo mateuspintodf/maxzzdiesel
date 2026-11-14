@@ -577,7 +577,7 @@
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
-    stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 3 }[o.status] || 0; },
+    stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 4 }[o.status] || 0; },
     bench: function (code) { return !!BENCH[code]; },
     title: function (r) {
       if (!r || !r[0]) return '';
@@ -676,7 +676,8 @@
         }
         var l = self.cart.filter(function (c) { return c.code === x.code; })[0]; if (l) l.qty += x.qty; else self.cart.push({ code: x.code, qty: x.qty });
       });
-      this.save(); write(QK, this.quote); this.nav('cart'); this.flash((o.lines.length - skipped) + ' parts added to your cart' + (skipped ? '. ' + skipped + ' without online price added to your quote list' : ''), skipped ? 'quote' : 'cart');
+      this.save(); write(QK, this.quote); this.nav('cart'); var n = o.lines.length - skipped; if (!n) { this.nav('quote'); this.flash('Added to your quote list. These parts are priced by sales.', 'quote'); return; }
+      this.flash(n + (n === 1 ? ' part' : ' parts') + ' added to your cart' + (skipped ? '. ' + skipped + ' without online price added to your quote list' : ''), skipped ? 'quote' : 'cart');
     },
     placeOrder: function () {
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
@@ -688,6 +689,7 @@
       api('order', { body: body }).then(function (r) {
         self.busy = false;
         if (r._status !== 200) { self.err = r.error || 'We could not place the order. Please try again.'; return; }
+        if (!r.order) { self.idem = ''; self.clearCart(); self.nav('orders'); self.flash('Order received. It will show in your orders shortly.', 'cart'); return; }
         track('generate_lead', { form: 'portal_order', quote_id: r.order.number, items: r.order.lines.length });
         self.idem = '';
         self.orders.unshift(r.order); self.cur = r.order; self.justPlaced = r.order.id; self.co.po = ''; self.co.notes = '';
