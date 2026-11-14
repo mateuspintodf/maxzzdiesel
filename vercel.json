@@ -105,6 +105,221 @@
       "source": "/assets/tds/maxzz-fluid-:code-tds.pdf",
       "destination": "/assets/flyers/maxzz-fluid-:code-flyer.pdf",
       "permanent": true
+    },
+    {
+      "source": "/about-maxzz",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/brands",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
+      "source": "/denso",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
+      "source": "/densos",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
+      "source": "/robiel",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
+      "source": "/slp",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
+      "source": "/java",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
+      "source": "/blog",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/home-2",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/hdaw24",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/contact",
+      "destination": "/quote",
+      "permanent": true
+    },
+    {
+      "source": "/volvo-engine-kits",
+      "destination": "https://volvoenginekits.com/",
+      "permanent": true
+    },
+    {
+      "source": "/injector",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/nozzles",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/valves",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/highs-pressure-pumps",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/repair-kits",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/connector-tubes",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/reman-parts",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/store",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/storeoff",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/productoff",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/page1-2",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/bracket-high-pressure-pump",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/product/:slug*",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/categoria-produto/tool-sets",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/categoria-produto/kr-equipments",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/categoria-produto/:slug*",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/cart",
+      "destination": "/quote",
+      "permanent": true
+    },
+    {
+      "source": "/purchase-completion",
+      "destination": "/quote",
+      "permanent": true
+    },
+    {
+      "source": "/minha-conta",
+      "destination": "/portal",
+      "permanent": true
+    },
+    {
+      "source": "/my-account",
+      "destination": "/portal",
+      "permanent": true
+    },
+    {
+      "source": "/volvo-penta-launches-new-line-of-diesel-engine-parts-for-marine-applications-promising-increased-performance-and-efficiency",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/new-study-shows-diesel-injection-parts-can-improve-fuel-efficiency-and-reduce-emissions",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/volvos-new-line-of-diesel-engine-parts-for-heavy-equipment-promises-increased-efficiency-and-durability",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/what-happens-when-gasoline-meets-diesel",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/maximizing-the-lifespan-of-diesel-engines-in-trucks",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/what-is-the-best-diesel-today",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/can-older-engines-run-on-diesel-s-10",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/embrace-the-future-with-hdaw24-featuring-the-fully-equipped-theme",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/category/:slug*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/wp-sitemap.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
+    },
+    {
+      "source": "/sitemap_index.xml",
+      "destination": "/sitemap.xml",
+      "permanent": true
     }
   ],
   "crons": [
