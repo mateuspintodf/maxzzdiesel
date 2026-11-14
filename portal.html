@@ -1032,6 +1032,8 @@ a[href^="tel:"]{white-space:nowrap}
   .px .px-paper-t td:nth-child(5)::before{content:'Unit '}
   .px .px-paper-t td:nth-child(6){display:block!important;grid-column:2;grid-row:3 / span 2;align-self:center;font-weight:600;text-align:right}
 }
+html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-top:120px}
+@media (max-width:760px){html{scroll-padding-top:92px}.px-main :is(input,select,textarea){scroll-margin-top:100px}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
