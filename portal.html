@@ -995,6 +995,11 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 .px-rcard .px-btn:disabled,.px .ft .px-btn:disabled{background:#f1f2f4!important;color:#6b7280!important;border-color:#f1f2f4!important}
 .px-ltab .px-code2,.sc-pn,.pn,.px-pdpn,.px-code2{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 @media (max-width:760px){.px-makes .px-make:last-child:nth-child(odd){grid-column:auto}}
+/* r3 ui */
+.px-btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+@media (max-width:760px){.px-list-h>span{min-width:0;max-width:100%;flex-wrap:wrap}.px-sort{flex:1 1 auto;min-width:0}.px-eng{grid-template-columns:88px 1fr;gap:8px 12px}.sc-br{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.sc-cat{flex-wrap:nowrap;min-width:0}.px-clr-top{margin:0 0 4px;padding-top:6px}}
+a[href^="tel:"]{white-space:nowrap}
+@media (min-width:761px){.px-toast{right:max(16px,calc((100vw - 1320px)/2))}.px-ord{grid-template-columns:minmax(0,1fr) 120px 170px}.px-ord .px-ord-t{text-align:right}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
