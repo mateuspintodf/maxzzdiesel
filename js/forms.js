@@ -49,11 +49,13 @@
     var a = e.target.closest && e.target.closest('[data-chat]');
     if (!a) return;
     var hc = window.HubSpotConversations;
-    if (hc && hc.widget && hc.widget.status && hc.widget.status().loaded) {
-      e.preventDefault();
-      var m = a.closest('details'); if (m) m.open = false;
-      hc.widget.open();
-    }
+    if (!(hc && hc.widget && hc.widget.status)) return;
+    e.preventDefault();
+    var m = a.closest('details'); if (m) m.open = false;
+    if (hc.widget.status().loaded) { hc.widget.open(); return; }
+    // chat deferred on this page (mobile quote): load it on demand, then open
+    try { hc.on('widgetLoaded', function () { hc.widget.open(); }); } catch (x) {}
+    hc.widget.load();
   });
   // Tie this browser to the contact in HubSpot so chats and visits show on the record
   window.mxIdentify = function (email, name) {
