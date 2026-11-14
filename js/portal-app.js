@@ -104,7 +104,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
@@ -706,8 +706,10 @@
       });
       this.save(); write(QK, this.quote);
       if (this.flow === 'quote' && miss.length) { this.qd.notes = ((this.qd.notes ? this.qd.notes + '\n' : '') + 'Not listed online, please check: ' + miss.join(', ')).slice(0, 1900); }
-      this.pasteMsg = ok + ' added' + (miss.length ? '. Not found: ' + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + (this.flow === 'quote' ? '. We added them to your notes so sales can check them' : '') : '') + (noPrice.length ? '. No online price, moved to your quote list: ' + noPrice.slice(0, 6).join(', ') : '');
-      if (!miss.length && !noPrice.length) this.paste = '';
+      this.pasteMsg = ok + (ok === 1 ? ' part added' : ' parts added') + (miss.length ? '. Not found: ' + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + (this.flow === 'quote' ? '. We added them to your notes so sales can check them' : '') : '') + '.' + (noPrice.length ? '. No online price, moved to your quote list: ' + noPrice.slice(0, 6).join(', ') : '');
+      this.pasteWarn = !!miss.length;
+      // the textarea keeps only what still needs attention, so a second click cannot add the same lines twice
+      this.paste = this.flow === 'quote' ? '' : miss.join('\n');
     },
     reorder: function (o) {
       var self = this;

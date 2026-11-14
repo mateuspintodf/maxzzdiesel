@@ -1054,6 +1054,8 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 .px-iw .px-ii{z-index:1}
 .px-in.bad:focus{border-color:#d32a37!important;box-shadow:0 0 0 3px rgba(211,42,55,.2)}
 @media (max-width:760px){.px .px-ord .px-st{justify-self:end}}
+.px-ok.warn{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
+@media (max-width:760px){.px-empty .px-btns .px-btn,.px-nf .px-btns .px-btn{height:44px}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1488,12 +1490,12 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <td class="c lrm"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
 </tr></tbody>
 </table>
-<details class="px-paste" :open="!lines.length">
+<details class="px-paste" :open="!lines.length || !!pasteMsg">
 <summary v-text="flow === 'order' ? 'Quick order: paste part numbers' : 'Paste a list of part numbers'"></summary>
 <p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: “0445120231, 6”.</p>
 <textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
 <button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste" v-text="flow === 'order' ? 'Add to cart' : 'Add to quote list'"></button>
-<div class="px-ok" v-if="pasteMsg" v-text="pasteMsg"></div>
+<div class="px-ok" :class="pasteWarn ? 'warn' : ''" v-if="pasteMsg" v-text="pasteMsg"></div>
 </details>
 </div>
 <div class="px-perk" v-if="flow === 'order' && showPrice && lines.length && REWARDS.on && !REWARDS.demo">
