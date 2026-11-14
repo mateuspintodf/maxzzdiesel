@@ -1277,10 +1277,10 @@ a[href^="tel:"]{white-space:nowrap}
 </div>
 <p class="px-note2" v-if="spec.ok">Part data under technical review. Confirm the fit with our team before installing.</p>
 </div>
-<div class="px-mbar" v-if="product" :class="[mbarOn ? 'on' : '', quoteN || (canOrder && cart.length) ? '' : 'solo']">
+<div class="px-mbar" v-if="product" :class="[mbarOn ? 'on' : '', 'solo']">
 <span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-mb-l">Sign in for price</span>
-<button type="button" class="px-btn px-red" v-if="canOrder && price(pr[0]) != null" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? 'In cart (' + cartQty(pr[0]) + ') · View' : 'Add ' + cs(pr[0]) + ' to cart'"></button>
-<button type="button" class="px-btn px-red" v-else @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote (' + quoteQty(pr[0]) + ') · View' : 'Add ' + sq(pr[0]) + ' to quote'"></button>
+<button type="button" class="px-btn px-red" v-if="canOrder && price(pr[0]) != null" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? cartQty(pr[0]) + ' in cart · View' : 'Add ' + cs(pr[0]) + ' to cart'"></button>
+<button type="button" class="px-btn px-red" v-else @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? quoteQty(pr[0]) + ' in quote · View' : 'Add ' + sq(pr[0]) + ' to quote'"></button>
 </div>
 <div class="px-sec" v-if="interch.length">
 <div class="px-sh"><h2>Interchangeable part numbers</h2></div>
@@ -1774,7 +1774,7 @@ a[href^="tel:"]{white-space:nowrap}
 </div>
 <div class="px-qp-f" v-if="quote.length"><a class="px-btn px-red" href="#/quote" @click="qOpen = false" style="width:100%;justify-content:space-between;padding:4px 4px 4px 22px;height:54px">Continue to my quote<span class="px-qp-ar"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 17 17 7M7 7h10v10"/></svg></span></a><small>Add your details on the next step. Our team replies with pricing within one business day.</small></div>
 </div>
-<div class="px-fab" v-if="['home', 'c', 's', 'g', 'all', 'p'].indexOf(route) >= 0">
+<div class="px-fab" v-if="['home', 'c', 's', 'g', 'all'].indexOf(route) >= 0">
 <a class="px-fab-b" href="#/cart" v-if="canOrder && cart.length && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="t">My cart</span><span class="n" v-text="cart.length"></span></a>
 <button type="button" class="px-fab-b red" v-if="quoteN && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0 && (route !== 'p' || mbarOn)" @click="qOpen ? qClose() : (qOpen = true)" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
 </div>
