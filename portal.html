@@ -339,6 +339,32 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 @media (min-width:761px){.px-mbar{display:none!important}}
 .px-hero.compact h1,.px-hero.compact .px-hero-in>div>p,.px-hero.compact .px-acc-line,.px-hero.compact .px-kpis{display:none}
 .px-hero.compact{padding-bottom:22px}.px-hero.compact .px-hs{margin-top:0}
+
+.px-tags{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.px-tag{font-size:12px;border:1px solid #dfe2e6;border-radius:50px;padding:2px 10px;color:#3a4048}
+.px-detail{margin-top:24px;background:#fff;border-radius:25px;padding:8px 28px 24px}
+.px-dtabs{display:flex;gap:4px;border-bottom:1px solid #eef0f2;overflow-x:auto;scrollbar-width:none;margin:0 -8px}
+.px .px-dtabs a{flex:none;padding:16px 12px 14px;font-size:15px;font-weight:500;color:#5f656c;border-bottom:2px solid transparent;margin-bottom:-1px;display:inline-flex;align-items:center;gap:8px}
+.px .px-dtabs a:hover{color:#1d2126}.px .px-dtabs a.on{color:#1d2126;border-color:#d32a37}
+.px-cnt{background:#f4f5f6;border-radius:50px;padding:0 7px;font-size:12px;color:#5f656c}
+.px-dbody{padding-top:20px;max-width:900px}
+.px-rich{font-size:15px;line-height:1.65;color:#3a4048}.px-rich h3{font-size:17px;font-weight:500;color:#1d2126;margin:22px 0 8px}.px-rich p{margin:0 0 10px}.px-rich ul{margin:0;padding-left:20px}.px-rich li{margin:3px 0}
+.px-spec{width:100%;border-collapse:collapse;font-size:14px}
+.px-spec th,.px-spec td{text-align:left;padding:11px 12px;border-bottom:1px solid #eef0f2;vertical-align:top}
+.px-spec tbody th{width:220px;color:#5f656c;font-weight:400}.px-spec thead th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#8a9097;font-weight:600}
+.px-spec tr:nth-child(even) td,.px-spec tr:nth-child(even) th{background:#fafbfb}
+.px-spec .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600}
+.px-spec a{color:#d32a37;font-weight:500}
+.px-apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.px-app{border:1px solid #eef0f2;border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:4px;font-size:14px;color:#5f656c}
+.px-app b{color:#1d2126;font-weight:500;font-size:15px}.px .px-app a{color:#d32a37;font-weight:500;margin-top:6px}
+.px-faq{border-bottom:1px solid #eef0f2;padding:4px 0}
+.px-faq summary{cursor:pointer;padding:12px 0;font-weight:500;font-size:15px;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.px-faq summary::-webkit-details-marker{display:none}.px-faq summary:after{content:'+';color:#8a9097;font-size:18px}.px-faq[open] summary:after{content:'\2212'}
+.px-faq p{margin:0 0 14px;color:#3a4048;font-size:14px;line-height:1.6}
+.px-note2{margin:18px 0 0;font-size:12px;color:#8a9097}
+@media (max-width:760px){.px-detail{padding:4px 16px 18px}.px-spec tbody th{width:40%}}
+.px-kvr{display:contents}
 </style>
 <style>
 .px-bar{background:#fff;border-bottom:1px solid #e3e6e9}
@@ -380,7 +406,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
 .sc{position:relative;background:#fff;border-radius:20px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .25s}
 .sc:hover{box-shadow:0 12px 28px rgba(29,33,38,.08)}
-.sc-img{aspect-ratio:4/3;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sc-img{position:relative;aspect-ratio:4/3;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sc-pnb{position:absolute;top:10px;left:10px;z-index:2;background:#d32a37;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12.5px;font-weight:700;letter-spacing:.02em;padding:5px 9px;border-radius:8px;box-shadow:0 4px 12px rgba(211,42,55,.25);max-width:calc(100% - 64px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc-img img{width:100%;height:100%;object-fit:contain;padding:12px;mix-blend-mode:multiply}
 .px img.bench{object-fit:cover;padding:0;mix-blend-mode:normal}
 .sc-ph{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#b9b9be}
@@ -447,9 +474,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-shop{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;align-items:start}
 .px-side{background:#fff;border-radius:25px;padding:6px 18px}
 .px-side h3{margin:0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#8a9097;font-weight:600}
-.px-fg{padding:12px 0;border-top:1px solid #eef0f2;display:flex;flex-direction:column;gap:0}.px-side-h + .px-fg,.px-fg:first-child{border-top:0}
-.px-fg h3{margin:2px 0 6px}
-.px-fo{display:flex;align-items:center;gap:10px;padding:4px 8px;margin:0 -8px;border-radius:10px;font-size:14px;cursor:pointer;color:#1d2126}
+.px-fg{padding:10px 0;border-top:1px solid #eef0f2;display:flex;flex-direction:column;gap:0}.px-side-h + .px-fg,.px-fg:first-child{border-top:0}
+.px-fg h3{margin:2px 0 4px}
+.px-fo{display:flex;align-items:center;gap:10px;padding:2px 8px;line-height:1.35;margin:0 -8px;border-radius:10px;font-size:14px;cursor:pointer;color:#1d2126}
 .px-fo:hover{background:#f4f5f6}
 .px-fo input{position:absolute;opacity:0;pointer-events:none}
 .px-fo .bx{flex:none;width:18px;height:18px;border-radius:5px;border:1.5px solid #c4c9ce;display:flex;align-items:center;justify-content:center;transition:background-color .15s,border-color .15s}
@@ -590,11 +617,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sh"><h2>Featured parts</h2><a href="#/c/Injector">All injectors</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in featured" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -622,11 +648,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sh"><h2>Pumps, nozzles and tools</h2><a href="#/c/Pump">All pumps</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in moreRow" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -663,11 +688,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-empty" v-if="cat.length && !results.length">Nothing found. Try the part number without dots, or <a href="/quote" style="color:#d32a37;font-weight:500">ask us for a quote</a>.</div>
 <div class="px-grid4">
 <article class="sc" v-for="r in shown" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -690,29 +714,27 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div v-if="route === 'p'">
 <div class="px-empty" v-if="!product && cat.length">Part not found. <a href="#/" style="color:#d32a37">Back to the store</a></div>
 <div v-if="product">
-<div class="px-crumb"><a href="#/">Store</a> / <a :href="'#/c/' + encodeURIComponent(product[3])" v-text="product[3]"></a> / <span v-text="product[0]"></span></div>
+<div class="px-crumb"><a href="#/">Store</a> / <a :href="'#/c/' + encodeURIComponent(pr[3])" v-text="pr[3]"></a> / <span v-text="pr[0]"></span></div>
 <div class="px-pd">
-<div class="px-pd-img"><img v-if="img(product[0])" :class="bench(product[0]) ? 'bench' : ''" :src="img(product[0])" :alt="info(product).title"><span v-else class="sc-ph" v-text="product[3]"></span></div>
+<div class="px-pd-img"><img v-if="img(pr[0])" :class="bench(pr[0]) ? 'bench' : ''" :src="img(pr[0])" :alt="info(pr).title"><span v-else class="sc-ph" v-text="pr[3]"></span></div>
 <div class="px-pd-info">
-<span class="sc-cat" v-text="product[3]"></span>
-<h1 v-text="info(product).title"></h1>
-<div class="px-pdpn"><span v-text="product[0]"></span><button type="button" @click="copy(product[0])" aria-label="Copy part number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+<div class="px-tags"><span class="sc-cat" v-text="pr[3]"></span><span class="px-tag" v-if="pr[4]" v-text="pr[4]"></span><span class="px-tag" v-if="spec.cond" v-text="spec.cond"></span></div>
+<h1 v-text="spec.title ? spec.title : info(pr).title"></h1>
+<div class="px-pdpn"><span v-text="pr[0]"></span><button type="button" @click="copy(pr[0])" aria-label="Copy part number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
 <dl class="px-kv">
-<dt v-if="info(product).app">Application</dt><dd v-if="info(product).app" v-text="info(product).app"></dd>
-<dt v-if="info(product).xr.length">Cross references</dt><dd v-if="info(product).xr.length" class="px-xr"><a v-for="x in info(product).xr" :href="'#/s/' + encodeURIComponent(x)" v-text="x"></a></dd>
-<dt v-if="product[4]">Brand</dt><dd v-if="product[4]" v-text="product[4]"></dd>
+<div class="px-kvr" v-for="row in keyFacts"><dt v-text="row[0]"></dt><dd v-text="row[1]"></dd></div>
 </dl>
-<div v-if="fits.length"><div class="px-muted" style="margin-bottom:8px">Fits</div><div class="px-fits"><a v-for="g in fits" :href="'#/g/' + g.key" v-text="g.label + ' ' + (g.years || '')"></a></div></div>
+<div v-if="fits.length"><div class="px-muted" style="margin-bottom:8px">Shop this vehicle</div><div class="px-fits"><a v-for="g in fits" :href="'#/g/' + g.key" v-text="g.label + ' ' + (g.years || '')"></a></div></div>
 <div class="px-buybox" v-if="logged">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" v-text="fmt(price(product[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(product[0])"></i><span v-text="stockText(product[0])"></span></span></div>
-<div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(product[0], pick(product[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(product[0])" @change="setPick(product[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(product[0], pick(product[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" style="flex:1" :disabled="price(product[0]) == null" @click="add(product[0], pick(product[0]))">Add to cart</button></div>
-<button type="button" class="px-btn px-ghost" v-if="!canOrder" :class="inQuote(product[0]) ? 'in' : ''" @click="addQuote(product[0])" v-text="inQuote(product[0]) ? 'In your quote list' : 'Add to quote'"></button>
-<button type="button" class="px-link" v-else @click="addQuote(product[0])" v-text="inQuote(product[0]) ? 'In your quote list' : 'Need a special price or lead time? Add to a quote request'"></button>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" v-text="fmt(price(pr[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
+<div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(pr[0], pick(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(pr[0])" @change="setPick(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(pr[0], pick(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" style="flex:1" :disabled="price(pr[0]) == null" @click="add(pr[0], pick(pr[0]))">Add to cart</button></div>
+<button type="button" class="px-btn px-ghost" v-if="!canOrder" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Add to quote'"></button>
+<button type="button" class="px-link" v-else @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Need a special price or lead time? Add to a quote request'"></button>
 <div class="px-muted" v-if="canOrder">Ships from Coconut Creek, Florida. Orders are reviewed by our sales team and you get an e-mail at every step.</div>
 </div>
 <div class="px-lockbox" v-else>
 <b>Wholesale price and stock are for approved customers.</b> Sign in to see your price and order online, or add it to a quote and our team replies within one business day.
-<div class="px-btns"><button type="button" class="px-btn px-red px-sm" :class="inQuote(product[0]) ? 'in' : ''" @click="addQuote(product[0])" v-text="inQuote(product[0]) ? 'In your quote list' : 'Add to quote'"></button><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
+<div class="px-btns"><button type="button" class="px-btn px-red px-sm" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Add to quote'"></button><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
 </div>
 <div class="px-how" v-if="!canOrder">
 <div><b>1</b><span>Add the parts you need to your quote list.</span></div>
@@ -722,20 +744,36 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-help">Questions about this part? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or <a href="https://wa.me/19543716996" target="_blank" rel="noopener">chat on WhatsApp</a>.</div>
 </div>
 </div>
+<div class="px-detail">
+<nav class="px-dtabs" aria-label="Part details"><a href="#" @click.prevent="dtab = 'ov'" :class="tab === 'ov' ? 'on' : ''" v-if="spec.desc">Overview</a><a href="#" @click.prevent="dtab = 'sp'" :class="tab === 'sp' ? 'on' : ''">Specifications</a><a href="#" @click.prevent="dtab = 'ap'" :class="tab === 'ap' ? 'on' : ''">Applications</a><a href="#" @click.prevent="dtab = 'xr'" :class="tab === 'xr' ? 'on' : ''">Cross references<span class="px-cnt" v-if="xrefs.length" v-text="xrefs.length"></span></a><a href="#" @click.prevent="dtab = 'fq'" :class="tab === 'fq' ? 'on' : ''" v-if="faqs.length">FAQ</a></nav>
+<div class="px-dbody">
+<div class="px-rich" v-if="tab === 'ov' && spec.desc" v-html="spec.desc"></div>
+<table class="px-spec" v-if="tab === 'sp'"><tbody><tr v-for="row in specRows"><th v-text="row[0]"></th><td v-text="row[1]"></td></tr></tbody></table>
+<div v-if="tab === 'ap'">
+<div class="px-apps" v-if="appRows.length"><div class="px-app" v-for="a in appRows"><b v-text="a.t"></b><span v-text="a.d"></span><a v-if="a.g" :href="'#/g/' + a.g">See all parts for this vehicle</a></div></div>
+<p class="px-muted" v-else>Application not listed yet. Send us the engine serial or VIN and our team confirms the fit.</p>
+</div>
+<div v-if="tab === 'xr'">
+<table class="px-spec" v-if="xrefs.length"><thead><tr><th>Number</th><th>Type</th><th></th></tr></thead><tbody><tr v-for="x in xrefs"><td class="mono" v-text="x.n"></td><td v-text="x.t"></td><td><a v-if="x.code" :href="'#/p/' + encodeURIComponent(x.code)">View part</a><a v-else :href="'#/s/' + encodeURIComponent(x.n)">Search</a></td></tr></tbody></table>
+<p class="px-muted" v-else>No cross references on file for this part.</p>
+</div>
+<div v-if="tab === 'fq'"><details class="px-faq" v-for="(f, i) in faqs" :open="i === 0"><summary v-text="f.q"></summary><p v-text="f.a"></p></details></div>
+</div>
+<p class="px-note2" v-if="spec.ok">Part data under technical review. Confirm the fit with our team before installing.</p>
+</div>
 <div class="px-mbar" v-if="product">
-<span v-if="logged"><b v-text="fmt(price(product[0]))"></b></span><span v-else class="px-muted" style="color:#b9b9be">Sign in for price</span>
-<button type="button" class="px-btn px-red" v-if="canOrder" :disabled="price(product[0]) == null" @click="add(product[0], pick(product[0]))" v-text="cartQty(product[0]) ? 'In cart (' + cartQty(product[0]) + ')' : 'Add to cart'"></button>
-<button type="button" class="px-btn px-red" v-else @click="addQuote(product[0])" v-text="inQuote(product[0]) ? 'In your quote' : 'Add to quote'"></button>
+<span v-if="logged"><b v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-muted" style="color:#b9b9be">Sign in for price</span>
+<button type="button" class="px-btn px-red" v-if="canOrder" :disabled="price(pr[0]) == null" @click="add(pr[0], pick(pr[0]))" v-text="cartQty(pr[0]) ? 'In cart (' + cartQty(pr[0]) + ')' : 'Add to cart'"></button>
+<button type="button" class="px-btn px-red" v-else @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote' : 'Add to quote'"></button>
 </div>
 <div class="px-sec" v-if="interch.length">
 <div class="px-sh"><h2>Interchangeable part numbers</h2></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in interch" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -755,11 +793,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sh"><h2>Often bought together</h2></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in related" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -780,11 +817,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sh"><h2>Complete the job</h2><span class="px-muted">Other parts for the same application</span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in sameApp" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -804,11 +840,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sh"><h2>Recently viewed</h2></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in recentList" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-pnb" v-text="r[0]"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-text="r[3]"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-cat"><span v-text="r[3]"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<span class="sc-pn" v-text="r[0]"></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="info(r).title"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
@@ -1035,7 +1070,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=10"></script>
+<script src="/js/portal-app.js?v=12"></script>
 <script src="/js/motion.js?v=3" defer></script>
 </body>
 </html>

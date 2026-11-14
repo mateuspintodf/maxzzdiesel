@@ -68,7 +68,7 @@
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
     err: '', busy: false, toast: '', email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quoteN: read(QK, []).length, quoteIds: read(QK, []).map(function (x) { return x.id; }), sortBy: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quoteN: read(QK, []).length, quoteIds: read(QK, []).map(function (x) { return x.id; }), sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
     vMake: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: { po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '' },
     orders: [], cur: null, accounts: [], sync: null,
@@ -194,7 +194,67 @@
     },
     get shown() { return this.results.slice(0, this.limit); },
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
-    get related() { var self = this, p = this.product; if (!p) return []; return (this.fit.rel[p[0]] || []).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8); },
+    get related() {
+      var self = this, p = this.product; if (!p) return [];
+      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], codes = (this.fit.rel[p[0]] || []).concat(sr), seen = {};
+      return codes.filter(function (c) { if (seen[c] || c === p[0]) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
+    },
+    get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
+    get pr() { return this.product || ['', '', '', '', '', '', '']; },
+    get spec() { var p = this.product; return (p && this.specs && this.specs[p[0]]) || {}; },
+    get keyFacts() {
+      var p = this.product, sp = this.spec || {}, i = parse(p && p[1]), out = [];
+      if (!p) return out;
+      if (sp.eng) out.push(['Engine', sp.eng]);
+      if (sp.models) out.push(['Vehicles', sp.models]);
+      if (!sp.eng && i.app) out.push(['Application', i.app]);
+      if (sp.inj) out.push(['Used in', sp.inj]);
+      if (p[4]) out.push(['Brand', p[4]]);
+      if (sp.cond) out.push(['Condition', sp.cond]);
+      if (this.xrefs.length) out.push(['Cross references', this.xrefs.length + ' numbers, see below']);
+      return out;
+    },
+    get specRows() {
+      var p = this.product, sp = this.spec || {}, i = parse(p && p[1]), r = [];
+      if (!p) return r;
+      r.push(['Maxzz part number', p[0]]);
+      var pn = p[0].replace(/^[A-Z]{2}\./, '');
+      r.push(['Manufacturer part number', pn]);
+      if (p[4]) r.push(['Brand', p[4]]);
+      r.push(['Part type', sp.type || p[3]]);
+      if (sp.cond) r.push(['Condition', sp.cond]);
+      if (sp.eng) r.push(['Engine / generation', sp.eng]);
+      if (sp.make) r.push(['Vehicle make', sp.make]);
+      if (sp.y0) r.push(['Model years', sp.y0 + (sp.y1 ? ' to ' + sp.y1 : ' to today')]);
+      if (sp.models) r.push(['Vehicles', sp.models]);
+      if (sp.inj) r.push(['Used in injectors', sp.inj]);
+      if (!sp.eng && i.app) r.push(['Application (from catalog)', i.app]);
+      var u = this.book && this.book.items[p[0]] && this.book.items[p[0]][3]; if (u) r.push(['Unit', u]);
+      r.push(['Catalog description', p[1]]);
+      return r;
+    },
+    get appRows() {
+      var self = this, p = this.product, sp = this.spec || {}, out = [];
+      if (!p) return out;
+      this.fits.forEach(function (g) { out.push({ t: g.label + ' ' + (g.years || ''), d: sp.models || '', g: g.key }); });
+      if (!out.length && sp.fit) sp.fit.split(/\s*;\s*|\n/).forEach(function (f) { if (f) out.push({ t: f, d: '' }); });
+      if (!out.length) { var a = parse(p[1]).app; if (a) out.push({ t: a, d: 'From the catalog description' }); }
+      return out;
+    },
+    get xrefs() {
+      var self = this, p = this.product; if (!p) return [];
+      var seen = {}, out = [], add = function (n, t) { var k = norm(n); if (!k || seen[k] || k === norm(p[0]).replace(/^[A-Z]{2}/, '')) return; seen[k] = 1; var hit = self.find(n); out.push({ n: n, t: t, code: hit && hit !== p[0] ? hit : null }); };
+      parse(p[1]).xr.forEach(function (x) { add(x, 'Equivalent'); });
+      var sp = this.spec; if (sp.eq) sp.eq.split(/\s*[,;]\s*/).forEach(function (x) { add(x, 'Equivalent'); });
+      this.interch.forEach(function (r) { add(r[0], 'Interchangeable (in stock list)'); });
+      return out;
+    },
+    get faqs() {
+      var sp = this.spec; if (!sp.faq) return [];
+      var out = [], cur = null;
+      sp.faq.split('\n').forEach(function (l) { l = l.trim(); if (/^Q:/.test(l)) { cur = { q: l.slice(2).trim(), a: '' }; out.push(cur); } else if (/^A:/.test(l) && cur) cur.a = l.slice(2).trim(); else if (cur && l) cur.a += ' ' + l; });
+      return out;
+    },
     get fits() { var self = this, p = this.product, f = p && this.fit.items[p[0]]; if (!f) return []; return f[0].map(function (k) { return self.genOf(k); }).filter(Boolean); },
     get subtotal() { var self = this; return this.cart.reduce(function (a, l) { return a + self.lineTotal(l); }, 0); },
 
@@ -228,6 +288,8 @@
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || this.cur;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
+      if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
+      if (r === 'p') this.dtab = '';
       if (r === 'p' && a) { var rc = this.recent.filter(function (c) { return c !== a; }); rc.unshift(a); this.recent = rc.slice(0, 12); write('mx-portal-recent', this.recent); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },

@@ -56,7 +56,7 @@ async function priceBook(account) {
     let price = idx >= 0 ? p.t[idx] : null;
     if (!(price > 0)) price = p.d;
     if (!(price > 0)) price = null; // zero or missing price shows "Ask us" and cannot be ordered
-    out[code] = [price == null ? null : money(price), stock && stock.qty ? (stock.qty[code] ?? 0) : null, p.img || null];
+    out[code] = [price == null ? null : money(price), stock && stock.qty ? (stock.qty[code] ?? 0) : null, p.img || null, p.u || null];
   }
   return { tier: idx >= 0 ? prod.tiers[idx] : 'Default', at: prod.at, stockAt: stock && stock.at, items: out };
 }
