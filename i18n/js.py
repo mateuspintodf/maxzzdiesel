@@ -48,7 +48,7 @@ T.update({
 '294 pages, English and Spanish. Tell us where to send updates and new kits.': ('294 páginas, en inglés y español. Dinos a dónde enviarte novedades y kits nuevos.', '294 páginas, em inglês e espanhol. Diga para onde enviamos novidades e kits novos.'),
 'Work e-mail': ('Correo de trabajo', 'E-mail de trabalho'),
 'you@yourshop.com': ('tu@tutaller.com', 'voce@suaoficina.com'),
-'Name': ('Nombre', 'Nome'), 'Optional': ('Opcional', 'Opcional'), 'Company': ('Empresa', 'Empresa'),
+'Name': ('Nombre', 'Nome'), 'Optional': ('Opcional', 'Opcional'), 'Full name (optional)': ('Nombre completo (opcional)', 'Nome completo (opcional)'), 'Shop or company (optional)': ('Taller o empresa (opcional)', 'Oficina ou empresa (opcional)'), 'Company': ('Empresa', 'Empresa'),
 'Download the catalog': ('Descargar el catálogo', 'Baixar o catálogo'),
 'We only use your e-mail for Maxzz Diesel updates. No spam.': ('Solo usamos tu correo para novedades de Maxzz Diesel. Sin spam.', 'Usamos seu e-mail só para novidades da Maxzz Diesel. Sem spam.'),
 'Enter a valid e-mail.': ('Ingresa un correo válido.', 'Informe um e-mail válido.'),
