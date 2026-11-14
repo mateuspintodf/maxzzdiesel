@@ -709,7 +709,11 @@
       var notes = this.qd.notes || '', fresh = miss.filter(function (m) { return notes.indexOf(m) < 0; });
       if (this.flow === 'quote' && fresh.length) this.qd.notes = ((notes ? notes + '\n' : '') + 'Not listed online, please check: ' + fresh.join(', ')).slice(0, 1900);
       this.pasteMiss = miss.slice(0, 30);
-      this.pasteMsg = (!ok && miss.length && !noPrice.length) ? 'Not listed online: ' + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + '. Send them to our sales team.' : ok + (ok === 1 ? ' part added' : ' parts added') + (miss.length ? '. Not found: ' + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + (this.flow === 'quote' && this.lines.length ? '. We added them to your notes so sales can check them' : '. Send them to our sales team') : '') + '.' + (noPrice.length ? '. No online price, moved to your quote list: ' + noPrice.slice(0, 6).join(', ') : '');
+      var pm = [];
+      if (ok) pm.push(ok + (ok === 1 ? ' part added' : ' parts added'));
+      if (miss.length) pm.push((ok ? 'Not found: ' : 'Not listed online: ') + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + (this.flow === 'quote' && this.lines.length ? '. We added them to your notes so sales can check them' : '. Send them to our sales team'));
+      if (noPrice.length) pm.push('No online price, moved to your quote list: ' + noPrice.slice(0, 6).join(', '));
+      this.pasteMsg = pm.length ? pm.join('. ') + '.' : 'Nothing to add.';
       this.pasteWarn = !!miss.length;
       // the textarea keeps only what still needs attention, so a second click cannot add the same lines twice
       this.paste = this.flow === 'quote' ? '' : miss.join('\n');
