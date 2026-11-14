@@ -134,9 +134,9 @@
     get featured() {
       var self = this, picks = Object.keys(BENCH).concat(['BO.0.986.435.433', 'BO.0.986.435.410', 'BO.0.445.117.023', 'BO.0.445.020.146']);
       var out = picks.map(function (c) { return self.map[c]; }).filter(Boolean);
-      out = out.filter(function (r) { return self.img(r[0]); });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if ((r[3] === 'Injector' || r[3] === 'Pump') && self.img(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.img(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
+      out = out.filter(function (r) { return self.hasImg(r[0]); });
+      this.cat.some(function (r) { if (out.length >= 8) return true; if ((r[3] === 'Injector' || r[3] === 'Pump') && self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
+      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
       return out.slice(0, 8);
     },
     get engs() { return ENG; },
@@ -272,6 +272,7 @@
       f.cat.forEach(function (k) { var c = CATS.filter(function (x) { return x.k === k; })[0]; out.push({ g: 'cat', k: k, label: c ? c.label : k }); });
       f.brand.forEach(function (k) { out.push({ g: 'brand', k: k, label: k }); });
       f.eng.forEach(function (k) { out.push({ g: 'eng', k: k, label: ENG.filter(function (e) { return e.k === k; })[0].label }); });
+      if (this.route === 'g') { var gg = this.genOf(this.arg); out.unshift({ g: 'veh', label: gg ? gg.label + ' ' + (gg.years || '') : 'Vehicle' }); }
       if (f.photo) out.push({ g: 'photo', label: 'With photo' });
       if (f.stock) out.push({ g: 'stock', label: 'In stock' });
       return out;
@@ -279,8 +280,8 @@
     get sug() { var q = this.qInput.trim(); if (q.length < 2 || !this.cat.length) return []; return matchSearch(this.cat, q).slice(0, 8); },
     get moreRow() {
       var self = this, out = [], feat = this.featured;
-      ['Pump', 'Tool', 'Nozzle'].forEach(function (k) { var n = 0; self.cat.some(function (r) { if (r[3] === k && self.img(r[0]) && out.indexOf(r) < 0 && feat.indexOf(r) < 0) { out.push(r); n++; } return n >= (k === 'Pump' ? 2 : 1); }); });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.img(r[0]) && r[3] !== 'Injector' && out.indexOf(r) < 0 && feat.indexOf(r) < 0) out.push(r); return false; });
+      ['Pump', 'Tool', 'Nozzle'].forEach(function (k) { var n = 0; self.cat.some(function (r) { if (r[3] === k && self.hasImg(r[0]) && out.indexOf(r) < 0 && feat.indexOf(r) < 0) { out.push(r); n++; } return n >= (k === 'Pump' ? 2 : 1); }); });
+      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.hasImg(r[0]) && r[3] !== 'Injector' && out.indexOf(r) < 0 && feat.indexOf(r) < 0) out.push(r); return false; });
       return out.slice(0, 8);
     },
     get shown() { return this.results.slice(0, this.limit); },
@@ -540,6 +541,7 @@
     sugBlur: function () { var self = this; setTimeout(function () { self.sugOn = false; }, 180); },
     // sidebar filters; on the home page a click opens the full list with that filter
     toggle: function (g, k) {
+      if (g === 'veh') { this.nav('all'); return; }
       var f = this.f;
       if (g === 'photo' || g === 'stock') f[g] = !f[g];
       else { var i = f[g].indexOf(k); if (i < 0) f[g].push(k); else f[g].splice(i, 1); }
@@ -558,6 +560,8 @@
 
     // display helpers
     info: function (r) { return parse(r && r[1]); },
+    // has a photo on file (ignores load failures, so shelves do not reshuffle; failed photos show the placeholder)
+    hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
     price: function (code) { var p = this.book && this.book.items[code]; return p ? p[0] : null; },
     qty: function (code) { var p = this.book && this.book.items[code]; return p ? p[1] : null; },
@@ -576,7 +580,7 @@
       var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return sp.title;
       var t = parse(r[1]).title, letters = t.replace(/[^A-Za-z]/g, ''), up = letters.replace(/[^A-Z]/g, '').length;
       if (letters.length > 6 && up / letters.length > 0.7) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
-      return t;
+      return t.replace(/(\w)-(?=\w)/g, '$1\u2011');
     },
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },
     cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },

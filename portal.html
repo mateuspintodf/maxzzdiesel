@@ -970,6 +970,10 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 @media (min-width:761px){.px-pd-info{padding-bottom:72px}}
 @media (max-width:760px){.px-acc-line{flex-direction:column;gap:2px}.px-kpis .px-rw .bar{margin-top:8px}}
 .px .px-wrap{padding-bottom:140px}
+.px-mbar .px-por{color:#fff!important;font-size:15px;font-weight:600}
+@media (max-width:760px){.px .px-mbar.solo{right:12px}.px-hbg::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(17,19,22,.88) 0,rgba(17,19,22,.62) 60%,rgba(17,19,22,.25))}.px-sh .px-link{white-space:nowrap}.px-sh{flex-wrap:wrap}.px-pd-info{padding-bottom:0}.px-main{padding-bottom:88px}}
+@media (min-width:761px){.px-fab{display:none!important}.px-fbar{margin-right:0!important}}
+.px-eng b{white-space:nowrap}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1247,7 +1251,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </div>
 <p class="px-note2" v-if="spec.ok">Part data under technical review. Confirm the fit with our team before installing.</p>
 </div>
-<div class="px-mbar" v-if="product" :class="mbarOn ? 'on' : ''">
+<div class="px-mbar" v-if="product" :class="[mbarOn ? 'on' : '', quoteN || (canOrder && cart.length) ? '' : 'solo']">
 <span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-mb-l">Sign in for price</span>
 <button type="button" class="px-btn px-red" v-if="canOrder && price(pr[0]) != null" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? 'In cart (' + cartQty(pr[0]) + ') · View' : 'Add ' + cs(pr[0]) + ' to cart'"></button>
 <button type="button" class="px-btn px-red" v-else @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote (' + quoteQty(pr[0]) + ') · View' : 'Add ' + sq(pr[0]) + ' to quote'"></button>
