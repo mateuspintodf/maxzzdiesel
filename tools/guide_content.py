@@ -52,7 +52,10 @@ SECTIONS = [
      [('HEUI', 'HEUI', 'HEUI'), ('High pressure engine oil drives an intensifier piston in each injector', 'Aceite del motor a alta presión mueve un pistón intensificador en cada inyector', 'Óleo do motor em alta pressão aciona um pistão intensificador em cada bico'), ('Power Stroke 7.3 and 6.0, Navistar DT466, Caterpillar 3126', 'Power Stroke 7.3 y 6.0, Navistar DT466, Caterpillar 3126', 'Power Stroke 7.3 e 6.0, Navistar DT466, Caterpillar 3126')],
      [('Electronic unit injector', 'Inyector unitario electrónico', 'Unidade injetora eletrônica'), ('Camshaft drives a plunger inside each injector', 'El árbol de levas mueve un émbolo dentro de cada inyector', 'O comando de válvulas aciona um êmbolo dentro de cada bico'), ('Detroit Series 60, Caterpillar C15, Volvo D12', 'Detroit Series 60, Caterpillar C15, Volvo D12', 'Detroit Series 60, Caterpillar C15, Volvo D12')],
      [('Cummins XPI', 'Cummins XPI', 'Cummins XPI'), ('Common rail developed by Cummins and Scania', 'Common rail desarrollado por Cummins y Scania', 'Common rail desenvolvido pela Cummins e pela Scania'), ('Cummins ISX15 (2010 and later), X15', 'Cummins ISX15 (2010 en adelante), X15', 'Cummins ISX15 (2010 em diante), X15')],
-     [('Mechanical pump', 'Bomba mecánica', 'Bomba mecânica'), ('Inline or rotary pump meters and times fuel mechanically', 'Bomba en línea o rotativa dosifica y sincroniza el combustible mecánicamente', 'Bomba em linha ou rotativa dosa e sincroniza o combustível mecanicamente'), ('Cummins 5.9 12-valve (Bosch P7100), older heavy duty', 'Cummins 5.9 de 12 válvulas (Bosch P7100), pesados antiguos', 'Cummins 5.9 12 válvulas (Bosch P7100), pesados antigos')]])]),
+     [('Mechanical pump', 'Bomba mecánica', 'Bomba mecânica'), ('Inline or rotary pump meters and times fuel mechanically', 'Bomba en línea o rotativa dosifica y sincroniza el combustible mecánicamente', 'Bomba em linha ou rotativa dosa e sincroniza o combustível mecanicamente'), ('Cummins 5.9 12-valve (Bosch P7100), older heavy duty', 'Cummins 5.9 de 12 válvulas (Bosch P7100), pesados antiguos', 'Cummins 5.9 12 válvulas (Bosch P7100), pesados antigos')]]),
+   ('p', ('Find parts by engine: <a href="/quote?make=ram">Dodge / Ram Cummins</a>, <a href="/quote?make=gm">Chevy / GMC Duramax</a>, <a href="/quote?make=ford">Ford Power Stroke</a> and <a href="/quote?make=hd">heavy duty</a>.',
+          'Busca repuestos por motor: <a href="/quote?make=ram">Dodge / Ram Cummins</a>, <a href="/quote?make=gm">Chevy / GMC Duramax</a>, <a href="/quote?make=ford">Ford Power Stroke</a> y <a href="/quote?make=hd">pesados</a>.',
+          'Busque peças por motor: <a href="/quote?make=ram">Dodge / Ram Cummins</a>, <a href="/quote?make=gm">Chevy / GMC Duramax</a>, <a href="/quote?make=ford">Ford Power Stroke</a> e <a href="/quote?make=hd">pesados</a>.'))]),
  ('failures',
   ('What makes injectors and pumps fail', 'Por qué fallan inyectores y bombas', 'Por que bicos e bombas falham'),
   ('<strong>Most injection failures start with fuel quality, not with the part.</strong> Water, abrasive dirt and low lubricity fuel wear the internal clearances of pumps and injectors, which are measured in microns. Electrical faults in solenoids and harnesses come second. Clean fuel and filters changed on schedule are the cheapest way to make injection parts last.',
@@ -121,3 +124,51 @@ FAQ = [
 ]
 
 # Satellite links shown at the end ("Related guides") will be added when the satellites are published.
+
+# Internal links: first plain-text mention per page (never inside <strong> or an existing link) -> quote search or product page.
+# Parts go to the quote page, not to /parts.
+LINKS = [
+ (('CP3', 'CP3', 'CP3'), '/quote?q=CP3'),
+ (('CP4', 'CP4', 'CP4'), '/quote?q=CP4'),
+ (('Cummins 6.7', 'Cummins 6.7', 'Cummins 6.7'), '/quote?make=ram'),
+ (('Duramax', 'Duramax', 'Duramax'), '/quote?make=gm'),
+ (('Power Stroke', 'Power Stroke', 'Power Stroke'), '/quote?make=ford'),
+ (('control valves', 'válvulas de control', 'válvulas de controle'), '/quote?q=control+valve'),
+ (('nozzles', 'toberas', 'bicos injetores'), '/quote?q=nozzle'),
+ (('solenoids', 'solenoides', 'solenoides'), '/quote?q=solenoid'),
+ (('repair parts', 'repuestos de calidad', 'peças de qualidade'), '/injection-parts'),
+ (('ISO 4113', 'ISO 4113', 'ISO 4113'), '/fluids'),
+ (('tool set', 'herramienta correcta', 'ferramenta certa'), '/tool-sets'),
+ (('remanufactured', 'remanufacturado', 'remanufaturado'), '/quote?q=reman'),
+]
+
+TAKE_T = ('Key takeaways', 'Puntos clave', 'Pontos principais')
+TAKEAWAYS = [
+ ('Common rail is the standard on modern diesel engines: one pump pressurizes a shared rail and the ECU fires each injector.', 'El common rail es el estándar en los motores diésel modernos: una bomba presuriza un riel compartido y la ECU acciona cada inyector.', 'O common rail é o padrão nos motores diesel modernos: uma bomba pressuriza uma flauta compartilhada e a ECU aciona cada bico.'),
+ ('Most injector and pump failures start with water, dirt or low lubricity fuel.', 'La mayoría de las fallas de inyectores y bombas empieza con agua, suciedad o combustible de baja lubricidad.', 'A maioria das falhas de bicos e bombas começa com água, sujeira ou combustível de baixa lubricidade.'),
+ ('After a high pressure pump failure, replace the whole fuel system, not just the pump.', 'Después de una falla de la bomba de alta presión, cambia todo el sistema de combustible, no solo la bomba.', 'Depois da quebra da bomba de alta pressão, troque todo o sistema de combustível, não só a bomba.'),
+ ('The part number on the injector or pump body is the fastest way to order the right part.', 'El número de parte en el cuerpo del inyector o de la bomba es la forma más rápida de pedir la pieza correcta.', 'O part number no corpo do bico ou da bomba é o jeito mais rápido de pedir a peça certa.'),
+]
+
+GLOSS_ID = 'glossary'
+GLOSS_T = ('Diesel injection glossary', 'Glosario de inyección diésel', 'Glossário de injeção diesel')
+GLOSSARY = [
+ (('Common rail', 'Common rail', 'Common rail'), ('Injection system where one high pressure pump feeds a shared rail and electronically controlled injectors draw from it.', 'Sistema de inyección en el que una bomba de alta presión alimenta un riel compartido y los inyectores, controlados electrónicamente, toman el combustible de él.', 'Sistema de injeção em que uma bomba de alta pressão alimenta uma flauta compartilhada e os bicos, controlados eletronicamente, puxam o combustível dela.')),
+ (('HEUI', 'HEUI', 'HEUI'), ('Hydraulically actuated electronic unit injector. High pressure engine oil drives an intensifier inside each injector.', 'Inyector unitario electrónico de accionamiento hidráulico. El aceite del motor a alta presión mueve un intensificador dentro de cada inyector.', 'Unidade injetora eletrônica de acionamento hidráulico. O óleo do motor em alta pressão aciona um intensificador dentro de cada bico.')),
+ (('Nozzle', 'Tobera', 'Bico injetor'), ('Tip of the injector with the spray holes and the needle that opens and closes them.', 'Punta del inyector con los orificios de pulverización y la aguja que los abre y cierra.', 'Ponta do bico com os furos de pulverização e a agulha que os abre e fecha.')),
+ (('Control valve', 'Válvula de control', 'Válvula de controle'), ('Valve inside a common rail injector that controls the pressure above the needle and so the start and end of injection.', 'Válvula dentro del inyector common rail que controla la presión sobre la aguja y, así, el inicio y el fin de la inyección.', 'Válvula dentro do bico common rail que controla a pressão sobre a agulha e, assim, o início e o fim da injeção.')),
+ (('Return flow (leak-off)', 'Retorno', 'Retorno'), ('Fuel an injector sends back to the tank. Too much return points to worn internal parts.', 'Combustible que el inyector devuelve al tanque. Un retorno excesivo indica piezas internas desgastadas.', 'Combustível que o bico devolve ao tanque. Retorno alto indica peças internas gastas.')),
+ (('Correction code', 'Código de corrección', 'Código de correção'), ('Code (Bosch IMA, Denso QR, Delphi C2i or C3i) that tells the ECU how a specific injector deviates from nominal flow.', 'Código (Bosch IMA, Denso QR, Delphi C2i o C3i) que le indica a la ECU cuánto se desvía un inyector del caudal nominal.', 'Código (Bosch IMA, Denso QR, Delphi C2i ou C3i) que informa à ECU quanto um bico se desvia da vazão nominal.')),
+ (('Lubricity', 'Lubricidad', 'Lubricidade'), ('How well a fuel protects moving metal parts. Low lubricity fuel wears pumps faster.', 'Capacidad del combustible de proteger las piezas metálicas en movimiento. El combustible de baja lubricidad desgasta más rápido las bombas.', 'Capacidade do combustível de proteger as peças metálicas em movimento. Combustível de baixa lubricidade desgasta as bombas mais rápido.')),
+ (('Contamination kit', 'Kit de contaminación', 'Kit de contaminação'), ('Every part needed to restore a fuel system after a pump failure, under one part number.', 'Todas las piezas para recuperar un sistema de combustible después de una falla de bomba, en un solo número de parte.', 'Todas as peças para recuperar um sistema de combustível depois da quebra da bomba, em um só part number.')),
+]
+
+HUB_T = ('Parts and tools for every step', 'Piezas y herramientas para cada paso', 'Peças e ferramentas para cada etapa')
+HUB = [
+ (('Injection parts', 'Repuestos de inyección', 'Peças de injeção'), ('Injectors, pumps, rails and repair parts', 'Inyectores, bombas, rieles y repuestos', 'Bicos, bombas, flautas e peças de reparo'), '/injection-parts'),
+ (('Contamination kits', 'Kits de contaminación', 'Kits de contaminação'), ('The full fuel system repair in one box', 'La reparación completa del sistema en una caja', 'O reparo completo do sistema em uma caixa'), '/contamination-kits'),
+ (('Test bench fluids', 'Fluidos para banco de pruebas', 'Fluidos para bancada'), ('ISO 4113 calibration fluid and degreasers', 'Fluido de calibración ISO 4113 y desengrasantes', 'Fluido de calibração ISO 4113 e desengraxantes'), '/fluids'),
+ (('Robiel tool sets', 'Herramientas Robiel', 'Ferramentas Robiel'), ('26 kits for injectors and pumps', '26 kits para inyectores y bombas', '26 kits para bicos e bombas'), '/tool-sets'),
+ (('Aftertreatment testing', 'Pruebas de postratamiento', 'Testes de pós-tratamento'), ('SCR, DEF pump and NOx sensor testers', 'Probadores de SCR, bomba de urea y sensor de NOx', 'Testadores de SCR, bomba de ARLA 32 e sensor de NOx'), '/aftertreatment'),
+ (('Request a quote', 'Pedir cotización', 'Pedir cotação'), ('Search by part number or engine', 'Busca por número de parte o motor', 'Busque por part number ou motor'), '/quote'),
+]
