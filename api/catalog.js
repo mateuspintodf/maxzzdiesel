@@ -8,7 +8,7 @@ const path = require('path');
 const { toRow } = require('../lib/catalog-map');
 
 const API = 'https://api.unleashedsoftware.com';
-let memo = { at: 0, rows: null };
+let memo = { at: 0, rows: null, src: 'snapshot' };
 const TTL = 30 * 60 * 1000;
 
 async function unleashedPage(page, id, key) {
@@ -53,9 +53,11 @@ module.exports = async (req, res) => {
     if (!memo.rows || Date.now() - memo.at > TTL) {
       let rows = null;
       try { rows = await loadLive(); } catch (e) { console.error('catalog live failed', e.message); }
-      memo = { at: Date.now(), rows: rows && rows.length ? rows : (memo.rows || loadSnapshot()) };
+      const live = !!(rows && rows.length);
+      memo = { at: Date.now(), rows: live ? rows : (memo.rows || loadSnapshot()), src: live ? 'live' : (memo.rows ? memo.src : 'snapshot') };
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.setHeader('X-Catalog-Source', memo.src);
     res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
     res.status(200).send(JSON.stringify(memo.rows));
   } catch (e) {
