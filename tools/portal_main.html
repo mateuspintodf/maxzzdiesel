@@ -344,7 +344,6 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-bar">
 <div class="px-bar-in">
 <nav class="px-catnav" aria-label="Categories">
-<a href="#/" :class="route === 'home' ? 'on' : ''"><span class="ci" v-html="icon('home')"></span>Home</a>
 <a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" :class="route === 'c' && arg === c.k ? 'on' : ''"><span class="ci" v-html="icon(c.ic)"></span><span v-text="c.label"></span></a>
 <a href="#/all" :class="route === 'all' ? 'on' : ''"><span class="ci" v-html="icon('all')"></span>All parts</a>
 </nav>
