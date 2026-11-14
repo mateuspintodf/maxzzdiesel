@@ -25,7 +25,7 @@
   var CATS = [
     { k: 'Injector', label: 'Injectors', ic: 'inj' }, { k: 'Pump', label: 'Pumps', ic: 'pump' }, { k: 'Nozzle', label: 'Nozzles', ic: 'noz' },
     { k: 'Rail', label: 'Rails and lines', ic: 'rail' }, { k: 'Repair part', label: 'Repair parts', ic: 'rep' }, { k: 'Tool', label: 'Tools and tool sets', ic: 'tool' },
-    { k: 'Engine parts', label: 'Engine parts', ic: 'eng' }
+    { k: 'Engine parts', label: 'Engine parts', ic: 'eng' }, { k: 'Fluid', label: 'Fluids', ic: 'fl' }, { k: 'Kit', label: 'Contamination kits', ic: 'kit' }
   ];
   var ENG = [{ k: 'c', label: 'Cummins' }, { k: 'd', label: 'Duramax' }, { k: 'f', label: 'Power Stroke' }, { k: 'h', label: 'Heavy duty' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
@@ -54,7 +54,7 @@
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
     err: '', busy: false, toast: '', email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quoteN: read(QK, []).length, paste: '', pasteMsg: '',
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quoteN: read(QK, []).length, quoteIds: read(QK, []).map(function (x) { return x.id; }), sortBy: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
     vMake: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: { po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '' },
     orders: [], cur: null, accounts: [], sync: null,
@@ -96,7 +96,51 @@
       if (skip !== 'stock' && f.stock && !(this.qty(x[0]) > 0)) return false;
       return true;
     },
-    get results() { var self = this; return this.base.filter(function (x) { return self.pass(x); }); },
+    get results() {
+      var self = this, out = this.base.filter(function (x) { return self.pass(x); }), s = this.sortBy;
+      if (!s) return out;
+      out = out.slice();
+      var pr = function (x) { var p = self.price(x[0]); return p == null ? (s === 'plo' ? 1e12 : -1) : p; };
+      if (s === 'pn') out.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      if (s === 'photo') out.sort(function (a, b) { return !!self.img(b[0]) - !!self.img(a[0]); });
+      if (s === 'stock') out.sort(function (a, b) { return (self.qty(b[0]) > 0) - (self.qty(a[0]) > 0); });
+      if (s === 'plo') out.sort(function (a, b) { return pr(a) - pr(b); });
+      if (s === 'phi') out.sort(function (a, b) { return pr(b) - pr(a); });
+      return out;
+    },
+    // other catalog parts listed as the same part (cross references both ways)
+    get interch() {
+      var p = this.product; if (!p) return [];
+      var self = this, mine = norm(p[0]).replace(/^[A-Z]{2}/, ''), xr = parse(p[1]).xr.map(norm).filter(function (x) { return x.length >= 6; });
+      return this.cat.filter(function (r) {
+        if (r === p) return false;
+        var c = norm(r[0]).replace(/^[A-Z]{2}/, '');
+        if (xr.some(function (x) { return c === x || c.slice(-x.length) === x; })) return true;
+        return mine.length >= 6 && parse(r[1]).xr.map(norm).some(function (x) { return x === mine || x.slice(-mine.length) === mine; });
+      }).slice(0, 8);
+    },
+    // cross-sell: other categories that fit the same vehicles, or the same engine family
+    get sameApp() {
+      var p = this.product; if (!p) return [];
+      var self = this, f = this.fit.items[p[0]], gens = f ? f[0] : [], skip = this.related.concat(this.interch, [p]);
+      var hit = this.cat.filter(function (r) {
+        if (r[3] === p[3] || skip.indexOf(r) >= 0) return false;
+        var g = self.fit.items[r[0]]; return g && gens.length && g[0].some(function (k) { return gens.indexOf(k) >= 0; });
+      });
+      if (hit.length < 4 && p[6]) this.cat.some(function (r) { if (hit.length >= 8) return true; if (r[3] !== p[3] && r[3] !== 'Engine parts' && skip.indexOf(r) < 0 && hit.indexOf(r) < 0 && (r[6] || '').indexOf(p[6][0]) >= 0) hit.push(r); return false; });
+      hit.sort(function (a, b) { return !!self.img(b[0]) - !!self.img(a[0]); });
+      return hit.slice(0, 8);
+    },
+    get recentList() { var self = this, p = this.product; return this.recent.filter(function (c) { return !p || c !== p[0]; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 4); },
+    get firstName() {
+      if (!this.me) return '';
+      var n = (this.me.name || '').trim().split(/\s+/)[0];
+      if (!n) { n = String(this.me.email || '').split('@')[0].split(/[._-]/)[0]; n = n.charAt(0).toUpperCase() + n.slice(1); }
+      return n;
+    },
+    get initials() { var n = (this.me && this.me.name) || this.firstName; return n.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(); },
+    get greet() { var h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; },
+    get openOrders() { return this.orders.filter(function (o) { return ['Completed', 'Deleted'].indexOf(o.status) < 0; }).length; },
     facet: function (g) {
       var self = this, n = {};
       this.base.forEach(function (x) {
@@ -170,6 +214,7 @@
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || this.cur;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
+      if (r === 'p' && a) { var rc = this.recent.filter(function (c) { return c !== a; }); rc.unshift(a); this.recent = rc.slice(0, 12); write('mx-portal-recent', this.recent); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     },
     nav: function (r, a) { location.hash = '#/' + r + (a ? '/' + encodeURIComponent(a) : ''); },
@@ -214,6 +259,8 @@
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped', Deleted: 'Cancelled' }[s] || s; },
     stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 2 }[o.status] || 0; },
     bench: function (code) { return !!BENCH[code]; },
+    inQuote: function (code) { return this.quoteIds.indexOf(code) >= 0; },
+    copy: function (txt) { var self = this; try { navigator.clipboard.writeText(txt).then(function () { self.flash('Part number copied'); }); } catch (e) {} },
     pick: function (code) { return this.picks[code] || 1; },
     setPick: function (code, v) { this.picks[code] = Math.max(1, Math.min(9999, parseInt(v, 10) || 1)); },
 
@@ -222,7 +269,7 @@
       var r = this.map[code]; if (!r) return;
       var list = read(QK, []), l = list.filter(function (x) { return x.id === code; })[0];
       if (l) l.qty += 1; else list.push({ id: code, name: r[1], pn: code, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: 1 });
-      write(QK, list); this.quoteN = list.length;
+      write(QK, list); this.quoteN = list.length; this.quoteIds = list.map(function (x) { return x.id; });
       this.flash('Added to your quote list'); track('quote_add_item', { item_id: code, quantity: 1, source: 'store' });
     },
     save: function () { write(CK, this.cart); },
