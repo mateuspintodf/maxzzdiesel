@@ -66,9 +66,9 @@
 
   var app = PetiteVue.reactive({
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
-    err: '', busy: false, toast: '', email: '', sentPending: false,
+    err: '', busy: false, toast: '', toastKind: '', email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quoteN: read(QK, []).length, quoteIds: read(QK, []).map(function (x) { return x.id; }), sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, REWARDS: { on: true, demo: true, points: 12480, tier: 'Silver', next: 'Gold', nextAt: 25000, rate: 1 }, sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
     vMake: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: { po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '' },
     orders: [], cur: null, accounts: [], sync: null,
@@ -146,6 +146,9 @@
       return hit.slice(0, 8);
     },
     get recentList() { var self = this, p = this.product; return this.recent.filter(function (c) { return !p || c !== p[0]; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 4); },
+    get quoteN() { return this.quote.length; },
+    get quoteUnits() { return this.quote.reduce(function (a, l) { return a + (l.qty || 1); }, 0); },
+    get rwPct() { var R = this.REWARDS; return Math.min(100, Math.round(R.points / R.nextAt * 100)); },
     get firstName() {
       if (!this.me) return '';
       var n = (this.me.name || '').trim().split(/\s+/)[0];
@@ -337,7 +340,9 @@
     bench: function (code) { return !!BENCH[code]; },
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },
     cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },
-    inQuote: function (code) { return this.quoteIds.indexOf(code) >= 0; },
+    inQuote: function (code) { return this.quote.some(function (x) { return x.id === code; }); },
+    qSet: function (i, n) { n = parseInt(n, 10) || 0; if (n <= 0) this.quote.splice(i, 1); else this.quote[i].qty = Math.min(9999, n); write(QK, this.quote); },
+    pts: function (code) { var p = this.price(code); return p == null ? 0 : Math.round(p * this.REWARDS.rate); },
     copy: function (txt) { var self = this; try { navigator.clipboard.writeText(txt).then(function () { self.flash('Part number copied'); }); } catch (e) {} },
     pick: function (code) { return this.picks[code] || 1; },
     setPick: function (code, v) { this.picks[code] = Math.max(1, Math.min(9999, parseInt(v, 10) || 1)); },
@@ -345,10 +350,10 @@
     // quote list (anonymous) and cart (signed in)
     addQuote: function (code) {
       var r = this.map[code]; if (!r) return;
-      var list = read(QK, []), l = list.filter(function (x) { return x.id === code; })[0];
-      if (l) l.qty += 1; else list.push({ id: code, name: r[1], pn: code, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: 1 });
-      write(QK, list); this.quoteN = list.length; this.quoteIds = list.map(function (x) { return x.id; });
-      this.flash('Added to your quote list'); track('quote_add_item', { item_id: code, quantity: 1, source: 'store' });
+      var l = this.quote.filter(function (x) { return x.id === code; })[0];
+      if (l) l.qty += 1; else this.quote.push({ id: code, name: r[1], pn: code, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: 1 });
+      write(QK, this.quote);
+      this.flash('Added to your quote list', 'quote'); track('quote_add_item', { item_id: code, quantity: 1, source: 'store' });
     },
     save: function () { write(CK, this.cart); },
     inCart: function (code) { return this.cart.some(function (l) { return l.code === code; }); },
@@ -357,7 +362,7 @@
       n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.cart.filter(function (x) { return x.code === code; })[0];
       if (l) l.qty += n; else this.cart.push({ code: code, qty: n });
-      this.picks[code] = 1; this.save(); this.flash('Added to cart. ' + this.cart.length + (this.cart.length === 1 ? ' part' : ' parts') + ' in your cart');
+      this.picks[code] = 1; this.save(); this.flash('Added to cart. ' + this.cart.length + (this.cart.length === 1 ? ' part' : ' parts') + ' in your cart', 'cart');
       track('add_to_cart', { item_id: code, quantity: n, source: 'store' });
     },
     setQty: function (i, v) { var n = parseInt(v, 10) || 0; if (n <= 0) return this.remove(i); this.cart[i].qty = Math.min(9999, n); this.save(); },
@@ -426,7 +431,7 @@
     lookup: function (a) { var self = this; if (!a._q.trim()) return; a._busy = true; api('admin-lookup?code=' + encodeURIComponent(a._q.trim())).then(function (r) { a._busy = false; a._res = r.customers || []; if (r.error) self.flash(r.error); }); },
     approve: function (a) { var self = this; api('admin-approve', { body: { account: a.id, customer: a._pick } }).then(function (r) { if (r._status === 200) { self.flash('Approved. Access e-mail sent.'); self.loadAdmin(); } else self.flash(r.error || 'Could not approve'); }); },
     reject: function (a) { var reason = prompt('Reason (optional, sent to the customer):'); if (reason === null) return; var self = this; api('admin-reject', { body: { account: a.id, reason: reason, notify: true } }).then(function () { self.flash('Declined'); self.loadAdmin(); }); },
-    flash: function (m) { var self = this; this.toast = m; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
+    flash: function (m, kind) { var self = this; this.toast = m; this.toastKind = kind || ''; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
   });
 
   PetiteVue.createApp(app).mount('#app');
