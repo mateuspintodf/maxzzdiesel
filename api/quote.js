@@ -29,9 +29,10 @@ module.exports = async (req, res) => {
   if (!customer.name || !customer.company || !EMAIL.test(customer.email) || customer.phone.replace(/\D/g, '').length < 7 || !lines.length) {
     return res.status(400).json({ error: 'missing fields' });
   }
-  // store quotes also go to Unleashed as a Draft sales quote (when PORTAL_QUOTES_LIVE=1); never blocks the request
-  const ulq = /B2B store/.test(source) ? await createSalesQuote(req, { number, customer, lines, notes: customer.notes }) : { skipped: true };
-  if (ulq.ok) { extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid) + ' (store ref ' + number + ')'); if (ulq.number) number = ulq.number; }
+  // quotes also go to Unleashed as a Draft sales quote: store quotes when PORTAL_QUOTES_LIVE=1, website quotes when
+  // SITE_QUOTES_UNLEASHED=1. Never blocks the request; HubSpot always gets the full quote.
+  const ulq = await createSalesQuote(req, { number, customer, lines, notes: customer.notes }, { site: !store });
+  if (ulq.ok) { extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid) + ' (' + (store ? 'store' : 'website') + ' ref ' + number + ')'); if (store && ulq.number) number = ulq.number; }
   // signed-in users keep a history of their quote requests in the store
   const who = store ? sessionEmail(req) : null;
   if (who) {
