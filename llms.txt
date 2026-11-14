@@ -1,0 +1,31 @@
+# Maxzz Diesel
+
+> Wholesale supplier of diesel fuel injection parts: common rail injectors, high-pressure pumps, nozzles, control valves, repair kits, Robiel tool sets, ISO 4113 calibration fluid and SCR / NOx aftertreatment test equipment. Founded in 1992. 6601 Lyons Road, Ste H-6, Coconut Creek, FL 33073, USA. Phone +1 (954) 586-4158, sales@maxzzdiesel.com. Sells to rebuilders, injection labs, distributors, repair shops and fleets in North America and Latin America, in English, Spanish and Portuguese. In-stock orders placed by 3 pm Eastern ship the same day. Prices by quote or through the wholesale login.
+
+## Catalog
+- [Parts catalog](https://www.maxzzdiesel.com/parts): every part number by category, vehicle and engine
+- [Diesel fuel injectors](https://www.maxzzdiesel.com/parts/c/injectors)
+- [High-pressure fuel pumps](https://www.maxzzdiesel.com/parts/c/pumps)
+- [Injector nozzles](https://www.maxzzdiesel.com/parts/c/nozzles)
+- [Injector and pump repair parts](https://www.maxzzdiesel.com/parts/c/repair-parts)
+- [Dodge / Ram Cummins parts](https://www.maxzzdiesel.com/parts/v/dodge-ram-cummins)
+- [Chevy / GMC Duramax parts](https://www.maxzzdiesel.com/parts/v/chevy-gmc-duramax)
+- [Ford Power Stroke parts](https://www.maxzzdiesel.com/parts/v/ford-power-stroke)
+- [Heavy duty parts](https://www.maxzzdiesel.com/parts/v/heavy-duty)
+
+## Product lines
+- [Injection parts](https://www.maxzzdiesel.com/injection-parts)
+- [Aftertreatment test equipment](https://www.maxzzdiesel.com/aftertreatment)
+- [Test bench fluids](https://www.maxzzdiesel.com/fluids)
+- [Robiel tool sets](https://www.maxzzdiesel.com/tool-sets)
+- [Contamination kits](https://www.maxzzdiesel.com/contamination-kits)
+
+## Company
+- [About Maxzz Diesel](https://www.maxzzdiesel.com/about)
+- [Who we serve](https://www.maxzzdiesel.com/who-we-serve)
+- [Partners: Denso, Robiel, SLP and more](https://www.maxzzdiesel.com/partners)
+- [Shipping, returns and warranty](https://www.maxzzdiesel.com/policies)
+- [Request a quote](https://www.maxzzdiesel.com/quote)
+
+## Training
+- [Diesel Tech Academy](https://www.dieseltechacademy.com/): diesel injector repair courses, online or onsite

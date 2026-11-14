@@ -20,7 +20,7 @@
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
     lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', street: '', num: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    reviewing: false, sheet: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -248,7 +248,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); });
       else window.prompt('Copy this link', url);
     },
-    toDetails: function () { if (!this.lines.length) return; track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; scrollTop(); },
+    toDetails: function () { if (!this.lines.length) return; this.sheet = false; track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; this.toast = ''; scrollTop(); },
     validate: function () {
       var d = this.d, bad = [];
       if (!d.name.trim()) bad.push('name'); if (!d.company.trim()) bad.push('company');
@@ -288,6 +288,11 @@
     },
     startOver: function () { this.lines.splice(0); this.save(); this.phase = 1; this.reviewing = false; this.number = ''; this.b2bDone = false; scrollTop(); },
     printIt: function () { window.print(); },
+    maskPhone: function (v, country) {
+      var d = String(v || '').replace(/\D/g, '');
+      if (/United States|Puerto Rico|Canada/.test(country || 'United States')) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
+      return v && String(v).trim().charAt(0) === '+' ? '+' + d.slice(0, 15) : (d ? '+' + d.slice(0, 15) : '');
+    },
     flash: function (msg) { var self = this; this.toast = msg; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
   });
 

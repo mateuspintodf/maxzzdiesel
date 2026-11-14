@@ -35,33 +35,56 @@ function load() {
   if (DB) return DB;
   const rows = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'catalog.json'), 'utf8'));
   const specs = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'specs.json'), 'utf8'));
-  const bySlug = {}, byCode = {}, cats = {}, makes = {}, engs = {};
+  const bySlug = {}, byCode = {}, cats = {}, makes = {}, engs = {}, oem = {};
+  const clean = (sp) => {
+    if (!sp) return null;
+    sp = Object.assign({}, sp);
+    sp.desc = String(sp.desc || '').replace(/<p>\s*Unleashed reference:[^<]*<\/p>/gi, '').replace(/for the Bench \/ shop use/g, 'for bench and shop use');
+    sp.faq = String(sp.faq || '').replace(/A:\s*\.\s*/g, 'A: ');
+    const t = String(sp.title || ''); const m = t.split(': ');
+    if (m.length === 2 && m[0].toLowerCase().endsWith(m[1].toLowerCase())) sp.title = m[0];
+    sp.engHub = String(sp.eng || '').replace(/^Bench \/ shop use( \/ )?/, '').trim();
+    return sp;
+  };
   rows.forEach((r) => {
-    const sp = specs[r[0]] || null;
+    const sp = clean(specs[r[0]]);
     const p = { code: r[0], name: r[1], cat: r[3], brand: r[4] || '', sp, slug: slug(r[0]) };
     p.title = sp && sp.title ? sp.title : tidy(r[1]) + ' ' + r[0];
+    const tok = (p.title.match(/^\S+\s+(\S+)/) || [])[1] || '';
+    p.oem = sp && /\d/.test(tok) && tok.replace(/[^0-9a-z]/gi, '').length >= 5 ? tok.replace(/[:,]$/, '') : p.code;
+    if (bySlug[p.slug] && bySlug[p.slug].sp && !sp) return;
     bySlug[p.slug] = p; byCode[p.code] = p;
+    oem[slug(p.oem).replace(/-/g, '')] = oem[slug(p.oem).replace(/-/g, '')] || p.slug;
     (cats[r[3]] = cats[r[3]] || []).push(p);
     if (sp && sp.make && sp.make !== 'Rebuilder Supply') { const k = slug(sp.make); (makes[k] = makes[k] || { l: sp.make, items: [] }).items.push(p); }
-    if (sp && sp.eng) { const k = slug(sp.eng); (engs[k] = engs[k] || { l: sp.eng, make: sp.make, items: [] }).items.push(p); }
+    if (sp && sp.engHub) { const k = slug(sp.engHub); (engs[k] = engs[k] || { l: sp.engHub, make: sp.make, items: [] }).items.push(p); }
   });
   Object.values(cats).forEach((a) => a.sort((x, y) => (y.sp ? 1 : 0) - (x.sp ? 1 : 0) || x.code.localeCompare(y.code)));
-  DB = { bySlug, byCode, cats, makes, engs };
+  DB = { bySlug, byCode, cats, makes, engs, oem };
   return DB;
 }
 
 const noindexAll = () => process.env.PARTS_NOINDEX === '1';
+const UPDATED = '2026-11-14';
+const ORG = {
+  '@type': ['Organization', 'WholesaleStore'], '@id': SITE + '/#org', name: 'Maxzz Diesel', url: SITE + '/', logo: SITE + '/assets/favicon.svg', image: SITE + '/assets/mg/hero-2.jpg',
+  foundingDate: '1992', telephone: '+1-954-586-4158', email: 'sales@maxzzdiesel.com', areaServed: ['North America', 'Latin America'],
+  address: { '@type': 'PostalAddress', streetAddress: '6601 Lyons Road, Ste H-6', addressLocality: 'Coconut Creek', addressRegion: 'FL', postalCode: '33073', addressCountry: 'US' },
+  sameAs: ['https://www.linkedin.com/company/maxzzdiesel/', 'https://www.instagram.com/maxzzdiesel.us/', 'https://www.facebook.com/maxzzdiesel']
+};
+const WEBSITE = { '@type': 'WebSite', '@id': SITE + '/#website', url: SITE + '/', name: 'Maxzz Diesel', publisher: { '@id': SITE + '/#org' }, inLanguage: 'en-US' };
+const clip = (s, n) => { s = String(s || '').replace(/\s+/g, ' ').trim(); return s.length <= n ? s : s.slice(0, s.lastIndexOf(' ', n - 1)).replace(/[,;:.\s]+$/, '') + '…'; };
 
 function page({ title, desc, canon, body, ld, index = true, crumbs = [] }) {
   const robots = !index || noindexAll() ? 'noindex, follow' : 'index, follow, max-image-preview:large';
   const bc = crumbs.length ? { '@type': 'BreadcrumbList', itemListElement: crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c[0], item: SITE + c[1] })) } : null;
-  const graph = [].concat(ld || [], bc ? [bc] : []);
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  const graph = [ORG, WEBSITE].concat(ld || [], bc ? [bc] : []);
+  return `<!doctype html><html lang="en-US"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><meta name="robots" content="${robots}">
-<link rel="canonical" href="${SITE + canon}"><link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Maxzz Diesel"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE + canon}"><meta property="og:image" content="${SITE}/assets/mg/hero-2.jpg"><meta name="twitter:card" content="summary_large_image">
+${canon ? `<link rel="canonical" href="${SITE + canon}">` : ''}<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Maxzz Diesel"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE + (canon || '/parts')}"><meta property="og:locale" content="en_US"><meta property="og:image" content="${SITE}/assets/mg/hero-2.jpg"><meta name="twitter:card" content="summary_large_image">
 ${graph.length ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>` : ''}
-<link rel="preload" href="/assets/fonts/BDOGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/BDOGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/BDOGrotesk-Medium.woff2" as="font" type="font/woff2" crossorigin>
 <style>@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Regular.woff2') format('woff2');font-weight:400;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Medium.woff2') format('woff2');font-weight:500;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-DemiBold.woff2') format('woff2');font-weight:600;font-display:swap}
 *{box-sizing:border-box}body{margin:0;background:#eef0f2;color:#1d2126;font-family:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 a{color:#d32a37;text-decoration:none}a:hover{text-decoration:underline}
@@ -92,7 +115,6 @@ table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:10px 8px;
 </body></html>`;
 }
 
-const ORG = { '@type': 'Organization', '@id': SITE + '/#org', name: 'Maxzz Diesel', url: SITE + '/' };
 
 function itemCard(p) {
   return `<a class="it" href="/parts/${p.slug}"><code>${esc(p.code)}</code><b>${esc(p.title)}</b>${p.sp && p.sp.fit ? `<span style="font-size:13px;color:#6b7178">${esc(p.sp.fit)}</span>` : ''}</a>`;
@@ -101,87 +123,116 @@ function itemCard(p) {
 function partPage(p, db) {
   const sp = p.sp || {};
   const cat = CATS[p.cat] || { s: slug(p.cat), l: p.cat };
-  const desc = sp.desc ? String(sp.desc).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 155) : `${tidy(p.name)}, part number ${p.code}. Wholesale from Maxzz Diesel in Coconut Creek, Florida. Request a quote, reply within one business day.`;
-  const facts = [['Part number', p.code], ['Type', sp.type || cat.l], ['Brand', p.brand], ['Condition', sp.cond], ['Engine', sp.eng], ['Vehicles', sp.models], ['Years', sp.y0 && sp.y1 ? sp.y0 + '–' + sp.y1 : ''], ['Fitment', sp.fit]].filter((r) => r[1]);
-  const xref = String(sp.eq || sp.inj || '').split(/[,;\n]/).map((s) => s.trim()).filter(Boolean);
-  const faqs = String(sp.faq || '').split(/\n?Q:\s*/).filter(Boolean).map((b) => { const m = b.split(/\n?A:\s*/); return [m[0].trim(), (m[1] || '').trim()]; }).filter((f) => f[0] && f[1]);
-  const rel = String(sp.rel || '').split(',').map((s) => db.byCode[s.trim()]).filter(Boolean).slice(0, 8);
+  const typ = sp.type || cat.l;
+  const brand = p.brand && !String(p.oem).toLowerCase().startsWith(p.brand.toLowerCase()) ? p.brand : '';
+  const lead = (String(sp.desc || '').match(/<p>(.*?)<\/p>/) || [])[1] || '';
+  const desc = sp.desc ? clip(lead.replace(/<[^>]+>/g, '') + ' Wholesale from Florida, same-day shipping on in-stock orders.', 155)
+    : clip(`${tidy(p.name)}, part number ${p.code}. Wholesale from Maxzz Diesel in Coconut Creek, Florida. Request a quote and we reply within one business day.`, 155);
+  let short = [p.oem, brand, typ].filter(Boolean).join(' ');
+  if (sp.engHub && (short + ', ' + sp.engHub).length <= 66) short += ', ' + sp.engHub;
+  const facts = [['Part number', p.code], ['OEM number', p.oem !== p.code ? p.oem : ''], ['Type', typ], ['Brand', p.brand], ['Condition', sp.cond], ['Engine', sp.eng], ['Vehicles', sp.models], ['Years', sp.y0 && sp.y1 ? sp.y0 + '–' + sp.y1 : ''], ['Fitment', sp.fit]].filter((r) => r[1]);
+  const xref = String(sp.eq || sp.inj || '').split(/[,;\n]/).map((x) => x.trim()).filter(Boolean);
+  const faqs = String(sp.faq || '').split(/\n?Q:\s*/).filter(Boolean).map((b) => { const m = b.split(/\n?A:\s*/); return [m[0].trim(), (m[1] || '').trim()]; }).filter((f) => f[0] && f[1].length > 8);
+  const rel = String(sp.rel || '').split(',').map((x) => db.byCode[x.trim()]).filter(Boolean).slice(0, 8);
   const more = (db.cats[p.cat] || []).filter((x) => x !== p && x.sp && (!sp.make || x.sp.make === sp.make)).slice(0, 8);
-  const engKey = sp.eng ? slug(sp.eng) : '', makeKey = sp.make && sp.make !== 'Rebuilder Supply' ? slug(sp.make) : '';
+  const engKey = sp.engHub ? slug(sp.engHub) : '', makeKey = sp.make && sp.make !== 'Rebuilder Supply' ? slug(sp.make) : '';
+  const digits = String(p.oem).replace(/[^0-9a-z]/gi, '');
+  const spaced = /^\d{10}$/.test(digits) ? digits.replace(/^(\d)(\d{3})(\d{3})(\d{3})$/, '$1 $2 $3 $4') : '';
+  const aka = [...new Set([p.oem, digits, spaced, p.code].filter(Boolean))];
+  const answer = sp.fit ? `${p.oem} is a ${String(sp.cond || 'new').toLowerCase()} ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()} for ${sp.fit}. Maxzz Diesel stocks it in Coconut Creek, Florida, and in-stock orders placed by 3 pm Eastern ship the same day.`
+    : `${p.oem} is a ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()}. Maxzz Diesel stocks it in Coconut Creek, Florida, and in-stock orders placed by 3 pm Eastern ship the same day.`;
   const crumbs = [['Home', '/'], ['Parts catalog', '/parts'], [cat.l, '/parts/c/' + cat.s], [p.code, '/parts/' + p.slug]];
-  const product = { '@type': 'Product', name: p.title, sku: p.code, mpn: p.code, description: desc, category: sp.type || cat.l, url: SITE + '/parts/' + p.slug, manufacturer: ORG };
-  if (p.brand) product.brand = { '@type': 'Brand', name: p.brand };
+  const product = { '@type': 'Product', '@id': SITE + '/parts/' + p.slug + '#product', name: p.title, sku: p.code, mpn: p.oem, description: desc, category: typ, url: SITE + '/parts/' + p.slug };
+  if (p.brand) { product.brand = { '@type': 'Brand', name: p.brand }; product.manufacturer = { '@type': 'Organization', name: p.brand }; }
   if (sp.cond) product.itemCondition = /reman/i.test(sp.cond) ? 'https://schema.org/RefurbishedCondition' : 'https://schema.org/NewCondition';
+  const props = [sp.eng && { '@type': 'PropertyValue', name: 'Engine', value: sp.eng }, sp.y0 && { '@type': 'PropertyValue', name: 'Years', value: sp.y0 + '–' + sp.y1 }, sp.models && { '@type': 'PropertyValue', name: 'Vehicles', value: sp.models }].filter(Boolean);
+  if (props.length) product.additionalProperty = props;
+  if (rel.length) product.isRelatedTo = rel.map((r) => ({ '@id': SITE + '/parts/' + r.slug + '#product' }));
   const ld = [product];
   if (faqs.length) ld.push({ '@type': 'FAQPage', mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
   const body = `<div class="crumb">${crumbs.slice(0, -1).map((c) => `<a href="${c[1]}">${esc(c[0])}</a>`).join(' / ')} / ${esc(p.code)}</div>
 <div class="g2"><div>
-<span class="tag">${esc(sp.type || cat.l)}${p.brand ? ' · ' + esc(p.brand) : ''}</span>
+<span class="tag">${esc(typ)}${p.brand ? ' · ' + esc(p.brand) : ''}</span>
 <h1>${esc(p.title)}</h1>
 <span class="pn">${esc(p.code)}</span>
+<p class="lead" style="font-size:17px">${esc(answer)}</p>
+<p style="font-size:14px;color:#5f656c;margin:-8px 0 16px">Also listed as: ${aka.map(esc).join(' · ')}</p>
 <div class="card" style="margin-top:0"><table>${facts.map((f) => `<tr><th>${f[0]}</th><td>${esc(f[1])}</td></tr>`).join('')}</table></div>
 ${sp.desc ? `<div class="card desc">${sp.desc}</div>` : `<div class="card"><p style="margin:0">${esc(tidy(p.name))}. Part number ${esc(p.code)}. Ask our team to confirm fitment with your current part number or VIN.</p></div>`}
 ${xref.length ? `<div class="card"><h2>Cross references</h2><ul class="ul">${xref.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
-${faqs.length ? `<div class="card faq"><h2>Questions about ${esc(p.code)}</h2>${faqs.map((f) => `<details><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}</div>` : ''}
+${faqs.length ? `<div class="card faq"><h2>Questions about ${esc(p.oem)}</h2>${faqs.map((f) => `<details><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}</div>` : ''}
 </div><aside class="card cta" style="margin-top:0;position:sticky;top:16px">
 <h2 style="margin:0">Get a price</h2>
 <p>Wholesale prices and live stock for approved repair shops, injection labs, distributors and fleets.</p>
-<a class="btn red" href="/quote?add=${encodeURIComponent(p.code)}&utm_source=parts&utm_medium=organic">Add to a quote request</a>
-<a class="btn ghost" href="/portal#/p/${encodeURIComponent(p.code)}">See price in the wholesale store</a>
+<a class="btn red" href="/quote?add=${encodeURIComponent(p.code)}">Add to a quote request</a>
+<a class="btn ghost" href="/portal#/p/${encodeURIComponent(p.code)}" rel="nofollow">See price in the wholesale store</a>
 <p>We reply with price, stock and lead time within one business day. In-stock orders placed by 3 pm Eastern ship the same day.</p>
 <p>Questions? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or e-mail <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p>
-${engKey || makeKey ? `<div class="chips">${makeKey ? `<a href="/parts/v/${makeKey}">${esc(sp.make)} parts</a>` : ''}${engKey ? `<a href="/parts/e/${engKey}">${esc(sp.eng)}</a>` : ''}</div>` : ''}
+${engKey || makeKey ? `<div class="chips">${makeKey ? `<a href="/parts/v/${makeKey}">${esc(sp.make)} parts</a>` : ''}${engKey && db.engs[engKey] && db.engs[engKey].items.length >= 3 ? `<a href="/parts/e/${engKey}">${esc(sp.engHub)}</a>` : ''}</div>` : ''}
 </aside></div>
 ${rel.length ? `<h2 style="margin-top:36px">Often needed with this part</h2><div class="grid">${rel.map(itemCard).join('')}</div>` : ''}
 ${more.length ? `<h2 style="margin-top:36px">More ${esc(cat.l.toLowerCase())}</h2><div class="grid">${more.map(itemCard).join('')}</div>` : ''}`;
-  return page({ title: `${p.title} | Maxzz Diesel`.slice(0, 120), desc, canon: '/parts/' + p.slug, body, ld, index: !!p.sp, crumbs });
+  return page({ title: short + ' | Maxzz Diesel', desc, canon: '/parts/' + p.slug, body, ld, index: !!p.sp, crumbs });
 }
 
 const PER = 300;
-function listPage({ title, h1, lead, canon, items, crumbs, pageNo }) {
-  const pages = Math.max(1, Math.ceil(items.length / PER)); const n = Math.min(Math.max(1, pageNo || 1), pages);
+function listPage({ title, h1, lead, canon, items, crumbs, pageNo, index = true }) {
+  const pages = Math.max(1, Math.ceil(items.length / PER)); const n = pageNo || 1;
+  if (n > pages) return null;
   const slice = items.slice((n - 1) * PER, n * PER);
   const top = slice.filter((p) => p.sp).slice(0, 24);
   const body = `<div class="crumb">${crumbs.slice(0, -1).map((c) => `<a href="${c[1]}">${esc(c[0])}</a>`).join(' / ')} / ${esc(crumbs[crumbs.length - 1][0])}</div>
 <h1>${esc(h1)}</h1><p class="lead">${esc(lead)}</p>
 <p><a class="btn red" href="/quote">Request a quote</a> <a class="btn ghost" href="/portal">Wholesale login</a></p>
 ${top.length && n === 1 ? `<h2 style="margin-top:28px">Popular part numbers</h2><div class="grid">${top.map(itemCard).join('')}</div>` : ''}
-<div class="card"><h2>${items.length} part numbers${pages > 1 ? `, page ${n} of ${pages}` : ''}</h2><table class="list"><thead><tr><th style="width:auto">Part number</th><th style="width:auto">Description</th></tr></thead><tbody>
-${slice.map((p) => `<tr><td><a href="/parts/${p.slug}">${esc(p.code)}</a></td><td>${esc(p.sp ? p.title : tidy(p.name))}</td></tr>`).join('')}
+<div class="card"><h2>${items.length} part numbers${pages > 1 ? `, page ${n} of ${pages}` : ''}</h2><table class="list"><thead><tr><th style="width:auto">Part number</th><th style="width:auto">Description</th><th style="width:auto"></th></tr></thead><tbody>
+${slice.map((p) => p.sp ? `<tr><td><a href="/parts/${p.slug}">${esc(p.code)}</a></td><td>${esc(p.title)}</td><td></td></tr>` : `<tr><td>${esc(p.code)}</td><td>${esc(tidy(p.name))}</td><td><a href="/quote?add=${encodeURIComponent(p.code)}" rel="nofollow">Quote</a></td></tr>`).join('')}
 </tbody></table>${pages > 1 ? `<div class="pg">${Array.from({ length: pages }, (_, i) => i + 1).map((i) => i === n ? `<b>${i}</b>` : `<a href="${canon}${i > 1 ? '?page=' + i : ''}">${i}</a>`).join('')}</div>` : ''}</div>`;
-  const ld = [{ '@type': 'CollectionPage', name: h1, url: SITE + canon, isPartOf: { '@id': SITE + '/#website' } }];
-  return page({ title: (n > 1 ? `${title}, page ${n}` : title) + ' | Maxzz Diesel', desc: lead.slice(0, 155), canon: canon + (n > 1 ? '?page=' + n : ''), body, ld, crumbs });
+  const ld = [{ '@type': 'CollectionPage', name: h1, url: SITE + canon + (n > 1 ? '?page=' + n : ''), isPartOf: { '@id': SITE + '/#website' } }];
+  if (top.length) ld.push({ '@type': 'ItemList', itemListElement: top.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + '/parts/' + p.slug, name: p.title })) });
+  return page({ title: (n > 1 ? `${title}, page ${n}` : title) + ' | Maxzz Diesel', desc: clip(lead, 155), canon: canon + (n > 1 ? '?page=' + n : ''), body, ld, crumbs, index });
 }
 
+const bigEngs = (db) => Object.entries(db.engs).filter(([, e]) => e.items.length >= 3);
 function hubPage(db) {
   const makes = Object.entries(db.makes).sort((a, b) => b[1].items.length - a[1].items.length);
-  const engs = Object.entries(db.engs).sort((a, b) => a[1].l.localeCompare(b[1].l));
+  const engs = bigEngs(db).sort((a, b) => a[1].l.localeCompare(b[1].l));
+  const catList = Object.entries(CATS).filter(([k]) => db.cats[k]);
   const body = `<div class="crumb"><a href="/">Home</a> / Parts catalog</div>
 <h1>Diesel injection parts catalog</h1>
 <p class="lead">Fuel injectors, high-pressure pumps, nozzles, control valves, repair kits and tools, stocked in Coconut Creek, Florida, since 1992. Search by part number, vehicle or engine, then request a quote. We reply within one business day.</p>
 <p><a class="btn red" href="/quote">Request a quote</a> <a class="btn ghost" href="/portal">Wholesale login</a></p>
-<h2 style="margin-top:32px">By category</h2><div class="grid">${Object.entries(CATS).filter(([k]) => db.cats[k]).map(([k, c]) => `<a class="it" href="/parts/c/${c.s}"><b>${esc(c.l)}</b><span style="font-size:14px;color:#6b7178">${db.cats[k].length} part numbers</span></a>`).join('')}</div>
+<h2 style="margin-top:32px">By category</h2><div class="grid">${catList.map(([k, c]) => `<a class="it" href="/parts/c/${c.s}"><b>${esc(c.l)}</b><span style="font-size:14px;color:#6b7178">${db.cats[k].length} part numbers</span></a>`).join('')}</div>
 <h2 style="margin-top:32px">By vehicle</h2><div class="chips">${makes.map(([k, m]) => `<a href="/parts/v/${k}">${esc(m.l)} (${m.items.length})</a>`).join('')}</div>
 <h2 style="margin-top:32px">By engine</h2><div class="chips">${engs.map(([k, e]) => `<a href="/parts/e/${k}">${esc(e.l)}</a>`).join('')}</div>`;
-  return page({ title: 'Diesel injection parts catalog | Maxzz Diesel', desc: 'Diesel fuel injectors, pumps, nozzles, valves, repair kits and tools by part number, vehicle and engine. Wholesale from Coconut Creek, Florida, since 1992.', canon: '/parts', body, ld: [{ '@type': 'CollectionPage', name: 'Diesel injection parts catalog', url: SITE + '/parts' }], crumbs: [['Home', '/'], ['Parts catalog', '/parts']] });
+  const ld = [{ '@type': 'CollectionPage', name: 'Diesel injection parts catalog', url: SITE + '/parts', isPartOf: { '@id': SITE + '/#website' } },
+    { '@type': 'ItemList', itemListElement: catList.map(([, c], i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + '/parts/c/' + c.s, name: c.l })) }];
+  return page({ title: 'Diesel Injection Parts Catalog by Part Number | Maxzz Diesel', desc: 'Diesel fuel injectors, pumps, nozzles, valves, repair kits and tools by part number, vehicle and engine. Wholesale from Coconut Creek, Florida, since 1992.', canon: '/parts', body, ld, crumbs: [['Home', '/'], ['Parts catalog', '/parts']] });
 }
 
 function sitemap(db) {
   const urls = ['/parts'];
   Object.entries(CATS).forEach(([k, c]) => { if (db.cats[k]) { const n = Math.ceil(db.cats[k].length / PER); for (let i = 1; i <= n; i++) urls.push('/parts/c/' + c.s + (i > 1 ? '?page=' + i : '')); } });
   Object.keys(db.makes).forEach((k) => urls.push('/parts/v/' + k));
-  Object.keys(db.engs).forEach((k) => urls.push('/parts/e/' + k));
+  bigEngs(db).forEach(([k]) => urls.push('/parts/e/' + k));
   Object.values(db.bySlug).forEach((p) => { if (p.sp) urls.push('/parts/' + p.slug); });
-  return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map((u) => `  <url><loc>${SITE}${esc(u)}</loc></url>`).join('\n') + '\n</urlset>\n';
+  return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map((u) => `  <url><loc>${SITE}${esc(u)}</loc><lastmod>${UPDATED}</lastmod></url>`).join('\n') + '\n</urlset>\n';
 }
+
+function redirect(res, to) { res.statusCode = 301; res.setHeader('Location', to); res.setHeader('Cache-Control', 'public, s-maxage=86400'); res.end(); }
 
 module.exports = (req, res) => {
   try {
     const db = load();
     const u = new URL(req.url, 'http://x');
     const kind = u.searchParams.get('k') || '';
-    const id = slug(u.searchParams.get('id') || '');
-    const pageNo = parseInt(u.searchParams.get('page'), 10) || 1;
+    const raw = u.searchParams.get('id') || '';
+    const id = slug(raw);
+    const pq = u.searchParams.get('page');
+    const pageNo = pq == null ? 1 : parseInt(pq, 10);
+    const base = { c: '/parts/c/', v: '/parts/v/', e: '/parts/e/', p: '/parts/' }[kind];
+    if (base && raw && raw !== id && id) return redirect(res, base + id + (pq && pageNo > 1 ? '?page=' + pageNo : ''));
+    if (pq != null && (pageNo === 1 || !(pageNo > 1))) return redirect(res, (base || '/parts') + (base ? id : ''));
     let html = null;
     res.setHeader('Cache-Control', 'public, s-maxage=86400, stale-while-revalidate=604800');
     if (kind === 'sitemap') {
@@ -194,14 +245,17 @@ module.exports = (req, res) => {
       if (e && db.cats[e[0]]) html = listPage({ title: e[1].l, h1: e[1].l, lead: e[1].d + ' Wholesale from Coconut Creek, Florida. Request a quote and we reply within one business day.', canon: '/parts/c/' + id, items: db.cats[e[0]], crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [e[1].l, '/parts/c/' + id]], pageNo });
     } else if (kind === 'v' && db.makes[id]) {
       const m = db.makes[id];
-      html = listPage({ title: `${m.l} diesel injection parts`, h1: `${m.l} diesel injection parts`, lead: `Fuel injectors, pumps, nozzles, valves and repair parts for ${m.l} diesel engines, by part number. Wholesale from Coconut Creek, Florida.`, canon: '/parts/v/' + id, items: m.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [m.l, '/parts/v/' + id]], pageNo });
+      html = listPage({ title: `${m.l} Diesel Injection Parts`, h1: `${m.l} diesel injection parts`, lead: `Fuel injectors, pumps, nozzles, valves and repair parts for ${m.l} diesel engines, by part number. Wholesale from Coconut Creek, Florida.`, canon: '/parts/v/' + id, items: m.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [m.l, '/parts/v/' + id]], pageNo });
     } else if (kind === 'e' && db.engs[id]) {
       const e = db.engs[id];
-      html = listPage({ title: `${e.l} injectors, pumps and parts`, h1: `${e.l} injection parts`, lead: `Fuel injectors, pumps and rebuild parts for the ${e.l}, by part number. Match your current part number or send us your VIN and we confirm fitment.`, canon: '/parts/e/' + id, items: e.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [e.l, '/parts/e/' + id]], pageNo });
-    } else if (kind === 'p' && db.bySlug[id]) html = partPage(db.bySlug[id], db);
+      html = listPage({ title: `${e.l} Injectors, Pumps and Parts`, h1: `${e.l} injection parts`, lead: `Fuel injectors, pumps and rebuild parts for the ${e.l}, by part number. Match your current part number or send us your VIN and we confirm fitment.`, canon: '/parts/e/' + id, items: e.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [e.l, '/parts/e/' + id]], pageNo, index: e.items.length >= 3 });
+    } else if (kind === 'p') {
+      if (db.bySlug[id]) html = partPage(db.bySlug[id], db);
+      else { const o = db.oem[id.replace(/-/g, '')]; if (o) return redirect(res, '/parts/' + o); }
+    }
     if (!html) {
       res.statusCode = 404; res.setHeader('Cache-Control', 'public, s-maxage=600');
-      html = page({ title: 'Part not found | Maxzz Diesel', desc: 'Part not found.', canon: '/parts', index: false, body: '<h1>We could not find that part</h1><p class="lead">Search the catalog or send us the part number and we look it up for you.</p><p><a class="btn red" href="/parts">Parts catalog</a> <a class="btn ghost" href="/quote">Request a quote</a></p>' });
+      html = page({ title: 'Part not found | Maxzz Diesel', desc: 'Part not found.', canon: '', index: false, body: '<h1>We could not find that part</h1><p class="lead">Search the catalog or send us the part number and we look it up for you.</p><p><a class="btn red" href="/parts">Parts catalog</a> <a class="btn ghost" href="/quote">Request a quote</a></p>' });
     }
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.end(html);

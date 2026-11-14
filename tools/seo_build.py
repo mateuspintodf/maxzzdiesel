@@ -18,32 +18,61 @@ SITE = 'https://www.maxzzdiesel.com'
 PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 'injection-parts', 'partners',
          'policies', 'privacy', 'quote', 'terms', 'tool-sets', 'who-we-serve']
 
-ORG = {
-    '@context': 'https://schema.org',
-    '@graph': [{
-        '@type': ['Organization', 'WholesaleStore'],
-        '@id': SITE + '/#org',
-        'name': 'Maxzz Diesel',
-        'url': SITE + '/',
-        'logo': SITE + '/assets/logo-negative.svg',
-        'description': 'Diesel fuel injectors, high-pressure pumps, common rail rebuild parts, aftertreatment equipment, '
-                       'test bench fluids and Robiel tool sets for rebuilders, injection labs and distributors. Stocked in South Florida.',
-        'foundingDate': '1992',
-        'founder': [{'@type': 'Person', 'name': 'Waldyr Mazzer'}, {'@type': 'Person', 'name': 'Douglas Mazzer'},
-                    {'@type': 'Person', 'name': 'Michael Mazzer'}],
-        'address': {'@type': 'PostalAddress', 'streetAddress': '6601 Lyons Road, Ste H-6', 'addressLocality': 'Coconut Creek',
-                    'addressRegion': 'FL', 'postalCode': '33073', 'addressCountry': 'US'},
-        'telephone': '+1-954-586-4158',
-        'email': 'sales@maxzzdiesel.com',
-        'areaServed': ['US', 'Latin America'],
-        'memberOf': {'@type': 'Organization', 'name': 'Association of Diesel Specialists (ADS)'},
-        'brand': [{'@type': 'Brand', 'name': b} for b in ['Bosch', 'Denso', 'Delphi', 'Robiel', 'LEAD', 'Fratelli Bosio', 'SLP']],
-        'subOrganization': [{'@type': 'EducationalOrganization', 'name': 'Diesel Tech Academy', 'url': 'https://www.dieseltechacademy.com/'},
-                            {'@type': 'Organization', 'name': 'Volvo Engine Kits', 'url': 'https://volvoenginekits.com/'}],
-        'sameAs': ['https://www.linkedin.com/company/maxzzdiesel/', 'https://www.instagram.com/maxzzdiesel.us/',
-                   'https://www.facebook.com/maxzzdiesel'],
-    }],
+ORG_NODE = {
+    '@type': ['Organization', 'WholesaleStore'],
+    '@id': SITE + '/#org',
+    'name': 'Maxzz Diesel',
+    'url': SITE + '/',
+    'logo': SITE + '/assets/favicon.svg',
+    'image': SITE + '/assets/mg/hero-2.jpg',
+    'description': 'Wholesale supplier of diesel fuel injection parts: common rail injectors, high-pressure pumps, nozzles, '
+                   'control valves, repair kits, Robiel tool sets, ISO 4113 calibration fluid and SCR / NOx aftertreatment test '
+                   'equipment for rebuilders, injection labs, distributors and fleets. Stocked in Coconut Creek, Florida, since 1992.',
+    'foundingDate': '1992',
+    'founder': [{'@type': 'Person', 'name': 'Waldyr Mazzer'}, {'@type': 'Person', 'name': 'Douglas Mazzer'},
+                {'@type': 'Person', 'name': 'Michael Mazzer'}],
+    'address': {'@type': 'PostalAddress', 'streetAddress': '6601 Lyons Road, Ste H-6', 'addressLocality': 'Coconut Creek',
+                'addressRegion': 'FL', 'postalCode': '33073', 'addressCountry': 'US'},
+    'telephone': '+1-954-586-4158',
+    'email': 'sales@maxzzdiesel.com',
+    'areaServed': ['North America', 'Latin America'],
+    'contactPoint': [
+        {'@type': 'ContactPoint', 'contactType': 'sales', 'telephone': '+1-954-586-4158', 'email': 'sales@maxzzdiesel.com',
+         'availableLanguage': ['English', 'Spanish', 'Portuguese'], 'areaServed': 'US'},
+        {'@type': 'ContactPoint', 'contactType': 'sales', 'telephone': '+1-954-371-6996', 'name': 'WhatsApp US',
+         'availableLanguage': ['English', 'Spanish', 'Portuguese']},
+        {'@type': 'ContactPoint', 'contactType': 'sales', 'telephone': '+1-786-716-4857', 'name': 'WhatsApp Latin America',
+         'availableLanguage': ['Spanish', 'Portuguese', 'English'], 'areaServed': 'Latin America'}],
+    'memberOf': {'@type': 'Organization', 'name': 'Association of Diesel Specialists (ADS)'},
+    'knowsAbout': ['Diesel fuel injection', 'Common rail injectors', 'High-pressure fuel pumps', 'Injector rebuilding',
+                   'SCR aftertreatment', 'NOx sensors', 'ISO 4113 calibration fluid', 'Bosch', 'Denso', 'Delphi', 'Robiel',
+                   'LEAD', 'Fratelli Bosio', 'SLP'],
+    'subOrganization': [{'@type': 'EducationalOrganization', 'name': 'Diesel Tech Academy', 'url': 'https://www.dieseltechacademy.com/'},
+                        {'@type': 'Organization', 'name': 'Volvo Engine Kits', 'url': 'https://volvoenginekits.com/'}],
+    'sameAs': ['https://www.linkedin.com/company/maxzzdiesel/', 'https://www.instagram.com/maxzzdiesel.us/',
+               'https://www.facebook.com/maxzzdiesel'],
 }
+WEBSITE = {'@type': 'WebSite', '@id': SITE + '/#website', 'url': SITE + '/', 'name': 'Maxzz Diesel',
+           'publisher': {'@id': SITE + '/#org'}, 'inLanguage': 'en-US'}
+ORG = {'@context': 'https://schema.org', '@graph': [ORG_NODE, WEBSITE]}
+
+TITLES = {
+    'index': 'Wholesale Diesel Injection Parts Since 1992 | Maxzz Diesel',
+    'injection-parts': 'Common Rail Injectors, Pumps and Repair Parts | Maxzz Diesel',
+    'aftertreatment': 'SCR and NOx Aftertreatment Test Equipment | Maxzz Diesel',
+    'fluids': 'ISO 4113 Calibration Fluid and Degreasers | Maxzz Diesel',
+    'tool-sets': 'Robiel Injector and Pump Tool Sets | Maxzz Diesel',
+    'contamination-kits': 'Fuel System Contamination Kits | Maxzz Diesel',
+    'partners': 'Denso, Robiel and SLP Distributor | Maxzz Diesel',
+    'who-we-serve': 'Parts Supplier for Diesel Rebuilders and Labs | Maxzz Diesel',
+    'about': 'About Maxzz Diesel: Diesel Specialists Since 1992',
+    'quote': 'Request a Wholesale Quote for Diesel Injection Parts | Maxzz Diesel',
+    'policies': 'Shipping, Returns and Warranty | Maxzz Diesel',
+    'terms': 'Terms and Conditions | Maxzz Diesel',
+    'privacy': 'Privacy Policy | Maxzz Diesel',
+}
+OG_IMG = {'index': 'hero-2', 'injection-parts': 'parts-hero', 'aftertreatment': 'nox-final', 'fluids': 'fluids-final',
+          'tool-sets': 'toolsets-bench-hero', 'contamination-kits': 'contam-kit', 'about': 'about'}
 
 HEAD_START, HEAD_END = '<!--seo-head-->', '<!--/seo-head-->'
 BODY_START, BODY_END = '<!--seo-static-->', '<!--/seo-static-->'
@@ -52,15 +81,24 @@ E = html.escape
 
 def head_block(page):
     url = SITE + '/' if page == 'index' else f'{SITE}/{page}'
+    title = TITLES.get(page, 'Maxzz Diesel')
+    img = f"{SITE}/assets/mg/{OG_IMG.get(page, 'hero-2')}.jpg"
     parts = [f'<link rel="canonical" href="{url}">',
              f'<meta property="og:url" content="{url}">',
+             f'<meta property="og:site_name" content="Maxzz Diesel"><meta property="og:locale" content="en_US">',
+             f'<meta property="og:image" content="{img}"><meta name="twitter:card" content="summary_large_image">',
+             '<link rel="preload" href="/assets/fonts/BDOGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin>',
+             '<link rel="preload" href="/assets/fonts/BDOGrotesk-Medium.woff2" as="font" type="font/woff2" crossorigin>',
              "<script>document.documentElement.classList.add('js')</script>",
              '<style>.js .seo-static{display:none}.seo-static{max-width:1100px;margin:40px auto;padding:0 24px;font-family:Arial,sans-serif;color:#1d2126}</style>']
-    if page == 'index':
-        parts.append('<script type="application/ld+json">' + json.dumps(ORG, ensure_ascii=False) + '</script>')
-    else:
-        parts.append('<script type="application/ld+json">' + json.dumps({'@context': 'https://schema.org', '@type': 'WebPage', 'url': url,
-                     'publisher': {'@id': SITE + '/#org'}}) + '</script>')
+    graph = [ORG_NODE, WEBSITE]
+    if page != 'index':
+        graph.append({'@type': 'WebPage', '@id': url + '#webpage', 'url': url, 'name': title, 'inLanguage': 'en-US',
+                      'isPartOf': {'@id': SITE + '/#website'}, 'publisher': {'@id': SITE + '/#org'},
+                      'breadcrumb': {'@type': 'BreadcrumbList', 'itemListElement': [
+                          {'@type': 'ListItem', 'position': 1, 'name': 'Home', 'item': SITE + '/'},
+                          {'@type': 'ListItem', 'position': 2, 'name': title.split(' | ')[0], 'item': url}]}})
+    parts.append('<script type="application/ld+json">' + json.dumps({'@context': 'https://schema.org', '@graph': graph}, ensure_ascii=False) + '</script>')
     return HEAD_START + ''.join(parts) + HEAD_END
 
 
@@ -120,6 +158,11 @@ def process(page):
     # 2. head block
     src = re.sub(re.escape(HEAD_START) + '.*?' + re.escape(HEAD_END), '', src, flags=re.S)
     src = src.replace('</head>', head_block(page) + '</head>', 1)
+    t = TITLES.get(page)
+    if t:
+        src = re.sub(r'<title>.*?</title>', '<title>' + E(t) + '</title>', src, count=1, flags=re.S)
+        src = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="' + E(t.split(' | ')[0]) + '">', src, count=1)
+    src = src.replace('<html lang="en">', '<html lang="en-US">', 1)
     # 3. static content block
     src = re.sub(re.escape(BODY_START) + '.*?' + re.escape(BODY_END), '', src, flags=re.S)
     static = ''

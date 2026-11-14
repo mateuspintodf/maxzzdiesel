@@ -317,12 +317,13 @@
     get zipLabel() { return this.rq.country === 'Brazil' ? 'CEP' : /United States|Puerto Rico/.test(this.rq.country) ? 'ZIP' : 'Postal code'; },
     okEmail: function (e) { return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(String(e || '').trim()); },
     okPhone: function (p) { return String(p || '').replace(/\D/g, '').length >= 10; },
-    maskPhone: function (v) {
+    maskPhone: function (v, country) {
       var d = String(v || '').replace(/\D/g, '');
-      if (this.usPhone) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
+      var us = country ? /United States|Puerto Rico|Canada/.test(country) : this.usPhone;
+      if (us) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
       return v && String(v).trim().charAt(0) === '+' ? '+' + d.slice(0, 15) : (d ? '+' + d.slice(0, 15) : '');
     },
-    rqNext: function () { this.rqTried = true; var r = this.rq; if (!r.name.trim() || !this.okEmail(r.email) || !this.okPhone(r.phone)) return; this.rqStep = 2; },
+    rqNext: function () { this.rqTried = true; var r = this.rq; if (!r.name.trim() || !this.okEmail(r.email) || !this.okPhone(r.phone)) return; this.rqStep = 2; setTimeout(function () { var c = document.querySelector('[autocomplete=organization]'); if (c) c.focus(); }, 60); },
     rqZip: function () {
       var self = this, r = this.rq, z = String(r.zip || '').trim(), c = r.country, url = '', br = false;
       clearTimeout(this._zt); this.zipMsg = '';
@@ -488,7 +489,7 @@
     stockClass: function (code) { var n = this.qty(code); return n == null || n <= 0 ? 'out' : n < 5 ? 'low' : ''; },
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },
     name: function (code) { var r = this.map[code]; return r ? this.title(r) : code; },
-    qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; }, 210); },
+    qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; var f = document.querySelector('.px-fab-b.red'); if (f) f.focus(); }, 210); },
     fmt: function (n) { return n == null ? (this.logged ? 'Price on request' : 'Ask us') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
@@ -518,7 +519,7 @@
       var l = this.quote.filter(function (x) { return x.id === code; })[0];
       if (l) l.qty += n; else this.quote.push({ id: code, name: r[1], pn: code, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: n });
       write(QK, this.quote); this.picks[code] = 1;
-      this.flash(n + (n === 1 ? ' added' : ' added') + ' to your quote list', 'quote'); track('quote_add_item', { item_id: code, quantity: n, source: 'store' });
+      this.flash(n + ' added to your quote list', 'quote'); this.pop(); track('quote_add_item', { item_id: code, quantity: n, source: 'store' });
     },
     save: function () { write(CK, this.cart); },
     inCart: function (code) { return this.cart.some(function (l) { return l.code === code; }); },
@@ -527,7 +528,7 @@
       n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.cart.filter(function (x) { return x.code === code; })[0];
       if (l) l.qty += n; else this.cart.push({ code: code, qty: n });
-      this.picks[code] = 1; this.save(); this.flash('Added to cart. ' + this.cart.length + (this.cart.length === 1 ? ' part' : ' parts') + ' in your cart', 'cart');
+      this.picks[code] = 1; this.save(); this.pop(); this.flash('Added to cart. ' + this.cart.length + (this.cart.length === 1 ? ' part' : ' parts') + ' in your cart', 'cart');
       track('add_to_cart', { item_id: code, quantity: n, source: 'store' });
     },
     setQty: function (i, v) { var n = parseInt(v, 10) || 0; if (n <= 0) return this.remove(i); this.cart[i].qty = Math.min(9999, n); this.save(); },
@@ -625,6 +626,8 @@
     lookup: function (a) { var self = this; if (!a._q.trim()) return; a._busy = true; api('admin-lookup?code=' + encodeURIComponent(a._q.trim())).then(function (r) { a._busy = false; a._res = r.customers || []; if (r.error) self.flash(r.error); }); },
     approve: function (a) { var self = this; api('admin-approve', { body: { account: a.id, customer: a._pick } }).then(function (r) { if (r._status === 200) { self.flash('Approved. Access e-mail sent.'); self.loadAdmin(); } else self.flash(r.error || 'Could not approve'); }); },
     reject: function (a) { var reason = prompt('Reason (optional, sent to the customer):'); if (reason === null) return; var self = this; api('admin-reject', { body: { account: a.id, reason: reason, notify: true } }).then(function () { self.flash('Declined'); self.loadAdmin(); }); },
+    moveInd: function (nav) { var a = nav && nav.querySelector('a.on'), i = nav && nav.querySelector('.px-dind'); if (!a || !i) return; i.style.width = a.offsetWidth + 'px'; i.style.transform = 'translateX(' + a.offsetLeft + 'px)'; },
+    pop: function () { try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; requestAnimationFrame(function () { document.querySelectorAll('.px-fab-b .n, .pxh-ic .pxh-n, .px-kpis b').forEach(function (e) { e.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(.3,1.4,.5,1)' }); }); }); } catch (e) {} },
     flash: function (m, kind) { var self = this; this.toast = m; this.toastKind = kind || ''; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
   });
 

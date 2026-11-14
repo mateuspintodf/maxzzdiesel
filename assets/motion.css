@@ -68,3 +68,76 @@
 html.mx-scrolled .lang-bar{height:10px !important;opacity:0;pointer-events:none;overflow:hidden}
 html.mx-scrolled .lang-menu{display:none !important}
 @media (prefers-reduced-motion:reduce){.lang-bar{transition:none}}
+
+/* ===== Review fixes 14/11 ===== */
+/* readable rhythm: the wrapper forced 28px line-height on every size */
+.noise { line-height: 1.5 !important; }
+h1, h2, h3 { text-wrap: balance; }
+
+/* hover: keep text readable on the orange hover, and never let the icon vanish */
+.b-red:hover, .b-white:hover, .qx-red:hover { color: #1d2126 !important; }
+.b-red:hover .ic, .b-white:hover .ic { background: #1d2126 !important; color: #ffffff !important; }
+.b-red:hover .ic svg, .b-white:hover .ic svg { color: #ffffff !important; stroke: currentColor; }
+.rb-dl:hover span, .rb-dl:hover small { color: #5f656c !important; }
+/* touch screens: no sticky hover after a tap */
+@media (hover: none) {
+  .b-red:hover { background: #d32a37 !important; color: #ffffff !important; }
+  .b-white:hover { background: #ffffff !important; color: #1d2126 !important; }
+  .b-white:hover .ic { background: #1d2126 !important; }
+  .qx-add.in:hover { filter: none; }
+}
+
+/* nav over light content after scroll */
+nav[aria-label="Main"] { background: rgba(29, 33, 38, 0.92) !important; }
+
+/* small links that had no transition */
+.nav-phone, .lang button, .qx-crumb a, .foot-link, .mn-link { transition: color var(--duration-fast) var(--ease-smooth-out), opacity var(--duration-fast); }
+
+/* Mobile menu: smaller type, tighter rows, CTA always reachable */
+.mnav-panel { padding: 8px 20px 0 !important; transform-origin: top right; }
+.mn-link { font-size: 16px !important; line-height: 22px; padding: 11px 0 !important; letter-spacing: -0.01em; }
+.mn-h { line-height: 16px; margin: 16px 0 4px !important; }
+.mn-lang a { min-height: 44px; display: inline-flex; align-items: center; }
+.mn-cta { position: sticky; bottom: 0; background: #1d2126; padding: 12px 0 calc(16px + env(safe-area-inset-bottom)); margin-top: 12px !important; z-index: 2; }
+@keyframes mn-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.mnav-panel .mn-link, .mnav-panel .mn-h { animation: mn-in .3s var(--ease-smooth-out) both; }
+.mnav-panel > *:nth-child(2) { animation-delay: 30ms; } .mnav-panel > *:nth-child(3) { animation-delay: 60ms; }
+.mnav-panel > *:nth-child(4) { animation-delay: 90ms; } .mnav-panel > *:nth-child(5) { animation-delay: 120ms; }
+.mnav-panel > *:nth-child(n+6) { animation-delay: 150ms; }
+
+/* Product lines block (home): sliding highlight, arrow turns, hover intent in the page script */
+.co-list .t-pill { border-radius: 20px; transition-duration: var(--duration-medium) !important; }
+.co-list.t-has-pill .co-tab { transition: color 200ms ease 60ms !important; filter: none !important; }
+.co-list.t-has-pill .co-tab::before { background: #ffffff; }
+.co-tab > span { transition: background-color 250ms ease, color 250ms ease !important; }
+.co-tab > span svg { transition: transform var(--duration-medium) var(--ease-smooth-out); }
+.co-tab[aria-selected="true"] > span svg { transform: rotate(45deg); }
+@media (max-width: 760px) {
+  .co-list { flex-direction: row !important; overflow-x: auto; scroll-snap-type: x proximity; gap: 8px !important; margin: 0 -20px; padding: 0 20px 4px; scrollbar-width: none; }
+  .co-list::-webkit-scrollbar { display: none; }
+  .co-list .co-tab { width: auto !important; height: 48px !important; flex: none; white-space: nowrap; font-size: 15px !important; padding: 0 6px 0 18px !important; border-radius: 50px !important; scroll-snap-align: start; }
+  .co-list .co-tab > span { width: 36px !important; height: 36px !important; }
+  .co-list .t-pill { border-radius: 50px; }
+  .co-media { aspect-ratio: 4 / 3 !important; }
+}
+
+/* Courses / details accordions without JS: animate native <details> where supported */
+:root { interpolate-size: allow-keywords; }
+details.qx-more-d::details-content { block-size: 0; overflow: hidden; transition: block-size .3s var(--ease-smooth-out), content-visibility .3s allow-discrete; }
+details.qx-more-d[open]::details-content { block-size: auto; }
+
+@media (prefers-reduced-motion: reduce) {
+  .co-media > * { transition: none !important; }
+  .mnav-panel .mn-link, .mnav-panel .mn-h { animation: none !important; }
+  .co-tab > span svg { transition: none; }
+}
+
+/* Mobile rhythm: section spacing and headings sized for phones */
+@media (max-width: 640px) {
+  section[style*="padding: 120px 20px"], section[style*="padding: 130px 20px"] { padding-top: 72px !important; }
+  section[style*="padding: 120px 20px;"], section[style*="padding: 120px 20px\""] { padding-bottom: 72px !important; }
+  .rv[style*="margin-top: 64px"], div[style*="margin-top: 64px"] { margin-top: 36px !important; }
+  div[style*="margin-top: 56px"] { margin-top: 32px !important; }
+  h2[style*="clamp(32px"] { font-size: 30px !important; line-height: 1.1 !important; }
+  p, li { text-wrap: pretty; }
+}

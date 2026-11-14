@@ -30,6 +30,9 @@
     "api/parts.js": {
       "includeFiles": "data/{catalog,specs}.json",
       "maxDuration": 15
+    },
+    "api/indexnow.js": {
+      "maxDuration": 30
     }
   },
   "headers": [
@@ -334,6 +337,10 @@
     {
       "path": "/api/cron-stock",
       "schedule": "10,40 * * * *"
+    },
+    {
+      "path": "/api/indexnow",
+      "schedule": "20 9 * * *"
     }
   ],
   "rewrites": [
