@@ -70,6 +70,15 @@ function orderMail(o) {
 
 const A = {};
 
+// public: product image URLs only (no prices), for the open storefront
+A.images = async (req, res) => {
+  const prod = await cached('portal/products.json', 30 * 60 * 1000);
+  const out = {};
+  for (const [code, p] of Object.entries((prod && prod.items) || {})) if (p.img && /^https:\/\//.test(p.img)) out[code] = p.img;
+  res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
+  return res.json(out);
+};
+
 // configuration check without revealing any value
 A.health = async (req, res) => res.json({ mail: !!process.env.RESEND_API_KEY, admins: admins().length, unleashed: configured(), ordersLive: liveOrders(), env: process.env.VERCEL_ENV || '' });
 
