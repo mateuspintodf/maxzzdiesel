@@ -71,7 +71,7 @@
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, rate: 1, levels: [
       { k: 'app', n: 'Apprentice', at: 0, c: '#8a9097', perk: 'Points on every order', perks: ['1 point per US$ 1 invoiced', 'Member pricing alerts', 'Order tracking in the store'] },
       { k: 'tech', n: 'Technician', at: 10000, c: '#c87533', perk: 'Free ground freight over US$ 1,500', perks: ['Everything in Apprentice', 'Free ground freight on orders over US$ 1,500', 'Early access to new part lines'] },
@@ -335,11 +335,11 @@
         fetch(url).then(function (x) { if (!x.ok) throw 0; return x.json(); }).then(function (x) {
           var city = '', st = '';
           if (br) { if (x.erro) throw 0; city = x.localidade; st = x.uf; } else { var pl = (x.places || [])[0] || {}; city = pl['place name'] || ''; st = pl['state abbreviation'] || pl.state || ''; }
-          if (city) { r.city = city; r.state = st; self.zipMsg = 'Found: ' + city + (st ? ', ' + st : ''); }
+          if (city) { r.city = city; r.state = st; self.zipMsg = ''; }
         }).catch(function () { self.zipMsg = ''; });
       }, 300);
     },
-    get lp() { return this.route === 'request' || this.route === 'login'; },
+    get lp() { return ['request', 'login', 'sent', 'requested', 'pending'].indexOf(this.route) >= 0; },
     get needLogin() { var r = this.route; if (r === 'admin') return !(this.me && this.me.admin); if (r === 'orders') return !this.me && this.meLoaded; return ['cart', 'checkout', 'o'].indexOf(r) >= 0 && !this.canOrder && this.meLoaded; },
     get noPriceLines() { var self = this; return this.cart.filter(function (l) { return self.price(l.code) == null; }).map(function (l) { return l.code; }); },
     get pickup() { return /will call/i.test(this.co.method); },
@@ -428,7 +428,7 @@
         }
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { self.qOpen = false; self.showF = false; } });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (self.qOpen) self.qClose(); self.showF = false; } });
       this.readHash();
     },
     readHash: function () {
@@ -488,6 +488,7 @@
     stockClass: function (code) { var n = this.qty(code); return n == null || n <= 0 ? 'out' : n < 5 ? 'low' : ''; },
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },
     name: function (code) { var r = this.map[code]; return r ? this.title(r) : code; },
+    qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; }, 210); },
     fmt: function (n) { return n == null ? (this.logged ? 'Price on request' : 'Ask us') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
@@ -511,12 +512,13 @@
     setPick: function (code, v) { this.picks[code] = Math.max(1, Math.min(9999, parseInt(v, 10) || 1)); },
 
     // quote list (anonymous) and cart (signed in)
-    addQuote: function (code) {
-      var r = this.map[code]; if (!r) return;
+    quoteQty: function (code) { var l = this.quote.filter(function (x) { return x.id === code; })[0]; return l ? l.qty : 0; },
+    addQuote: function (code, n) {
+      var r = this.map[code]; if (!r) return; n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.quote.filter(function (x) { return x.id === code; })[0];
-      if (l) l.qty += 1; else this.quote.push({ id: code, name: r[1], pn: code, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: 1 });
-      write(QK, this.quote);
-      this.flash('Added to your quote list', 'quote'); track('quote_add_item', { item_id: code, quantity: 1, source: 'store' });
+      if (l) l.qty += n; else this.quote.push({ id: code, name: r[1], pn: code, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: n });
+      write(QK, this.quote); this.picks[code] = 1;
+      this.flash(n + (n === 1 ? ' added' : ' added') + ' to your quote list', 'quote'); track('quote_add_item', { item_id: code, quantity: n, source: 'store' });
     },
     save: function () { write(CK, this.cart); },
     inCart: function (code) { return this.cart.some(function (l) { return l.code === code; }); },

@@ -26,6 +26,10 @@
     },
     "api/portal.js": {
       "maxDuration": 60
+    },
+    "api/parts.js": {
+      "includeFiles": "data/{catalog,specs}.json",
+      "maxDuration": 15
     }
   },
   "headers": [
@@ -333,6 +337,30 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/sitemap-parts.xml",
+      "destination": "/api/parts?k=sitemap"
+    },
+    {
+      "source": "/parts",
+      "destination": "/api/parts"
+    },
+    {
+      "source": "/parts/c/:id",
+      "destination": "/api/parts?k=c&id=:id"
+    },
+    {
+      "source": "/parts/v/:id",
+      "destination": "/api/parts?k=v&id=:id"
+    },
+    {
+      "source": "/parts/e/:id",
+      "destination": "/api/parts?k=e&id=:id"
+    },
+    {
+      "source": "/parts/:id",
+      "destination": "/api/parts?k=p&id=:id"
+    },
     {
       "source": "/api/portal/:a",
       "destination": "/api/portal?a=:a"

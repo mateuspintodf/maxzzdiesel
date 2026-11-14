@@ -3,4 +3,6 @@ Allow: /
 Disallow: /api/
 Disallow: /painel
 Disallow: /portal
+Disallow: /agenda
 Sitemap: https://www.maxzzdiesel.com/sitemap.xml
+Sitemap: https://www.maxzzdiesel.com/sitemap-parts.xml

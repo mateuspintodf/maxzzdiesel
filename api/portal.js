@@ -20,7 +20,7 @@ const hits = new Map();
 const admins = () => String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
 const isAdmin = (email) => !!email && admins().includes(email);
 const liveOrders = () => process.env.PORTAL_ORDERS_LIVE === '1';
-const base = (req) => process.env.SITE_URL || (process.env.VERCEL_ENV === 'production' ? 'https://maxzzdiesel.com' : 'https://' + (req.headers['x-forwarded-host'] || req.headers.host));
+const base = (req) => process.env.SITE_URL || (process.env.VERCEL_ENV === 'production' ? 'https://www.maxzzdiesel.com' : 'https://' + (req.headers['x-forwarded-host'] || req.headers.host));
 
 function limited(req, key, max, windowMs) {
   const k = key + '|' + String(req.headers['x-forwarded-for'] || '').split(',')[0].trim(), now = Date.now();

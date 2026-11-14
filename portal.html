@@ -19,7 +19,7 @@
 
 body{margin:0;background:#eef0f2}
 body *{text-wrap:pretty}h1,h2,h3{text-wrap:balance}
-a{color:#d32a37;text-decoration:none}a:hover{color:#a81f2b}
+a{color:#d32a37;text-decoration:none}
 .navl{color:#ffffff;transition:color .25s}.navl:hover{color:#fc771d}
 .foot-link{color:#b9b9be;transition:color .25s}.foot-link:hover{color:#ffffff}
 .btn{transition:background-color .3s,color .3s,border-color .3s}
@@ -797,6 +797,67 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .is-lp .px-stage-l h1{font-size:52px;max-width:620px}
 .is-lp .px-stage-l>p{font-size:18px}
 @media (max-width:1000px){.is-lp .px-stage-in{padding:110px 20px 48px}.is-lp .px-stage-l h1{font-size:36px}}
+
+/* motion pass 13/11 */
+@media (max-width:860px){.px-stage-r{order:-1}}
+.px-fab{right:96px}@media (max-width:760px){.px-fab{right:12px;bottom:92px}.px .px-qp{right:12px;bottom:150px}}
+.px-por{color:#1f5fd1!important;font-weight:500}
+.px-kpis{grid-auto-columns:minmax(150px,auto)}
+.px .px-kpis .px-rw{min-width:216px}
+.px .px-kpis a{background:linear-gradient(160deg,rgba(255,255,255,.16),rgba(255,255,255,.04));border:1px solid rgba(255,255,255,.2);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 12px 32px rgba(0,0,0,.22);transition:transform .35s cubic-bezier(.2,.9,.25,1),border-color .3s,background-color .3s,box-shadow .35s}
+.px .px-kpis a:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.38);box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 18px 40px rgba(0,0,0,.3)}
+.px .px-kpis .px-rw{border-color:rgba(252,119,29,.45)}
+@media (max-width:760px){.px .px-kpis .px-rw{min-width:0}.px-kpis span{white-space:normal}}
+.px-qp{right:96px;transform-origin:85% 100%;animation:pxPanelIn .44s cubic-bezier(.2,.9,.25,1) both}
+.px-qp.out{animation:pxPanelOut .22s cubic-bezier(.4,0,1,1) both}
+.px-qp-bd{position:fixed;inset:0;z-index:79;background:rgba(14,15,17,.2);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:pxFadeIn .3s ease both}
+.px-qp-bd.out{animation:pxFadeOut .22s ease both}
+.px-qp-i{animation:pxUp .45s cubic-bezier(.2,.9,.25,1) both}
+.px-qp-i:nth-child(1){animation-delay:.1s}.px-qp-i:nth-child(2){animation-delay:.14s}.px-qp-i:nth-child(3){animation-delay:.18s}.px-qp-i:nth-child(4){animation-delay:.22s}.px-qp-i:nth-child(5){animation-delay:.26s}.px-qp-i:nth-child(n+6){animation-delay:.3s}
+.px-qp-f{animation:pxUp .45s .2s cubic-bezier(.2,.9,.25,1) both}
+.px-qp-x{transition:transform .3s,background-color .2s}.px-qp-x:hover{transform:rotate(90deg);background:#e2e5e8}
+@keyframes pxPanelIn{from{opacity:0;transform:translateY(20px) scale(.95);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+@keyframes pxPanelOut{to{opacity:0;transform:translateY(14px) scale(.96);filter:blur(4px)}}
+@keyframes pxFadeIn{from{opacity:0}}@keyframes pxFadeOut{to{opacity:0}}
+.px .px-fab-b{transition:transform .3s cubic-bezier(.2,.9,.25,1),box-shadow .3s}.px .px-fab-b:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(14,15,17,.34)}
+.px-fab-b{animation:pxPop .45s cubic-bezier(.3,1.4,.5,1) both}
+.sc{transition:box-shadow .4s,transform .4s cubic-bezier(.2,.9,.25,1)}
+.sc:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(29,33,38,.12)}
+.sc-img img{transition:transform .7s cubic-bezier(.2,.9,.25,1)}
+.sc:hover .sc-img img{transform:scale(1.06)}
+.sc-pnb{transition:transform .35s cubic-bezier(.2,.9,.25,1)}.sc:hover .sc-pnb{transform:translateY(-1px)}
+.sc-qa{transition:background-color .2s,color .2s,transform .35s cubic-bezier(.3,1.4,.5,1)}.sc:hover .sc-qa{transform:scale(1.08)}
+.px a.sc-t{transition:color .2s}
+.px-grid4>.sc{animation:pxUp .55s cubic-bezier(.2,.9,.25,1) both}
+.px-grid4>.sc:nth-child(2){animation-delay:.04s}.px-grid4>.sc:nth-child(3){animation-delay:.08s}.px-grid4>.sc:nth-child(4){animation-delay:.12s}.px-grid4>.sc:nth-child(5){animation-delay:.16s}.px-grid4>.sc:nth-child(6){animation-delay:.2s}.px-grid4>.sc:nth-child(7){animation-delay:.24s}.px-grid4>.sc:nth-child(n+8){animation-delay:.28s}
+.px-main>div,.px-main>section{animation:pxUp .5s cubic-bezier(.2,.9,.25,1) both}
+.px-sec{animation:pxUp .6s cubic-bezier(.2,.9,.25,1) both}.px-sec:nth-of-type(2){animation-delay:.06s}.px-sec:nth-of-type(3){animation-delay:.12s}.px-sec:nth-of-type(n+4){animation-delay:.18s}
+.px-hero-in h1{animation:pxUp .7s .05s cubic-bezier(.2,.9,.25,1) both}.px-hero-in>div>p{animation:pxUp .7s .14s cubic-bezier(.2,.9,.25,1) both}
+.px-kpis>a{animation:pxUp .6s cubic-bezier(.2,.9,.25,1) both}.px-kpis>a:nth-child(1){animation-delay:.18s}.px-kpis>a:nth-child(2){animation-delay:.24s}.px-kpis>a:nth-child(3){animation-delay:.3s}.px-kpis>a:nth-child(4){animation-delay:.36s}
+.px-catnav a{transition:color .2s,background-color .2s,transform .3s cubic-bezier(.2,.9,.25,1)}.px-catnav a:hover{transform:translateY(-1px)}
+.px-catnav a .ci{transition:transform .35s cubic-bezier(.3,1.4,.5,1)}.px-catnav a:hover .ci{transform:scale(1.12)}
+.px-ltab tbody tr{transition:background-color .2s}.px-ltab tbody tr:hover{background:#fafbfc}
+.px-ltab tbody tr{animation:pxUp .45s cubic-bezier(.2,.9,.25,1) both}.px-ltab tbody tr:nth-child(2){animation-delay:.05s}.px-ltab tbody tr:nth-child(3){animation-delay:.1s}.px-ltab tbody tr:nth-child(n+4){animation-delay:.15s}
+.px-toast{animation:pxToast .45s cubic-bezier(.2,.9,.25,1) both}
+@keyframes pxToast{from{opacity:0;transform:translateY(-10px) scale(.96);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.px-btn{transition:transform .25s cubic-bezier(.2,.9,.25,1),background-color .2s,color .2s,box-shadow .25s,border-color .2s}.px-btn:active{transform:scale(.97)}
+.px-qty button{transition:background-color .2s,transform .2s}.px-qty button:active{transform:scale(.88)}
+.px-ctile,.px-make{transition:transform .35s cubic-bezier(.2,.9,.25,1),box-shadow .35s}.px-ctile:hover,.px-make:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(29,33,38,.09)}
+@media (prefers-reduced-motion:reduce){.px-qp,.px-qp-bd,.px-qp-i,.px-qp-f,.px-fab-b,.px-grid4>.sc,.px-main>div,.px-main>section,.px-sec,.px-hero-in h1,.px-hero-in>div>p,.px-kpis>a,.px-ltab tbody tr,.px-toast{animation:none!important}.sc:hover,.sc:hover .sc-img img{transform:none}}
+
+.px-iw{position:relative;display:block}.px-iw .px-ii{position:absolute;left:14px;top:15px;color:#9aa0a6;pointer-events:none;transition:color .2s}.px-iw .px-in{padding-left:42px}.px-iw:focus-within .px-ii{color:#1d2126}.px-iw select.px-in{padding-left:40px}
+.px-in{transition:border-color .2s,box-shadow .2s}.px-in:focus{outline:0;border-color:#1d2126;box-shadow:0 0 0 3px rgba(29,33,38,.08)}
+.px-in::placeholder{color:#a9aeb4}
+.px-sdone{text-align:left}.px-sck{width:52px;height:52px;border-radius:50%;background:#e8f6ee;color:#15803d;display:flex;align-items:center;justify-content:center;margin-bottom:16px;animation:pxPop .5s .15s cubic-bezier(.3,1.4,.5,1) both}.px-sck path{stroke-dasharray:24;stroke-dashoffset:24;animation:pxDraw .45s .45s ease-out forwards}
+a:not([class]):hover{color:#a81f2b}
+.pxh a.pxh-req:hover,.pxh a.pxh-in-btn:hover{color:#fff}.pxh a.pxh-in-btn:hover{opacity:.8}
+.px a.px-btn.px-red:hover,.px a.px-btn.px-dark:hover{color:#fff}.px a.px-btn.px-ghost:hover{color:#1d2126}
+.px .px-promo a.px-ghost,.px .px-panel a.px-ghost,.px .px-promo a.px-ghost:hover,.px .px-panel a.px-ghost:hover{color:#fff}.px .px-promo a.px-ghost:hover,.px .px-panel a.px-ghost:hover{border-color:#fff}
+
+.px-qrow{display:flex;gap:10px;align-items:center;margin-top:12px}.px-qrow .px-qty{height:46px;background:#fff;flex:none}.px-qrow .px-qty button{width:40px}.px-qrow .px-btn{flex:1}
+.sc-act{display:flex;gap:6px;align-items:center}.sc-act .px-qty{flex:none;height:38px}.sc-act .px-qty button{width:26px}.sc-act .px-qty input{width:28px;padding:0}.sc-act .px-btn.px-sm{padding:0 10px}.sc-act .px-btn{flex:1;min-width:0;white-space:nowrap}.sc-buy .sc-act .px-ghost{width:auto}
+.px-btn.in{background:#e8f6ee!important;border-color:#16a34a!important;color:#15803d!important}
+.pxh a:not([class]):hover,.pxf a:not([class]):hover{color:#fff}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -899,13 +960,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 </div>
@@ -930,13 +991,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 </div>
@@ -970,13 +1031,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 
@@ -1001,15 +1062,15 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </dl>
 <div v-if="fits.length"><div class="px-muted" style="margin-bottom:8px">Shop this vehicle</div><div class="px-fits"><a v-for="g in fits" :href="'#/g/' + g.key" v-text="g.label + ' ' + (g.years || '')"></a></div></div>
 <div class="px-buybox" v-if="logged">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" v-text="fmt(price(pr[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(pr[0], pick(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(pr[0])" @change="setPick(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(pr[0], pick(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" style="flex:1" :disabled="price(pr[0]) == null" @click="add(pr[0], pick(pr[0]))">Add to cart</button></div>
-<button type="button" class="px-btn px-ghost" v-if="!canOrder" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Add to quote'"></button>
-<button type="button" class="px-link" v-else @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Need a special price or lead time? Add to a quote request'"></button>
+<div class="px-qrow" v-if="!canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(pr[0], pick(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(pr[0])" @change="setPick(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(pr[0], pick(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0], pick(pr[0]))" v-text="inQuote(pr[0]) ? 'In your quote (' + quoteQty(pr[0]) + ')' : 'Add to quote'"></button></div>
+<button type="button" class="px-link" v-else @click="addQuote(pr[0], pick(pr[0]))" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Need a special price or lead time? Add to a quote request'"></button>
 <div class="px-muted" v-if="canOrder">In-stock parts ordered by 3 pm Eastern ship the same day from Coconut Creek, Florida. You get an e-mail at every step.</div>
 </div>
 <div class="px-lockbox" v-else>
 <b>Wholesale price and stock are for approved customers.</b> Sign in to see your price and order online, or add it to a quote and our team replies within one business day.
-<div class="px-btns"><button type="button" class="px-btn px-red px-sm" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote list' : 'Add to quote'"></button><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
+<div class="px-qrow"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(pr[0], pick(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(pr[0])" @change="setPick(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(pr[0], pick(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0], pick(pr[0]))" v-text="inQuote(pr[0]) ? 'In your quote (' + quoteQty(pr[0]) + ')' : 'Add to quote'"></button></div><div class="px-btns" style="margin-top:10px"><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
 </div>
 <div class="px-help" style="border-top:1px solid #eef0f2;padding-top:14px">Questions about this part? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or <a href="https://wa.me/19543716996" target="_blank" rel="noopener">chat on WhatsApp</a>.</div>
 </div>
@@ -1037,7 +1098,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <p class="px-note2" v-if="spec.ok">Part data under technical review. Confirm the fit with our team before installing.</p>
 </div>
 <div class="px-mbar" v-if="product">
-<span v-if="logged"><b v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-muted" style="color:#b9b9be">Sign in for price</span>
+<span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-muted" style="color:#b9b9be">Sign in for price</span>
 <button type="button" class="px-btn px-red" v-if="canOrder" :disabled="price(pr[0]) == null" @click="add(pr[0], pick(pr[0]))" v-text="cartQty(pr[0]) ? 'In cart (' + cartQty(pr[0]) + ')' : 'Add to cart'"></button>
 <button type="button" class="px-btn px-red" v-else @click="addQuote(pr[0])" v-text="inQuote(pr[0]) ? 'In your quote' : 'Add to quote'"></button>
 </div>
@@ -1053,13 +1114,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 </div>
@@ -1076,13 +1137,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 
@@ -1100,13 +1161,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 </div>
@@ -1123,13 +1184,13 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="cartQty(r[0]) ? 'px-incart' : 'px-dark'" :disabled="price(r[0]) == null" @click="add(r[0], pick(r[0]))" v-text="cartQty(r[0]) ? 'In cart (' + cartQty(r[0]) + ')' : 'Add'"></button></div>
-<button type="button" class="px-btn px-ghost px-sm" v-else @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
 <a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0])" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In your quote' : 'Add to quote'"></button>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
 </div>
@@ -1158,7 +1219,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" alt=""></a></td>
 <td><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-text="l.code"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
 <td v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
-<td class="r" v-if="showPrice" v-text="fmt(price(l.code))"></td>
+<td class="r" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
 <td class="c"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
 <td class="r" v-if="showPrice"><b v-text="price(l.code) == null ? '–' : fmt(price(l.code) * l.qty)"></b></td>
 <td class="c"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
@@ -1312,23 +1373,40 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <p class="px-muted" v-text="route === 'admin' ? 'This area is for the Maxzz sales team.' : 'Cart, checkout and orders are for approved wholesale customers. You can still build a quote list without an account.'"></p>
 <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap"><a class="px-btn px-red" href="#/login" v-if="!me">Sign in</a><a class="px-btn px-ghost" href="#/request" v-if="!me">Request access</a><a class="px-btn px-ghost" href="#/quote">Open my quote list</a></div>
 </div>
-<!-- sign in -->
-<section class="px-stage" v-if="route === 'request' || route === 'login'">
+<section class="px-stage" v-if="lp">
 <div class="px-stage-bg" aria-hidden="true"></div>
 <div class="px-stage-in">
 <div class="px-stage-l">
 <span class="px-rwk">Maxzz wholesale</span>
-<h1 v-text="route === 'login' ? 'Welcome back to Maxzz wholesale' : 'Wholesale diesel injection, with your prices and live stock'"></h1>
+<h1 v-text="route === 'login' || route === 'sent' ? 'Welcome back to Maxzz wholesale' : 'Wholesale diesel injection, with your prices and live stock'"></h1>
 <p>For repair shops, injection labs, distributors and fleets.</p>
 <ul class="px-ben"><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><b>Your price list</b><span>Your account prices on every part.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><b>Live stock</b><span>On the shelf in Coconut Creek, Florida.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><b>Same-day shipping</b><span>In stock and ordered by 3 pm Eastern.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>Quotes in one day</b><span>Price, stock and lead time by the next business day.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><b>Order and track online</b><span>From review to invoice, with e-mails at every step.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg><b>Max Rewards</b><span>Points on every order.</span></li></ul>
 </div>
 <div class="px-stage-r">
 <!-- sign in -->
+<div class="px-scard px-sdone" v-if="route === 'requested'">
+<span class="px-sck" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h2>Request received</h2>
+<p class="px-muted">Thanks<span v-if="rq.name" v-text="', ' + rq.name.split(' ')[0]"></span>. We link your account to your price list and e-mail you as soon as it is approved, usually within one business day.</p>
+<a class="px-btn px-red" href="#/" style="width:100%;margin-top:18px">Back to the store</a>
+<p class="px-sw">Meanwhile you can browse parts and build a quote list.</p>
+</div>
+<div class="px-scard px-sdone" v-if="route === 'sent'">
+<span class="px-sck" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h2>Check your e-mail</h2>
+<p class="px-muted">If <b v-text="email"></b> has an approved account, a sign-in link is on its way. It works once and expires in 20 minutes.</p>
+<p class="px-muted" v-if="sentPending">Your access request is still under review. You will get an e-mail as soon as it is approved.</p>
+<a class="px-btn px-red" href="#/" style="width:100%;margin-top:18px">Back to the store</a>
+<p class="px-sw"><a href="#/login">Use another e-mail</a></p>
+</div>
+<div class="px-scard px-sdone" v-if="route === 'pending'">
+<span class="px-sck" aria-hidden="true"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><h2>Almost there</h2>
+<p class="px-muted">Your access is waiting for approval. You get an e-mail as soon as it is ready.</p>
+<a class="px-btn px-red" href="#/" style="width:100%;margin-top:18px">Back to the store</a>
+</div>
 <div class="px-scard" v-if="route === 'login'">
 <h2>Sign in</h2>
 <p class="px-muted">Enter the e-mail on your account. We send you a sign-in link, no password needed.</p>
 <form @submit.prevent="sendLink" style="margin-top:18px;display:flex;flex-direction:column;gap:12px" novalidate>
-<label class="px-f">Work e-mail<input class="px-in" type="email" v-model="email" autocomplete="email" required :class="email && !okEmail(email) ? 'bad' : ''"></label>
+<label class="px-f">Work e-mail<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><input placeholder="name@company.com" class="px-in" type="email" v-model="email" autocomplete="email" required :class="email && !okEmail(email) ? 'bad' : ''"></span></label>
 <button class="px-btn px-red" :disabled="busy || !okEmail(email)" v-text="busy ? 'Sending...' : 'E-mail me a sign-in link'"></button>
 </form>
 <div class="px-err" v-if="err" v-text="err"></div>
@@ -1336,20 +1414,21 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 <!-- request access, two steps -->
 <div class="px-scard" v-if="route === 'request'">
+<h2>Get wholesale access</h2>
+<p class="px-muted" style="margin:0 0 18px">Two quick steps. Approval usually within one business day.</p>
 <div class="px-rsteps"><span :class="rqStep >= 1 ? 'on' : ''"><b>1</b>About you</span><span :class="rqStep >= 2 ? 'on' : ''"><b>2</b>Your business</span></div>
 <form v-if="rqStep === 1" @submit.prevent="rqNext" style="display:flex;flex-direction:column;gap:12px" novalidate>
-<label class="px-f">Your name *<input class="px-in" v-model="rq.name" autocomplete="name" :class="rqTried && !rq.name.trim() ? 'bad' : ''"><span class="px-fe" v-if="rqTried && !rq.name.trim()">Tell us your name.</span></label>
-<label class="px-f">Work e-mail *<input class="px-in" type="email" v-model="rq.email" autocomplete="email" :class="(rqTried || rq.email) && !okEmail(rq.email) ? 'bad' : ''"><span class="px-fe" v-if="(rqTried || rq.email.length > 5) && !okEmail(rq.email)">Use an e-mail like name@company.com.</span></label>
+<label class="px-f">Your name *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><input placeholder="Full name" class="px-in" v-model="rq.name" autocomplete="name" :class="rqTried && !rq.name.trim() ? 'bad' : ''"></span><span class="px-fe" v-if="rqTried && !rq.name.trim()">Tell us your name.</span></label>
+<label class="px-f">Work e-mail *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><input placeholder="name@company.com" class="px-in" type="email" v-model="rq.email" autocomplete="email" :class="(rqTried || rq.email) && !okEmail(rq.email) ? 'bad' : ''"></span><span class="px-fe" v-if="(rqTried || rq.email.length > 5) && !okEmail(rq.email)">Use an e-mail like name@company.com.</span></label>
 <div class="px-g2c"><label class="px-f">Country<select class="px-in" v-model="rq.country" @change="rq.phone = maskPhone(rq.phone)"><option v-for="c in countries" v-text="c"></option></select></label>
-<label class="px-f">Phone or WhatsApp *<input class="px-in" type="tel" v-model="rq.phone" @input="rq.phone = maskPhone(rq.phone)" autocomplete="tel" :placeholder="usPhone ? '(954) 555-0123' : '+55 11 91234-5678'" :class="rqTried && !okPhone(rq.phone) ? 'bad' : ''"><span class="px-fe" v-if="rqTried && !okPhone(rq.phone)">Add a phone with area code.</span></label></div>
+<label class="px-f">Phone or WhatsApp *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><input class="px-in" type="tel" v-model="rq.phone" @input="rq.phone = maskPhone(rq.phone)" autocomplete="tel" :placeholder="usPhone ? '(954) 555-0123' : '+55 11 91234-5678'" :class="rqTried && !okPhone(rq.phone) ? 'bad' : ''"></span><span class="px-fe" v-if="rqTried && !okPhone(rq.phone)">Add a phone with area code.</span></label></div>
 <button class="px-btn px-red">Continue</button>
 </form>
 <form v-if="rqStep === 2" @submit.prevent="sendRequest" style="display:flex;flex-direction:column;gap:12px" novalidate>
-<label class="px-f">Company *<input class="px-in" v-model="rq.company" autocomplete="organization" :class="rqTried2 && !rq.company.trim() ? 'bad' : ''"><span class="px-fe" v-if="rqTried2 && !rq.company.trim()">Company name, please.</span></label>
-<label class="px-f">Type of business<select class="px-in" v-model="rq.type"><option value="">Choose</option><option>Diesel repair shop</option><option>Injection lab / rebuilder</option><option>Distributor / parts store</option><option>Fleet</option><option>Other</option></select></label>
-<div class="px-g3c"><label class="px-f"><span v-text="zipLabel"></span><input class="px-in" v-model="rq.zip" @input="rqZip" autocomplete="postal-code" inputmode="numeric" maxlength="10"></label><label class="px-f">City<input class="px-in" v-model="rq.city" autocomplete="address-level2"></label><label class="px-f">State<input class="px-in" v-model="rq.state" autocomplete="address-level1" maxlength="30"></label></div>
-<span class="px-ok2" v-if="zipMsg" v-text="zipMsg"></span>
-<label class="px-f">Maxzz customer number, if you have one<input class="px-in" v-model="rq.customerNumber" maxlength="40"></label>
+<label class="px-f">Company *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg><input placeholder="Company name" class="px-in" v-model="rq.company" autocomplete="organization" :class="rqTried2 && !rq.company.trim() ? 'bad' : ''"></span><span class="px-fe" v-if="rqTried2 && !rq.company.trim()">Company name, please.</span></label>
+<label class="px-f">Type of business<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M3 13h18"/></svg><select class="px-in" v-model="rq.type"><option value="">Choose</option><option>Diesel repair shop</option><option>Injection lab / rebuilder</option><option>Distributor / parts store</option><option>Fleet</option><option>Other</option></select></span></label>
+<div class="px-g3c"><label class="px-f"><span v-text="zipLabel"></span><span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><input class="px-in" v-model="rq.zip" @input="rqZip" autocomplete="postal-code" inputmode="numeric" maxlength="10"></span></label><label class="px-f">City<input class="px-in" v-model="rq.city" autocomplete="address-level2"></label><label class="px-f">State<input class="px-in" v-model="rq.state" autocomplete="address-level1" maxlength="30"></label></div>
+<label class="px-f">Maxzz customer number, if you have one<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg><input placeholder="Optional" class="px-in" v-model="rq.customerNumber" maxlength="40"></span></label>
 <label class="px-f">Anything we should know<textarea class="px-in" v-model="rq.notes" placeholder="Brands and engines you work with, monthly volume, current supplier..."></textarea></label>
 <input type="text" id="px-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 <div class="px-err" v-if="err" v-text="err"></div>
@@ -1362,24 +1441,12 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 </section>
 
-<div class="px-card px-auth" v-if="route === 'sent'">
-<h2>Check your e-mail</h2>
-<p class="px-muted">If <b v-text="email"></b> has an approved account, a sign-in link is on its way. It works once and expires in 20 minutes.</p>
-<p class="px-muted" v-if="sentPending">Your access request is still under review. You will get an e-mail as soon as it is approved.</p>
-<button class="px-btn px-ghost" style="margin-top:14px" @click="nav('login')">Use another e-mail</button>
-</div>
+
 
 <!-- request access -->
-<div class="px-card px-auth" v-if="route === 'requested'">
-<h2>Request received</h2>
-<p class="px-muted">Thanks. Our team reviews it and links it to your price list. You get an e-mail as soon as it is approved, usually within one business day.</p>
-<a class="px-btn px-ghost" href="/quote" style="margin-top:14px;width:100%">Meanwhile, request a quote</a>
-</div>
 
-<div class="px-card px-auth" v-if="route === 'pending'">
-<h2>Almost there</h2>
-<p class="px-muted">Your access is waiting for approval. You get an e-mail as soon as it is ready.</p>
-</div>
+
+
 
 <!-- checkout -->
 <!-- orders -->
@@ -1476,8 +1543,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <div class="px-toast" v-if="toast" role="status"><span v-text="toast"></span><button type="button" class="px-tact" v-if="toastKind === 'quote'" @click="qOpen = true; toast = ''">Open list</button><a class="px-tact" v-if="toastKind === 'cart'" href="#/cart">View cart</a></div>
-<div class="px-qp" v-if="qOpen" role="dialog" aria-label="My quote list">
-<div class="px-qp-h"><span><b>My quote list</b><small v-text="quoteN + (quoteN === 1 ? ' item, ' : ' items, ') + quoteUnits + (quoteUnits === 1 ? ' unit' : ' units')"></small></span><button type="button" class="px-qp-x" aria-label="Close" @click="qOpen = false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+<div class="px-qp-bd" v-if="qOpen" :class="qClosing ? 'out' : ''" @click="qClose()"></div>
+<div class="px-qp" v-if="qOpen" :class="qClosing ? 'out' : ''" role="dialog" aria-label="My quote list">
+<div class="px-qp-h"><span><b>My quote list</b><small v-text="quoteN + (quoteN === 1 ? ' item, ' : ' items, ') + quoteUnits + (quoteUnits === 1 ? ' unit' : ' units')"></small></span><button type="button" class="px-qp-x" aria-label="Close" @click="qClose()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
 <div class="px-qp-l">
 <div class="px-qp-i" v-for="(l, i) in quote" :key="l.id">
 <a class="th" :href="'#/p/' + encodeURIComponent(l.id)" @click="qOpen = false"><img v-if="img(l.id)" :src="img(l.id)" alt=""></a>
@@ -1491,10 +1559,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 <div class="px-fab">
 <a class="px-fab-b" href="#/cart" v-if="canOrder && cart.length && route !== 'cart' && route !== 'checkout'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="t">My cart</span><span class="n" v-text="cart.length"></span></a>
-<button type="button" class="px-fab-b red" v-if="quoteN" @click="qOpen = !qOpen" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
+<button type="button" class="px-fab-b red" v-if="quoteN" @click="qOpen ? qClose() : (qOpen = true)" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
 </div>
 </div>
-
 <!-- FOOTER -->
 <footer class="pxf">
 <div class="pxf-in">
@@ -1508,7 +1575,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=23"></script>
+<script src="/js/portal-app.js?v=24"></script>
 <script src="/js/motion.js?v=3" defer></script>
+<script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 </body>
 </html>
