@@ -658,8 +658,15 @@
     reorder: function (o) {
       var self = this;
       var skipped = 0;
-      o.lines.forEach(function (x) { if (self.price(x.code) == null) { skipped++; return; } var l = self.cart.filter(function (c) { return c.code === x.code; })[0]; if (l) l.qty += x.qty; else self.cart.push({ code: x.code, qty: x.qty }); });
-      this.save(); this.nav('cart'); this.flash((o.lines.length - skipped) + ' parts added to your cart' + (skipped ? '. ' + skipped + ' without online price were left out' : ''));
+      o.lines.forEach(function (x) {
+        if (self.price(x.code) == null) {
+          var r = self.map[x.code], q = self.quote.filter(function (z) { return z.id === x.code; })[0];
+          if (q) q.qty += x.qty; else self.quote.push({ id: x.code, name: r ? r[1] : (x.name || x.code), pn: x.code, app: r ? r[3] : '', cat: r ? r[3] : '', slug: r ? r[2] : '', img: '', pos: '', qty: x.qty });
+          skipped++; return;
+        }
+        var l = self.cart.filter(function (c) { return c.code === x.code; })[0]; if (l) l.qty += x.qty; else self.cart.push({ code: x.code, qty: x.qty });
+      });
+      this.save(); write(QK, this.quote); this.nav('cart'); this.flash((o.lines.length - skipped) + ' parts added to your cart' + (skipped ? '. ' + skipped + ' without online price added to your quote list' : ''), skipped ? 'quote' : 'cart');
     },
     placeOrder: function () {
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
@@ -704,7 +711,7 @@
       var self = this, hp = document.getElementById('px-qhp'), t = new Date();
       if (!this.quote.length || this.busy) return;
       var me = this.me, acc = me && me.account, d = Object.assign({}, this.qd);
-      if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = '0000000'; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
+      if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = (acc && acc.phone) || '0000000'; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
       var snap = this.doc;
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: self.title(self.map[l.id]) || l.name, qty: l.qty }; });

@@ -966,9 +966,10 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 .px-ltab .px-code2,.px .px-ltab td .px-code2{overflow-wrap:normal;word-break:keep-all}
 .px-trust{margin:14px 0 0;font-size:14px;color:#c9ced3;display:flex;flex-wrap:wrap;gap:4px 14px}.px-trust span{white-space:nowrap}.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}
 .px-nf{margin-top:18px;background:#fff;border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.px-nf b{font-weight:500;color:#1d2126}.px-nf p{margin:2px 0 0;font-size:14px;color:#5f656c}
-@media (max-width:760px){.px-kpis{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.px-kpis>a{min-width:0}.px-kpis .px-rw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.px-eng{display:grid;grid-template-columns:72px 1fr;gap:8px}.px-eng b{min-width:0}.px-eng .px-gen{grid-column:2}}
+@media (max-width:760px){.px-hero:not(.compact) .px-kpis{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.px-kpis>a{min-width:0}.px-kpis .px-rw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.px-eng{display:grid;grid-template-columns:72px 1fr;gap:8px}.px-eng b{min-width:0}.px-eng .px-gen{grid-column:2}}
 @media (min-width:761px){.px-pd-info{padding-bottom:72px}}
 @media (max-width:760px){.px-acc-line{flex-direction:column;gap:2px}.px-kpis .px-rw .bar{margin-top:8px}}
+.px .px-wrap{padding-bottom:140px}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1448,7 +1449,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </form>
 </div>
 <aside class="px-panel" aria-label="Summary">
-<div class="px-ph"><h2>Summary</h2><span v-text="lines.length + ' parts, ' + units + ' units'"></span></div>
+<div class="px-ph"><h2>Summary</h2><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span></div>
 <div class="px-lines"><div class="px-line" v-for="l in lines" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r" v-if="showPrice"><span class="px-line-t" v-text="price(l.code) == null ? 'On request' : fmt(price(l.code) * l.qty)"></span></div></div></div>
 <div class="px-sum" v-if="showPrice"><span>Subtotal</span><b v-text="subLabel.replace(/^Subtotal /, '')"></b></div>
 </aside>
@@ -1478,7 +1479,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </table>
 <div class="px-paper-f">
 <div class="nt"><small>Notes</small><p v-text="doc.notes || 'None'"></p></div>
-<div class="tt" v-if="doc.priced"><div><span>Subtotal</span><b v-text="fmt(doc.total)"></b></div><div><span>Freight</span><span>Confirmed by sales</span></div><div><span>Sales tax</span><span>Confirmed by sales</span></div><div class="g"><span>Estimated total</span><b v-text="fmt(doc.total) + ' + freight'"></b></div></div>
+<div class="tt" v-if="doc.priced"><div><span>Subtotal</span><b v-text="fmt(doc.total)"></b></div><div><span>Freight</span><span>Confirmed by sales</span></div><div><span>Sales tax</span><span>Confirmed by sales</span></div><div class="g"><span v-text="doc.lines.some(function (l) { return l.price == null; }) ? 'Estimated total, priced parts' : 'Estimated total'"></span><b v-text="fmt(doc.total) + ' + freight'"></b></div></div>
 <div class="tt" v-else><div><span>Lines</span><b v-text="doc.lines.length"></b></div><div><span>Units</span><b v-text="doc.units"></b></div><div class="g"><span>Prices</span><span>Sent by our sales team</span></div></div>
 </div>
 <p class="px-paper-fine" v-text="doc.kind === 'order' ? 'Orders are reviewed by Maxzz Diesel sales before release. Freight, taxes and ship date are confirmed in the approval e-mail. Prices in USD.' : 'Not an order. Our sales team confirms price, availability and lead time in writing.'"></p>
@@ -1686,7 +1687,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 </table>
 <div class="px-paper-f">
 <div class="nt"><small>Notes</small><p v-text="doc.notes || 'None'"></p></div>
-<div class="tt" v-if="doc.priced"><div><span>Subtotal</span><b v-text="fmt(doc.total)"></b></div><div><span>Freight</span><span>Confirmed by sales</span></div><div><span>Sales tax</span><span>Confirmed by sales</span></div><div class="g"><span>Estimated total</span><b v-text="fmt(doc.total) + ' + freight'"></b></div></div>
+<div class="tt" v-if="doc.priced"><div><span>Subtotal</span><b v-text="fmt(doc.total)"></b></div><div><span>Freight</span><span>Confirmed by sales</span></div><div><span>Sales tax</span><span>Confirmed by sales</span></div><div class="g"><span v-text="doc.lines.some(function (l) { return l.price == null; }) ? 'Estimated total, priced parts' : 'Estimated total'"></span><b v-text="fmt(doc.total) + ' + freight'"></b></div></div>
 <div class="tt" v-else><div><span>Lines</span><b v-text="doc.lines.length"></b></div><div><span>Units</span><b v-text="doc.units"></b></div><div class="g"><span>Prices</span><span>Sent by our sales team</span></div></div>
 </div>
 <p class="px-paper-fine" v-text="doc.kind === 'order' ? 'Orders are reviewed by Maxzz Diesel sales before release. Freight, taxes and ship date are confirmed in the approval e-mail. Prices in USD.' : 'Not an order. Our sales team confirms price, availability and lead time in writing.'"></p>
