@@ -29,12 +29,12 @@
     f.onsubmit = function (e) {
       e.preventDefault();
       var em = f.email.value.trim(), err = f.querySelector('.gt-fe'), btn = f.querySelector('.gt-go');
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { err.textContent = L.bad; f.email.classList.add('bad'); f.email.focus(); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)) { err.textContent = L.bad; f.email.classList.remove('bad'); void f.email.offsetWidth; f.email.classList.add('bad'); f.email.focus(); return; }
       f.email.classList.remove('bad');
       btn.disabled = true; btn.textContent = L.wait; err.textContent = '';
       var done = function (u) {
         try { (window.dataLayer = window.dataLayer || []).push({ event: 'generate_lead', form: 'catalog_download', source: file }); } catch (x) {}
-        get(u || url); close();
+        btn.textContent = '✓'; btn.classList.add('m-pop'); get(u || url); setTimeout(close, 700);
       };
       fetch('/api/download', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ file: file, email: em, name: f.name.value, company: f.company.value, hp: f.hp.value, t: Date.now() - T0, lang: document.documentElement.lang }) })
         .then(function (r) { return r.json(); }).then(function (j) { done(j && j.url); }).catch(function () { done(); });

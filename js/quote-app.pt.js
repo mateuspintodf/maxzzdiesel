@@ -12,10 +12,10 @@
     return String(desc || '').replace(/\s+/g, ' ').replace(/\s*\/\s*(Application|application|Suitable for|Suitable)\s*:?\s*/g, ' · ').replace(/\s*\/\s*/g, ' / ').trim();
   }
   var POPULAR = [{ label: 'Cummins ISX15 XPI', q: 'isx' }, { label: 'Duramax L5P', q: 'l5p' }, { label: 'Ford 6.7 Power Stroke', q: '6.7 powerstroke' },
-    { label: 'Cummins 6.7', q: '6.7 cummins' }, { label: 'Detroit DD15', q: 'dd15' }, { label: 'Cat C7 / C9', q: 'c7' }, { label: 'CP3 pump', q: 'cp3' },
-    { label: 'CP4 pump', q: 'cp4' }, { label: 'Control valve', q: 'control valve' }, { label: 'Nozzle', q: 'nozzle' }, { label: 'Volvo D13', q: 'd13' }, { label: 'ISO 4113 fluid', q: '4113' }];
-  var SHIP = [{ v: 'Ground', h: 'UPS ou FedEx terrestre, a opção mais econômica' }, { v: 'Express', h: 'Aéreo no dia seguinte ou em 2 dias' }, { v: 'LTL freight', h: 'Paletes e itens pesados' },
-    { v: 'Pickup', h: 'Retirada no nosso armazém em Coconut Creek, Flórida' }, { v: 'My carrier', h: 'Enviamos pela sua conta UPS / FedEx / frete' }, { v: 'Forwarder', h: 'Entregamos ao seu agente de cargas para exportação' }];
+    { label: 'Cummins 6.7', q: '6.7 cummins' }, { label: 'Detroit DD15', q: 'dd15' }, { label: 'Cat C7 / C9', q: 'c7' }, { label: 'Bomba CP3', q: 'cp3' },
+    { label: 'Bomba CP4', q: 'cp4' }, { label: 'Válvula de controle', q: 'control valve' }, { label: 'Bico', q: 'nozzle' }, { label: 'Volvo D13', q: 'd13' }, { label: 'Fluido ISO 4113', q: '4113' }];
+  var SHIP = [{ v: 'Ground', l: 'Terrestre', h: 'UPS ou FedEx terrestre, a opção mais econômica' }, { v: 'Express', l: 'Aéreo expresso', h: 'Aéreo no dia seguinte ou em 2 dias' }, { v: 'LTL freight', l: 'Carga fracionada (paletes)', h: 'Paletes e itens pesados' },
+    { v: 'Pickup', l: 'Retirada na Flórida', h: 'Retirada no nosso armazém em Coconut Creek, Flórida' }, { v: 'My carrier', l: 'Minha transportadora', h: 'Enviamos pela sua conta UPS / FedEx / frete' }, { v: 'Forwarder', l: 'Agente de cargas', h: 'Entregamos ao seu agente de cargas para exportação' }];
 
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
@@ -248,6 +248,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copie este link', url); });
       else window.prompt('Copie este link', url);
     },
+    dirFx: function (el) { var p = this.phase * 2 + (this.reviewing ? 1 : 0); el.setAttribute('data-dir', p >= (el._p || 0) ? 'f' : 'b'); el._p = p; },
     toDetails: function () { if (!this.lines.length) return; this.sheet = false; track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; this.toast = ''; scrollTop(); },
     validate: function () {
       var d = this.d, bad = [];

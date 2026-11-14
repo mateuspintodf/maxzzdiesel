@@ -222,7 +222,7 @@ select.qx-in{appearance:auto}
 </div>
 </section>
 
-<section class="qx-wrap" :class="phase === 3 ? 'solo' : ''">
+<section class="qx-wrap" :class="phase === 3 ? 'solo' : ''" v-effect="dirFx($el)">
 <div>
 
 <!-- PHASE 1: find parts -->
@@ -275,7 +275,7 @@ select.qx-in{appearance:auto}
 <button type="button" class="qx-add" :class="qtyOf(p.code) ? 'in' : ''" :data-n="qtyOf(p.code)" :aria-label="qtyOf(p.code) ? 'In list: ' + qtyOf(p.code) + '. Add one more' : 'Add to list'" @click="add(p.code)" v-text="qtyOf(p.code) ? 'In list (' + qtyOf(p.code) + ') · add 1' : '+ Add to list'"></button>
 </div>
 </div>
-<div class="qx-empty" v-if="!filtered.length"><span v-text="mode === 'search' ? 'No part matches that search.' : 'No parts listed here yet.'"></span><br><button type="button" class="qx-btn qx-out" style="margin-top:12px;height:44px" v-if="mode === 'search'" @click="addQueryAsCustom" v-text="'Add &quot;' + q + '&quot; as a custom line'"></button><span v-if="mode !== 'search'">Add a custom line below and our team will find it.</span></div>
+<div class="qx-sk" v-if="!ready" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div class="qx-empty" v-if="ready && !filtered.length"><span v-text="mode === 'search' ? 'No part matches that search.' : 'No parts listed here yet.'"></span><br><button type="button" class="qx-btn qx-out" style="margin-top:12px;height:44px" v-if="mode === 'search'" @click="addQueryAsCustom" v-text="'Add &quot;' + q + '&quot; as a custom line'"></button><span v-if="mode !== 'search'">Add a custom line below and our team will find it.</span></div>
 <button type="button" class="qx-more" v-if="filtered.length > limit" @click="limit += 30" v-text="'Show more (' + (filtered.length - limit) + ')'"></button>
 </div>
 
@@ -316,7 +316,7 @@ select.qx-in{appearance:auto}
 
 <div class="qx-sec"><span class="qx-sec-t">Delivery</span>
 <div class="qx-seg" role="radiogroup" aria-label="Delivery">
-<label v-for="s in shipOpts" :class="d.ship === s.v ? 'on' : ''" :title="s.h"><input type="radio" name="qx-ship" :value="s.v" v-model="d.ship"><span v-text="s.v"></span></label>
+<label v-for="s in shipOpts" :class="d.ship === s.v ? 'on' : ''" :title="s.h"><input type="radio" name="qx-ship" :value="s.v" v-model="d.ship"><span v-text="s.l || s.v"></span></label>
 </div>
 <p class="qx-hint" v-text="(shipOpts.filter(function (s) { return s.v === d.ship; })[0] || {}).h"></p>
 </div>

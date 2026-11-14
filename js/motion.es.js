@@ -130,3 +130,23 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setup); else setup();
   window.addEventListener('storage', sync); setInterval(sync, 1500);
 })();
+
+/* Number badges and toasts pop when their value changes; "add" buttons pop when the quantity changes. */
+(function () {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var SEL = '.nav-cnt,.mbar-n,.qb-n,.qx-p2-count,.qx-mbar-l,.qx-toast,.qx-add,.px-cnt,.px-badge';
+  function pop(el) { el.classList.remove('m-pop'); void el.offsetWidth; el.classList.add('m-pop'); }
+  var last = new WeakMap();
+  new MutationObserver(function (ms) {
+    ms.forEach(function (m) {
+      var t = m.target.nodeType === 3 ? m.target.parentNode : m.target;
+      var el = t && t.closest && t.closest(SEL);
+      if (!el) return;
+      var v = (el.textContent || '') + '|' + (el.getAttribute('data-n') || '');
+      if (last.get(el) === v) return;
+      var had = last.has(el); last.set(el, v);
+      if (had && el.textContent.trim()) pop(el);
+    });
+  }).observe(document.documentElement, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['data-n'] });
+  document.addEventListener('animationend', function (e) { if (e.animationName === 'm-badge' || e.animationName === 'm-toast') e.target.classList.remove('m-pop'); });
+})();

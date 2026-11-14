@@ -20,8 +20,8 @@
     form.parentNode.appendChild(msg);
     function say(t, ok) { msg.textContent = t; msg.style.color = ok ? '#ffffff' : '#fc9a55'; msg.style.display = t ? 'block' : 'none'; }
     phone.addEventListener('input', function () { mask(phone); });
-    [name, phone, email].forEach(function (el) { el.required = true; el.addEventListener('input', function () { el.style.boxShadow = ''; }); });
-    function mark(el, bad) { el.style.boxShadow = bad ? 'inset 0 -2px 0 #fc771d' : ''; return bad; }
+    [name, phone, email].forEach(function (el) { el.required = true; el.addEventListener('input', function () { var l = el.closest('label') || el; l.classList.remove('m-bad', 'm-bad-f'); }); });
+    function mark(el, bad) { var l = el.closest('label') || el; l.classList.remove('m-bad', 'm-bad-f'); if (bad) { void l.offsetWidth; l.classList.add('m-bad', 'm-bad-f'); } return bad; }
     async function submit(ev) {
       if (ev) ev.preventDefault();
       if (btn.disabled) return;
@@ -34,9 +34,9 @@
         if (!r.ok) throw new Error(r.status);
         if (window.mxIdentify) window.mxIdentify(email.value.trim(), name.value);
         try { (window.dataLayer = window.dataLayer || []).push({ event: 'generate_lead', form: 'account', business_type: sel ? sel.value : '' }); } catch (e) {}
-        form.reset(); btn.textContent = 'Solicitação enviada';
+        form.reset(); btn.textContent = '✓ ' + 'Solicitação enviada'; btn.classList.add('m-sent', 'm-pop');
         say('Obrigado. Nossa equipe vai falar com você em até um dia útil.', true);
-        setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 6000);
+        setTimeout(function () { btn.textContent = label; btn.disabled = false; btn.classList.remove('m-sent', 'm-pop'); }, 6000);
       } catch (e) {
         btn.textContent = label; btn.disabled = false;
         say('Não conseguimos enviar sua solicitação. Tente de novo ou ligue +1 (954) 586-4158.');

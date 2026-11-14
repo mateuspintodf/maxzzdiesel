@@ -193,3 +193,61 @@ html.io .io-in{opacity:1!important;transform:none!important}
 @media (max-width: 760px) { .call-blue, .l-how { display: none !important; } }
 /* home hero on mobile: darker wash behind the text */
 @media (max-width: 640px) { [style*="background: linear-gradient(90deg, rgba(14,15,17,0.9) 0%"], [style*="background: linear-gradient(90deg, rgba(14,15,17,0.88) 0%"] { background: linear-gradient(180deg, rgba(14,15,17,.45) 0%, rgba(14,15,17,.72) 40%, rgba(14,15,17,.88) 75%, rgba(14,15,17,.6) 100%) !important; } }
+
+/* ===== transitions.dev pass (14/11) ===== */
+/* error shake on invalid fields */
+@keyframes m-shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(3px); } 30%, 50%, 70% { transform: translateX(-5px); } 40%, 60% { transform: translateX(5px); } }
+.qx-f.bad .qx-in, .gt-in.bad, .px-in.bad, .m-bad { animation: m-shake .42s cubic-bezier(.36,.07,.19,.97) both; }
+/* success check: circle pops, stroke draws */
+@keyframes m-pop-in { from { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.08); } to { transform: none; opacity: 1; } }
+@keyframes m-draw { from { stroke-dashoffset: 30; } to { stroke-dashoffset: 0; } }
+.qx-done-ic, .px-sck, .m-ok-ic { animation: m-pop-in .55s .1s cubic-bezier(.3,1.4,.5,1) both; }
+.qx-done-ic path, .px-sck path, .m-ok-ic path { stroke-dasharray: 30; animation: m-draw .45s .45s cubic-bezier(.65,0,.35,1) both; }
+/* notification badge / counters pop when the number changes (class added by motion.js) */
+@keyframes m-badge { 0% { transform: scale(1); } 35% { transform: scale(1.35); } 100% { transform: scale(1); } }
+.m-pop { animation: m-badge .45s cubic-bezier(.3,1.5,.5,1); }
+/* icon swap on "add" buttons: content flips in when the part is already in the list */
+@keyframes m-swap { from { opacity: 0; transform: translateY(6px) scale(.9); } to { opacity: 1; transform: none; } }
+.qx-add.in { animation: m-swap .3s cubic-bezier(.2,.8,.2,1); }
+/* toast: slides up, replays on each new message */
+.qx-toast.m-pop { animation: m-toast .35s cubic-bezier(.2,.8,.2,1); }
+@keyframes m-toast { from { transform: translate(-50%, 10px) scale(.96); } to { transform: translate(-50%, 0); } }
+/* page side-by-side: quote steps slide in the direction of travel */
+@keyframes m-side-f { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: none; } }
+@keyframes m-side-b { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+.qx-wrap > div > .qx-card { animation: m-side-f .45s cubic-bezier(.2,.8,.2,1) both; }
+.qx-wrap[data-dir="b"] > div > .qx-card { animation-name: m-side-b; }
+/* skeleton while the parts catalog loads */
+@keyframes m-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.qx-sk { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.qx-sk span { display: block; height: 64px; border-radius: 14px; background: linear-gradient(90deg, #eef0f2 0%, #f7f8f9 40%, #eef0f2 80%); background-size: 200% 100%; animation: m-shimmer 1.4s linear infinite; }
+.qx-sk span:nth-child(2) { opacity: .8; } .qx-sk span:nth-child(3) { opacity: .6; } .qx-sk span:nth-child(4) { opacity: .4; }
+/* toggle: B2B early access checkbox becomes a switch */
+.qx-check input[type=checkbox] { appearance: none; -webkit-appearance: none; flex-shrink: 0; position: relative; width: 44px !important; height: 26px !important; margin: 0 !important; border-radius: 50px; background: #c9cdd2; cursor: pointer; transition: background-color .25s; }
+.qx-check input[type=checkbox]::before { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .3s cubic-bezier(.3,1.4,.5,1); }
+.qx-check input[type=checkbox]:checked { background: #d32a37; }
+.qx-check input[type=checkbox]:checked::before { transform: translateX(18px); }
+.qx-check input[type=checkbox]:focus-visible { outline: 2px solid #1e1e87; outline-offset: 2px; }
+/* dropdown morph: the quote bubble grows into the quote panel */
+@keyframes m-morph { from { clip-path: inset(calc(100% - 60px) 0 0 calc(100% - 210px) round 50px); opacity: .6; } to { clip-path: inset(0 0 0 0 round 26px); opacity: 1; } }
+.qp { animation: m-morph .5s cubic-bezier(.2,.8,.2,1) both !important; transform-origin: bottom right; }
+/* home account form: field icons like the access-request form */
+.acct-form label { position: relative; }
+.acct-form label::before { content: ""; position: absolute; left: 20px; top: 50%; width: 18px; height: 18px; margin-top: -9px; background: #9aa0a6; -webkit-mask: var(--ic) center / contain no-repeat; mask: var(--ic) center / contain no-repeat; pointer-events: none; transition: background-color .2s; }
+.acct-form label:focus-within::before { background: #1d2126; }
+.acct-form input, .acct-form select { padding-left: 48px !important; }
+.acct-form label:nth-of-type(1) { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6'/%3E%3C/svg%3E"); }
+.acct-form label:nth-of-type(2) { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z'/%3E%3C/svg%3E"); }
+.acct-form label:nth-of-type(3) { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='14' rx='2'/%3E%3Cpath d='m3 7 9 6 9-6'/%3E%3C/svg%3E"); }
+.acct-form label:nth-of-type(4) { --ic: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16'/%3E%3Cpath d='M15 9h4a1 1 0 0 1 1 1v11'/%3E%3Cpath d='M8 8h3M8 12h3M8 16h3M3 21h18'/%3E%3C/svg%3E"); }
+.acct-form .m-bad-f { box-shadow: inset 0 0 0 1px #d32a37; border-radius: 18px; background: #fff8f8; }
+.acct-form button.m-sent { background: #15803d !important; }
+@media (prefers-reduced-motion: reduce) {
+  .qx-f.bad .qx-in, .gt-in.bad, .px-in.bad, .m-bad, .qx-done-ic, .px-sck, .m-ok-ic, .qx-done-ic path, .px-sck path, .m-pop, .qx-add.in, .qx-wrap > div > .qx-card, .qp { animation: none !important; }
+  .qx-sk span { animation: none; }
+}
+/* text fields: no blue focus outline (it doubled up with the field border); focus shows on the field itself */
+input:not([type=checkbox]):not([type=radio]):focus-visible, select:focus-visible, textarea:focus-visible, .qx input:not([type=checkbox]):focus-visible, .qx select:focus-visible, .qx textarea:focus-visible { outline: none !important; }
+.qx-search input:focus { border-color: #1d2126 !important; box-shadow: 0 0 0 3px rgba(29,33,38,.08); }
+.qx .qx-in:focus { border-color: #1d2126; box-shadow: 0 0 0 3px rgba(29,33,38,.08); }
+.acct-form label:focus-within { box-shadow: inset 0 0 0 1px #1d2126; border-radius: 18px; }

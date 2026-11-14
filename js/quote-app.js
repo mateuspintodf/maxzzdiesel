@@ -14,8 +14,8 @@
   var POPULAR = [{ label: 'Cummins ISX15 XPI', q: 'isx' }, { label: 'Duramax L5P', q: 'l5p' }, { label: 'Ford 6.7 Power Stroke', q: '6.7 powerstroke' },
     { label: 'Cummins 6.7', q: '6.7 cummins' }, { label: 'Detroit DD15', q: 'dd15' }, { label: 'Cat C7 / C9', q: 'c7' }, { label: 'CP3 pump', q: 'cp3' },
     { label: 'CP4 pump', q: 'cp4' }, { label: 'Control valve', q: 'control valve' }, { label: 'Nozzle', q: 'nozzle' }, { label: 'Volvo D13', q: 'd13' }, { label: 'ISO 4113 fluid', q: '4113' }];
-  var SHIP = [{ v: 'Ground', h: 'UPS or FedEx ground, the most economical' }, { v: 'Express', h: 'Next day or 2nd day air' }, { v: 'LTL freight', h: 'Pallets and heavy items' },
-    { v: 'Pickup', h: 'Will call at our Coconut Creek, Florida warehouse' }, { v: 'My carrier', h: 'We ship on your UPS / FedEx / freight account' }, { v: 'Forwarder', h: 'We deliver to your freight forwarder for export' }];
+  var SHIP = [{ v: 'Ground', l: 'Ground shipping', h: 'UPS or FedEx ground, the most economical' }, { v: 'Express', l: 'Express air', h: 'Next day or 2nd day air' }, { v: 'LTL freight', l: 'LTL freight (pallets)', h: 'Pallets and heavy items' },
+    { v: 'Pickup', l: 'Pickup in Florida', h: 'Will call at our Coconut Creek, Florida warehouse' }, { v: 'My carrier', l: 'Use my carrier', h: 'We ship on your UPS / FedEx / freight account' }, { v: 'Forwarder', l: 'Freight forwarder', h: 'We deliver to your freight forwarder for export' }];
 
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
@@ -248,6 +248,7 @@
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); });
       else window.prompt('Copy this link', url);
     },
+    dirFx: function (el) { var p = this.phase * 2 + (this.reviewing ? 1 : 0); el.setAttribute('data-dir', p >= (el._p || 0) ? 'f' : 'b'); el._p = p; },
     toDetails: function () { if (!this.lines.length) return; this.sheet = false; track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; this.toast = ''; scrollTop(); },
     validate: function () {
       var d = this.d, bad = [];

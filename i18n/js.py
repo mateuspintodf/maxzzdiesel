@@ -1,6 +1,8 @@
 # UI strings inside js/quote-app.js and js/forms.js. Only these literals are swapped in the localized copies.
 T = {
 'UPS or FedEx ground, the most economical': ('UPS o FedEx terrestre, la opción más económica', 'UPS ou FedEx terrestre, a opção mais econômica'),
+'CP3 pump': ('Bomba CP3', 'Bomba CP3'), 'CP4 pump': ('Bomba CP4', 'Bomba CP4'), 'Control valve': ('Válvula de control', 'Válvula de controle'), 'Nozzle': ('Tobera', 'Bico'), 'ISO 4113 fluid': ('Fluido ISO 4113', 'Fluido ISO 4113'),
+'Ground shipping': ('Terrestre', 'Terrestre'), 'Express air': ('Aéreo exprés', 'Aéreo expresso'), 'LTL freight (pallets)': ('Carga consolidada (pallets)', 'Carga fracionada (paletes)'), 'Pickup in Florida': ('Retiro en Florida', 'Retirada na Flórida'), 'Use my carrier': ('Mi transportista', 'Minha transportadora'), 'Freight forwarder': ('Agente de carga', 'Agente de cargas'),
 'Next day or 2nd day air': ('Aéreo al día siguiente o en 2 días', 'Aéreo no dia seguinte ou em 2 dias'),
 'Pallets and heavy items': ('Pallets y artículos pesados', 'Paletes e itens pesados'),
 'Will call at our Coconut Creek, Florida warehouse': ('Retiro en nuestro almacén de Coconut Creek, Florida', 'Retirada no nosso armazém em Coconut Creek, Flórida'),
