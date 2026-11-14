@@ -346,11 +346,12 @@ function goTo(sel) {
       });
       if (n) app.flash(n + (n === 1 ? ' part' : ' parts') + ' added from your link' + (miss ? ' (' + miss + ' not found)' : ''));
     }
-    var g = P.get('gen'), q = P.get('q'), mode = P.get('mode');
+    var g = P.get('gen'), q = P.get('q'), mode = P.get('mode'), mk = P.get('make');
     if (g) { var hit = null; fit.tree.forEach(function (mk) { mk.engines.forEach(function (e) { e.gens.forEach(function (x) { if (x.key.toLowerCase() === g.toLowerCase()) hit = Object.assign({ make: mk.key }, x); }); }); }); if (hit) app.jumpGen(hit); }
+    else if (mk && fit.tree.some(function (x) { return x.key === mk; })) { app.mode = 'vehicle'; app.pickMake(mk); }
     else if (q) { app.mode = 'search'; app.setQ(q); }
     else if (mode === 'search' || mode === 'bench') app.mode = mode;
-    if (add || g || q || src) try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    if (add || g || q || src || mk) try { history.replaceState(null, '', location.pathname); } catch (e) {}
   }).catch(function () { app.flash('Parts catalog is loading slowly. Search will work in a moment.'); });
 
   // keep in sync if the list changes in another tab
