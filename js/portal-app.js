@@ -101,7 +101,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, autoC: '', mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
@@ -389,22 +389,22 @@
     // country from an international dial code (+55 Brazil...), only while the select is still on a NANP default
     dialCountry: function (v, cur) {
       var r = String(v || '').replace(/[^\d+]/g, ''); if (r.charAt(0) !== '+' || !/United States|Puerto Rico|Canada/.test(cur)) return cur;
-      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (DIAL[d.slice(0, n)]) return DIAL[d.slice(0, n)];
+      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (DIAL[d.slice(0, n)]) { this.autoC = DIAL[d.slice(0, n)]; return this.autoC; }
       return cur;
     },
     // phone formatting while typing; final (on blur) adds the country's dial code to a local LATAM number
     maskPhone: function (v, country, final) {
-      var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').trim();
+      var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').replace(/^\s+/, '');
       if (!raw) return '';
       if (raw === '+') return '+';
-      if (raw.charAt(0) === '+') return '+' + d.slice(0, 15);
+      if (raw.charAt(0) === '+') return '+' + raw.slice(1).replace(/[^\d\s\-]/g, '').replace(/\s{2,}/g, ' ').slice(0, 22);
       var us = country ? /United States|Puerto Rico|Canada/.test(country) : this.usPhone;
       if (us) {
         if (d.length === 11 && d[0] === '1' && /[2-9]/.test(d[1])) d = d.slice(1);
         if (d.length > 10) return d[0] === '1' ? d.slice(0, 15) : '+' + d.slice(0, 15);
         if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
       }
-      if (!final) return raw.replace(/[^\d\s()\-.]/g, '').slice(0, 22);
+      if (!final || country === this.autoC) return final ? d.slice(0, 15) : raw.replace(/[^\d\s()\-.]/g, '').slice(0, 22);
       var code = ''; Object.keys(DIAL).forEach(function (k) { if (DIAL[k] === country) code = k; });
       if (!d) return '';
       return '+' + (code && d.indexOf(code) !== 0 ? code + d.replace(/^0+/, '') : d).slice(0, 15);
@@ -508,6 +508,7 @@
         self.meLoaded = true;
         if (me._status === 200) {
           self.me = me;
+          if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
           if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
