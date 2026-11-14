@@ -92,7 +92,7 @@
       { c: 'Experiences', i: 'bench', n: 'Bench day at Maxzz Florida', d: 'A day at our Coconut Creek bench with our technicians.', p: 35000 },
       { c: 'Experiences', i: 'mic', n: 'Private technical session', d: 'One hour online with our senior instructor on your toughest case.', p: 30000 },
       { c: 'Experiences', i: 'people', n: 'Trade show meetup', d: 'Lunch with the Maxzz team at ADS or AAPEX.', p: 20000 }], sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
-    vMake: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
+    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
 
@@ -100,6 +100,7 @@
     get logged() { return !!(this.me && (this.me.admin || (this.me.account && this.me.account.status === 'approved'))); },
     get canOrder() { return !!(this.me && this.me.account && this.me.account.status === 'approved'); },
     get pendingCount() { return this.accounts.filter(function (a) { return a.status === 'pending'; }).length; },
+    get engMake() { var k = this.vMake || this.vLast; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
     get curMake() { var k = this.vMake; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
     get featured() {
       var self = this, picks = Object.keys(BENCH).concat(['BO.0.986.435.433', 'BO.0.986.435.410', 'BO.0.445.117.023', 'BO.0.445.020.146']);
@@ -495,7 +496,7 @@
     clearF: function () { this.f = { cat: [], brand: [], eng: [], photo: false, stock: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
     genOf: function (key) { var out = null; this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (g) { if (g.key === key) out = g; }); }); }); return out; },
     logos: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
-    pickMake: function (k) { this.vMake = this.vMake === k ? '' : k; this.vEng = ''; },
+    pickMake: function (k) { this.vMake = this.vMake === k ? '' : k; if (this.vMake) this.vLast = this.vMake; this.vEng = ''; },
     loadAdmin: function () { var self = this; api('admin-list').then(function (r) { if (r.sync) self.sync = r.sync; if (r.accounts) self.accounts = r.accounts.map(function (a) { return Object.assign(a, { _q: a.customerNumber || '', _res: null, _pick: null, _busy: false }); }); }); },
 
     // display helpers
