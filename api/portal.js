@@ -97,9 +97,9 @@ A.login = async (req, res) => {
   const db = await loadDb();
   const u = db.users[email];
   const ok = isAdmin(email) || (u && u.status === 'approved');
-  // Temporary, preview only: sign in without the e-mail step (preview URLs sit behind Vercel's own login).
-  // Production always uses the e-mailed link. Turn off with PORTAL_PREVIEW_LOGIN=0.
-  if (ok && process.env.VERCEL_ENV === 'preview' && process.env.PORTAL_PREVIEW_LOGIN !== '0') {
+  // Preview only, and only when PORTAL_PREVIEW_LOGIN=1 is set on purpose: sign in without the e-mail step.
+  // Off by default because preview URLs are public unless Vercel Deployment Protection is on. Production always e-mails.
+  if (ok && process.env.VERCEL_ENV === 'preview' && process.env.PORTAL_PREVIEW_LOGIN === '1') {
     setSession(res, email);
     return res.json({ ok: true, direct: true });
   }
