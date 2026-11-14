@@ -348,6 +348,20 @@ A['admin-reject'] = async (req, res) => {
   return res.json({ ok: true });
 };
 
+// Admin: makes sure the generic "Website quotes" customer exists in Unleashed (website quotes are filed under it
+// as Draft sales quotes). POST only; creates it once, never edits or deletes anything.
+A['admin-web-customer'] = async (req, res) => {
+  const w = await adminOnly(req, res); if (!w) return;
+  if (req.method !== 'POST') return res.status(405).json({ error: 'method' });
+  if (!configured()) return res.status(503).json({ error: 'unleashed not configured' });
+  const code = 'WEBQUOTE';
+  const found = await ul('Customers', 'customerCode=' + code);
+  const hit = found && (found.Items || []).find((c) => String(c.CustomerCode).toUpperCase() === code);
+  if (hit) return res.json({ ok: true, existed: true, code: hit.CustomerCode, name: hit.CustomerName });
+  const guid = crypto.randomUUID();
+  const r = await ul('Customers/' + guid, '', { method: 'POST', body: { Guid: guid, CustomerCode: code, CustomerName: 'Website quotes', Currency: { CurrencyCode: 'USD' }, Notes: 'Generic customer for quote requests sent from maxzzdiesel.com. Move each quote to the real customer before converting it to an order.' } });
+  return res.json({ ok: true, created: true, code: (r && r.CustomerCode) || code });
+};
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Robots-Tag', 'noindex');
