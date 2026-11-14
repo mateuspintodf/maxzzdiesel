@@ -413,6 +413,7 @@
       var sp = this.spec, d = sp.desc ? String(sp.desc).split('</p>')[0].replace(/<[^>]+>/g, '').replace(/\s*Ships from our [^.]*\.\s*/i, ' ').trim() : '';
       if (d) return d;
       var i = parse(p[1]), type = (sp.type || p[3] || '').toLowerCase();
+      if (!p[4] && !i.app && !i.xr.length) return '';
       return [p[4], type].filter(Boolean).join(' ').replace(/^./, function (c) { return c.toUpperCase(); }) + (i.app ? ' for ' + i.app : '') + '.' + (i.xr.length ? ' Same as ' + i.xr.slice(0, 3).join(', ') + '.' : '');
     },
     get spec() { var p = this.product; return (p && this.specs && this.specs[p[0]]) || {}; },
@@ -496,7 +497,7 @@
       // mobile product page: the sticky buy bar shows only once the buy box has scrolled out of view
       var mb = function () { if (self.route !== 'p') { if (self.mbarOn) self.mbarOn = false; return; } var el = document.querySelector('.px-pd-info .px-qrow'); var on = !!el && el.getBoundingClientRect().bottom < 70; if (on !== self.mbarOn) self.mbarOn = on; };
       window.addEventListener('scroll', mb, { passive: true }); window.addEventListener('resize', function () { mb(); var n = window.innerWidth <= 760; if (n !== self.narrow) self.narrow = n; });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (self.qOpen) self.qClose(); self.showF = false; } });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { if (self.qOpen) self.qClose(); self.showF = false; if (self.vMake) self.vMake = ''; } });
       this.readHash();
     },
     readHash: function () {
@@ -595,6 +596,7 @@
     // one stepper per product: before adding it picks the quantity, once in the quote it edits the quote line itself
     sq: function (code) { return this.inQuote(code) ? this.quoteQty(code) : this.pick(code); },
     sqSet: function (code, v) {
+      if (String(v).trim() === '' || isNaN(parseInt(v, 10))) return;
       if (!this.inQuote(code)) return this.setPick(code, v);
       var n = parseInt(v, 10) || 0, i = -1; this.quote.forEach(function (x, j) { if (x.id === code) i = j; });
       if (i >= 0) { this.qSet(i, n); if (n <= 0) this.flash('Removed from your quote list'); }
@@ -603,6 +605,7 @@
     // same pattern for the cart: once the part is in the cart the stepper edits the cart line
     cs: function (code) { return this.inCart(code) ? this.cartQty(code) : this.pick(code); },
     csSet: function (code, v) {
+      if (String(v).trim() === '' || isNaN(parseInt(v, 10))) return;
       if (!this.inCart(code)) return this.setPick(code, v);
       var n = parseInt(v, 10) || 0, i = -1; this.cart.forEach(function (x, j) { if (x.code === code) i = j; });
       if (i >= 0) { this.setQty(i, n); if (n <= 0) this.flash('Removed from your cart'); }

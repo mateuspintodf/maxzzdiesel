@@ -974,6 +974,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 @media (max-width:760px){.px .px-mbar.solo{right:12px}.px-hbg::after{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,rgba(17,19,22,.88) 0,rgba(17,19,22,.62) 60%,rgba(17,19,22,.25))}.px-sh .px-link{white-space:nowrap}.px-sh{flex-wrap:wrap}.px-pd-info{padding-bottom:0}.px-main{padding-bottom:88px}}
 @media (min-width:761px){.px-fab{display:none!important}.px-fbar{margin-right:0!important}}
 .px-eng b{white-space:nowrap}
+.px-thph{display:flex;width:100%;height:100%;align-items:center;justify-content:center;color:#b0b5bb}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -985,13 +986,13 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <h1 v-if="!logged && route === 'home'">Wholesale diesel injection, <em>in stock</em></h1>
 <h1 v-if="logged && route === 'home'"><span v-text="greet + ', '"></span><em v-text="firstName"></em></h1>
 <p v-if="!logged" class="px-lead">Injectors, pumps, nozzles, tools, fluids and kits shipped from Florida. <br>Sign in for your price list, live stock and online ordering.</p>
-<p v-if="!logged && route === 'home'" class="px-trust"><span>Since 1992</span><span>Warehouse in Coconut Creek, FL</span><span>Bosch, Denso, Delphi, Zexel, Robiel</span><span>Ships to the US and Latin America</span></p>
 <div class="px-acc-line" v-else>
 <span class="co" v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span>
 <span v-if="me.account && me.account.code" v-text="'Account ' + me.account.code"></span>
 <span v-text="me.account ? 'Price list ' + ((book && book.tier) || '...') : 'Admin preview, default prices'"></span>
 <span v-text="'Stock updated ' + ago(book && book.stockAt)"></span>
 </div>
+<p v-if="!logged && route === 'home'" class="px-trust"><span>Since 1992</span><span>Warehouse in Coconut Creek, FL</span><span>Bosch, Denso, Delphi, Zexel, Robiel</span><span>Ships to the US and Latin America</span></p>
 <div class="px-pend" v-if="me && !logged && me.account && me.account.status === 'pending'">Your wholesale access is under review. We will e-mail you as soon as it is approved; meanwhile you can browse and build a quote list.</div>
 <div class="px-hs">
 <form @submit.prevent="search" role="search" autocomplete="off"><input type="search" role="combobox" :aria-expanded="sugOn && sug.length ? 'true' : 'false'" :aria-activedescendant="sugI >= 0 ? 'px-sug-' + sugI : ''" v-model="qInput" @input="sugInput" @focus="sugOn = true" @blur="sugBlur" @keydown="sugKey" :placeholder="narrow ? 'Part number or engine' : 'Part number, cross reference or engine'" aria-label="Search parts" aria-autocomplete="list" aria-controls="px-sug"><button class="px-btn px-red">Search</button></form>
@@ -1220,7 +1221,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <p class="px-por-note" v-if="canOrder && price(pr[0]) == null">No online price for this part. Add it to a quote and our team replies within one business day.</p>
 <div class="px-qrow" v-if="!canOrder || price(pr[0]) == null"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(pr[0], sq(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(pr[0])" @change="sqSet(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(pr[0], sq(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red px-buy" :class="inQuote(pr[0]) ? 'in' : ''" @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote · View list' : 'Add to quote'"></button></div>
 <button type="button" class="px-link" v-if="canOrder && price(pr[0]) != null" @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], 1)" v-text="inQuote(pr[0]) ? 'In your quote list · View' : 'Need a special price or lead time? Add to a quote request'"></button>
-<div class="px-muted" v-if="canOrder">In-stock parts ordered by 3 pm Eastern ship the same day from Coconut Creek, Florida. Backorders: lead time confirmed by sales within 1 business day.</div>
+<div class="px-muted" v-if="canOrder && price(pr[0]) != null">In-stock parts ordered by 3 pm Eastern ship the same day from Coconut Creek, Florida. Backorders: lead time confirmed by sales within 1 business day.</div>
 </div>
 <div class="px-lockbox" v-else>
 <b>Wholesale price and stock are for approved customers.</b> Sign in to see your price and order online, or add it to a quote and our team replies within one business day.
@@ -1399,7 +1400,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <table class="px-ltab" v-if="lines.length">
 <thead><tr><th colspan="2">Part</th><th v-if="showPrice">Availability</th><th class="r" v-if="showPrice">Unit price</th><th class="c">Qty</th><th class="r" v-if="showPrice">Amount</th><th></th></tr></thead>
 <tbody><tr v-for="l in lines" :key="l.code">
-<td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" @error="imgFail(l.code)" alt=""></a></td>
+<td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" @error="imgFail(l.code)" alt=""><span v-else class="px-thph" v-html="icon(catIc(map[l.code] && map[l.code][3]))"></span></a></td>
 <td><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-html="pnw(l.code)"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span></td>
 <td v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
 <td class="r" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
@@ -1430,7 +1431,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-grid" v-if="step === 2">
 <div class="px-card">
 <h2 v-text="flow === 'order' ? 'Where should we ship it?' : 'A few details'"></h2>
-<p class="px-muted" style="margin:4px 0 0" v-text="flow === 'order' ? (firstName ? firstName + ', we' : 'We') + ' kept the last address you used. Change anything you need.' : (me ? (firstName + ', we already have your contact. Add a reference if it helps our team.') : 'Tell us who to send the prices to.')"></p>
+<p class="px-muted" style="margin:4px 0 0" v-text="flow === 'order' ? (co.street ? (firstName ? firstName + ', we' : 'We') + ' kept the last address you used. Change anything you need.' : 'Will call is available in Coconut Creek, Florida.') : (me ? (firstName + ', we already have your contact. Add a reference if it helps our team.') : 'Tell us who to send the prices to.')"></p>
 <div class="px-asme" v-if="me"><span class="av" v-text="initials"></span><span class="tx"><b v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></b><small v-text="(me.name || firstName) + ' · ' + me.email + (me.account && me.account.code ? ' · account ' + me.account.code : '')"></small></span></div>
 <form @submit.prevent="next" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
 <div class="px-g2" v-if="flow === 'quote' && !me"><label class="px-f">Your name *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><input class="px-in" v-model="qd.name" required autocomplete="name" placeholder="Full name"></span></label><label class="px-f">Company *<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16M15 9h4a1 1 0 0 1 1 1v11M3 21h18M8 8h3M8 12h3M8 16h3"/></svg><input class="px-in" v-model="qd.company" required autocomplete="organization" placeholder="Company name"></span></label></div>
@@ -1738,7 +1739,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-qp-h"><span><b>My quote list</b><small v-text="quoteN + (quoteN === 1 ? ' item, ' : ' items, ') + quoteUnits + (quoteUnits === 1 ? ' unit' : ' units')"></small></span><button type="button" class="px-qp-x" aria-label="Close" @click="qClose()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
 <div class="px-qp-l">
 <div class="px-qp-i" v-for="(l, i) in quote" :key="l.id">
-<a class="th" :href="'#/p/' + encodeURIComponent(l.id)" @click="qOpen = false"><img v-if="img(l.id)" :src="img(l.id)" @error="imgFail(l.id)" alt=""></a>
+<a class="th" :href="'#/p/' + encodeURIComponent(l.id)" @click="qOpen = false"><img v-if="img(l.id)" :src="img(l.id)" @error="imgFail(l.id)" alt=""><span v-else class="px-thph" v-html="icon(catIc(l.cat))"></span></a>
 <span class="nm"><a :href="'#/p/' + encodeURIComponent(l.id)" @click="qOpen = false" v-text="name(l.id)"></a><small v-text="l.id"></small></span>
 <span class="px-qp-q"><button type="button" aria-label="Less" @click="qSet(i, l.qty - 1)">&minus;</button><span v-text="l.qty"></span><button type="button" aria-label="More" @click="qSet(i, l.qty + 1)">+</button></span>
 <button type="button" class="px-qp-rm" aria-label="Remove" @click="qSet(i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
