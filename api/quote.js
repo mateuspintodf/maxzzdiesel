@@ -32,6 +32,7 @@ module.exports = async (req, res) => {
   // quotes also go to Unleashed as a Draft sales quote: store quotes when PORTAL_QUOTES_LIVE=1, website quotes when
   // SITE_QUOTES_UNLEASHED=1. Never blocks the request; HubSpot always gets the full quote.
   const ulq = await createSalesQuote(req, { number, customer, lines, notes: customer.notes }, { site: !store });
+  console.log('unleashed quote', store ? 'store' : 'site', ulq.ok ? 'created ' + (ulq.number || '') : (ulq.skipped ? 'skipped ' + (ulq.reason || 'off') : 'failed ' + (ulq.error || '')));
   if (ulq.ok) { extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid) + ' (' + (store ? 'store' : 'website') + ' ref ' + number + ')'); if (store && ulq.number) number = ulq.number; }
   // signed-in users keep a history of their quote requests in the store
   const who = store ? sessionEmail(req) : null;
