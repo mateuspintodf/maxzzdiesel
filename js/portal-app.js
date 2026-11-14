@@ -384,8 +384,18 @@
     get zipLabel() { return this.rq.country === 'Brazil' ? 'CEP' : /United States|Puerto Rico/.test(this.rq.country) ? 'ZIP' : 'Postal code'; },
     okEmail: function (e) { return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(String(e || '').trim()); },
     okPhone: function (p) { return String(p || '').replace(/\D/g, '').length >= 10; },
+    // country from an international dial code (+55 Brazil...), only while the select is still on a NANP default
+    dialCountry: function (v, cur) {
+      var r = String(v || '').replace(/[^\d+]/g, ''); if (r.charAt(0) !== '+' || !/United States|Puerto Rico|Canada/.test(cur)) return cur;
+      var M = { '55': 'Brazil', '52': 'Mexico', '57': 'Colombia', '56': 'Chile', '51': 'Peru', '593': 'Ecuador', '54': 'Argentina', '598': 'Uruguay', '595': 'Paraguay', '591': 'Bolivia', '58': 'Venezuela', '507': 'Panama', '506': 'Costa Rica', '502': 'Guatemala', '504': 'Honduras', '503': 'El Salvador', '505': 'Nicaragua' };
+      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (M[d.slice(0, n)]) return M[d.slice(0, n)];
+      return cur;
+    },
     maskPhone: function (v, country) {
-      var d = String(v || '').replace(/\D/g, '');
+      var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').trim();
+      // an international number typed with + and a non-NANP code keeps its format whatever the country select says
+      if (raw === '+') return '+';
+      if (raw.charAt(0) === '+' && d && d[0] !== '1') return '+' + d.slice(0, 15);
       var us = country ? /United States|Puerto Rico|Canada/.test(country) : this.usPhone;
       if (us) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
       return v && String(v).trim().charAt(0) === '+' ? '+' + d.slice(0, 15) : (d ? '+' + d.slice(0, 15) : '');
