@@ -55,7 +55,7 @@
         if (me.account) self.co.name = self.co.name || me.account.company;
         self.loadData();
         var want = (location.hash || '').slice(1);
-        self.go(want === 'admin' && me.admin ? 'admin' : want === 'orders' && me.account ? 'orders' : me.account ? 'shop' : 'admin');
+        self.go(want === 'admin' && me.admin ? 'admin' : want === 'orders' && me.account ? 'orders' : want === 'shop' || me.account ? 'shop' : 'admin');
       });
     },
     loadData: function () {

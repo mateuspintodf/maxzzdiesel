@@ -124,7 +124,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-who" v-if="me">
 <small v-text="me.email"></small>
 <nav class="px-tabs" aria-label="Portal">
-<button type="button" class="px-tab" :class="view === 'shop' || view === 'checkout' ? 'on' : ''" @click="go('shop')" v-if="me.account">New order <span class="px-n" v-if="cart.length" v-text="cart.length"></span></button>
+<button type="button" class="px-tab" :class="view === 'shop' || view === 'checkout' ? 'on' : ''" @click="go('shop')" v-if="me.account || me.admin">New order <span class="px-n" v-if="cart.length" v-text="cart.length"></span></button>
 <button type="button" class="px-tab" :class="view === 'orders' || view === 'order' ? 'on' : ''" @click="go('orders')" v-if="me.account">Orders</button>
 <button type="button" class="px-tab" :class="view === 'admin' ? 'on' : ''" @click="go('admin')" v-if="me.admin">Admin <span class="px-n" v-if="pendingCount" v-text="pendingCount"></span></button>
 <button type="button" class="px-tab" @click="logout">Sign out</button>
@@ -200,7 +200,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <!-- shop -->
 <div class="px-grid" v-if="view === 'shop'">
 <div class="px-card">
-<div class="px-test" v-if="!me.ordersLive">Test mode: orders are saved here and e-mailed to our team, not yet sent to the warehouse system.</div>
+<div class="px-test" v-if="!me.account">Admin preview: default price list. Orders need a customer account.</div>
+<div class="px-test" v-if="me.account && !me.ordersLive">Test mode: orders are saved here and e-mailed to our team, not yet sent to the warehouse system.</div>
 <h2>Find parts</h2>
 <p class="px-muted">Part number, cross reference or description. Try "0445120231", "6.7 cummins injector" or "CP3".</p>
 <div class="px-search" style="margin-top:14px"><input class="px-in" type="search" v-model="q" @input="limit = 30" placeholder="Search by part number or description" aria-label="Search parts"></div>
@@ -248,7 +249,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div v-if="cart.length">
 <div class="px-sum"><span>Subtotal</span><b v-text="fmt(subtotal)"></b></div>
 <p class="px-sum-n">Freight and taxes are confirmed by our team when the order is approved.</p>
-<button type="button" class="px-btn px-red" @click="go('checkout')">Checkout</button>
+<button type="button" class="px-btn px-red" @click="go('checkout')" :disabled="!me.account">Checkout</button>
 <button type="button" class="px-btn px-ghost px-sm" @click="clearCart">Clear cart</button>
 </div>
 </aside>
