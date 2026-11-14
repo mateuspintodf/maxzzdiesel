@@ -230,8 +230,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-done b{font-weight:500;font-size:17px;color:#1d2126}.px-done p{margin:4px 0 0;font-size:14px;color:#3a4048;line-height:1.5}
 .px-pickup{background:#f4f5f6;border-radius:6px;padding:12px 14px;font-size:14px;color:#3a4048}
 @media (max-width:760px){.px-steps3{grid-template-columns:1fr;gap:12px}}
-.px-toast{left:auto;right:24px;transform:none;bottom:96px;white-space:nowrap}
+.px-toast{left:auto;right:24px;transform:none;top:100px;bottom:auto;white-space:nowrap;z-index:120}
 @media (max-width:760px){.px-toast{left:12px;right:12px;top:84px;bottom:auto;white-space:normal;border-radius:10px}}
+.px .px-clr{border:0;background:none;color:#b9b9be;font:inherit;font-size:13px;text-decoration:underline;text-underline-offset:2px;cursor:pointer;margin-top:12px;align-self:center}
 </style>
 <style>
 .px-bar{background:#fff;border-bottom:1px solid #e3e6e9}
@@ -400,6 +401,27 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-side{padding:6px 20px}
 @media (max-width:900px){.pxh-in{padding:0 10px 0 12px}}
 @media (max-width:760px){.px-hero .px-hero-in{padding:0 32px}.px-bar .px-catnav{margin-left:-2px}}
+
+/* refinements */
+.px-kpis{display:grid;grid-auto-flow:column;grid-auto-columns:150px;gap:10px}
+.px .px-kpis a{min-width:0;height:96px;padding:16px 18px;justify-content:space-between;position:relative}
+.px-kpis b{font-size:26px;line-height:1}.px-kpis span{font-size:13px;line-height:1.2}
+.px .px-kpis .px-rw{min-width:0}.px-kpis .px-rw span{color:#fcb27f}
+.px-kpis .bar{position:absolute;left:18px;right:18px;bottom:12px;height:3px;margin:0}
+.px-kpis .px-rw span{margin-bottom:8px}
+@media (max-width:760px){.px-kpis{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);grid-auto-columns:auto;width:100%}.px .px-kpis a{height:80px;padding:12px}.px-kpis .bar{left:12px;right:12px;bottom:9px}}
+.sc-pr{align-items:baseline}
+.sc-act .px-btn{white-space:nowrap;min-width:0}
+.px-pd-img{aspect-ratio:4/3;max-height:520px}
+.px-pd-info h1{font-size:26px;line-height:1.2}
+.px-bn:before{background:linear-gradient(180deg,rgba(18,20,23,.2) 0%,rgba(18,20,23,.8) 45%,rgba(18,20,23,.96) 100%)}
+.px-cl-i{display:flex;flex-direction:column;gap:4px;min-width:0}
+.px-cl-m{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:#5f656c}
+.px-code2{font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600;color:#1d2126}
+.px .px-rm{color:#5f656c;font-size:13px;align-self:flex-start;padding:0;border:0;background:none;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.px-line-c{color:#5f656c}
+.px-crumb,.px-list-h span,.px-fo .n{color:#5f656c}
+.px-hint{margin:0 0 14px}
 </style>
 
 <div class="px" @vue:mounted="init">
@@ -795,7 +817,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-empty" v-if="!cart.length">Your cart is empty. <a href="#/" style="color:#d32a37;font-weight:500">Browse the store</a> or paste a list of part numbers below.</div>
 <div class="px-cl" v-for="(l, i) in cart" :key="l.code">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" alt=""><span v-else class="sc-ph" style="font-size:9px">part</span></a>
-<div><a class="sc-t" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><div class="sc-pn" v-text="l.code + ' · ' + fmt(price(l.code)) + ' each'"></div><button type="button" class="px-rm" style="color:#8a9097" @click="remove(i)">Remove</button></div>
+<div class="px-cl-i"><a class="sc-t" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-cl-m"><span class="px-code2" v-text="l.code"></span><span v-text="fmt(price(l.code)) + ' each'"></span></span><button type="button" class="px-rm" @click="remove(i)">Remove</button></div>
 <div class="px-qty"><button type="button" aria-label="Less" @click="setQty(i, l.qty - 1)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setQty(i, l.qty + 1)">+</button></div>
 <b class="px-line-t" v-text="fmt(lineTotal(l))"></b>
 </div>
@@ -811,7 +833,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-sum" style="margin-top:0"><span>Subtotal</span><b v-text="fmt(subtotal)"></b></div>
 <p class="px-sum-n">Freight and taxes are confirmed by our team when the order is approved.</p>
 <a class="px-btn px-red" href="#/checkout">Checkout</a>
-<button type="button" class="px-btn px-ghost px-sm" style="margin-top:8px;background:transparent;color:#fff;border-color:#3d444d" @click="clearCart">Clear cart</button>
+<button type="button" class="px-clr" @click="confirm('Remove all parts from the cart?') && clearCart()">Clear cart</button>
 </aside>
 </div>
 
