@@ -1043,11 +1043,14 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
   .px .px-acc-line{flex-direction:column;gap:0}
   .px .px-acc-line>span+span::before{display:none}
   .sc-pn{font-size:12px;overflow-wrap:break-word}
-  .px-make .lg img{max-height:28px;max-width:80%}
+  .px-make .lg{overflow:hidden;padding:0 10px}.px-make .lg img{max-height:28px;max-width:80%;min-width:0;object-fit:contain}
+  .px-make .lg img:first-child:nth-last-child(2),.px-make .lg img:first-child:nth-last-child(2)~img{max-width:calc(50% - 8px)}
 }
 .px .px-sum{gap:12px;align-items:baseline}.px .px-sum b.sm{font-size:15px;font-weight:500;text-align:right}
-@media (min-width:761px){.px-stage .px-g2c{grid-template-columns:1fr 1.4fr}.px-reo{margin-right:12px}.px-ord .px-st{justify-self:end}}
+@media (min-width:761px){.px-stage .px-g2c{grid-template-columns:1fr}.px-reo{margin-right:12px}.px-ord .px-st{justify-self:end}}
 .px-line-c{color:#a3a9b0;font-size:12px}
+.px-ltab td.lam.nop b{font-weight:400;color:#8a9097}
+.px-make .lg img[src*="nissan" i]{max-height:36px}.px-make .lg>svg{width:40px;height:40px}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
