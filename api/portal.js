@@ -107,7 +107,7 @@ A.login = async (req, res) => {
     const link = base(req) + '/api/portal/verify?t=' + encodeURIComponent(loginToken(email));
     await send(email, 'Your Maxzz Diesel sign-in link', 'Sign in to the Maxzz B2B portal',
       '<p>Use the button below to sign in. The link works once and expires in 20 minutes.</p><p style="color:#8a9097;font-size:13px">If you did not ask for it, you can ignore this e-mail.</p>',
-      { url: link, label: 'Sign in' });
+      { url: link, label: 'Sign in' }, { name: u && u.name, greet: true });
   }
   // same answer either way, so the form does not reveal who has an account
   return res.json({ ok: true, pending: !!(u && u.status === 'pending') });
@@ -166,10 +166,10 @@ A.request = async (req, res) => {
     await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).', [{ id: cid, type: 204 }], 4);
   } catch (e) { console.error('hubspot', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
-    `<p>Hi ${esc(f.name.split(' ')[0].slice(0, 30))}, thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`);
+    `<p>Thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`, null, { name: f.name });
   if (admins().length) await send(admins(), 'New B2B portal request: ' + f.company, 'New access request',
     `<p><b>${esc(f.company)}</b> · ${esc(f.name)} · ${esc(f.email)} · ${esc(f.phone)}</p><p>${esc([f.type, f.city, f.state, f.country].filter(Boolean).join(' · '))}</p>${f.customerNumber ? `<p>Says Unleashed customer: ${esc(f.customerNumber)}</p>` : ''}`,
-    { url: base(req) + '/portal#admin', label: 'Review in the portal' });
+    { url: base(req) + '/portal#admin', label: 'Review in the portal' }, { internal: true });
   return res.json({ ok: true });
 };
 
@@ -271,9 +271,9 @@ A.order = async (req, res) => {
   try {
   await send(w.email, 'Order received ' + o.number, 'We received your order',
     `<p>Thanks. Our sales team reviews every order and you will get an e-mail when it is approved, with confirmed quantities and ship date.</p>${orderMail(o)}`,
-    { url: base(req) + '/portal#orders', label: 'Track your order' });
+    { url: base(req) + '/portal#orders', label: 'Track your order' }, { name: w.user && w.user.name, greet: true });
   if (admins().length) await send(admins(), 'Portal order ' + o.number + ' · ' + w.account.company, 'New portal order',
-    `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${w.account.stopCredit ? '<p><b>Credit hold:</b> this customer is on stop credit in Unleashed. Check payment before releasing.</p>' : ''}${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${orderMail(o)}`);
+    `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${w.account.stopCredit ? '<p><b>Credit hold:</b> this customer is on stop credit in Unleashed. Check payment before releasing.</p>' : ''}${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${orderMail(o)}`, null, { internal: true });
   } catch (e) { console.error('order mail', e.message); }
   return res.json({ ok: true, order: o });
 };
@@ -329,8 +329,8 @@ A['admin-approve'] = async (req, res) => {
   people.forEach((u) => { if (u.status === 'pending' || u.status === 'rejected') u.status = 'approved'; });
   await writeJson(DB, w.db);
   for (const u of people) await send(u.email, 'Your Maxzz B2B portal access is ready', 'Welcome to the Maxzz B2B portal',
-    `<p>Hi ${esc(String(u.name || '').split(' ')[0])}, your account for <b>${esc(acc.company)}</b> is approved. You can now see your prices and stock, place orders and track them.</p>`,
-    { url: base(req) + '/portal', label: 'Open the portal' });
+    `<p>Your account for <b>${esc(acc.company)}</b> is approved. You can now see your prices and stock, place orders and track them.</p>`,
+    { url: base(req) + '/portal', label: 'Open the portal' }, { name: u.name, greet: true });
   return res.json({ ok: true });
 };
 A['admin-reject'] = async (req, res) => {
@@ -344,7 +344,7 @@ A['admin-reject'] = async (req, res) => {
   people.forEach((u) => { u.status = 'rejected'; });
   await writeJson(DB, w.db);
   if (b.notify) for (const u of people) await send(u.email, 'About your Maxzz B2B portal request', 'About your request',
-    `<p>Hi ${esc(String(u.name || '').split(' ')[0])}, we could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/quote or reply to this e-mail.</p>`);
+    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/quote or reply to this e-mail.</p>`, null, { name: u.name, greet: true });
   return res.json({ ok: true });
 };
 
