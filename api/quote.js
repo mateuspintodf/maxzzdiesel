@@ -4,6 +4,9 @@ const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubs
 const { EMAIL, clean, readBody } = require('../lib/validate');
 const { guard } = require('../lib/guard');
 const { createSalesQuote } = require('../lib/unleashed-quote');
+const { nextNumber, readJson, writeJson } = require('../lib/store');
+const { sessionEmail } = require('../lib/session');
+const crypto = require('crypto');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -14,7 +17,8 @@ module.exports = async (req, res) => {
   const c = b.customer || {};
   const customer = { name: clean(c.name, 120), company: clean(c.company, 160), email: clean(c.email, 160).toLowerCase(), phone: clean(c.phone, 40), type: clean(c.type, 80), notes: clean(c.notes, 2000) };
   const lines = (Array.isArray(b.lines) ? b.lines : []).slice(0, 300).map((l) => ({ pn: clean(l.pn, 80), name: clean(l.name, 240), qty: Math.max(1, Math.min(99999, parseInt(l.qty, 10) || 1)) }));
-  const number = clean(b.number, 40) || ('QR-' + Date.now());
+  const store = /B2B store/.test(clean(b.source, 300));
+  let number = store ? await nextNumber('quote') : (clean(b.number, 40) || ('QR-' + Date.now()));
   const s = b.shipping || {};
   const ship = { street: clean(s.street, 160), country: clean(s.country, 60), state: clean(s.state, 60), city: clean(s.city, 80), zip: clean(s.zip, 20), method: clean(s.method, 60), needBy: clean(s.needBy, 20), po: clean(s.po, 60) };
   const b2b = b.b2b === true;
@@ -27,7 +31,13 @@ module.exports = async (req, res) => {
   }
   // store quotes also go to Unleashed as a Draft sales quote (when PORTAL_QUOTES_LIVE=1); never blocks the request
   const ulq = /B2B store/.test(source) ? await createSalesQuote(req, { number, customer, lines, notes: customer.notes }) : { skipped: true };
-  if (ulq.ok) extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid));
+  if (ulq.ok) { extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid) + ' (store ref ' + number + ')'); if (ulq.number) number = ulq.number; }
+  // signed-in users keep a history of their quote requests in the store
+  const who = store ? sessionEmail(req) : null;
+  if (who) {
+    const key = 'portal/quotes/' + crypto.createHash('sha256').update(who).digest('hex').slice(0, 24) + '.json';
+    try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }
+  }
   if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
   try {
     const contactId = await upsertContact(Object.assign({}, customer, { source: 'Website quote request' }));

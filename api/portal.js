@@ -6,7 +6,7 @@
 //  - turns a cart into a Sales Order in Unleashed (status Parked, for the sales team to review).
 // Costs never leave the server; nothing here reads cost fields.
 const crypto = require('crypto');
-const { readJson, writeJson, cached } = require('../lib/store');
+const { readJson, writeJson, cached, nextNumber } = require('../lib/store');
 const { ul, configured } = require('../lib/unleashed');
 const { loginToken, verify, setSession, clearSession, sessionEmail } = require('../lib/session');
 const { send, esc } = require('../lib/mail');
@@ -201,6 +201,14 @@ A.orders = async (req, res) => {
   return res.json({ orders: list });
 };
 
+A.quotes = async (req, res) => {
+  const w = await whoami(req);
+  if (!w) return res.status(401).json({ error: 'login' });
+  const key = 'portal/quotes/' + crypto.createHash('sha256').update(w.email).digest('hex').slice(0, 24) + '.json';
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ quotes: (await readJson(key)) || [] });
+};
+
 A.order = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await whoami(req);
@@ -229,7 +237,7 @@ A.order = async (req, res) => {
   if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
   const subtotal = money(lines.reduce((a, l) => a + l.total, 0));
   const t = new Date();
-  const o = { id: id(), number: 'WEB-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase(),
+  const o = { id: id(), number: await nextNumber('order'),
     idem, created: Date.now(), by: w.email, po: clean(b.po, 40), notes: clean(b.notes, 800), ship, lines, subtotal, total: subtotal, status: 'Received', live: false, history: [{ s: 'Received', at: Date.now() }] };
 
   if (liveOrders() && configured() && w.account.customerCode) {
@@ -245,6 +253,7 @@ A.order = async (req, res) => {
     try {
       const so = await ul('SalesOrders/' + guid, '', { method: 'POST', body, timeoutMs: 45000 });
       o.guid = guid; o.live = true; o.unleashedNumber = so && so.OrderNumber; o.status = 'Parked';
+      if (o.unleashedNumber) { o.storeNumber = o.number; o.number = o.unleashedNumber; } // the Unleashed number becomes the locator
     } catch (e) {
       console.error('sales order failed', e.message);
       return res.status(502).json({ error: 'We could not place the order right now. Your cart is saved; please try again or call us.' });

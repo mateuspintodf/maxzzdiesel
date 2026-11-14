@@ -174,7 +174,7 @@ textarea.q-in{height:auto;padding:12px 16px;line-height:22px}
 <details class="pxh-me" v-if="me"><summary><span class="av" v-text="initials"></span><span class="t" v-text="firstName"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
 <div class="pxh-menu">
 <div class="hd"><b v-text="me.name || firstName"></b><span v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span><span class="em" v-text="me.email"></span></div>
-<a href="#/orders" v-if="canOrder">My orders</a><a href="#/cart" v-if="canOrder">Cart</a><a href="#" @click.prevent="qOpen = true">Quote list</a><a href="#/rewards" v-if="REWARDS.on">Max Rewards</a><a href="#/admin" v-if="me.admin">Admin</a>
+<a href="#/orders">My orders and quotes</a><a href="#/cart" v-if="canOrder">Cart</a><a href="#" @click.prevent="qOpen = true">Quote list</a><a href="#/rewards" v-if="REWARDS.on">Max Rewards</a><a href="#/admin" v-if="me.admin">Admin</a>
 <button type="button" @click="logout">Sign out</button>
 </div></details>
 <a class="pxh-in-btn" href="#/login" v-if="!me">Sign in</a>
@@ -673,12 +673,92 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-hero h1{font-size:44px;letter-spacing:-.02em}
 .px .px-lead{max-width:none;font-size:17px;line-height:1.55;color:#c9cdd2}
 @media (max-width:760px){.px-hero:before{background:linear-gradient(180deg,rgba(22,25,29,.75),rgba(22,25,29,.95))}.px-hero h1{font-size:30px}.px .px-lead{font-size:15px}.px-lead br{display:none}}
+
+.px-flowp>.px-stepper,.px-flowp .px-fh,.px-flowp .px-review-h,.px-pdp>.px-crumb,.px-fh{padding-left:20px}
+@media (max-width:760px){.px-flowp>.px-stepper,.px-flowp .px-fh,.px-flowp .px-review-h,.px-pdp>.px-crumb,.px-fh{padding-left:12px}}
+.px-asme{gap:12px;padding:12px 16px}.px-asme .tx{display:flex;flex-direction:column;gap:1px;line-height:1.3}.px-asme .tx b{font-size:15px}
+/* confirmation: staged entrance */
+.px-conf{max-width:900px;margin:0 auto 22px;display:flex;flex-direction:column;gap:14px}
+.px-conf-h{display:flex;gap:16px;align-items:flex-start;animation:pxUp .5s cubic-bezier(.22,1,.36,1) both}
+.px-conf-h b{font-size:22px;font-weight:500;letter-spacing:-.01em;line-height:1.25;display:block}.px-conf-h p{margin:4px 0 0;color:#5f656c;font-size:15px;line-height:1.5}
+.px-ck{flex:none;width:52px;height:52px;border-radius:50%;background:#15803d;color:#fff;display:flex;align-items:center;justify-content:center;animation:pxPop .55s cubic-bezier(.34,1.56,.64,1) both}
+.px-ck path{stroke-dasharray:24;stroke-dashoffset:24;animation:pxDraw .45s .35s ease-out forwards}
+.px-conf-n{display:grid;grid-template-columns:auto 1fr;grid-template-areas:'l l' 'n b' 's s';gap:2px 12px;align-items:center;background:#1d2126;color:#fff;border-radius:12px;padding:18px 22px;animation:pxUp .5s .12s cubic-bezier(.22,1,.36,1) both}
+.px-conf-n span{grid-area:l;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#fc771d;font-weight:600}
+.px-conf-n b{grid-area:n;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:30px;font-weight:600;letter-spacing:.02em}
+.px-conf-n button{grid-area:b;justify-self:start;width:36px;height:36px;border-radius:50%;border:1px solid #3d444d;background:transparent;color:#c9cdd2;cursor:pointer;display:flex;align-items:center;justify-content:center}.px-conf-n button:hover{border-color:#8a9097;color:#fff}
+.px-conf-n small{grid-area:s;color:#b9b9be;font-size:13px;margin-top:4px}
+.px-tl{list-style:none;margin:0;padding:18px 22px;background:#fff;border-radius:12px;display:grid;grid-template-columns:repeat(5,1fr);gap:0;animation:pxUp .5s .22s cubic-bezier(.22,1,.36,1) both}
+.px-tl li{position:relative;display:flex;flex-direction:column;gap:10px;font-size:13px;color:#8a9097;padding-right:8px}
+.px-tl li i{position:relative;display:block;height:4px;border-radius:4px;background:#e3e6e9;overflow:hidden}
+.px-tl li i:after{content:'';position:absolute;inset:0;background:#fc771d;transform:scaleX(0);transform-origin:left;transition:none}
+.px-tl li.on{color:#1d2126}.px-tl li.on i:after{animation:pxFill .5s calc(.45s + var(--i) * .18s) ease-out forwards}
+.px-tl li.cur span{font-weight:600}
+.px-tl li.cur i:before{content:'';position:absolute;right:0;top:0;bottom:0;width:30%;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.7));z-index:1;animation:pxShine 1.6s 1.2s ease-in-out infinite}
+.px-paper{animation:pxUp .6s .3s cubic-bezier(.22,1,.36,1) both}
+@keyframes pxUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pxPop{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+@keyframes pxDraw{to{stroke-dashoffset:0}}
+@keyframes pxFill{to{transform:scaleX(1)}}
+@keyframes pxShine{0%{transform:translateX(-300%)}100%{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.px-conf-h,.px-ck,.px-conf-n,.px-tl,.px-paper{animation:none}.px-ck path{stroke-dashoffset:0;animation:none}.px-tl li.on i:after{animation:none;transform:scaleX(1)}.px-tl li.cur i:before{display:none}}
+@media (max-width:760px){.px-tl{grid-template-columns:1fr;gap:10px}.px-tl li{flex-direction:row;align-items:center}.px-tl li i{width:40px;flex:none}.px-conf-n b{font-size:22px}}
+/* hero photos: right side, soft reveal, slower crossfade */
+.px-hbg{left:38%}
+.px-hbg:after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,#16191d 0%,rgba(22,25,29,0) 45%)}
+.px-hbg i{background-position:center 58%;animation:pxfade2 52.5s infinite}
+.px-hbg i:nth-child(1){animation-delay:-2s}.px-hbg i:nth-child(2){animation-delay:8.5s}.px-hbg i:nth-child(3){animation-delay:19s}.px-hbg i:nth-child(4){animation-delay:29.5s}.px-hbg i:nth-child(5){animation-delay:40s}
+@keyframes pxfade2{0%{opacity:0;transform:scale(1.07) translateX(2%)}3.8%{opacity:1}24%{opacity:1}27.8%{opacity:0;transform:scale(1) translateX(0)}100%{opacity:0;transform:scale(1) translateX(0)}}
+.px-hero:before{background:linear-gradient(90deg,rgba(22,25,29,.96) 0%,rgba(22,25,29,.85) 34%,rgba(22,25,29,.25) 62%,rgba(22,25,29,.1) 100%),linear-gradient(0deg,rgba(22,25,29,.55),rgba(22,25,29,0) 45%)}
+.px-hero.compact .px-hbg i{background-position:center 62%}
+@media (max-width:760px){.px-hbg{left:0}.px-hbg:after{display:none}}
+
+.px-rwhero{position:relative;overflow:hidden;background:#1d2126;color:#fff;border-radius:12px;padding:32px 36px;display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;isolation:isolate}
+.px-rwhero:before{content:'';position:absolute;right:-120px;top:-160px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,var(--lc) 0%,rgba(0,0,0,0) 65%);opacity:.35;z-index:-1}
+.px-rwhero h1{margin:8px 0 0;font-size:56px;font-weight:500;letter-spacing:-.02em;line-height:1}.px-rwhero h1 small{font-size:18px;color:#b9b9be;font-weight:400}
+.px-rwhero p{margin:12px 0 0;color:#c9cdd2;font-size:16px;max-width:560px;line-height:1.5}
+.px-rwbadge{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:20px 26px;border:1px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.04);min-width:210px}
+.px-rwbadge .ic{width:68px;height:68px;border-radius:50%;background:var(--lc);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px rgba(255,255,255,.06)}
+.px-rwbadge b{font-size:20px;font-weight:500}.px-rwbadge small{color:#b9b9be;font-size:13px;max-width:180px}
+.px-path{position:relative;background:#fff;border-radius:12px;padding:58px 80px 92px;margin-bottom:12px}
+.px-path-bar{position:relative;height:8px;border-radius:8px;background:#eef0f2}
+.px-path-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:8px;background:linear-gradient(90deg,#8a9097,var(--cl));animation:pxGrow 1.2s .2s cubic-bezier(.22,1,.36,1) both}
+.px-path-in{position:relative}.px-path-n{position:absolute;top:-14px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px;width:150px;text-align:center}
+.px-path-n:first-of-type{}
+.px-path-n .dot{width:44px;height:44px;border-radius:50%;background:#fff;border:2px solid #dfe2e6;color:#8a9097;display:flex;align-items:center;justify-content:center;margin-top:0;transition:all .3s}
+.px-path-n.done .dot{background:var(--lc);border-color:var(--lc);color:#fff}
+.px-path-n.cur .dot{box-shadow:0 0 0 6px color-mix(in srgb,var(--lc) 25%,transparent);transform:scale(1.12)}
+.px-path-n b{font-size:15px;font-weight:500;margin-top:6px}.px-path-n small{font-size:12px;color:#5f656c;margin-top:-2px}
+.px-path-n .here{position:absolute;top:-30px;background:#1d2126;color:#fff;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.px-lvls{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.px-lvl{background:#fff;border-radius:10px;padding:18px;border-top:4px solid var(--lc)}
+.px-lvl.cur{box-shadow:0 0 0 2px var(--lc) inset,0 12px 28px rgba(29,33,38,.08)}
+.px-lvl-h{display:flex;align-items:center;gap:10px;margin-bottom:10px}.px-lvl-h .ic{width:34px;height:34px;border-radius:50%;background:var(--lc);color:#fff;display:flex;align-items:center;justify-content:center}
+.px-lvl-h b{font-size:17px;font-weight:500}.px-lvl-h .tag{margin-left:auto;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;background:var(--lc);color:#fff;border-radius:4px;padding:2px 7px}.px-lvl-h .tag.lock{background:#eef0f2;color:#5f656c}
+.px-lvl ul{margin:0;padding-left:18px;font-size:14px;color:#3a4048;line-height:1.55}
+.px-earn{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.px-earn>div{background:#fff;border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:6px}.px-earn .ic{width:40px;height:40px;border-radius:50%;background:#fff1e6;color:#c25a12;display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+.px-earn b{font-weight:500;font-size:16px}.px-earn p{margin:0;color:#5f656c;font-size:14px;line-height:1.5}
+.px-rtabs{display:flex;gap:6px;flex-wrap:wrap}.px-rtabs button{border:1px solid #dfe2e6;background:#fff;border-radius:50px;height:34px;padding:0 14px;font:inherit;font-size:13px;cursor:pointer;color:#3a4048}.px-rtabs button.on{background:#1d2126;color:#fff;border-color:#1d2126}
+.px-rdms{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.px-rdm2{position:relative;background:#fff;border-radius:10px;padding:18px 18px 22px;display:flex;flex-direction:column;gap:6px;overflow:hidden;transition:transform .25s cubic-bezier(.22,1,.36,1),box-shadow .25s}
+.px-rdm2:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(29,33,38,.08)}
+.px-rdm2 .ic{width:42px;height:42px;border-radius:10px;background:#f4f5f6;color:#5f656c;display:flex;align-items:center;justify-content:center}.px-rdm2.ok .ic{background:#fff1e6;color:#c25a12}
+.px-rdm2 .cat{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#5f656c;font-weight:600;margin-top:6px}
+.px-rdm2 b{font-weight:500;font-size:16px;line-height:1.3}.px-rdm2 p{margin:0;color:#5f656c;font-size:13.5px;line-height:1.45;flex:1}
+.px-rdm2 .ft{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}.px-rdm2 .pts{color:#c25a12;font-weight:600;font-size:14px}
+.px-rdm2>.bar{position:absolute;left:0;right:0;bottom:0;height:4px;margin:0;border-radius:0;background:#eef0f2}.px-rdm2>.bar>i{border-radius:0}
+@keyframes pxGrow{from{width:0}}
+@media (max-width:900px){.px-lvls,.px-earn{grid-template-columns:1fr 1fr}.px-rwhero{grid-template-columns:1fr}.px-path{padding:32px 40px 74px}.px-path-n{width:90px}.px-path-n small{display:none}}
+@media (max-width:560px){.px-lvls,.px-earn{grid-template-columns:1fr}.px-rwhero{padding:24px}.px-rwhero h1{font-size:42px}.px-path{padding:28px 26px 64px}.px-path-n b{font-size:12px}}
+.px-oh,.px-pdp ~ .x{max-width:900px}
+.px-oh{max-width:900px;margin:0 auto 10px}
 </style>
 
 <div class="px" @vue:mounted="init">
 
 <section class="px-hero" :class="[route === 'home' ? '' : 'compact', adminBar ? 'adm' : '']">
-<div class="px-hbg" aria-hidden="true"><i style="background-image:url(/assets/mg/hero-3.jpg)"></i><i style="background-image:url(/assets/mg/parts-hero.jpg)"></i><i style="background-image:url(/assets/mg/hero-2.jpg)"></i></div>
+<div class="px-hbg" aria-hidden="true"><i style="background-image:url(/assets/mg/hero-2.jpg)"></i><i style="background-image:url(/assets/mg/hero-1.jpg)"></i><i style="background-image:url(/assets/mg/cart-injectors.jpg)"></i><i style="background-image:url(/assets/mg/parts-hero.jpg)"></i><i style="background-image:url(/assets/mg/cart-pumps.jpg)"></i></div>
 <div class="px-hero-in">
 <div>
 <h1 v-if="!logged && route === 'home'">Wholesale diesel injection, <em>in stock</em></h1>
@@ -708,7 +788,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <a href="#/orders" v-if="canOrder"><b v-text="openOrders"></b><span>Open orders</span></a>
 <a href="#/cart" v-if="canOrder"><b v-text="cart.length"></b><span>In cart</span></a>
 <a href="#" @click.prevent="qOpen = true"><b v-text="quoteN"></b><span>Quote list</span></a>
-<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="'Rewards · ' + REWARDS.tier"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
+<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="'Rewards · ' + rwLevel.n"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
 </div>
 </div>
 </section>
@@ -861,7 +941,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 
 <!-- PRODUCT -->
-<div v-if="route === 'p'">
+<div class="px-pdp" v-if="route === 'p'">
 <div class="px-empty" v-if="!product && cat.length">Part not found. <a href="#/" style="color:#d32a37">Back to the store</a></div>
 <div v-if="product">
 <div class="px-crumb"><a href="#/">Store</a> / <a :href="'#/c/' + encodeURIComponent(pr[3])" v-text="pr[3]"></a> / <span v-text="pr[0]"></span></div>
@@ -1024,7 +1104,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 <!-- step 1: the list -->
 <div v-if="step === 1">
-<div class="px-fh"><div><h1 v-text="flow === 'order' ? 'Cart' : 'Quote list'"></h1><p class="px-muted" v-text="flow === 'order' ? 'Check quantities, then continue to shipping.' : 'Every part you want priced. Our team replies within one business day.'"></p></div>
+<div class="px-fh"><div><h1 v-text="flow === 'order' ? 'Cart' : 'Quote list'"></h1><p class="px-muted" v-text="flow === 'order' ? (firstName ? firstName + ', check' : 'Check') + ' quantities, then continue to shipping.' : (firstName ? firstName + ', here is' : 'Here is') + ' every part you want priced. Our team replies within one business day.'"></p></div>
 <div class="px-test" v-if="flow === 'order' && me && !me.ordersLive">Test mode: orders are e-mailed to our team and not yet sent to the warehouse system.</div></div>
 <div class="px-card px-lt">
 <div class="px-empty" v-if="!lines.length">Nothing here yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a><span v-if="flow === 'order'"> or paste a list of part numbers below</span>.</div>
@@ -1057,8 +1137,9 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <!-- step 2: details -->
 <div class="px-grid" v-if="step === 2">
 <div class="px-card">
-<h2 v-text="flow === 'order' ? 'Shipping and reference' : 'Your details'"></h2>
-<div class="px-asme" v-if="me"><span class="av" v-text="initials"></span><span><b v-text="(me.name || firstName) + ' · ' + (me.account ? me.account.company : 'Maxzz Diesel team')"></b><small v-text="me.email + (me.account && me.account.code ? ' · account ' + me.account.code : '')"></small></span></div>
+<h2 v-text="flow === 'order' ? 'Where should we ship it?' : 'A few details'"></h2>
+<p class="px-muted" style="margin:4px 0 0" v-text="flow === 'order' ? (firstName ? firstName + ', we' : 'We') + ' kept the last address you used. Change anything you need.' : (me ? (firstName + ', we already have your contact. Add a reference if it helps our team.') : 'Tell us who to send the prices to.')"></p>
+<div class="px-asme" v-if="me"><span class="av" v-text="initials"></span><span class="tx"><b v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></b><small v-text="(me.name || firstName) + ' · ' + me.email + (me.account && me.account.code ? ' · account ' + me.account.code : '')"></small></span></div>
 <form @submit.prevent="next" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
 <div class="px-g2" v-if="flow === 'quote' && !me"><label class="px-f">Your name *<input class="px-in" v-model="qd.name" required autocomplete="name"></label><label class="px-f">Company *<input class="px-in" v-model="qd.company" required autocomplete="organization"></label></div>
 <div class="px-g2" v-if="flow === 'quote' && !me"><label class="px-f">E-mail *<input class="px-in" type="email" v-model="qd.email" required autocomplete="email"></label><label class="px-f">Phone or WhatsApp *<input class="px-in" type="tel" v-model="qd.phone" required autocomplete="tel"></label></div>
@@ -1088,8 +1169,14 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 <!-- step 3 and 4: the paper -->
 <div v-if="step >= 3 && doc">
-<div class="px-done" v-if="step === 4"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b v-text="doc.kind === 'order' ? 'Order received. Thank you.' : 'Quote request sent. Thank you.'"></b><p v-text="'A copy went to ' + doc.email + '. ' + (doc.kind === 'order' ? 'Our sales team reviews it, confirms stock and freight, and e-mails you at every step.' : 'Our sales team replies with price, stock and lead time within one business day.')"></p></div></div>
-<div class="px-review-h" v-if="step === 3"><div><h1>Review and confirm</h1><p class="px-muted">This is what our sales team will receive. Check it before you send.</p></div></div>
+<div class="px-conf" v-if="step === 4 && track">
+<div class="px-conf-h"><span class="px-ck"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+<div><b v-text="(firstName ? 'Thanks, ' + firstName + '. ' : 'Thank you. ') + (doc.kind === 'order' ? 'Your order is with our sales team.' : 'Your quote request is with our sales team.')"></b><p v-text="'A copy went to ' + doc.email + '. ' + (doc.kind === 'order' ? 'We confirm stock, freight and ship date and e-mail you at every step.' : 'We reply with price, stock and lead time within one business day.')"></p></div></div>
+<div class="px-conf-n"><span v-text="track.label"></span><b v-text="doc.number"></b><button type="button" @click="copy(doc.number)" aria-label="Copy number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button><small>Use it to follow this request in My orders and quotes, or when you call us.</small></div>
+<ol class="px-tl"><li v-for="(t, i) in track.steps" :class="[i < track.at ? 'on' : '', i === track.at - 1 ? 'cur' : '']" :style="'--i:' + i"><i></i><span v-text="t"></span></li></ol>
+</div>
+
+<div class="px-review-h" v-if="step === 3"><div><h1 v-text="firstName ? 'Almost there, ' + firstName : 'Review and confirm'"></h1><p class="px-muted" v-text="'This is exactly what our sales team will receive. Check it before you ' + (flow === 'order' ? 'place the order.' : 'send.')"></p></div></div>
 <article class="px-paper" v-if="doc">
 <header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
 <div class="px-paper-meta">
@@ -1120,19 +1207,59 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 <!-- REWARDS -->
 <div class="px-card px-auth" v-if="route === 'rewards' && !logged"><h2>Max Rewards</h2><p class="px-muted">Points for approved wholesale customers. Sign in to see your balance.</p><a class="px-btn px-red" href="#/login" style="margin-top:14px">Sign in</a></div>
-<div v-if="route === 'rewards' && logged">
+<div class="px-rwp2" v-if="route === 'rewards' && logged">
 <div class="px-crumb"><a href="#/">Store</a> / Max Rewards</div>
-<div class="px-rwh">
-<div><span class="px-rwk">Max Rewards<span class="px-demo" v-if="REWARDS.demo">Preview, sample numbers</span></span><h1><span v-text="REWARDS.points.toLocaleString('en-US')"></span> <small>points</small></h1><p v-text="(me && me.account ? me.account.company : 'Your company') + ' · ' + REWARDS.tier + ' member'"></p></div>
-<div class="px-rwp"><div class="px-rwl"><b v-text="REWARDS.tier"></b><span v-text="(REWARDS.nextAt - REWARDS.points).toLocaleString('en-US') + ' points to ' + REWARDS.next"></span></div><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i><small>Points from the last 12 months of orders. 1 point per US$ 1 invoiced.</small></div>
+<section class="px-rwhero" :style="'--lc:' + rwLevel.c">
+<div class="px-rwhero-l">
+<span class="px-rwk">Max Rewards<span class="px-demo" v-if="REWARDS.demo">Preview, sample numbers</span></span>
+<h1><span v-text="REWARDS.points.toLocaleString('en-US')"></span> <small>points</small></h1>
+<p v-text="(firstName ? firstName + ', ' : '') + (me && me.account ? me.account.company + ' is ' : 'you are ') + 'at ' + rwLevel.n + ' level. ' + (rwNext ? (rwNext.at - REWARDS.points).toLocaleString('en-US') + ' points to ' + rwNext.n + '.' : 'Top level reached.')"></p>
 </div>
-<div class="px-sec"><div class="px-sh"><h2>Levels</h2></div>
-<div class="px-tiers"><div v-for="t in [['Bronze','0','Points on every order'],['Silver','10,000','Free ground freight on orders over US$ 1,500'],['Gold','25,000','Priority order review and 1 DTA training seat a year'],['Platinum','50,000','Dedicated account manager and a factory visit']]" class="px-tier" :class="t[0] === REWARDS.tier ? 'on' : ''"><b v-text="t[0]"></b><span v-text="t[1] + ' pts / year'"></span><p v-text="t[2]"></p></div></div></div>
-<div class="px-sec"><div class="px-sh"><h2>Redeem</h2></div>
-<div class="px-grid4">
-<div class="px-rdm" v-for="r in [['US$ 50 off your next order','5,000'],['US$ 150 off your next order','14,000'],['Diesel Tech Academy course seat','20,000'],['Bench day at Maxzz Florida','35,000']]"><b v-text="r[0]"></b><span v-text="r[1] + ' pts'"></span><button type="button" class="px-btn px-ghost px-sm" :disabled="REWARDS.points < parseInt(r[1].replace(',', ''), 10)" @click="flash('Rewards redemption opens with the program launch')">Redeem</button></div>
+<div class="px-rwbadge"><span class="ic" v-html="rwIcon(rwLevel.k, 34)"></span><b v-text="rwLevel.n"></b><small v-text="rwLevel.perk"></small></div>
+</section>
+
+<section class="px-sec">
+<div class="px-sh"><h2>Your path</h2><span class="px-muted">Points from the last 12 months of invoiced orders</span></div>
+<div class="px-path" :style="'--cl:' + rwLevel.c"><div class="px-path-in">
+<div class="px-path-bar"><i :style="'width:' + rwPathPct + '%'"></i></div>
+<div class="px-path-n" v-for="(l, i) in REWARDS.levels" :key="l.k" :class="[REWARDS.points >= l.at ? 'done' : '', rwLevel.k === l.k ? 'cur' : '']" :style="'--lc:' + l.c + ';left:' + (i * 100 / (REWARDS.levels.length - 1)) + '%'">
+<span class="dot" v-html="rwIcon(l.k, 22)"></span>
+<b v-text="l.n"></b>
+<small v-text="l.at ? l.at.toLocaleString('en-US') + ' pts' : 'Start'"></small>
+<span class="here" v-if="rwLevel.k === l.k">You are here</span>
+</div>
 </div></div>
-<p class="px-note2">Levels, values and rewards shown here are a design preview. The real rules come from the Max Rewards program definition.</p>
+<div class="px-lvls">
+<div class="px-lvl" v-for="l in REWARDS.levels" :key="l.k" :class="rwLevel.k === l.k ? 'cur' : ''" :style="'--lc:' + l.c">
+<div class="px-lvl-h"><span class="ic" v-html="rwIcon(l.k, 20)"></span><b v-text="l.n"></b><span class="tag" v-if="rwLevel.k === l.k">Current</span><span class="tag lock" v-else-if="REWARDS.points < l.at">Locked</span></div>
+<ul><li v-for="x in l.perks" v-text="x"></li></ul>
+</div>
+</div>
+</section>
+
+<section class="px-sec">
+<div class="px-sh"><h2>How you earn</h2></div>
+<div class="px-earn">
+<div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg></span><b>1 point per US$ 1</b><p>On every invoiced order placed in the store.</p></div>
+<div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8L12 4l8.5 4v8.5L12 20.5 3.5 16.5z"/><path d="M3.5 8L12 12l8.5-4M12 12v8.5"/></svg></span><b>Double points on kits</b><p>Contamination kits and tool sets earn 2 points per dollar.</p></div>
+<div><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9l8-5 8 5v10"/><path d="M9 19v-6h6v6"/></svg></span><b>Training counts too</b><p>Diesel Tech Academy courses bought by your team add to your level.</p></div>
+</div>
+</section>
+
+<section class="px-sec">
+<div class="px-sh"><h2>Redeem</h2><div class="px-rtabs"><button type="button" v-for="c in ['All', 'Savings', 'Shipping', 'Products', 'Training', 'Experiences']" :class="rwCat === c ? 'on' : ''" @click="rwCat = c" v-text="c"></button></div></div>
+<div class="px-rdms">
+<div class="px-rdm2" v-for="r in rwItems" :key="r.n" :class="REWARDS.points >= r.p ? 'ok' : ''">
+<span class="ic" v-html="rwIcon(r.i, 22)"></span>
+<span class="cat" v-text="r.c"></span>
+<b v-text="r.n"></b>
+<p v-text="r.d"></p>
+<div class="ft"><span class="pts" v-text="r.p.toLocaleString('en-US') + ' pts'"></span><button type="button" class="px-btn px-sm" :class="REWARDS.points >= r.p ? 'px-dark' : 'px-ghost'" :disabled="REWARDS.points < r.p" @click="flash('Redemption opens with the program launch')" v-text="REWARDS.points >= r.p ? 'Redeem' : (r.p - REWARDS.points).toLocaleString('en-US') + ' to go'"></button></div>
+<i class="bar"><i :style="'width:' + Math.min(100, REWARDS.points / r.p * 100) + '%'"></i></i>
+</div>
+</div>
+</section>
+<p class="px-note2">Levels, values and rewards here are a design preview. The real rules come from the Max Rewards program definition.</p>
 </div>
 
 <!-- CART -->
@@ -1202,10 +1329,11 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 <!-- checkout -->
 <!-- orders -->
-<div class="px-card" v-if="route === 'orders' && canOrder">
+<div v-if="route === 'orders' && me">
+<div class="px-fh"><div><h1>My orders and quotes</h1><p class="px-muted" v-text="(firstName ? firstName + ', every' : 'Every') + ' request you sent from the store, with its current status.'"></p></div></div>
+<div class="px-card" v-if="canOrder" style="margin-bottom:16px">
 <h2>Orders</h2>
-<p class="px-muted">Every order placed in the portal, with its current status.</p>
-<div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/" style="color:#d32a37;font-weight:500">Browse the store</a>.</div>
+<div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a>.</div>
 <div class="px-list">
 <button type="button" class="px-ord" v-for="o in orders" :key="o.id" @click="cur = o; nav('o', o.id)">
 <div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + ' parts'"></small></div>
@@ -1214,17 +1342,30 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </button>
 </div>
 </div>
+<div class="px-card">
+<h2>Quote requests</h2>
+<div class="px-empty" v-if="!myQuotes.length">No quote requests yet. Add parts to your quote list and send it from there.</div>
+<div class="px-list">
+<div class="px-ord" v-for="q in myQuotes" :key="q.id">
+<div><b v-text="q.id"></b><small v-text="date(q.created) + (q.po ? ' · PO ' + q.po : '') + ' · ' + (q.lines || []).length + ' parts'"></small></div>
+<span class="px-ord-t"></span>
+<span class="px-st Parked" v-text="q.status === 'Sent' ? 'In review' : q.status"></span>
+</div>
+</div>
+</div>
+</div>
 
 <div class="px-card" v-if="route === 'o' && canOrder && !cur"><p class="px-muted" v-text="ordersLoaded ? 'We could not find this order.' : 'Loading your order...'"></p><a class="px-btn px-ghost px-sm" href="#/orders" style="margin-top:12px">All orders</a></div>
 <div v-if="route === 'o' && cur && canOrder">
-<div class="px-done" v-if="justPlaced === cur.id"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><div><b>Order received. Thank you.</b><p>We e-mailed a copy to <span v-text="me && me.email"></span>. Our sales team reviews it, confirms stock and freight, and e-mails you at every step.</p></div></div>
+
 <div class="px-oh"><a class="px-btn px-ghost px-sm" href="#/orders">&larr; All orders</a><span class="px-st" :class="cur.status" v-text="label(cur.status)"></span></div>
-<div class="px-steps">
-<div class="px-step" :class="stepOf(cur) >= 0 ? 'on' : ''">Received</div>
-<div class="px-step" :class="stepOf(cur) >= 1 ? 'on' : ''">Approved</div>
-<div class="px-step" :class="stepOf(cur) >= 2 ? 'on' : ''">Shipped</div>
-<div class="px-step" :class="stepOf(cur) >= 3 ? 'on' : ''">Invoiced</div>
+<div class="px-conf" v-if="true && track">
+<div class="px-conf-h" v-if="justPlaced === cur.id"><span class="px-ck"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+<div><b v-text="(firstName ? 'Thanks, ' + firstName + '. ' : 'Thank you. ') + (doc.kind === 'order' ? 'Your order is with our sales team.' : 'Your quote request is with our sales team.')"></b><p v-text="'A copy went to ' + doc.email + '. ' + (doc.kind === 'order' ? 'We confirm stock, freight and ship date and e-mail you at every step.' : 'We reply with price, stock and lead time within one business day.')"></p></div></div>
+<div class="px-conf-n"><span v-text="track.label"></span><b v-text="doc.number"></b><button type="button" @click="copy(doc.number)" aria-label="Copy number"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button><small>Use it to follow this request in My orders and quotes, or when you call us.</small></div>
+<ol class="px-tl"><li v-for="(t, i) in track.steps" :class="[i < track.at ? 'on' : '', i === track.at - 1 ? 'cur' : '']" :style="'--i:' + i"><i></i><span v-text="t"></span></li></ol>
 </div>
+
 <article class="px-paper" v-if="doc">
 <header class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="doc.kind === 'order' ? 'Purchase order' : 'Quote request'"></b><span v-text="doc.number"></span></div></header>
 <div class="px-paper-meta">
@@ -1305,7 +1446,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="pxf-in">
 <div class="pxf-b"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel" style="height:34px"><p>Wholesale diesel injection parts. Warehouse in Coconut Creek, Florida, shipping to the US and Latin America.</p></div>
 <div class="pxf-c"><b>Sales team</b><a href="tel:+19545864158">+1 (954) 586-4158</a><a href="https://wa.me/19543716996" target="_blank" rel="noopener">WhatsApp US +1 (954) 371-6996</a><a href="https://wa.me/17867164857" target="_blank" rel="noopener">WhatsApp LATAM +1 (786) 716-4857</a><a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a></div>
-<div class="pxf-c"><b>Store</b><a href="#/all">Catalog</a><a href="#/quote">Quote list</a><a href="#/request" v-if="!me">Request wholesale access</a><a href="#/orders" v-if="canOrder">My orders</a><a href="/policies">Shipping, returns and warranty</a></div>
+<div class="pxf-c"><b>Store</b><a href="#/all">Catalog</a><a href="#/quote">Quote list</a><a href="#/request" v-if="!me">Request wholesale access</a><a href="#/orders" v-if="me">My orders and quotes</a><a href="/policies">Shipping, returns and warranty</a></div>
 </div>
 <div class="pxf-bt"><span>© 2026 Maxzz Diesel</span><span><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/">maxzzdiesel.com</a></span></div>
 </footer>
@@ -1313,7 +1454,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=19"></script>
+<script src="/js/portal-app.js?v=21"></script>
 <script src="/js/motion.js?v=3" defer></script>
 </body>
 </html>
