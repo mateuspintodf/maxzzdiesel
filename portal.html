@@ -1495,7 +1495,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: “0445120231, 6”.</p>
 <textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
 <button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste" v-text="flow === 'order' ? 'Add to cart' : 'Add to quote list'"></button>
-<div class="px-ok" :class="pasteWarn ? 'warn' : ''" v-if="pasteMsg" v-text="pasteMsg"></div>
+<div class="px-ok" :class="pasteWarn ? 'warn' : ''" v-if="pasteMsg" v-text="pasteMsg"></div><div class="px-btns" style="margin-top:10px" v-if="pasteMsg && pasteMiss.length"><a class="px-btn px-dark px-sm" :href="'https://wa.me/19543716996?text=' + encodeURIComponent('Hi Maxzz, can you check these parts: ' + pasteMiss.join(', '))" target="_blank" rel="noopener">WhatsApp US</a><a class="px-btn px-ghost px-sm" :href="'https://wa.me/17867164857?text=' + encodeURIComponent('Hi Maxzz, can you check these parts: ' + pasteMiss.join(', '))" target="_blank" rel="noopener">WhatsApp Latin America</a><a class="px-btn px-ghost px-sm" href="tel:+19545864158">Call +1 (954) 586-4158</a></div>
 </details>
 </div>
 <div class="px-perk" v-if="flow === 'order' && showPrice && lines.length && REWARDS.on && !REWARDS.demo">
