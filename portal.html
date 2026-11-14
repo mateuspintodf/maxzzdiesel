@@ -790,11 +790,18 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-ben b{font-size:16px;margin:0}
 @media (max-width:1000px){.px-ben{grid-template-columns:1fr 1fr}.px-stage-in{padding:36px 20px}}
 @media (max-width:560px){.px-ben{grid-template-columns:1fr 1fr;gap:20px}.px-stage{margin-top:-20px}}
+
+.is-lp .px-wrap{padding:0;max-width:none}
+.is-lp .px-stage{margin-top:0;width:auto;margin-left:0;min-height:100vh;display:flex;align-items:center}
+.is-lp .px-stage-in{padding:150px 40px 80px;width:100%}
+.is-lp .px-stage-l h1{font-size:52px;max-width:620px}
+.is-lp .px-stage-l>p{font-size:18px}
+@media (max-width:1000px){.is-lp .px-stage-in{padding:110px 20px 48px}.is-lp .px-stage-l h1{font-size:36px}}
 </style>
 
-<div class="px" @vue:mounted="init">
+<div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
 
-<section class="px-hero" :class="[route === 'home' ? '' : 'compact', adminBar ? 'adm' : '']">
+<section class="px-hero" v-if="!lp" :class="[route === 'home' ? '' : 'compact', adminBar ? 'adm' : '']">
 <div class="px-hbg" aria-hidden="true"><i style="background-image:url(/assets/mg/hero-2.jpg)"></i><i style="background-image:url(/assets/mg/hero-1.jpg)"></i><i style="background-image:url(/assets/mg/cart-injectors.jpg)"></i><i style="background-image:url(/assets/mg/parts-hero.jpg)"></i><i style="background-image:url(/assets/mg/cart-pumps.jpg)"></i></div>
 <div class="px-hero-in">
 <div>
@@ -830,7 +837,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 </div>
 </section>
 
-<div class="px-bar">
+<div class="px-bar" v-if="!lp">
 <div class="px-bar-in">
 <nav class="px-catnav" aria-label="Categories">
 <a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" :class="route === 'c' && arg === c.k ? 'on' : ''"><span class="ci" v-html="icon(c.ic)"></span><span v-text="c.label"></span></a>
@@ -1311,7 +1318,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-stage-in">
 <div class="px-stage-l">
 <span class="px-rwk">Maxzz wholesale</span>
-<h1 v-text="route === 'login' ? 'Welcome back' : 'Open your wholesale account'"></h1>
+<h1 v-text="route === 'login' ? 'Welcome back to Maxzz wholesale' : 'Wholesale diesel injection, with your prices and live stock'"></h1>
 <p>For repair shops, injection labs, distributors and fleets.</p>
 <ul class="px-ben"><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><b>Your price list</b><span>Your account prices on every part.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><b>Live stock</b><span>On the shelf in Coconut Creek, Florida.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><b>Same-day shipping</b><span>In stock and ordered by 3 pm Eastern.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>Quotes in one day</b><span>Price, stock and lead time by the next business day.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><b>Order and track online</b><span>From review to invoice, with e-mails at every step.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg><b>Max Rewards</b><span>Points on every order.</span></li></ul>
 </div>
@@ -1501,7 +1508,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=22"></script>
+<script src="/js/portal-app.js?v=23"></script>
 <script src="/js/motion.js?v=3" defer></script>
 </body>
 </html>
