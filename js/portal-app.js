@@ -68,9 +68,10 @@
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
     err: '', busy: false, toast: '', toastKind: '', email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, REWARDS: { on: true, demo: true, points: 12480, tier: 'Silver', next: 'Gold', nextAt: 25000, rate: 1 }, sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '' },
+    countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, tier: 'Silver', next: 'Gold', nextAt: 25000, rate: 1 }, sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
     vMake: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
-    co: { po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '' },
+    co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
 
     get cats() { var self = this; return CATS.map(function (c) { return Object.assign({ n: self.cat.filter(function (r) { return r[3] === c.k; }).length }, c); }).filter(function (c) { return c.n; }); },
@@ -205,6 +206,14 @@
     },
     get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
+    get pickup() { return /will call/i.test(this.co.method); },
+    get blurb() {
+      var p = this.product; if (!p) return '';
+      var sp = this.spec, d = sp.desc ? String(sp.desc).split('</p>')[0].replace(/<[^>]+>/g, '').replace(/\s*Ships from our [^.]*\.\s*/i, ' ').trim() : '';
+      if (d) return d;
+      var i = parse(p[1]), type = (sp.type || p[3] || '').toLowerCase();
+      return [p[4], type].filter(Boolean).join(' ').replace(/^./, function (c) { return c.toUpperCase(); }) + (i.app ? ' for ' + i.app : '') + '.' + (i.xr.length ? ' Same as ' + i.xr.slice(0, 3).join(', ') + '.' : '');
+    },
     get spec() { var p = this.product; return (p && this.specs && this.specs[p[0]]) || {}; },
     get keyFacts() {
       var p = this.product, sp = this.spec || {}, i = parse(p && p[1]), out = [];
@@ -269,6 +278,7 @@
       if (h) history.replaceState(null, '', location.pathname + location.hash);
       fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; }); self.map = m; });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
+      fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
         if (me._status === 200) {
@@ -292,6 +302,8 @@
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || this.cur;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
+      this.qOpen = false; if (r !== 'quote') this.qSent = null;
+      if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
       if (r === 'p' && a) { var rc = this.recent.filter(function (c) { return c !== a; }); rc.unshift(a); this.recent = rc.slice(0, 12); write('mx-portal-recent', this.recent); }
@@ -339,6 +351,13 @@
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped', Deleted: 'Cancelled' }[s] || s; },
     stepOf: function (o) { return { Received: 0, Parked: 0, Placed: 1, Backordered: 1, Completed: 2 }[o.status] || 0; },
     bench: function (code) { return !!BENCH[code]; },
+    title: function (r) {
+      if (!r || !r[0]) return '';
+      var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return sp.title;
+      var t = parse(r[1]).title, letters = t.replace(/[^A-Za-z]/g, ''), up = letters.replace(/[^A-Z]/g, '').length;
+      if (letters.length > 6 && up / letters.length > 0.7) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
+      return t;
+    },
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },
     cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },
     inQuote: function (code) { return this.quote.some(function (x) { return x.id === code; }); },
@@ -395,12 +414,13 @@
     placeOrder: function () {
       var self = this; this.busy = true; this.err = '';
       var body = { po: this.co.po, notes: this.co.notes, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }),
-        ship: { name: this.co.name, street: this.co.street, city: this.co.city, state: this.co.state, zip: this.co.zip, country: this.co.country, method: this.co.method } };
+        ship: { name: this.co.name, street: this.pickup ? '' : this.co.street, city: this.pickup ? '' : this.co.city, state: this.co.state, zip: this.co.zip, country: this.co.country, method: this.co.method, fwd: this.co.fwd } };
+      write('mx-portal-ship', { method: this.co.method, name: this.co.name, street: this.co.street, city: this.co.city, state: this.co.state, zip: this.co.zip, country: this.co.country, fwd: this.co.fwd });
       api('order', { body: body }).then(function (r) {
         self.busy = false;
         if (r._status !== 200) { self.err = r.error || 'We could not place the order. Please try again.'; return; }
         track('generate_lead', { form: 'portal_order', quote_id: r.order.number, items: r.order.lines.length });
-        self.orders.unshift(r.order); self.cur = r.order; self.co.po = ''; self.co.notes = '';
+        self.orders.unshift(r.order); self.cur = r.order; self.justPlaced = r.order.id; self.co.po = ''; self.co.notes = '';
         self.nav('o', r.order.id); self.flash('Order received. We will e-mail you when it is approved.');
         setTimeout(function () { self.cart.splice(0); self.save(); }, 0);
       }).catch(function () { self.busy = false; self.err = 'Connection problem. Your cart is saved; try again.'; });
@@ -425,6 +445,22 @@
         if (r._status === 200) { track('b2b_access_request', { form: 'portal' }); self.nav('requested'); }
         else self.err = r._status === 429 ? 'Too many requests from this connection. Try later or call us.' : 'Please fill in name, company, e-mail and phone.';
       }).catch(function () { self.busy = false; self.err = 'Connection problem. Try again.'; });
+    },
+    sendQuote: function () {
+      var self = this, d = this.qd, hp = document.getElementById('px-qhp'), t = new Date();
+      if (!this.quote.length) return;
+      var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+      var lines = this.quote.map(function (l) { return { pn: l.id, name: self.title(self.map[l.id]) || l.name, qty: l.qty }; });
+      this.busy = true; this.err = '';
+      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', t: Date.now() - T0,
+        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: { country: d.country, city: d.city, po: d.po }, lines: lines }) })
+        .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+        .then(function () {
+          track('generate_lead', { form: 'store_quote', quote_id: number, items: lines.length });
+          self.busy = false; self.qSent = { id: number, email: d.email, lines: self.quote.map(function (l) { return { id: l.id, qty: l.qty }; }) };
+          setTimeout(function () { self.quote.splice(0); write(QK, []); }, 0); window.scrollTo({ top: 0, behavior: 'smooth' });
+        })
+        .catch(function () { self.busy = false; self.err = 'We could not send it right now. Try again, or e-mail the list to sales@maxzzdiesel.com.'; });
     },
     logout: function () { api('logout', { body: {} }).then(function () { location.href = '/portal'; }); },
 

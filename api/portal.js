@@ -212,8 +212,9 @@ A.order = async (req, res) => {
   }
   if (!lines.length) return res.status(400).json({ error: 'empty' });
   const s = b.ship || {};
-  const ship = { name: clean(s.name, 120) || w.account.company, street: clean(s.street, 160), city: clean(s.city, 80), state: clean(s.state, 60), zip: clean(s.zip, 20), country: clean(s.country, 60) || 'United States', method: clean(s.method, 40) };
-  if (!ship.street || !ship.city) return res.status(400).json({ error: 'address' });
+  const ship = { name: clean(s.name, 120) || w.account.company, street: clean(s.street, 160), city: clean(s.city, 80), state: clean(s.state, 60), zip: clean(s.zip, 20), country: clean(s.country, 60) || 'United States', method: clean(s.method, 40), fwd: clean(s.fwd, 160) };
+  const pickup = /will call/i.test(ship.method);
+  if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'address' });
   const subtotal = money(lines.reduce((a, l) => a + l.total, 0));
   const t = new Date();
   const o = { id: id(), number: 'WEB-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase(),
@@ -223,7 +224,7 @@ A.order = async (req, res) => {
     const guid = crypto.randomUUID();
     const body = {
       Guid: guid, OrderStatus: 'Parked', OrderDate: t.toISOString(), Customer: { CustomerCode: w.account.customerCode },
-      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, 'By ' + w.email, o.notes].filter(Boolean).join(' · '),
+      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
       SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, LineTotal: l.total, LineTax: 0 })),
