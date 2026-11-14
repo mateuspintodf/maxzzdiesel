@@ -68,7 +68,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, imgs: {},
+    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {},
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
@@ -179,6 +179,21 @@
       hit.sort(function (a, b) { return !!self.img(b[0]) - !!self.img(a[0]); });
       return hit.slice(0, 8);
     },
+    // fallback so a product page always has a next step: same category, ranked by shared words (engine, maker, model)
+    get similar() {
+      var p = this.product; if (!p) return [];
+      var skip = this.related.concat(this.sameApp, this.interch, [p]);
+      if (this.related.length + this.sameApp.length >= 4) return [];
+      var STOP = { the: 1, and: 1, for: 1, with: 1, fuel: 1, injector: 1, injectors: 1, pump: 1, kit: 1, fits: 1, application: 1, new: 1, oem: 1, diesel: 1 };
+      var toks = function (t) { return String(t || '').toLowerCase().split(/[^a-z0-9.]+/).filter(function (w) { return w.length >= 3 && !STOP[w]; }); };
+      var mine = toks(p[1]), self = this;
+      var hit = this.cat.filter(function (r) { return r[3] === p[3] && skip.indexOf(r) < 0; }).map(function (r) {
+        var t = toks(r[1]), sc = 0; mine.forEach(function (w) { if (t.indexOf(w) >= 0) sc += /\d/.test(w) ? 2 : 1; });
+        if (r[4] && r[4] === p[4]) sc += 1; if (self.img(r[0])) sc += 0.5;
+        return [sc, r];
+      }).filter(function (x) { return x[0] >= 1.5; }).sort(function (a, b) { return b[0] - a[0]; }).map(function (x) { return x[1]; });
+      return hit.slice(0, 8);
+    },
     get recentList() { var self = this, p = this.product; return this.recent.filter(function (c) { return !p || c !== p[0]; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 4); },
     get quoteN() { return this.quote.length; },
     get quoteUnits() { return this.quote.reduce(function (a, l) { return a + (l.qty || 1); }, 0); },
@@ -242,7 +257,7 @@
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
     get related() {
       var self = this, p = this.product; if (!p) return [];
-      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], codes = (this.fit.rel[p[0]] || []).concat(sr), seen = {};
+      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], codes = (this.fit.rel[p[0]] || []).concat(sr, (this.buy && this.buy[p[0]]) || []), seen = {};
       return codes.filter(function (c) { if (seen[c] || c === p[0]) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
     },
     get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
@@ -449,6 +464,7 @@
       if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
+      if (r === 'p' && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
       if (r === 'p' && a) { var rc = this.recent.filter(function (c) { return c !== a; }); rc.unshift(a); this.recent = rc.slice(0, 12); write('mx-portal-recent', this.recent); }
@@ -514,6 +530,14 @@
     setPick: function (code, v) { this.picks[code] = Math.max(1, Math.min(9999, parseInt(v, 10) || 1)); },
 
     // quote list (anonymous) and cart (signed in)
+    // one stepper per product: before adding it picks the quantity, once in the quote it edits the quote line itself
+    sq: function (code) { return this.inQuote(code) ? this.quoteQty(code) : this.pick(code); },
+    sqSet: function (code, v) {
+      if (!this.inQuote(code)) return this.setPick(code, v);
+      var n = parseInt(v, 10) || 0, i = -1; this.quote.forEach(function (x, j) { if (x.id === code) i = j; });
+      if (i >= 0) { this.qSet(i, n); if (n <= 0) this.flash('Removed from your quote list'); }
+    },
+    openQuote: function () { this.qOpen = true; },
     quoteQty: function (code) { var l = this.quote.filter(function (x) { return x.id === code; })[0]; return l ? l.qty : 0; },
     addQuote: function (code, n) {
       var r = this.map[code]; if (!r) return; n = Math.max(1, parseInt(n, 10) || 1);

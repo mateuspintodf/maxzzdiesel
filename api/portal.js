@@ -82,6 +82,12 @@ A.images = async (req, res) => {
 };
 
 // configuration check without revealing any value
+// "Bought together" map built daily from Unleashed sales history (product codes only).
+A.related = async (req, res) => {
+  const r = await cached('portal/related.json', 60 * 60 * 1000);
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  return res.json({ rel: (r && r.rel) || {} });
+};
 A.health = async (req, res) => {
   let db = 'ok';
   try { await readJson(DB); } catch (e) { db = 'error: ' + String(e && (e.name + ' ' + e.message)).slice(0, 160); }
