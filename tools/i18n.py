@@ -17,7 +17,7 @@ import re, json, sys, html
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 'injection-parts', 'partners',
-         'quote', 'tool-sets', 'who-we-serve']
+         'quote', 'tool-sets', 'who-we-serve', 'guides/diesel-fuel-injection']
 LANGS = {'es': ('es', 'es_ES', 'Español'), 'pt': ('pt-BR', 'pt_BR', 'Português')}
 SITE = 'https://www.maxzzdiesel.com'
 BLOCK = r'h1|h2|h3|h4|p|li|dt|dd|summary|label|button|th|td|figcaption|option'
@@ -218,6 +218,7 @@ def build():
             src2 = re.sub(r'((?:v-text|v-html|:[a-z-]+)=")([^"]*)(")', lambda m: m.group(1) + re.sub(r"'([^'\\]*)'", lambda n: "'" + EX[n.group(1)].replace("'", "\\'") + "'" if n.group(1) in EX else n.group(0), m.group(2)) + m.group(3), src2)
             src2 = re.sub(r'/js/(quote-app|forms|gate|motion)\.js', lambda m: f'/js/{m.group(1)}.{lang}.js', src2)
             src2 = re.sub(r'<script type="application/ld\+json">.*?</script>', lambda m: tr_ld(m.group(0), d, lang), src2, flags=re.S)
+            (outdir / f'{pg}.html').parent.mkdir(parents=True, exist_ok=True)
             (outdir / f'{pg}.html').write_text(src2, encoding='utf-8')
     # hreflang on every version
     for pg in PAGES:

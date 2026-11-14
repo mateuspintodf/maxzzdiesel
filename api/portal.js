@@ -15,6 +15,7 @@ const { EMAIL, clean, readBody } = require('../lib/validate');
 
 const ALLOWED = [/^https:\/\/(www\.)?maxzzdiesel\.com$/, /^https:\/\/maxzzdiesel(-[a-z0-9-]+)?\.vercel\.app$/];
 const DB = 'portal/db.json';
+const USED = 'portal/used-links.json';
 const hits = new Map();
 
 const admins = () => String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
@@ -115,9 +116,15 @@ A.login = async (req, res) => {
 const usedLinks = new Map();
 A.verify = async (req, res) => {
   const t = String(req.query.t || ''), p = verify(t);
-  if (p && usedLinks.has(t)) { res.statusCode = 302; res.setHeader('Location', '/portal?e=link'); return res.end(); }
-  if (p) { usedLinks.set(t, Date.now()); if (usedLinks.size > 2000) usedLinks.clear(); }
-  if (!p || p.k !== 'login') { res.statusCode = 302; res.setHeader('Location', '/portal?e=link'); return res.end(); }
+  if (!p || p.k !== 'login' || !p.n || usedLinks.has(p.n)) { res.statusCode = 302; res.setHeader('Location', '/portal?e=link'); return res.end(); }
+  // single use across every server instance: the link's nonce is recorded in the private store on first use
+  try {
+    const used = (await readJson(USED)) || {}, now = Date.now();
+    if (used[p.n]) { usedLinks.set(p.n, now); res.statusCode = 302; res.setHeader('Location', '/portal?e=link'); return res.end(); }
+    for (const k of Object.keys(used)) if (used[k] < now) delete used[k];
+    used[p.n] = p.exp; await writeJson(USED, used);
+  } catch (e) { console.error('used-links store', e && e.message); }
+  usedLinks.set(p.n, Date.now()); if (usedLinks.size > 2000) usedLinks.clear();
   const db = await loadDb();
   const u = db.users[p.e];
   if (!isAdmin(p.e) && !(u && u.status === 'approved')) { res.statusCode = 302; res.setHeader('Location', '/portal?e=access'); return res.end(); }

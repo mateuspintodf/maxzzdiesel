@@ -269,3 +269,23 @@ input:not([type=checkbox]):not([type=radio]):focus-visible, select:focus-visible
 .fq-i::details-content{block-size:0;overflow:hidden;transition:block-size .35s cubic-bezier(.22,1,.36,1),content-visibility .35s allow-discrete}.fq-i[open]::details-content{block-size:auto}
 @media (max-width:640px){#faq{padding-bottom:88px !important}}@media (max-width:900px){.fq-in{grid-template-columns:1fr;gap:28px}.fq-i{padding:0 18px}.fq-i summary{font-size:16px;padding:18px 0}.fq-i p{padding:0 0 18px}}
 @media (prefers-reduced-motion:reduce){.fq-i::details-content,.fq-ic,.fq-ic::before,.fq-ic::after{transition:none}}
+
+/* Guides: lists and spec tables */
+.g-art a:not(.btn){color:#d32a37;text-decoration:underline;text-underline-offset:3px}
+.g-art strong{color:#1d2126;font-weight:600}
+.g-list{margin:16px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.g-list li{position:relative;padding-left:22px;line-height:1.55}
+.g-list li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:8px;border-radius:50%;background:#d32a37}
+.g-tw{margin:22px 0 0;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:18px;border:1px solid #e3e6e9}
+.g-table{width:100%;min-width:620px;border-collapse:collapse;font-size:15px;line-height:1.45}
+.g-table th,.g-table td{padding:14px 16px;text-align:left;vertical-align:top;border-bottom:1px solid #eceef0}
+.g-table thead th{background:#1d2126;color:#fff;font-weight:600;font-size:13px;letter-spacing:.4px;text-transform:uppercase}
+.g-table tbody th{color:#1d2126;font-weight:600;white-space:nowrap}
+.g-table tbody tr:last-child th,.g-table tbody tr:last-child td{border-bottom:0}
+.g-table tbody tr:nth-child(even){background:#f6f7f8}
+@media (max-width:760px){.g-art .g-intro{font-size:17px}}
+.g-lbl{display:none}
+@media (max-width:760px){.g-tw{border:0;border-radius:0;overflow:visible}.g-table{min-width:0}.g-table thead{display:none}.g-table,.g-table tbody,.g-table tr,.g-table th,.g-table td{display:block}.g-table tr{background:#f6f7f8!important;border-radius:16px;padding:16px 18px;margin:0 0 10px}.g-table th,.g-table td{padding:0;border:0}.g-table tbody th{white-space:normal;font-size:17px;margin:0 0 10px}.g-table td{margin:0 0 10px}.g-table td:last-child{margin:0}.g-lbl{display:block;font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#8a9099;margin:0 0 2px}}
+/* hero slide dots: 24px touch targets, same 10px dots */
+div:has(> button[aria-label^="Slide"]){gap:0 !important}
+button[aria-label^="Slide"]{box-sizing:content-box !important;padding:0 !important;border:7px solid transparent !important;border-radius:17px !important;background-clip:padding-box !important}

@@ -113,6 +113,7 @@
   var LIST = '<svg class="nav-ic-list" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"></rect><path d="M9 4V3h6v1"></path><path d="M9 10h6M9 14h6M9 18h3"></path></svg>';
   function setup() {
     var cta = document.querySelector('.nav-cta'), ic = cta && cta.querySelector('.ic');
+    if (cta && !cta.getAttribute('aria-label')) { var lbl = cta.textContent.replace(/\s+/g, ' ').trim(); if (lbl) cta.setAttribute('aria-label', lbl); }
     if (ic && !ic.querySelector('.nav-ic-list')) { ic.insertAdjacentHTML('beforeend', LIST + '<b class="nav-cnt" aria-hidden="true"></b>'); }
     if (!onQuote && !document.querySelector('.mbar')) {
       var wa = (lang === 'es' || lang === 'pt') ? 'https://wa.me/17867164857' : 'https://wa.me/19543716996';

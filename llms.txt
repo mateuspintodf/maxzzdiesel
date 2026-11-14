@@ -13,6 +13,9 @@
 - [Ford Power Stroke parts](https://www.maxzzdiesel.com/parts/v/ford-power-stroke)
 - [Heavy duty parts](https://www.maxzzdiesel.com/parts/v/heavy-duty)
 
+## Guides
+- [Diesel fuel injection: the complete guide](https://www.maxzzdiesel.com/guides/diesel-fuel-injection): common rail, HEUI, unit injectors, pump failure and contamination, bench testing, part numbers
+
 ## Product lines
 - [Injection parts](https://www.maxzzdiesel.com/injection-parts)
 - [Aftertreatment test equipment](https://www.maxzzdiesel.com/aftertreatment)
