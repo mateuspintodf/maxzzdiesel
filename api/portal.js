@@ -145,7 +145,7 @@ A.me = async (req, res) => {
   if (!w) return res.status(401).json({ error: 'login' });
   const acc = w.account;
   return res.json({
-    email: w.email, admin: w.admin, name: w.user ? w.user.name : '', role: w.user ? w.user.role : 'admin',
+    email: w.email, admin: w.admin, name: w.user ? w.user.name : '', phone: w.user ? (w.user.phone || '') : '', role: w.user ? w.user.role : 'admin',
     account: acc ? { company: acc.company, customer: acc.customerName || '', code: acc.customerCode || '', status: acc.status, ship: acc.ship || null } : null,
     ordersLive: liveOrders()
   });

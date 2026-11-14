@@ -26,7 +26,10 @@ module.exports = async (req, res) => {
   const shipText = [ship.street, ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
   const extra = [shipText && ('Ship to: ' + shipText), ship.method && ('Delivery: ' + ship.method), ship.needBy && ('Needed by: ' + ship.needBy),
     ship.po && ('PO / reference: ' + ship.po), b2b && 'Wants early access to the B2B ordering platform', source && ('Source: ' + source)].filter(Boolean);
-  if (!customer.name || !customer.company || !EMAIL.test(customer.email) || customer.phone.replace(/\D/g, '').length < 7 || !lines.length) {
+  // signed-in store users already have a verified e-mail and contact on file: phone is optional for them
+  const who = store ? sessionEmail(req) : null;
+  const phoneOk = customer.phone.replace(/\D/g, '').length >= 7 || (!customer.phone && who && who === customer.email);
+  if (!customer.name || !customer.company || !EMAIL.test(customer.email) || !phoneOk || !lines.length) {
     return res.status(400).json({ error: 'missing fields' });
   }
   // quotes also go to Unleashed as a Draft sales quote: store quotes when PORTAL_QUOTES_LIVE=1, website quotes when
@@ -35,7 +38,6 @@ module.exports = async (req, res) => {
   console.log('unleashed quote', store ? 'store' : 'site', ulq.ok ? 'created ' + (ulq.number || '') : (ulq.skipped ? 'skipped ' + (ulq.reason || 'off') : 'failed ' + (ulq.error || '')));
   if (ulq.ok) { extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid) + ' (' + (store ? 'store' : 'website') + ' ref ' + number + ')'); if (store && ulq.number) number = ulq.number; }
   // signed-in users keep a history of their quote requests in the store
-  const who = store ? sessionEmail(req) : null;
   if (who) {
     const key = 'portal/quotes/' + crypto.createHash('sha256').update(who).digest('hex').slice(0, 24) + '.json';
     try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }

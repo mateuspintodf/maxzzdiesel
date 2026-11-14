@@ -353,7 +353,7 @@
         shipTo: [me && acc ? acc.company : d.company, d.city, d.country].filter(Boolean), refs: ['Date ' + now, d.po ? 'PO ' + d.po : 'No PO', d.needBy ? 'Needed by ' + d.needBy : ''].filter(Boolean),
         lines: ls, priced: this.showPrice && this.noPriceN < this.lines.length, total: this.flowTotal, units: this.units, notes: d.notes };
     },
-    setLn: function (i, n) { n = parseInt(n, 10) || 0; if (this.flow === 'quote') return this.qSet(i, n); if (n <= 0) this.remove(i); else { this.cart[i].qty = Math.min(9999, n); this.save(); } },
+    setLn: function (i, n) { if (String(n).trim() === '' || isNaN(parseInt(n, 10))) return; n = parseInt(n, 10) || 0; if (this.flow === 'quote') return this.qSet(i, n); if (n <= 0) this.remove(i); else { this.cart[i].qty = Math.min(9999, n); this.save(); } },
     moveToQuote: function (i) { var c = this.cart[i]; if (!c) return; this.addQuote(c.code); var l = this.quote.filter(function (x) { return x.id === c.code; })[0]; if (l) { l.qty = c.qty; write(QK, this.quote); } this.remove(i); },
     clearFlow: function () { if (!confirm('Remove every part from this list?')) return; if (this.flow === 'quote') { this.quote.splice(0); write(QK, []); } else this.clearCart(); },
     next: function () {
@@ -723,7 +723,7 @@
       var self = this, hp = document.getElementById('px-qhp'), t = new Date();
       if (!this.quote.length || this.busy) return;
       var me = this.me, acc = me && me.account, d = Object.assign({}, this.qd);
-      if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = (acc && acc.phone) || '0000000'; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
+      if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = me.phone || ''; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
       var snap = this.doc; if (snap && snap.none) snap = null;
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: self.title(self.map[l.id]) || l.name, qty: l.qty }; });
