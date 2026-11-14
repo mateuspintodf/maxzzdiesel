@@ -241,7 +241,9 @@ A['admin-list'] = async (req, res) => {
   const accounts = Object.values(w.db.accounts).map((a) => Object.assign({}, a, { users: users.filter((u) => u.account === a.id).map((u) => ({ email: u.email, name: u.name, phone: u.phone, role: u.role, status: u.status })) }));
   accounts.sort((a, b) => (a.status === 'pending' ? -1 : 0) - (b.status === 'pending' ? -1 : 0) || b.created - a.created);
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.json({ accounts });
+  const prod = await cached('portal/products.json', 10 * 60 * 1000);
+  const stock = await cached('portal/stock.json', 10 * 60 * 1000);
+  return res.json({ accounts, sync: { tiers: prod ? prod.tiers : null, products: prod ? Object.keys(prod.items || {}).length : 0, pricesAt: prod && prod.at, stockAt: stock && stock.at, ordersLive: liveOrders(), mail: !!process.env.RESEND_API_KEY } });
 };
 A['admin-lookup'] = async (req, res) => {
   const w = await adminOnly(req, res); if (!w) return;

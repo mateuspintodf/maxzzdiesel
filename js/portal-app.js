@@ -18,7 +18,7 @@
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', country: 'United States', type: '', customerNumber: '', notes: '' },
     q: '', kind: '', limit: 30, picks: {}, cart: read(CK, []), paste: '', pasteMsg: '',
     co: { po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '' },
-    orders: [], cur: null, accounts: [],
+    orders: [], cur: null, accounts: [], sync: null,
 
     get kinds() { return ['Injector', 'Pump', 'Nozzle', 'Rail', 'Repair part', 'Tool', 'Engine parts']; },
     get pendingCount() { return this.accounts.filter(function (a) { return a.status === 'pending'; }).length; },
@@ -67,7 +67,7 @@
       if (this.me.account) api('orders').then(function (o) { if (o.orders) self.orders = o.orders; });
       if (this.me.admin) this.loadAdmin();
     },
-    loadAdmin: function () { var self = this; api('admin-list').then(function (r) { if (r.accounts) self.accounts = r.accounts.map(function (a) { return Object.assign(a, { _q: a.customerNumber || '', _res: null, _pick: null, _busy: false }); }); }); },
+    loadAdmin: function () { var self = this; api('admin-list').then(function (r) { if (r.sync) self.sync = r.sync; if (r.accounts) self.accounts = r.accounts.map(function (a) { return Object.assign(a, { _q: a.customerNumber || '', _res: null, _pick: null, _busy: false }); }); }); },
     go: function (v) {
       this.err = ''; this.view = v;
       if (v === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }

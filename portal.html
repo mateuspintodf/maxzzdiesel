@@ -522,6 +522,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-card" v-if="view === 'admin'">
 <h2>Access requests and accounts</h2>
 <p class="px-muted">Link each request to its Unleashed customer. The customer sees the prices of that customer's sell price tier.</p>
+<div class="px-note" v-if="sync" v-text="'Unleashed sync: ' + sync.products + ' products with prices (' + ago(sync.pricesAt) + '), stock ' + ago(sync.stockAt) + '. Price tiers: ' + (sync.tiers || []).join(', ') + '. Orders to Unleashed: ' + (sync.ordersLive ? 'on' : 'off (test mode)') + '. E-mail: ' + (sync.mail ? 'on' : 'not configured') + '.'"></div>
 <div class="px-empty" v-if="!accounts.length">No requests yet.</div>
 <div class="px-acc" v-for="a in accounts" :key="a.id">
 <div class="px-acc-h">
@@ -602,7 +603,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=1"></script>
+<script src="/js/portal-app.js?v=2"></script>
 <script src="/js/motion.js?v=3" defer></script>
 </body>
 </html>
