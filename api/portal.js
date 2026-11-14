@@ -69,6 +69,9 @@ function orderMail(o) {
 
 const A = {};
 
+// configuration check without revealing any value
+A.health = async (req, res) => res.json({ mail: !!process.env.RESEND_API_KEY, admins: admins().length, unleashed: configured(), ordersLive: liveOrders(), env: process.env.VERCEL_ENV || '' });
+
 // ---- sign in -------------------------------------------------------------
 A.login = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
