@@ -184,7 +184,7 @@
       this.pickGen(g.key);
     },
     pickBench: function (l) { this.bench = l; this.kind = ''; this.limit = 30; },
-    setQ: function (v) { this.q = v; this.kind = ''; this.limit = 30; var el = document.getElementById('qx-q'); if (el && el.value !== v) el.value = v; },
+    setQ: function (v) { this.q = v; this.kind = ''; this.limit = 30; clearTimeout(this._st); var sv = String(v || '').trim(); if (sv.length >= 3) this._st = setTimeout(function () { track('search', { search_term: sv.slice(0, 80), source: 'quote' }); }, 1500); var el = document.getElementById('qx-q'); if (el && el.value !== v) el.value = v; },
     qtyOf: function (code) { for (var i = 0; i < this.lines.length; i++) if (this.lines[i].id === code) return this.lines[i].qty; return 0; },
     save: function () { setTimeout(function () { var el = document.querySelector('.qx-lines'); if (el) app.fadeLines(el); }, 30); write(QK, this.lines.map(function (l) { return Object.assign({}, l); })); },
     add: function (code, qty, quiet) {

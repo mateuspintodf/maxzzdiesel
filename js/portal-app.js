@@ -437,6 +437,7 @@
       var i = h.indexOf('/');
       var r = i < 0 ? h : h.slice(0, i), a = i < 0 ? '' : h.slice(i + 1);
       if (r && ROUTES.indexOf(r) < 0) { location.replace('#/'); return; }
+      track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
       this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false;
       if (r === 's') this.qInput = a;
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], photo: false, stock: false };
@@ -584,8 +585,8 @@
         self.busy = false;
         if (r._status === 429) { self.err = 'Too many attempts. Wait a few minutes and try again.'; return; }
         if (r._status !== 200) { self.err = 'Check the e-mail address.'; return; }
-        if (r.direct) { location.href = '/portal'; return; }
-        self.sentPending = !!r.pending; self.nav('sent');
+        if (r.direct) { track('login', { method: 'email_link' }); location.href = '/portal'; return; }
+        track('login_link_sent', { pending: !!r.pending }); self.sentPending = !!r.pending; self.nav('sent');
       }).catch(function () { self.busy = false; self.err = 'Connection problem. Try again.'; });
     },
     sendRequest: function () {

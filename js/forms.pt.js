@@ -33,6 +33,7 @@
           body: JSON.stringify({ name: name.value, phone: phone.value, email: email.value, type: sel ? sel.value : '', hp: hp.value }) });
         if (!r.ok) throw new Error(r.status);
         if (window.mxIdentify) window.mxIdentify(email.value.trim(), name.value);
+        try { (window.dataLayer = window.dataLayer || []).push({ event: 'generate_lead', form: 'account', business_type: sel ? sel.value : '' }); } catch (e) {}
         form.reset(); btn.textContent = 'Request sent';
         say('Thanks. Our team will contact you within one business day.', true);
         setTimeout(function () { btn.textContent = label; btn.disabled = false; }, 6000);
