@@ -248,6 +248,7 @@ A.order = async (req, res) => {
   const ship = { name: clean(s.name, 120) || w.account.company, street: clean(s.street, 160), city: clean(s.city, 80), state: clean(s.state, 60), zip: clean(s.zip, 20), country: clean(s.country, 60) || 'United States', method: clean(s.method, 40), fwd: clean(s.fwd, 160) };
   const pickup = /will call/i.test(ship.method);
   if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
+  if (!pickup && /United States|Puerto Rico|Canada/.test(ship.country) && (!ship.state || !ship.zip)) return res.status(400).json({ error: 'Please fill in the state and ZIP code.' });
   const subtotal = money(lines.reduce((a, l) => a + l.total, 0));
   const t = new Date();
   const o = { id: id(), number: await nextNumber('order'),

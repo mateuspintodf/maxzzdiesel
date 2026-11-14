@@ -368,7 +368,7 @@
       }
       if (this.step === 2) {
         if (this.flow === 'order' && !this.pickup && (!this.co.street.trim() || !this.co.city.trim())) { this.err = 'Fill in the street address and city, or choose Will call.'; return; }
-        if (this.flow === 'order' && !this.pickup && /United States|Puerto Rico|Canada/.test(this.co.country || '') && (!String(this.co.state || '').trim() || !String(this.co.zip || '').trim())) { this.err = 'Fill in the state and ZIP code, or choose Will call.'; var co = this.co; setTimeout(function () { var el = document.querySelector(!String(co.state || '').trim() ? '[autocomplete=address-level1]' : '[autocomplete=postal-code]'); if (el) el.focus(); }, 30); return; }
+        if (this.flow === 'order' && !this.pickup && /United States|Puerto Rico|Canada/.test(this.co.country || '') && (!String(this.co.state || '').trim() || !String(this.co.zip || '').trim())) { var ms = !String(this.co.state || '').trim(), mz = !String(this.co.zip || '').trim(); this.err = 'Fill in the ' + (ms && mz ? 'state and ZIP code' : ms ? 'state' : 'ZIP code') + ', or choose Will call.'; var co = this.co; setTimeout(function () { var el = document.querySelector(!String(co.state || '').trim() ? '[autocomplete=address-level1]' : '[autocomplete=postal-code]'); if (el) el.focus(); }, 30); return; }
         if (this.flow === 'quote' && !this.me) { var d = this.qd; if (!d.name.trim() || !d.company.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email) || d.phone.replace(/\D/g, '').length < 7) { this.err = 'Fill in name, company, e-mail and phone.'; return; } }
         return this.nav(this.flow === 'order' ? 'checkout' : 'quote', 'review');
       }
