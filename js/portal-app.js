@@ -96,12 +96,15 @@
   // empty document/tracker: returned instead of null so bindings of a view being torn down never read null
   var DOC0 = { none: true, kind: '', number: '', email: '', billTo: [], shipTo: [], refs: [], lines: [], priced: false, total: 0, units: 0, notes: '' };
   var TRK0 = { none: true, label: '', steps: [], at: 0 };
-  var DIAL = { '55': 'Brazil', '52': 'Mexico', '57': 'Colombia', '56': 'Chile', '51': 'Peru', '593': 'Ecuador', '54': 'Argentina', '598': 'Uruguay', '595': 'Paraguay', '591': 'Bolivia', '58': 'Venezuela', '507': 'Panama', '506': 'Costa Rica', '502': 'Guatemala', '504': 'Honduras', '503': 'El Salvador', '505': 'Nicaragua', '1809': 'Dominican Republic' };
+  var DIAL = { '55': 'Brazil', '52': 'Mexico', '57': 'Colombia', '56': 'Chile', '51': 'Peru', '593': 'Ecuador', '54': 'Argentina', '598': 'Uruguay', '595': 'Paraguay', '591': 'Bolivia', '58': 'Venezuela', '507': 'Panama', '506': 'Costa Rica', '502': 'Guatemala', '504': 'Honduras', '503': 'El Salvador', '505': 'Nicaragua' };
+  // longest national number per country (digits after the country code), to tell a local number from a full one
+  var NAT = { Brazil: 11, Mexico: 10, Colombia: 10, Chile: 9, Peru: 9, Ecuador: 9, Argentina: 11, Uruguay: 9, Paraguay: 9, Bolivia: 8, Venezuela: 10, Panama: 8, 'Costa Rica': 8, Guatemala: 8, Honduras: 8, 'El Salvador': 8, Nicaragua: 8 };
+  var NANP = /United States|Puerto Rico|Canada|Dominican Republic/;
   var ROUTES = ['home', 'c', 's', 'g', 'all', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, autoC: '', mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, autoC: '', autoPrev: '', mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
@@ -382,32 +385,38 @@
       return { label: 'Your quote number', steps: ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Shipped'], at: 1 };
     },
     get hi() { return this.firstName ? this.firstName + ', ' : ''; },
-    get usPhone() { return /United States|Puerto Rico|Canada/.test(this.rq.country); },
+    get usPhone() { return NANP.test(this.rq.country); },
     get zipLabel() { return this.rq.country === 'Brazil' ? 'CEP' : /United States|Puerto Rico/.test(this.rq.country) ? 'ZIP' : 'Postal code'; },
     okEmail: function (e) { return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(String(e || '').trim()); },
     okPhone: function (p) { return String(p || '').replace(/\D/g, '').length >= 10; },
     // country from an international dial code (+55 Brazil...), only while the select is still on a NANP default
     dialCountry: function (v, cur) {
-      var r = String(v || '').replace(/[^\d+]/g, ''); if (r.charAt(0) !== '+' || !/United States|Puerto Rico|Canada/.test(cur)) return cur;
-      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (DIAL[d.slice(0, n)]) { this.autoC = DIAL[d.slice(0, n)]; return this.autoC; }
+      var r = String(v || '').replace(/[^\d+]/g, ''); if (r.charAt(0) !== '+' || !NANP.test(cur)) return cur;
+      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (DIAL[d.slice(0, n)]) { if (!this.autoC) this.autoPrev = cur; this.autoC = DIAL[d.slice(0, n)]; return this.autoC; }
       return cur;
     },
     // phone formatting while typing; final (on blur) adds the country's dial code to a local LATAM number
+    // phone field input: a typed dial code may pick the country
+    phoneIn: function (o) {
+      o.country = this.dialCountry(o.phone, o.country); o.phone = this.maskPhone(o.phone, o.country);
+    },
     maskPhone: function (v, country, final) {
       var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').replace(/^\s+/, '');
       if (!raw) return '';
       if (raw === '+') return '+';
       if (raw.charAt(0) === '+') return '+' + raw.slice(1).replace(/[^\d\s\-]/g, '').replace(/\s{2,}/g, ' ').slice(0, 22);
-      var us = country ? /United States|Puerto Rico|Canada/.test(country) : this.usPhone;
+      var us = country ? NANP.test(country) : this.usPhone;
       if (us) {
+        if (final && /Dominican/.test(country) && d.length === 10) return '+1' + d;
         if (d.length === 11 && d[0] === '1' && /[2-9]/.test(d[1])) d = d.slice(1);
         if (d.length > 10) return d[0] === '1' ? d.slice(0, 15) : '+' + d.slice(0, 15);
         if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
       }
-      if (!final || country === this.autoC) return final ? d.slice(0, 15) : raw.replace(/[^\d\s()\-.]/g, '').slice(0, 22);
+      if (!final) return raw.replace(/[^\d\s()\-.]/g, '').slice(0, 22);
       var code = ''; Object.keys(DIAL).forEach(function (k) { if (DIAL[k] === country) code = k; });
       if (!d) return '';
-      return '+' + (code && d.indexOf(code) !== 0 ? code + d.replace(/^0+/, '') : d).slice(0, 15);
+      var full = code && d.indexOf(code) === 0 && d.length > (NAT[country] || 10);
+      return '+' + (code && !full ? code + d.replace(/^0+/, '') : d).slice(0, 15);
     },
     rqNext: function () { this.rqTried = true; var r = this.rq; if (!r.name.trim() || !this.okEmail(r.email) || !this.okPhone(r.phone)) { setTimeout(function () { var b = document.querySelector('.px-stage .bad input, .px-stage input.bad, .px-stage [aria-invalid=true]'); if (b) b.focus(); }, 30); return; } this.rqStep = 2; setTimeout(function () { var c = document.querySelector('[autocomplete=organization]'); if (c) c.focus(); }, 60); },
     rqZip: function () {
@@ -500,7 +509,7 @@
       if (/e=link/.test(h)) this.err = 'That sign-in link expired or was already used. Ask for a new one below.';
       if (/e=access/.test(h)) this.err = 'Your access is not approved yet.';
       if (h) history.replaceState(null, '', location.pathname + location.hash);
-      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; }); self.map = m; });
+      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
@@ -547,8 +556,17 @@
       if (r === 'p' && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
+      if (r === 'p' && a && this.cat.length && !this.map[a] && this.fixPart()) return;
       if (r === 'p' && a) { var rc = this.recent.filter(function (c) { return c !== a; }); rc.unshift(a); this.recent = rc.slice(0, 12); write('mx-portal-recent', this.recent); }
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    // a product link typed loosely (no brand prefix, no dots, lowercase): go to the part, or to search when ambiguous
+    fixPart: function () {
+      var a = this.arg, nq = norm(a); if (nq.length < 4) return false;
+      var hits = this.cat.filter(function (x) { var s = six(x); return s.c === nq || s.c2 === nq; });
+      if (hits.length === 1) { location.replace('#/p/' + encodeURIComponent(hits[0][0])); return true; }
+      if (hits.length > 1 || matchSearch(this.cat, a).length) { location.replace('#/s/' + encodeURIComponent(a)); return true; }
+      return false;
     },
     nav: function (r, a) { location.hash = '#/' + r + (a ? '/' + encodeURIComponent(a) : ''); },
     search: function () {
