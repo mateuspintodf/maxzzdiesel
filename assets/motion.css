@@ -148,3 +148,11 @@ details.qx-more-d[open]::details-content { block-size: auto; }
 
 /* es/pt: longer nav labels, drop the phone from the top bar */
 html[lang="es"] .nav-phone,html[lang="pt-BR"] .nav-phone{display:none!important}
+/* quote bubble sits above the HubSpot chat launcher (bottom-right) */
+.qb{bottom:100px!important}
+.qp{bottom:168px!important;max-height:calc(100vh - 200px)!important}
+@media (max-width:640px){.qb{bottom:88px!important}.qp{bottom:150px!important;max-height:calc(100dvh - 170px)!important}}
+/* scroll reveal fallback for browsers without scroll-driven animations (older iOS Safari) */
+html.io .rv,html.io .l-subs > *,html.io .l-engs > *,html.io .l-brands > *,html.io .l-why > *,html.io .l-stats > *,html.io .l-feat > *,html.io .l-pair > *,html.io .l-steps > *,html.io .l-core > *,html.io .l-checks > *,html.io .l-tl > *,html.io .l-logos > *{animation:none!important;opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.25,.6,.3,1),transform .9s cubic-bezier(.25,.6,.3,1);transition-delay:var(--io-d,0s)}
+html.io .io-in{opacity:1!important;transform:none!important}
+@media (prefers-reduced-motion:reduce){html.io .rv,html.io .io-t{opacity:1!important;transform:none!important;transition:none!important}}
