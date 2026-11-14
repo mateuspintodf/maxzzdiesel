@@ -1000,6 +1000,18 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 @media (max-width:760px){.px-list-h>span{min-width:0;max-width:100%;flex-wrap:wrap}.px-sort{flex:1 1 auto;min-width:0}.px-eng{grid-template-columns:88px 1fr;gap:8px 12px}.sc-br{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.sc-cat{flex-wrap:nowrap;min-width:0}.px-clr-top{margin:0 0 4px;padding-top:6px}}
 a[href^="tel:"]{white-space:nowrap}
 @media (min-width:761px){.px-toast{right:max(16px,calc((100vw - 1320px)/2))}.px-ord{grid-template-columns:minmax(0,1fr) 120px 170px}.px-ord .px-ord-t{text-align:right}}
+/* r4 visual */
+.sc-t,.px-pd-info h1,.px-line-n,.px-ltab .nm{overflow-wrap:anywhere}
+.px-meta span{white-space:nowrap}.px-meta span+span::before{content:' · '}
+@media (max-width:760px){
+  .px .px-ord{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"a c" "b b";row-gap:6px}
+  .px .px-ord>div{grid-area:a}.px .px-ord .px-ord-t{display:block;grid-area:b;font-weight:600;font-size:15px;color:#1d2126}.px .px-ord .px-st{grid-area:c;align-self:start}
+  article.sc .sc-pr{flex-direction:column;align-items:flex-start}
+  .px-pd-info h1{font-size:22px;line-height:1.25}
+}
+.px-g2 input[type=tel],.px-f input[type=tel]{font-family:inherit}
+.px-sh .px-link{text-decoration:none;color:#d32a37;font-weight:500}
+.px-lb img{background:none;padding:0;border-radius:8px;max-width:min(1200px,94vw);max-height:88vh}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1430,7 +1442,7 @@ a[href^="tel:"]{white-space:nowrap}
 <td class="lst" v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
 <td class="r lup" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
 <td class="c lqt"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value); $event.target.value = (lines[l.i] || l).qty" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
-<td class="r lam" v-if="showPrice"><b v-text="price(l.code) == null ? 'On request' : fmt(price(l.code) * l.qty)"></b></td>
+<td class="r lam" v-if="showPrice"><b v-text="price(l.code) == null ? '—' : fmt(price(l.code) * l.qty)"></b></td>
 <td class="c lrm"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
 </tr></tbody>
 </table>
@@ -1594,7 +1606,7 @@ a[href^="tel:"]{white-space:nowrap}
 <span class="px-rwk">Maxzz wholesale</span>
 <h1 v-text="route === 'login' || route === 'sent' ? 'Welcome back to Maxzz wholesale' : 'Wholesale diesel injection, with your prices and live stock'"></h1>
 <p>For repair shops, injection labs, distributors and fleets.</p>
-<ul class="px-ben"><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><b>Your price list</b><span>Your account prices on every part.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><b>Live stock</b><span>On the shelf in Coconut Creek, Florida.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><b>Same-day shipping</b><span>In stock and ordered by 3 pm Eastern.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>Quotes in one day</b><span>Price, stock and lead time by the next business day.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><b>Order and track online</b><span>From review to invoice, with e-mails at every step.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg><b>Max Rewards</b><span v-text="REWARDS.demo ? 'Coming soon: points on every order.' : 'Points on every order.'"></span></li></ul>
+<ul class="px-ben"><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12l-8 8-8-8V4h8z"/><circle cx="8.5" cy="8.5" r="1.5"/></svg><b>Your price list</b><span>Your account prices on every part.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></svg><b>Live stock</b><span>On the shelf in Coconut Creek, Florida.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.5"/><circle cx="17" cy="17.5" r="1.5"/></svg><b>Same-day shipping</b><span>In stock and ordered by 3 pm Eastern.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>Quotes in one day</b><span>Price, stock and lead time by the next business day.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><b>Order and track online</b><span>From review to invoice, with e‑mails at every step.</span></li><li><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l4 3 4-6 4 6 4-3-2 10H6z"/></svg><b>Max Rewards</b><span v-text="REWARDS.demo ? 'Coming soon: points on every order.' : 'Points on every order.'"></span></li></ul>
 </div>
 <div class="px-stage-r">
 <!-- sign in -->
@@ -1672,7 +1684,7 @@ a[href^="tel:"]{white-space:nowrap}
 <div class="px-list">
 <div class="px-ordw" v-for="o in orders" :key="o.id">
 <button type="button" class="px-ord" @click="cur = o; nav('o', o.id)">
-<div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + (o.lines.length === 1 ? ' part' : ' parts') + (narrow ? ' · ' + fmt(o.total) : '')"></small></div>
+<div><b v-text="o.number"></b><small class="px-meta"><span v-text="date(o.created)"></span><span v-if="o.po" v-text="'PO ' + o.po"></span><span v-text="o.lines.length + (o.lines.length === 1 ? ' part' : ' parts')"></span></small></div>
 <span class="px-ord-t" v-text="fmt(o.total)"></span>
 <span class="px-st" :class="o.status" v-text="label(o.status)"></span>
 </button>
