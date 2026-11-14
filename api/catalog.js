@@ -17,7 +17,7 @@ async function unleashedPage(page, id, key) {
   const r = await fetch(`${API}/Products/${page}?${query}`, {
     headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'api-auth-id': id, 'api-auth-signature': sig, 'client-type': 'maxzzdiesel/website' }
   });
-  if (!r.ok) throw new Error('Unleashed ' + r.status);
+  if (!r.ok) throw new Error('Unleashed ' + r.status + ' page ' + page);
   return r.json();
 }
 
@@ -52,7 +52,11 @@ module.exports = async (req, res) => {
   try {
     if (!memo.rows || Date.now() - memo.at > TTL) {
       let rows = null;
-      try { rows = await loadLive(); } catch (e) { console.error('catalog live failed', e.message); }
+      const t0 = Date.now();
+      try {
+        rows = await Promise.race([loadLive(), new Promise((_, no) => setTimeout(() => no(new Error('timeout 8s')), 8000))]);
+        console.log('catalog live ok', rows && rows.length, Date.now() - t0 + 'ms');
+      } catch (e) { console.error('catalog live failed', e.message, Date.now() - t0 + 'ms'); }
       const live = !!(rows && rows.length);
       memo = { at: Date.now(), rows: live ? rows : (memo.rows || loadSnapshot()), src: live ? 'live' : (memo.rows ? memo.src : 'snapshot') };
     }
