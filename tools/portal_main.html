@@ -236,6 +236,10 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-fbar-s{position:static;max-width:900px;margin:16px auto 0}
 @media (max-width:760px){.px-stepper{flex-wrap:nowrap;gap:4px}.px-stepper li+li:before{width:12px}.px-stepper li:not(.cur) span{display:none}
 .px-fbar{flex-direction:column;align-items:stretch;gap:10px}.px-fbar-a{flex-wrap:nowrap}.px-fbar-a .px-ghost{display:none}.px-fbar-a .px-btn{flex:1}.px-fh .px-test{font-size:13px}}
+.px-hero.adm{padding-top:172px}@media (max-width:760px){.px-hero.adm{padding-top:136px}}
+.px-kpis span{white-space:nowrap}
+.pxh-adm{max-width:1320px;margin:0 auto 8px;background:#fc771d;color:#1d2126;border-radius:8px;padding:7px 8px 7px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;box-sizing:border-box}
+.pxh-adm b{font-weight:700}.pxh-adm a{background:#1d2126;color:#fff;border-radius:50px;padding:5px 14px;font-weight:500;font-size:13px;white-space:nowrap}
 </style>
 <style>
 .px-bar{background:#fff;border-bottom:1px solid #e3e6e9}
@@ -482,7 +486,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 
 <div class="px" @vue:mounted="init">
 
-<section class="px-hero" :class="route === 'home' ? '' : 'compact'">
+<section class="px-hero" :class="[route === 'home' ? '' : 'compact', adminBar ? 'adm' : '']">
 <div class="px-hero-in">
 <div>
 <h1 v-if="!logged && route === 'home'">Wholesale diesel injection, <em>in stock</em></h1>
@@ -512,8 +516,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <a href="#/orders" v-if="canOrder"><b v-text="openOrders"></b><span>Open orders</span></a>
 <a href="#/cart" v-if="canOrder"><b v-text="cart.length"></b><span>In cart</span></a>
 <a href="#" @click.prevent="qOpen = true"><b v-text="quoteN"></b><span>Quote list</span></a>
-<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="'Max Rewards · ' + REWARDS.tier"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
-<a href="#/admin" v-if="me.admin"><b v-text="pendingCount"></b><span>Access requests</span></a>
+<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="'Rewards · ' + REWARDS.tier"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
 </div>
 </div>
 </section>

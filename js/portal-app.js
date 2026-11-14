@@ -166,7 +166,7 @@
     get firstName() {
       if (!this.me) return '';
       var n = (this.me.name || '').trim().split(/\s+/)[0];
-      if (!n) { n = String(this.me.email || '').split('@')[0].split(/[._-]/)[0]; n = n.charAt(0).toUpperCase() + n.slice(1); }
+      if (!n) { var lp = String(this.me.email || '').split('@')[0]; n = { marketing: 'Mateus', sales: 'Leise' }[lp] || lp.split(/[._-]/)[0]; n = n.charAt(0).toUpperCase() + n.slice(1); }
       return n;
     },
     get initials() { var n = (this.me && this.me.name) || this.firstName; return n.split(/\s+/).map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(); },
@@ -277,6 +277,7 @@
       }
     },
     confirmFlow: function () { return this.flow === 'order' ? this.placeOrder() : this.sendQuote(); },
+    get adminBar() { return !!(this.me && this.me.admin && this.pendingCount); },
     get needLogin() { var r = this.route; if (r === 'admin') return !(this.me && this.me.admin); return ['cart', 'checkout', 'orders', 'o'].indexOf(r) >= 0 && !this.canOrder && this.meLoaded; },
     get noPriceLines() { var self = this; return this.cart.filter(function (l) { return self.price(l.code) == null; }).map(function (l) { return l.code; }); },
     get pickup() { return /will call/i.test(this.co.method); },
