@@ -67,7 +67,7 @@ function load() {
 const noindexAll = () => process.env.PARTS_NOINDEX === '1';
 const UPDATED = '2026-11-14';
 const ORG = {
-  '@type': ['Organization', 'WholesaleStore'], '@id': SITE + '/#org', name: 'Maxzz Diesel', url: SITE + '/', logo: SITE + '/assets/favicon.svg', image: SITE + '/assets/mg/hero-2.jpg',
+  '@type': ['Organization', 'WholesaleStore'], '@id': SITE + '/#org', name: 'Maxzz Diesel', url: SITE + '/', logo: SITE + '/assets/favicon.svg', image: SITE + '/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg',
   foundingDate: '1992', telephone: '+1-954-586-4158', email: 'sales@maxzzdiesel.com', areaServed: ['North America', 'Latin America'],
   address: { '@type': 'PostalAddress', streetAddress: '6601 Lyons Road, Ste H-6', addressLocality: 'Coconut Creek', addressRegion: 'FL', postalCode: '33073', addressCountry: 'US' },
   sameAs: ['https://www.linkedin.com/company/maxzzdiesel/', 'https://www.instagram.com/maxzzdiesel.us/', 'https://www.facebook.com/maxzzdiesel']
@@ -82,7 +82,7 @@ function page({ title, desc, canon, body, ld, index = true, crumbs = [] }) {
   return `<!doctype html><html lang="en-US"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><meta name="robots" content="${robots}">
 ${canon ? `<link rel="canonical" href="${SITE + canon}">` : ''}<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Maxzz Diesel"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE + (canon || '/parts')}"><meta property="og:locale" content="en_US"><meta property="og:image" content="${SITE}/assets/mg/hero-2.jpg"><meta name="twitter:card" content="summary_large_image">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Maxzz Diesel"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${SITE + (canon || '/parts')}"><meta property="og:locale" content="en_US"><meta property="og:image" content="${SITE}/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg"><meta name="twitter:card" content="summary_large_image">
 ${graph.length ? `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>` : ''}
 <link rel="preload" href="/assets/fonts/BDOGrotesk-Regular.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/assets/fonts/BDOGrotesk-Medium.woff2" as="font" type="font/woff2" crossorigin>
 <style>@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Regular.woff2') format('woff2');font-weight:400;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Medium.woff2') format('woff2');font-weight:500;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-DemiBold.woff2') format('woff2');font-weight:600;font-display:swap}

@@ -327,6 +327,471 @@
       "source": "/sitemap_index.xml",
       "destination": "/sitemap.xml",
       "permanent": true
+    },
+    {
+      "source": "/assets/mg/about.webp",
+      "destination": "/assets/mg/diesel-injector-repair-bench-technician.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/about.jpg",
+      "destination": "/assets/mg/diesel-injector-repair-bench-technician.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/about.png",
+      "destination": "/assets/mg/diesel-injector-repair-bench-technician.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/atb-final.webp",
+      "destination": "/assets/mg/maxzz-aftertreatment-box-scr-diagnostic-tester.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/atb-final.jpg",
+      "destination": "/assets/mg/maxzz-aftertreatment-box-scr-diagnostic-tester.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/atb-final.png",
+      "destination": "/assets/mg/maxzz-aftertreatment-box-scr-diagnostic-tester.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-injectors.webp",
+      "destination": "/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-injectors.jpg",
+      "destination": "/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-injectors.png",
+      "destination": "/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-pumps.webp",
+      "destination": "/assets/mg/cp3-cp4-high-pressure-diesel-fuel-pump.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-pumps.jpg",
+      "destination": "/assets/mg/cp3-cp4-high-pressure-diesel-fuel-pump.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-pumps.png",
+      "destination": "/assets/mg/cp3-cp4-high-pressure-diesel-fuel-pump.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-repair.webp",
+      "destination": "/assets/mg/diesel-injector-repair-parts-nozzles-valves-seals.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-repair.jpg",
+      "destination": "/assets/mg/diesel-injector-repair-parts-nozzles-valves-seals.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/cart-repair.png",
+      "destination": "/assets/mg/diesel-injector-repair-parts-nozzles-valves-seals.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/co-injection.webp",
+      "destination": "/assets/mg/common-rail-diesel-injector-test-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/co-injection.jpg",
+      "destination": "/assets/mg/common-rail-diesel-injector-test-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/co-injection.png",
+      "destination": "/assets/mg/common-rail-diesel-injector-test-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/co-tools.webp",
+      "destination": "/assets/mg/diesel-injection-test-bench-equipment.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/co-tools.jpg",
+      "destination": "/assets/mg/diesel-injection-test-bench-equipment.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/co-tools.png",
+      "destination": "/assets/mg/diesel-injection-test-bench-equipment.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/contam-kit.webp",
+      "destination": "/assets/mg/contamination-kit-essentials-diesel-fuel-system-repair.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/contam-kit.jpg",
+      "destination": "/assets/mg/contamination-kit-essentials-diesel-fuel-system-repair.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/contam-kit.png",
+      "destination": "/assets/mg/contamination-kit-essentials-diesel-fuel-system-repair.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/dta-class.webp",
+      "destination": "/assets/mg/diesel-tech-academy-injector-repair-course.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/dta-class.jpg",
+      "destination": "/assets/mg/diesel-tech-academy-injector-repair-course.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/dta-class.png",
+      "destination": "/assets/mg/diesel-tech-academy-injector-repair-course.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/export.webp",
+      "destination": "/assets/mg/diesel-injection-parts-warehouse-south-florida.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/export.jpg",
+      "destination": "/assets/mg/diesel-injection-parts-warehouse-south-florida.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/export.png",
+      "destination": "/assets/mg/diesel-injection-parts-warehouse-south-florida.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/fluids-final.webp",
+      "destination": "/assets/mg/iso-4113-calibration-fluid-diesel-degreasers-maxzz.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/fluids-final.jpg",
+      "destination": "/assets/mg/iso-4113-calibration-fluid-diesel-degreasers-maxzz.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/fluids-final.png",
+      "destination": "/assets/mg/iso-4113-calibration-fluid-diesel-degreasers-maxzz.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-1.webp",
+      "destination": "/assets/mg/diesel-injection-common-rail-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-1.jpg",
+      "destination": "/assets/mg/diesel-injection-common-rail-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-1.png",
+      "destination": "/assets/mg/diesel-injection-common-rail-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-2.webp",
+      "destination": "/assets/mg/diesel-injectors-and-fuel-rails-test-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-2.jpg",
+      "destination": "/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-2.png",
+      "destination": "/assets/mg/diesel-injectors-and-fuel-rails-test-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-2b.webp",
+      "destination": "/assets/mg/diesel-injection-repair-parts-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-2b.jpg",
+      "destination": "/assets/mg/diesel-injection-repair-parts-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-2b.png",
+      "destination": "/assets/mg/diesel-injection-repair-parts-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-3.webp",
+      "destination": "/assets/mg/iso-4113-calibration-fluid-injector-test-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-3.jpg",
+      "destination": "/assets/mg/iso-4113-calibration-fluid-injector-test-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/hero-3.png",
+      "destination": "/assets/mg/iso-4113-calibration-fluid-injector-test-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-1c.webp",
+      "destination": "/assets/mg/bosch-diesel-injection-training-brazil-history.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-1c.jpg",
+      "destination": "/assets/mg/bosch-diesel-injection-training-brazil-history.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-1c.png",
+      "destination": "/assets/mg/bosch-diesel-injection-training-brazil-history.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-2c.webp",
+      "destination": "/assets/mg/bosch-service-team-brazil-maxzz-history.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-2c.jpg",
+      "destination": "/assets/mg/bosch-service-team-brazil-maxzz-history.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-2c.png",
+      "destination": "/assets/mg/bosch-service-team-brazil-maxzz-history.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-3c.webp",
+      "destination": "/assets/mg/diesel-injection-course-brazil-maxzz-history.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-3c.jpg",
+      "destination": "/assets/mg/diesel-injection-course-brazil-maxzz-history.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/histw-3c.png",
+      "destination": "/assets/mg/diesel-injection-course-brazil-maxzz-history.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/lines-pump.webp",
+      "destination": "/assets/mg/high-pressure-diesel-pump-rails-and-lines.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/lines-pump.jpg",
+      "destination": "/assets/mg/high-pressure-diesel-pump-rails-and-lines.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/lines-pump.png",
+      "destination": "/assets/mg/high-pressure-diesel-pump-rails-and-lines.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/lines-tools.webp",
+      "destination": "/assets/mg/robiel-diesel-injector-tool-set-case.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/lines-tools.jpg",
+      "destination": "/assets/mg/robiel-diesel-injector-tool-set-case.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/lines-tools.png",
+      "destination": "/assets/mg/robiel-diesel-injector-tool-set-case.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/nox-final.webp",
+      "destination": "/assets/mg/maxzz-nox-tester-box-nox-sensor-diagnostic.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/nox-final.jpg",
+      "destination": "/assets/mg/maxzz-nox-tester-box-nox-sensor-diagnostic.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/nox-final.png",
+      "destination": "/assets/mg/maxzz-nox-tester-box-nox-sensor-diagnostic.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/parts-hero.webp",
+      "destination": "/assets/mg/diesel-injection-parts-injectors-pumps-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/parts-hero.jpg",
+      "destination": "/assets/mg/diesel-injection-parts-injectors-pumps-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/parts-hero.png",
+      "destination": "/assets/mg/diesel-injection-parts-injectors-pumps-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/toolsets-bench-hero.webp",
+      "destination": "/assets/mg/robiel-injector-tool-sets-on-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/toolsets-bench-hero.jpg",
+      "destination": "/assets/mg/robiel-injector-tool-sets-on-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/toolsets-bench-hero.png",
+      "destination": "/assets/mg/robiel-injector-tool-sets-on-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/toolsets-intro.webp",
+      "destination": "/assets/mg/robiel-tool-kit-diesel-injector-repair.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/toolsets-intro.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-diesel-injector-repair.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/toolsets-intro.png",
+      "destination": "/assets/mg/robiel-tool-kit-diesel-injector-repair.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/volvo-kits.webp",
+      "destination": "/assets/mg/volvo-diesel-engine-overhaul-kits-trucks-marine.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/volvo-kits.jpg",
+      "destination": "/assets/mg/volvo-diesel-engine-overhaul-kits-trucks-marine.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/volvo-kits.png",
+      "destination": "/assets/mg/volvo-diesel-engine-overhaul-kits-trucks-marine.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.083.webp",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-083-diesel-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.083.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-083-diesel-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.083.png",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-083-diesel-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.091.webp",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-091-diesel-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.091.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-091-diesel-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.091.png",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-091-diesel-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.102.webp",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-102-diesel-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.102.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-102-diesel-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.102.png",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-102-diesel-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.212.webp",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-212-diesel-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.212.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-212-diesel-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.212.png",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-212-diesel-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.34.webp",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-34-diesel-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.34.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-34-diesel-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.34.png",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-34-diesel-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.38.webp",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-38-diesel-injector-bench.webp",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.38.jpg",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-38-diesel-injector-bench.jpg",
+      "permanent": true
+    },
+    {
+      "source": "/assets/mg/kit-bench-323.50.38.png",
+      "destination": "/assets/mg/robiel-tool-kit-323-50-38-diesel-injector-bench.png",
+      "permanent": true
     }
   ],
   "crons": [

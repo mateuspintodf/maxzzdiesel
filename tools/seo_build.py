@@ -24,7 +24,7 @@ ORG_NODE = {
     'name': 'Maxzz Diesel',
     'url': SITE + '/',
     'logo': SITE + '/assets/favicon.svg',
-    'image': SITE + '/assets/mg/hero-2.jpg',
+    'image': SITE + '/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg',
     'description': 'Wholesale supplier of diesel fuel injection parts: common rail injectors, high-pressure pumps, nozzles, '
                    'control valves, repair kits, Robiel tool sets, ISO 4113 calibration fluid and SCR / NOx aftertreatment test '
                    'equipment for rebuilders, injection labs, distributors and fleets. Stocked in Coconut Creek, Florida, since 1992.',
