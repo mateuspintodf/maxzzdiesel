@@ -982,6 +982,19 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
   .px .px-ltab td.lqt .px-qty{width:auto}
   .px .px-ltab .px-code2{white-space:nowrap}
 }
+/* r3 visual */
+@media (min-width:761px){.px-trust,.px-acc-line{flex-wrap:nowrap;white-space:nowrap;max-width:none}.px-hero-in>div{flex-basis:min(880px,100%)}}
+@media (min-width:761px) and (max-width:1199px){.px-trust,.px-acc-line{flex-wrap:wrap;white-space:normal}}
+@media (max-width:760px){.px-trust{flex-direction:column;gap:4px}.px-trust span::before,.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}}
+.px-ordw{flex-wrap:wrap;border:1px solid #eef0f2;border-radius:9px;padding:6px;background:#fff}.px-ordw .px-ord{border:0}.px-ordw:hover{border-color:#c9ced3}
+@media (max-width:760px){.px-ordw{gap:6px}.px-ordw .px-reo{margin:0 10px 10px}}
+.px-nf .px-btns{gap:8px;flex-wrap:wrap}
+.sc-cat>span:first-child{white-space:nowrap}.sc-cat{flex-wrap:wrap;justify-content:flex-start}
+.px-ltab .lam,.px-ltab td.r{white-space:nowrap}
+.px-list-h h1{line-height:1.15}
+.px-rcard .px-btn:disabled,.px .ft .px-btn:disabled{background:#f1f2f4!important;color:#6b7280!important;border-color:#f1f2f4!important}
+.px-ltab .px-code2,.sc-pn,.pn,.px-pdpn,.px-code2{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+@media (max-width:760px){.px-makes .px-make:last-child:nth-child(odd){grid-column:auto}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1018,7 +1031,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <a href="#/orders" v-if="canOrder"><b v-text="openOrders"></b><span>Open orders</span></a>
 <a href="#/cart" v-if="canOrder"><b v-text="cart.length"></b><span>In cart</span></a>
 <a href="#" @click.prevent="qOpen = true"><b v-text="quoteN"></b><span>Quote list</span></a>
-<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="(REWARDS.demo ? 'Rewards preview · ' : 'Rewards · ') + rwLevel.n"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
+<a href="#/rewards" class="px-rw" v-if="REWARDS.on && (canOrder || (me && me.admin))"><b v-text="REWARDS.points.toLocaleString('en-US')"></b><span v-text="REWARDS.demo ? 'Rewards preview' : 'Rewards · ' + rwLevel.n"></span><i class="bar"><i :style="'width:' + rwPct + '%'"></i></i></a>
 </div>
 </div>
 </section>
@@ -1234,7 +1247,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <b>Wholesale price and stock are for approved customers.</b> Sign in to see your price and order online, or add it to a quote and our team replies within one business day.
 <div class="px-qrow"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(pr[0], sq(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(pr[0])" @change="sqSet(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(pr[0], sq(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" :class="inQuote(pr[0]) ? 'in' : ''" @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote · View list' : 'Add to quote'"></button></div><div class="px-btns" style="margin-top:10px"><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
 </div>
-<div class="px-help" style="border-top:1px solid #eef0f2;padding-top:14px">Questions about this part? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or WhatsApp <a :href="wa('us', pr[0])" target="_blank" rel="noopener">US</a> · <a :href="wa('latam', pr[0])" target="_blank" rel="noopener">Latin America</a>.</div>
+<div class="px-help" style="border-top:1px solid #eef0f2;padding-top:14px">Questions about this part? Call <a href="tel:+19545864158" style="white-space:nowrap">+1 (954) 586-4158</a> or WhatsApp <a :href="wa('us', pr[0])" target="_blank" rel="noopener">US</a> · <a :href="wa('latam', pr[0])" target="_blank" rel="noopener">Latin America</a>.</div>
 </div>
 </div>
 <div class="px-steps3" v-if="!canOrder">
@@ -1653,7 +1666,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 <div class="px-list">
 <div class="px-ordw" v-for="o in orders" :key="o.id">
 <button type="button" class="px-ord" @click="cur = o; nav('o', o.id)">
-<div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + (o.lines.length === 1 ? ' part' : ' parts')"></small></div>
+<div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + (o.lines.length === 1 ? ' part' : ' parts') + (narrow ? ' · ' + fmt(o.total) : '')"></small></div>
 <span class="px-ord-t" v-text="fmt(o.total)"></span>
 <span class="px-st" :class="o.status" v-text="label(o.status)"></span>
 </button>
