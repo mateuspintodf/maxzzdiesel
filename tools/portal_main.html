@@ -1,0 +1,360 @@
+<style>
+.px{font-family:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;color:#1d2126}
+.px *{box-sizing:border-box}
+.px :focus-visible{outline:2px solid #fc771d;outline-offset:2px}
+.px-hero{background:#1d2126;color:#fff;padding:150px 0 34px}
+.px-hero-in{max-width:1360px;margin:0 auto;padding:0 40px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:20px}
+.px-hero h1{margin:0;font-size:40px;line-height:1.05;letter-spacing:-.02em;font-weight:500}
+.px-hero h1 em{font-style:normal;color:#fc771d}
+.px-hero p{margin:10px 0 0;color:#b9b9be;font-size:16px;line-height:1.5;max-width:560px}
+.px-who{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.px-who b{font-weight:500;font-size:16px}.px-who small{color:#b9b9be;font-size:13px}
+.px-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.px-tab{border:1px solid #3d444d;background:transparent;color:#fff;height:38px;padding:0 16px;border-radius:50px;font:inherit;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:background-color .2s,border-color .2s}
+.px-tab:hover{border-color:#8a9097}.px-tab.on{background:#fff;color:#1d2126;border-color:#fff}
+.px-tab .px-n{background:#fc771d;color:#1d2126;border-radius:50px;min-width:20px;height:20px;padding:0 6px;font-size:12px;font-weight:600;display:inline-flex;align-items:center;justify-content:center}
+.px-wrap{max-width:1360px;margin:0 auto;padding:28px 20px 110px}
+.px-grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:24px;align-items:start}
+.px-card{background:#fff;border-radius:25px;padding:28px}
+.px-card h2{margin:0 0 6px;font-size:24px;font-weight:500;letter-spacing:-.01em}
+.px-card h3{margin:0 0 12px;font-size:17px;font-weight:500}
+.px-muted{color:#5f656c;font-size:14px;line-height:1.5}
+.px-in{width:100%;height:48px;border:1px solid #dfe2e6;border-radius:14px;padding:0 14px;font:inherit;font-size:15px;color:#1d2126;background:#fff}
+.px-in:focus{border-color:#1d2126;outline:none}
+textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
+.px-f{display:flex;flex-direction:column;gap:6px;font-size:13px;color:#5f656c}
+.px-g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}.px-g3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px}
+.px-btn{height:48px;border:0;border-radius:50px;padding:0 22px;font:inherit;font-size:15px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:background-color .2s,transform .2s}
+.px-btn:active{transform:scale(.98)}.px-btn[disabled]{opacity:.5;cursor:default}
+.px-red{background:#d32a37;color:#fff}.px-red:hover{background:#b71f2b}
+.px-dark{background:#1d2126;color:#fff}.px-dark:hover{background:#000}
+.px-ghost{background:#fff;color:#1d2126;border:1px solid #c9ced3}.px-ghost:hover{border-color:#1d2126}
+.px-sm{height:38px;padding:0 14px;font-size:14px}
+.px-auth{max-width:520px;margin:0 auto}
+.px-auth .px-btn{width:100%;margin-top:14px}
+.px-note{margin-top:14px;padding:12px 14px;border-radius:14px;background:#f4f5f6;font-size:14px;line-height:1.5}
+.px-err{color:#d32a37;font-size:14px;margin-top:10px}
+.px-search{display:flex;gap:10px}
+.px-search .px-in{height:52px;font-size:16px}
+.px-chips{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px}
+.px-chip{border:1px solid #dfe2e6;background:#fff;border-radius:50px;height:32px;padding:0 12px;font:inherit;font-size:13px;cursor:pointer}
+.px-chip.on{background:#1d2126;color:#fff;border-color:#1d2126}
+.px-rows{margin-top:12px;border-top:1px solid #eef0f2}
+.px-row{display:grid;grid-template-columns:56px minmax(0,1fr) 110px 120px auto;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid #eef0f2}
+.px-img{width:56px;height:56px;border-radius:12px;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.px-img img{width:100%;height:100%;object-fit:contain}
+.px-img svg{color:#b9b9be}
+.px-row-n{font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.px-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#d32a37;margin-top:3px}
+.px-price{font-size:16px;font-weight:500;text-align:right}.px-price small{display:block;font-size:12px;color:#8a9097;font-weight:400}
+.px-stock{font-size:12px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.px-dot{width:8px;height:8px;border-radius:50%;background:#16a34a}.px-dot.low{background:#f59e0b}.px-dot.out{background:#b9b9be}
+.px-qty{display:inline-flex;align-items:center;border:1px solid #dfe2e6;border-radius:50px;height:38px;overflow:hidden}
+.px-qty button{width:34px;height:100%;border:0;background:transparent;font:inherit;font-size:16px;cursor:pointer;color:#1d2126}
+.px-qty input{width:42px;border:0;text-align:center;font:inherit;font-size:14px;-moz-appearance:textfield}
+.px-qty input::-webkit-outer-spin-button,.px-qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.px-add{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.px-more{margin:16px auto 0;display:flex}
+.px-empty{padding:28px 0;text-align:center;color:#5f656c;font-size:15px}
+.px-panel{position:sticky;top:120px;max-height:calc(100vh - 136px);display:flex;flex-direction:column;background:#1d2126;color:#fff;border-radius:25px;padding:24px}
+.px-panel > *{flex:none}
+.px-panel h2{margin:0;font-size:20px;font-weight:500}
+.px-ph{display:flex;justify-content:space-between;align-items:baseline;gap:10px}.px-ph span{color:#b9b9be;font-size:13px}
+.px-lines{margin-top:14px;border-top:1px solid #3d444d;overflow:auto;min-height:120px;flex:1 1 auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#4a525b transparent;padding-right:8px;margin-right:-8px}
+.px-line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:12px 0;border-bottom:1px solid #3d444d}
+.px-line-n{font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.px-line-c{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;color:#fc771d;margin-top:3px}
+.px-line-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.px-line .px-qty{border-color:#3d444d;height:32px}.px-line .px-qty button,.px-line .px-qty input{color:#fff;background:transparent}
+.px-line-t{font-size:14px}
+.px-rm{border:0;background:transparent;color:#8a9097;font:inherit;font-size:12px;cursor:pointer;padding:0}.px-rm:hover{color:#fff}
+.px-sum{display:flex;justify-content:space-between;margin:16px 0 4px;font-size:15px}.px-sum b{font-size:22px;font-weight:500}
+.px-sum-n{color:#8a9097;font-size:12px;line-height:1.5;margin:0 0 14px}
+.px-panel .px-btn{width:100%}
+.px-panel .px-ghost{background:transparent;color:#fff;border-color:#3d444d;margin-top:8px}
+.px-panel-empty{color:#b9b9be;font-size:14px;line-height:1.5;margin:16px 0}
+.px-paste{margin-top:18px}.px-paste summary{cursor:pointer;font-size:14px;font-weight:500}
+.px-paste textarea{margin-top:10px}
+.px-ok{color:#16a34a;font-size:14px;margin-top:8px}
+.px-list{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.px-ord{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:16px 18px;border:1px solid #eef0f2;border-radius:18px;cursor:pointer;background:#fff;text-align:left;font:inherit;color:inherit;width:100%}
+.px-ord:hover{border-color:#c9ced3}
+.px-ord b{font-weight:500}.px-ord small{display:block;color:#8a9097;font-size:13px;margin-top:3px}
+.px-st{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:50px;font-size:13px;font-weight:500;background:#eef0f2;color:#1d2126;white-space:nowrap}
+.px-st.Received,.px-st.Parked{background:#fff4e5;color:#9a4b00}.px-st.Placed,.px-st.Backordered{background:#e7f1fb;color:#1e4e8c}
+.px-st.Completed{background:#e5f4e4;color:#166534}.px-st.Deleted{background:#fbebeb;color:#9b1c1c}
+.px-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:18px 0 6px}
+.px-step{border-top:3px solid #dfe2e6;padding-top:8px;font-size:13px;color:#8a9097}.px-step.on{border-color:#fc771d;color:#1d2126}
+.px-tbl{width:100%;border-collapse:collapse;font-size:14px;margin-top:12px}
+.px-tbl th{text-align:left;color:#8a9097;font-weight:400;font-size:12px;padding:8px 6px;border-bottom:1px solid #eef0f2}
+.px-tbl td{padding:10px 6px;border-bottom:1px solid #eef0f2;vertical-align:top}.px-tbl td.r,.px-tbl th.r{text-align:right}
+.px-tbl .px-code{margin:0}
+.px-acc{border:1px solid #eef0f2;border-radius:18px;padding:18px;margin-top:12px}
+.px-acc-h{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.px-acc-h b{font-weight:500;font-size:17px}
+.px-cust{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.px-cust button{text-align:left;border:1px solid #dfe2e6;background:#fff;border-radius:14px;padding:10px 12px;font:inherit;font-size:14px;cursor:pointer}
+.px-cust button.on{border-color:#fc771d;box-shadow:0 0 0 1px #fc771d inset}
+.px-test{display:inline-flex;gap:8px;align-items:center;background:#fff4e5;color:#9a4b00;border-radius:50px;padding:6px 12px;font-size:13px;margin-bottom:12px}
+.px-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#1d2126;color:#fff;padding:12px 20px;border-radius:50px;font-size:14px;z-index:60;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.px-mbar{display:none}
+@media (max-width:1100px){.px-grid{grid-template-columns:1fr}.px-panel{position:relative;top:auto;max-height:none;display:block}.px-lines{max-height:none}}
+@media (max-width:760px){
+.px-hero{padding:120px 0 26px}.px-hero-in{padding:0 20px}.px-hero h1{font-size:30px}.px-who{align-items:flex-start}
+.px-card{padding:20px}.px-g2,.px-g3{grid-template-columns:1fr}
+.px-row{grid-template-columns:48px minmax(0,1fr) auto;row-gap:8px}.px-img{width:48px;height:48px}
+.px-row .px-price{grid-column:2;text-align:left}.px-row .px-add{grid-column:2 / span 2;justify-content:flex-start}
+.px-ord{grid-template-columns:1fr auto}.px-ord .px-ord-t{display:none}
+.px-steps{grid-template-columns:repeat(2,1fr)}
+.px-mbar{display:flex;position:fixed;left:12px;right:12px;bottom:12px;z-index:50;background:#1d2126;color:#fff;border-radius:50px;padding:8px 8px 8px 20px;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.px-mbar .px-btn{height:42px}
+.px-wrap{padding-bottom:120px}}
+</style>
+
+<div class="px" @vue:mounted="init">
+
+<section class="px-hero">
+<div class="px-hero-in">
+<div>
+<h1 v-if="!me">Maxzz <em>B2B portal</em></h1>
+<h1 v-else v-text="me.account ? me.account.company : 'Maxzz B2B portal'"></h1>
+<p v-if="!me">Your prices, live stock and order tracking in one place. For approved wholesale customers.</p>
+<p v-else-if="book">Prices from your <span v-text="me.account ? 'account price list' : 'default price list'"></span>. Stock updated <span v-text="ago(book.stockAt)"></span>.</p>
+</div>
+<div class="px-who" v-if="me">
+<small v-text="me.email"></small>
+<nav class="px-tabs" aria-label="Portal">
+<button type="button" class="px-tab" :class="view === 'shop' || view === 'checkout' ? 'on' : ''" @click="go('shop')" v-if="me.account">New order <span class="px-n" v-if="cart.length" v-text="cart.length"></span></button>
+<button type="button" class="px-tab" :class="view === 'orders' || view === 'order' ? 'on' : ''" @click="go('orders')" v-if="me.account">Orders</button>
+<button type="button" class="px-tab" :class="view === 'admin' ? 'on' : ''" @click="go('admin')" v-if="me.admin">Admin <span class="px-n" v-if="pendingCount" v-text="pendingCount"></span></button>
+<button type="button" class="px-tab" @click="logout">Sign out</button>
+</nav>
+</div>
+</div>
+</section>
+
+<div class="px-wrap">
+
+<!-- loading -->
+<div class="px-card px-auth" v-if="view === 'loading'"><p class="px-muted">Loading...</p></div>
+
+<!-- sign in -->
+<div class="px-card px-auth" v-if="view === 'login'">
+<h2>Sign in</h2>
+<p class="px-muted">Enter the e-mail on your account. We send you a sign-in link, no password needed.</p>
+<form @submit.prevent="sendLink" style="margin-top:18px">
+<label class="px-f">E-mail<input class="px-in" type="email" v-model="email" autocomplete="email" required></label>
+<button class="px-btn px-red" :disabled="busy" v-text="busy ? 'Sending...' : 'E-mail me a sign-in link'"></button>
+</form>
+<div class="px-err" v-if="err" v-text="err"></div>
+<div class="px-note">New to the portal? <a href="#request" @click.prevent="go('request')" style="color:#d32a37;font-weight:500">Request access</a>. Our team connects your account to your price list, usually within one business day.</div>
+</div>
+
+<div class="px-card px-auth" v-if="view === 'sent'">
+<h2>Check your e-mail</h2>
+<p class="px-muted">If <b v-text="email"></b> has an approved account, a sign-in link is on its way. It works once and expires in 20 minutes.</p>
+<p class="px-muted" v-if="sentPending">Your access request is still under review. You will get an e-mail as soon as it is approved.</p>
+<button class="px-btn px-ghost" style="margin-top:14px" @click="go('login')">Use another e-mail</button>
+</div>
+
+<!-- request access -->
+<div class="px-card px-auth" style="max-width:760px" v-if="view === 'request'">
+<h2>Request portal access</h2>
+<p class="px-muted">For repair shops, injection labs, distributors and fleets. We review every request and link it to your price list.</p>
+<form @submit.prevent="sendRequest" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+<div class="px-g2">
+<label class="px-f">Your name *<input class="px-in" v-model="rq.name" autocomplete="name" required></label>
+<label class="px-f">Company *<input class="px-in" v-model="rq.company" autocomplete="organization" required></label>
+<label class="px-f">Work e-mail *<input class="px-in" type="email" v-model="rq.email" autocomplete="email" required></label>
+<label class="px-f">Phone *<input class="px-in" type="tel" v-model="rq.phone" autocomplete="tel" required></label>
+</div>
+<div class="px-g3">
+<label class="px-f">City<input class="px-in" v-model="rq.city" autocomplete="address-level2"></label>
+<label class="px-f">State<input class="px-in" v-model="rq.state" autocomplete="address-level1"></label>
+<label class="px-f">Country<input class="px-in" v-model="rq.country" autocomplete="country-name"></label>
+</div>
+<div class="px-g2">
+<label class="px-f">Type of business
+<select class="px-in" v-model="rq.type"><option value="">Choose</option><option>Diesel repair shop</option><option>Injection lab / rebuilder</option><option>Distributor / parts store</option><option>Fleet</option><option>Other</option></select></label>
+<label class="px-f">Maxzz customer number (if you have one)<input class="px-in" v-model="rq.customerNumber"></label>
+</div>
+<label class="px-f">Anything we should know<textarea class="px-in" v-model="rq.notes"></textarea></label>
+<input type="text" id="px-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
+<button class="px-btn px-red" style="width:100%" :disabled="busy" v-text="busy ? 'Sending...' : 'Request access'"></button>
+<div class="px-err" v-if="err" v-text="err"></div>
+<button type="button" class="px-btn px-ghost" @click="go('login')">I already have access</button>
+</form>
+</div>
+
+<div class="px-card px-auth" v-if="view === 'requested'">
+<h2>Request received</h2>
+<p class="px-muted">Thanks. Our team reviews it and links it to your price list. You get an e-mail as soon as it is approved, usually within one business day.</p>
+<a class="px-btn px-ghost" href="/quote" style="margin-top:14px;width:100%">Meanwhile, request a quote</a>
+</div>
+
+<div class="px-card px-auth" v-if="view === 'pending'">
+<h2>Almost there</h2>
+<p class="px-muted">Your access is waiting for approval. You get an e-mail as soon as it is ready.</p>
+</div>
+
+<!-- shop -->
+<div class="px-grid" v-if="view === 'shop'">
+<div class="px-card">
+<div class="px-test" v-if="!me.ordersLive">Test mode: orders are saved here and e-mailed to our team, not yet sent to the warehouse system.</div>
+<h2>Find parts</h2>
+<p class="px-muted">Part number, cross reference or description. Try "0445120231", "6.7 cummins injector" or "CP3".</p>
+<div class="px-search" style="margin-top:14px"><input class="px-in" type="search" v-model="q" @input="limit = 30" placeholder="Search by part number or description" aria-label="Search parts"></div>
+<div class="px-chips" v-if="q.trim().length < 2">
+<button type="button" class="px-chip" v-if="lastOrder" @click="reorder(lastOrder)">Buy again: last order</button>
+<button type="button" class="px-chip" :class="kind === k ? 'on' : ''" v-for="k in kinds" @click="kind = kind === k ? '' : k" v-text="k"></button>
+</div>
+<div class="px-rows" v-if="shown.length">
+<div class="px-row" v-for="p in shown" :key="p[0]">
+<div class="px-img"><img v-if="img(p[0])" :src="img(p[0])" alt="" loading="lazy"><svg v-else width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="9" y="2" width="6" height="14" rx="2"/><path d="M12 16v6M10 6h4"/></svg></div>
+<div><div class="px-row-n" v-text="p[1]"></div><div class="px-code" v-text="p[0]"></div></div>
+<div class="px-price"><span v-text="fmt(price(p[0]))"></span><small v-text="p[3]"></small></div>
+<div><span class="px-stock"><i class="px-dot" :class="stockClass(p[0])"></i><span v-text="stockText(p[0])"></span></span></div>
+<div class="px-add">
+<div class="px-qty"><button type="button" aria-label="Less" @click="setPick(p[0], pick(p[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(p[0])" @change="setPick(p[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(p[0], pick(p[0]) + 1)">+</button></div>
+<button type="button" class="px-btn px-dark px-sm" :disabled="price(p[0]) == null" @click="add(p[0], pick(p[0]))" v-text="inCart(p[0]) ? 'Add more' : 'Add'"></button>
+</div>
+</div>
+</div>
+<div class="px-empty" v-if="!shown.length && q.trim().length >= 2">Nothing found for "<span v-text="q"></span>". Try the part number without dots, or paste a list below.</div>
+<div class="px-empty" v-if="!shown.length && q.trim().length < 2 && !kind">Search above or pick a category.</div>
+<button type="button" class="px-btn px-ghost px-sm px-more" v-if="filtered.length > shown.length" @click="limit += 30">Show more (<span v-text="filtered.length - shown.length"></span>)</button>
+<details class="px-paste">
+<summary>Paste a list of part numbers</summary>
+<p class="px-muted" style="margin:8px 0 0">One per line. Add the quantity after a space, comma or tab: "0445120231, 6".</p>
+<textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
+<button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste">Add to cart</button>
+<div class="px-ok" v-if="pasteMsg" v-text="pasteMsg"></div>
+</details>
+</div>
+
+<aside class="px-panel" aria-label="Cart">
+<div class="px-ph"><h2>Cart</h2><span v-if="cart.length" v-text="cart.length + (cart.length === 1 ? ' part' : ' parts')"></span></div>
+<div class="px-panel-empty" v-if="!cart.length">Your cart is empty. Search on the left, paste a list or buy again from an earlier order.</div>
+<div class="px-lines" v-if="cart.length">
+<div class="px-line" v-for="(l, i) in cart" :key="l.code">
+<div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.code"></div></div>
+<div class="px-line-r">
+<div class="px-qty"><button type="button" aria-label="Less" @click="setQty(i, l.qty - 1)">&minus;</button><input type="number" min="1" :value="l.qty" @change="setQty(i, $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setQty(i, l.qty + 1)">+</button></div>
+<span class="px-line-t" v-text="fmt(lineTotal(l))"></span>
+<button type="button" class="px-rm" @click="remove(i)">Remove</button>
+</div>
+</div>
+</div>
+<div v-if="cart.length">
+<div class="px-sum"><span>Subtotal</span><b v-text="fmt(subtotal)"></b></div>
+<p class="px-sum-n">Freight and taxes are confirmed by our team when the order is approved.</p>
+<button type="button" class="px-btn px-red" @click="go('checkout')">Checkout</button>
+<button type="button" class="px-btn px-ghost px-sm" @click="clearCart">Clear cart</button>
+</div>
+</aside>
+</div>
+
+<!-- checkout -->
+<div class="px-grid" v-if="view === 'checkout'">
+<div class="px-card">
+<h2>Ship to and reference</h2>
+<p class="px-muted">Your order goes to our sales team for review. You get an e-mail when it is approved and when it ships.</p>
+<form @submit.prevent="placeOrder" style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+<div class="px-g2">
+<label class="px-f">Your PO or job reference<input class="px-in" v-model="co.po" maxlength="40"></label>
+<label class="px-f">Shipping
+<select class="px-in" v-model="co.method"><option>Ground</option><option>2nd Day Air</option><option>Next Day Air</option><option>Will call (pick up in Coconut Creek)</option><option>Freight forwarder</option></select></label>
+</div>
+<label class="px-f">Ship to (name or company)<input class="px-in" v-model="co.name" autocomplete="organization"></label>
+<label class="px-f">Street address *<input class="px-in" v-model="co.street" autocomplete="street-address" required></label>
+<div class="px-g3">
+<label class="px-f">City *<input class="px-in" v-model="co.city" autocomplete="address-level2" required></label>
+<label class="px-f">State<input class="px-in" v-model="co.state" autocomplete="address-level1"></label>
+<label class="px-f">ZIP<input class="px-in" v-model="co.zip" autocomplete="postal-code"></label>
+</div>
+<label class="px-f">Country<input class="px-in" v-model="co.country" autocomplete="country-name"></label>
+<label class="px-f">Notes for our team<textarea class="px-in" v-model="co.notes"></textarea></label>
+<div class="px-err" v-if="err" v-text="err"></div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<button type="button" class="px-btn px-ghost" @click="go('shop')">Back to cart</button>
+<button class="px-btn px-red" :disabled="busy" v-text="busy ? 'Placing order...' : 'Place order · ' + fmt(subtotal)"></button>
+</div>
+</form>
+</div>
+<aside class="px-panel" aria-label="Order summary">
+<div class="px-ph"><h2>Summary</h2><span v-text="cart.length + ' parts'"></span></div>
+<div class="px-lines">
+<div class="px-line" v-for="l in cart" :key="l.code"><div><div class="px-line-n" v-text="name(l.code)"></div><div class="px-line-c" v-text="l.qty + ' × ' + l.code"></div></div><div class="px-line-r"><span class="px-line-t" v-text="fmt(lineTotal(l))"></span></div></div>
+</div>
+<div class="px-sum"><span>Subtotal</span><b v-text="fmt(subtotal)"></b></div>
+<p class="px-sum-n">Freight and taxes are confirmed on approval.</p>
+</aside>
+</div>
+
+<!-- orders -->
+<div class="px-card" v-if="view === 'orders'">
+<h2>Orders</h2>
+<p class="px-muted">Every order placed in the portal, with its current status.</p>
+<div class="px-empty" v-if="!orders.length">No orders yet. <a href="#shop" @click.prevent="go('shop')" style="color:#d32a37;font-weight:500">Start an order</a>.</div>
+<div class="px-list">
+<button type="button" class="px-ord" v-for="o in orders" :key="o.id" @click="openOrder(o)">
+<div><b v-text="o.number"></b><small v-text="date(o.created) + (o.po ? ' · PO ' + o.po : '') + ' · ' + o.lines.length + ' parts'"></small></div>
+<span class="px-ord-t" v-text="fmt(o.total)"></span>
+<span class="px-st" :class="o.status" v-text="label(o.status)"></span>
+</button>
+</div>
+</div>
+
+<div class="px-card" v-if="view === 'order' && cur">
+<button type="button" class="px-btn px-ghost px-sm" @click="go('orders')">&larr; All orders</button>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-top:16px">
+<div><h2 v-text="'Order ' + cur.number"></h2><p class="px-muted" v-text="date(cur.created) + (cur.po ? ' · PO ' + cur.po : '') + (cur.unleashedNumber ? ' · Ref ' + cur.unleashedNumber : '')"></p></div>
+<span class="px-st" :class="cur.status" v-text="label(cur.status)"></span>
+</div>
+<div class="px-steps">
+<div class="px-step" :class="stepOf(cur) >= 0 ? 'on' : ''">Received</div>
+<div class="px-step" :class="stepOf(cur) >= 1 ? 'on' : ''">Approved</div>
+<div class="px-step" :class="stepOf(cur) >= 2 ? 'on' : ''">Shipped</div>
+<div class="px-step" :class="stepOf(cur) >= 3 ? 'on' : ''">Invoiced</div>
+</div>
+<table class="px-tbl">
+<thead><tr><th>Part</th><th class="r">Qty</th><th class="r">Price</th><th class="r">Total</th></tr></thead>
+<tbody><tr v-for="l in cur.lines"><td><div v-text="l.name"></div><div class="px-code" v-text="l.code"></div></td><td class="r" v-text="l.qty"></td><td class="r" v-text="fmt(l.price)"></td><td class="r" v-text="fmt(l.total)"></td></tr></tbody>
+<tfoot><tr><td colspan="3"><b>Subtotal</b></td><td class="r"><b v-text="fmt(cur.total)"></b></td></tr></tfoot>
+</table>
+<p class="px-muted" style="margin-top:14px" v-text="'Ship to: ' + [cur.ship.name, cur.ship.street, cur.ship.city, cur.ship.state, cur.ship.zip, cur.ship.country].filter(Boolean).join(', ') + (cur.ship.method ? ' · ' + cur.ship.method : '')"></p>
+<button type="button" class="px-btn px-dark" style="margin-top:10px" @click="reorder(cur)">Buy these again</button>
+</div>
+
+<!-- admin -->
+<div class="px-card" v-if="view === 'admin'">
+<h2>Access requests and accounts</h2>
+<p class="px-muted">Link each request to its Unleashed customer. The customer sees the prices of that customer's sell price tier.</p>
+<div class="px-empty" v-if="!accounts.length">No requests yet.</div>
+<div class="px-acc" v-for="a in accounts" :key="a.id">
+<div class="px-acc-h">
+<div><b v-text="a.company"></b><div class="px-muted" v-text="[a.type, a.city, a.state, a.country].filter(Boolean).join(' · ')"></div>
+<div class="px-muted" v-for="u in a.users" v-text="u.name + ' · ' + u.email + ' · ' + u.phone"></div>
+<div class="px-muted" v-if="a.customerNumber" v-text="'Says Maxzz customer number: ' + a.customerNumber"></div>
+<div class="px-muted" v-if="a.notes" v-text="'Note: ' + a.notes"></div></div>
+<span class="px-st" :class="a.status === 'approved' ? 'Completed' : a.status === 'rejected' ? 'Deleted' : 'Parked'" v-text="a.status === 'approved' ? 'Approved · ' + a.customerCode + (a.tier ? ' · ' + a.tier : '') : a.status === 'rejected' ? 'Declined' : 'Waiting'"></span>
+</div>
+<div v-if="a.status === 'pending'">
+<div class="px-search" style="margin-top:14px"><input class="px-in" v-model="a._q" placeholder="Unleashed customer code or name" @keydown.enter.prevent="lookup(a)"><button type="button" class="px-btn px-dark" @click="lookup(a)" v-text="a._busy ? 'Searching...' : 'Find'"></button></div>
+<div class="px-cust" v-if="a._res">
+<button type="button" v-for="c in a._res" :class="a._pick === c ? 'on' : ''" @click="a._pick = c" v-text="c.code + ' · ' + c.name + (c.tier ? ' · ' + c.tier : ' · default prices') + (c.stopCredit ? ' · credit stopped' : '')"></button>
+<span class="px-muted" v-if="!a._res.length">No Unleashed customer found. Create the customer in Unleashed first, then search again.</span>
+</div>
+<div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+<button type="button" class="px-btn px-red px-sm" :disabled="!a._pick" @click="approve(a)">Approve and send access</button>
+<button type="button" class="px-btn px-ghost px-sm" @click="reject(a)">Decline</button>
+</div>
+</div>
+</div>
+</div>
+
+</div>
+
+<div class="px-mbar" v-if="view === 'shop' && cart.length"><span v-text="cart.length + ' parts · ' + fmt(subtotal)"></span><button type="button" class="px-btn px-red" @click="go('checkout')">Checkout</button></div>
+<div class="px-toast" v-if="toast" v-text="toast" role="status"></div>
+</div>

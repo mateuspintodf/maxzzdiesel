@@ -20,6 +20,12 @@
     },
     "api/cron-catalog.js": {
       "maxDuration": 300
+    },
+    "api/cron-stock.js": {
+      "maxDuration": 300
+    },
+    "api/portal.js": {
+      "maxDuration": 60
     }
   },
   "headers": [
@@ -105,6 +111,16 @@
     {
       "path": "/api/cron-catalog",
       "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron-stock",
+      "schedule": "10,40 * * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/portal/:a",
+      "destination": "/api/portal?a=:a"
     }
   ]
 }
