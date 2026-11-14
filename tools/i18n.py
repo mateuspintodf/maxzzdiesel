@@ -104,7 +104,7 @@ def link_fix(s, lang):
         if name in PAGES and name != 'index':
             return f'{q}{pre}/{name}{url[len(path):]}'
         return m.group(0)
-    return re.sub(r'((?:href|:href)=["\'])(/[^"\'\s]*)', fix, s)
+    return re.sub(r'((?:href|:href)=["\']|"ctaHref": ")(/[^"\'\s]*)', fix, s)
 
 def tr_body(body, d):
     body = re.sub(r'<option>([^<]+)</option>', lambda m: f'<option value="{m.group(1)}">{d.get(norm(m.group(1)), m.group(1))}</option>' if norm(m.group(1)) in d else m.group(0), body)

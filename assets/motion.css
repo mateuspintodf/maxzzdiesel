@@ -144,3 +144,7 @@ details.qx-more-d[open]::details-content { block-size: auto; }
   h2[style*="clamp(32px"] { font-size: 30px !important; line-height: 1.1 !important; }
   p, li { text-wrap: pretty; }
 }
+
+
+/* es/pt: longer nav labels, drop the phone from the top bar */
+html[lang="es"] .nav-phone,html[lang="pt-BR"] .nav-phone{display:none!important}
