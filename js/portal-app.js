@@ -96,6 +96,7 @@
   // empty document/tracker: returned instead of null so bindings of a view being torn down never read null
   var DOC0 = { none: true, kind: '', number: '', email: '', billTo: [], shipTo: [], refs: [], lines: [], priced: false, total: 0, units: 0, notes: '' };
   var TRK0 = { none: true, label: '', steps: [], at: 0 };
+  var DIAL = { '55': 'Brazil', '52': 'Mexico', '57': 'Colombia', '56': 'Chile', '51': 'Peru', '593': 'Ecuador', '54': 'Argentina', '598': 'Uruguay', '595': 'Paraguay', '591': 'Bolivia', '58': 'Venezuela', '507': 'Panama', '506': 'Costa Rica', '502': 'Guatemala', '504': 'Honduras', '503': 'El Salvador', '505': 'Nicaragua', '1809': 'Dominican Republic' };
   var ROUTES = ['home', 'c', 's', 'g', 'all', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
   var T0 = Date.now();
 
@@ -388,19 +389,25 @@
     // country from an international dial code (+55 Brazil...), only while the select is still on a NANP default
     dialCountry: function (v, cur) {
       var r = String(v || '').replace(/[^\d+]/g, ''); if (r.charAt(0) !== '+' || !/United States|Puerto Rico|Canada/.test(cur)) return cur;
-      var M = { '55': 'Brazil', '52': 'Mexico', '57': 'Colombia', '56': 'Chile', '51': 'Peru', '593': 'Ecuador', '54': 'Argentina', '598': 'Uruguay', '595': 'Paraguay', '591': 'Bolivia', '58': 'Venezuela', '507': 'Panama', '506': 'Costa Rica', '502': 'Guatemala', '504': 'Honduras', '503': 'El Salvador', '505': 'Nicaragua' };
-      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (M[d.slice(0, n)]) return M[d.slice(0, n)];
+      var d = r.slice(1); for (var n = 3; n >= 2; n--) if (DIAL[d.slice(0, n)]) return DIAL[d.slice(0, n)];
       return cur;
     },
-    maskPhone: function (v, country) {
+    // phone formatting while typing; final (on blur) adds the country's dial code to a local LATAM number
+    maskPhone: function (v, country, final) {
       var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').trim();
-      // an international number typed with + and a non-NANP code keeps its format whatever the country select says
+      if (!raw) return '';
       if (raw === '+') return '+';
-      if (d.length > 10 && d[0] !== '1') return '+' + d.slice(0, 15);
-      if (raw.charAt(0) === '+' && d && d[0] !== '1') return '+' + d.slice(0, 15);
+      if (raw.charAt(0) === '+') return '+' + d.slice(0, 15);
       var us = country ? /United States|Puerto Rico|Canada/.test(country) : this.usPhone;
-      if (us) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
-      return v && String(v).trim().charAt(0) === '+' ? '+' + d.slice(0, 15) : (d ? '+' + d.slice(0, 15) : '');
+      if (us) {
+        if (d.length === 11 && d[0] === '1' && /[2-9]/.test(d[1])) d = d.slice(1);
+        if (d.length > 10) return d[0] === '1' ? d.slice(0, 15) : '+' + d.slice(0, 15);
+        if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6);
+      }
+      if (!final) return raw.replace(/[^\d\s()\-.]/g, '').slice(0, 22);
+      var code = ''; Object.keys(DIAL).forEach(function (k) { if (DIAL[k] === country) code = k; });
+      if (!d) return '';
+      return '+' + (code && d.indexOf(code) !== 0 ? code + d.replace(/^0+/, '') : d).slice(0, 15);
     },
     rqNext: function () { this.rqTried = true; var r = this.rq; if (!r.name.trim() || !this.okEmail(r.email) || !this.okPhone(r.phone)) return; this.rqStep = 2; setTimeout(function () { var c = document.querySelector('[autocomplete=organization]'); if (c) c.focus(); }, 60); },
     rqZip: function () {
@@ -728,6 +735,7 @@
       var self = this, hp = document.getElementById('px-hp');
       this.rqTried2 = true; if (!this.rq.company.trim()) return;
       this.busy = true; this.err = '';
+      this.rq.phone = this.maskPhone(this.rq.phone, this.rq.country, true);
       api('request', { body: Object.assign({}, this.rq, { hp: hp ? hp.value : '', t: Date.now() - T0 }) }).then(function (r) {
         self.busy = false;
         if (r._status === 200) { track('b2b_access_request', { form: 'portal' }); self.nav('requested'); }
@@ -737,6 +745,7 @@
     sendQuote: function () {
       var self = this, hp = document.getElementById('px-qhp'), t = new Date();
       if (!this.quote.length || this.busy) return;
+      if (this.qd.phone) this.qd.phone = this.maskPhone(this.qd.phone, this.qd.country, true);
       var me = this.me, acc = me && me.account, d = Object.assign({}, this.qd);
       if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = me.phone || ''; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
       var snap = this.doc; if (snap && snap.none) snap = null;
