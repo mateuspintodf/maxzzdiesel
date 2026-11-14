@@ -1012,6 +1012,11 @@ a[href^="tel:"]{white-space:nowrap}
 .px-g2 input[type=tel],.px-f input[type=tel]{font-family:inherit}
 .px-sh .px-link{text-decoration:none;color:#d32a37;font-weight:500}
 .px-lb img{background:none;padding:0;border-radius:8px;max-width:min(1200px,94vw);max-height:88vh}
+/* r4 ui */
+@media (max-width:560px){.px .px-path{padding-left:46px;padding-right:46px}}
+@media (max-width:760px){.px .px-toast{left:20px;right:20px}.px .px-mbar,.px .px-mbar.solo{left:20px;right:20px}.px-meta span{white-space:normal}.px .px-ltab td.lam:has(b:only-child){}}
+.px-lb img{max-width:min(92vw,1280px);max-height:86vh}
+@media (max-width:760px){.px .px-ltab td.lam.nop{display:none}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1442,7 +1447,7 @@ a[href^="tel:"]{white-space:nowrap}
 <td class="lst" v-if="showPrice"><span class="px-stock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
 <td class="r lup" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
 <td class="c lqt"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value); $event.target.value = (lines[l.i] || l).qty" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
-<td class="r lam" v-if="showPrice"><b v-text="price(l.code) == null ? '—' : fmt(price(l.code) * l.qty)"></b></td>
+<td class="r lam" v-if="showPrice" :class="price(l.code) == null ? 'nop' : ''"><b v-text="price(l.code) == null ? '—' : fmt(price(l.code) * l.qty)"></b></td>
 <td class="c lrm"><button type="button" class="px-x" aria-label="Remove" @click="setLn(l.i, 0)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="px-link" style="font-size:12px" v-if="flow === 'order' && price(l.code) == null" @click="moveToQuote(l.i)">To quote</button></td>
 </tr></tbody>
 </table>
