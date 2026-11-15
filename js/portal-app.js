@@ -22,6 +22,23 @@
     if (!parts[1] && title.indexOf(' / ') > 0) { var p2 = title.split(' / '); title = p2.shift(); app = p2.join(' · '); }
     return { title: title || desc, app: app, xr: xr };
   }
+  // catalog text from Unleashed comes in mixed shouting case; one consistent case for every title and application line
+  var ACR = 'OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
+  var SMALL = ['for', 'and', 'with', 'of', 'to', 'in', 'on', 'or', 'the', 'a', 'an', 'by', 'from'];
+  function nice(t) {
+    t = String(t || '').replace(/\s*:\s*$/, '').replace(/\s+NEW\s*:?\s*$/i, '').trim();
+    var i = 0;
+    return t.replace(/[A-Za-z][A-Za-z']*/g, function (w, off) {
+      var first = i++ === 0, up = w.toUpperCase();
+      if (w !== up) return w;                       // already mixed case: keep as written
+      if (up === 'NOX') return 'NOx';
+      if (up === 'MM') return 'mm';
+      if (ACR.indexOf(up) >= 0 || w.length < 3 && up !== 'NO') return w;
+      var lw = w.toLowerCase();
+      if (!first && SMALL.indexOf(lw) >= 0) return lw;
+      return lw.charAt(0).toUpperCase() + lw.slice(1);
+    });
+  }
   var CATS = [
     { k: 'Injector', label: 'Injectors', ic: 'inj' }, { k: 'Pump', label: 'Pumps', ic: 'pump' }, { k: 'Nozzle', label: 'Nozzles', ic: 'noz' },
     { k: 'Rail', label: 'Rails', ic: 'rail' }, { k: 'Repair part', label: 'Repair parts', ic: 'rep' }, { k: 'Tool', label: 'Tool sets', ic: 'tool' },
@@ -529,6 +546,10 @@
         }
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
+      // account menu: close on a click outside it, on Escape and on navigation
+      var closeMenus = function (e) { [].forEach.call(document.querySelectorAll('details.pxh-me[open]'), function (d) { if (!e || !d.contains(e.target)) d.removeAttribute('open'); }); };
+      document.addEventListener('click', closeMenus); window.addEventListener('hashchange', function () { closeMenus(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
       // mobile product page: the sticky buy bar shows only once the buy box has scrolled out of view
       var mb = function () { if (self.route !== 'p') { if (self.mbarOn) self.mbarOn = false; return; } var el = document.querySelector('.px-pd-info .px-qrow'); var on = !!el && el.getBoundingClientRect().bottom < 70; if (on !== self.mbarOn) self.mbarOn = on; };
       window.addEventListener('scroll', mb, { passive: true }); window.addEventListener('resize', function () { mb(); var n = window.innerWidth <= 760; if (n !== self.narrow) self.narrow = n; });
@@ -606,7 +627,7 @@
     loadAdmin: function () { var self = this; api('admin-list').then(function (r) { if (r.sync) self.sync = r.sync; if (r.accounts) self.accounts = r.accounts.map(function (a) { return Object.assign(a, { _q: a.customerNumber || '', _res: null, _pick: null, _busy: false }); }); }); },
 
     // display helpers
-    info: function (r) { return parse(r && r[1]); },
+    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = sp && sp.eng ? sp.eng : nice(i.app); return i; },
     // has a photo on file (ignores load failures, so shelves do not reshuffle; failed photos show the placeholder)
     hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
@@ -626,8 +647,8 @@
     title: function (r) {
       if (!r || !r[0]) return '';
       var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return sp.title;
-      var t = parse(r[1]).title, letters = t.replace(/[^A-Za-z]/g, ''), up = letters.replace(/[^A-Z]/g, '').length;
-      if (letters.length > 6 && up / letters.length > 0.7) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
+      var t = nice(parse(r[1]).title), letters = '', up = 0;
+      if (false) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
       return t.replace(/(\w)-(?=\w)/g, '$1\u2011');
     },
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },

@@ -1056,6 +1056,28 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 @media (max-width:760px){.px .px-ord .px-st{justify-self:end}}
 .px-ok.warn{background:#fff7ed;color:#9a3412;border-color:#fed7aa}
 @media (max-width:760px){.px-empty .px-btns .px-btn,.px-nf .px-btns .px-btn{height:44px}}
+/* banners: text beside the photo, photo shown whole */
+.px .px-bn{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;gap:0;padding:0;min-height:260px;background:#1d2126}
+.px .px-bn:before{display:none}
+.px .px-bn .tx{display:flex;flex-direction:column;justify-content:center;gap:8px;padding:28px 8px 28px 28px;position:relative;z-index:1}
+.px .px-bn .ph{position:relative;overflow:hidden}
+.px .px-bn .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;z-index:0}
+.px .px-bn .ph:before{content:'';position:absolute;inset:0;z-index:1;background:linear-gradient(90deg,#1d2126 0,rgba(29,33,38,0) 28%)}
+.px .px-bn b{font-size:22px;line-height:1.2}
+.px .px-bn p{font-size:14.5px}
+.px .px-bn.full{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);min-height:300px}
+.px .px-bn.full b{font-size:28px;max-width:520px}
+.px .px-bn.full .tx{padding:36px 8px 36px 36px}
+@media (max-width:760px){.px .px-bn,.px .px-bn.full{grid-template-columns:1fr;min-height:0}.px .px-bn .ph{order:-1;height:220px}.px .px-bn .ph:before{background:linear-gradient(0deg,#1d2126 0,rgba(29,33,38,0) 35%)}.px .px-bn .tx,.px .px-bn.full .tx{padding:4px 22px 24px}.px .px-bn.full b{font-size:22px}}
+/* header menu, sort, search layer */
+.pxh .pxh-menu a:hover,.pxh .pxh-menu button:hover,.pxh .pxh-menu a:focus-visible{color:#1d2126;background:#f1f2f4}
+.px .px-sort{-webkit-appearance:none;appearance:none;padding:0 40px 0 16px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231d2126' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center}
+.px .px-hero{z-index:20}
+/* no colored accent bars on cards */
+.px .px-lvl{border-top:0;box-shadow:0 0 0 1px #eceef0 inset}
+.px .px-lvl.cur{box-shadow:0 0 0 2px var(--lc) inset,0 12px 28px rgba(29,33,38,.08)}
+/* part number as plain mono text, no chip */
+.px article.sc .sc-pn{background:none;padding:0;border-radius:0;color:#5f656c;font-size:12.5px}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1201,8 +1223,8 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 
 <div class="px-sec">
 <div class="px-bn2">
-<a class="px-bn" href="#/c/Fluid"><img src="/assets/mg/iso-4113-calibration-fluid-diesel-degreasers-maxzz.jpg" alt="" loading="lazy"><span class="k">Fluids</span><b>Calibration fluid and degreasers</b><p>ISO 4113 calibration fluid for test benches, plus degreasers for parts washing and ultrasonic cleaning.</p><span class="go">Shop fluids <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
-<a class="px-bn" href="#/c/Kit"><img src="/assets/mg/contamination-kit-essentials-diesel-fuel-system-repair.jpg" alt="" loading="lazy"><span class="k">Contamination kits</span><b>The whole fuel system repair, in one box</b><p>Everything needed after a pump failure, under one part number.</p><span class="go">See the kits <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+<a class="px-bn" href="#/c/Fluid"><span class="tx"><span class="k">Fluids</span><b>Calibration fluid and degreasers</b><p>ISO 4113 fluid for test benches and degreasers for parts cleaning.</p><span class="go">Shop fluids <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span><span class="ph"><img src="/assets/mg/iso-4113-calibration-fluid-diesel-degreasers-maxzz.jpg" alt="" loading="lazy"></span></a>
+<a class="px-bn" href="#/c/Kit"><span class="tx"><span class="k">Contamination kits</span><b>Fuel system repair kits</b><p>Everything needed after a pump failure, under one part number.</p><span class="go">See the kits <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span><span class="ph"><img src="/assets/mg/contamination-kit-essentials-diesel-fuel-system-repair.jpg" alt="" loading="lazy"></span></a>
 </div>
 </div>
 
@@ -1232,7 +1254,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 </div>
 
 <div class="px-sec">
-<a class="px-bn full" href="/aftertreatment"><img src="/assets/mg/maxzz-nox-tester-box-nox-sensor-diagnostic.jpg" alt="" loading="lazy" style="object-position:right center"><span class="k">Aftertreatment</span><b>Test NOx sensors and SCR systems<br>on the bench or on the vehicle</b><p>Maxzz test platforms for Euro 5 and Euro 6 aftertreatment systems.</p><span class="go">Learn about aftertreatment <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+<a class="px-bn full" href="/aftertreatment"><span class="tx"><span class="k">Aftertreatment</span><b>Test NOx sensors and SCR systems, on the bench or on the vehicle</b><p>Maxzz test platforms for Euro 5 and Euro 6 aftertreatment systems.</p><span class="go">Learn about aftertreatment <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></span><span class="ph"><img src="/assets/mg/maxzz-nox-tester-box-nox-sensor-diagnostic.jpg" alt="" loading="lazy"></span></a>
 </div>
 <div class="px-sec" v-if="!me">
 <div class="px-promo">
@@ -1848,7 +1870,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=31"></script>
+<script src="/js/portal-app.js?v=32"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
