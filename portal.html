@@ -1172,7 +1172,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
  .px .px-d4 .px-conf-n b{font-size:26px}.px .px-d4 .px-conf-h b{font-size:19px;line-height:1.3}.px .px-d4 .px-conf-h p{font-size:14px}
 }
 .px .px-qw{border:1px solid #e3e6e9;border-radius:10px;overflow:hidden;background:#fff}.px .px-qw>.px-ord{border:0;border-radius:0;width:100%;text-align:left;cursor:pointer;background:#fff}
-.px .px-qw>.px-ord:hover{background:#f7f8f9}@media (min-width:761px){.px .px-qw>.px-ord{grid-template-columns:minmax(0,1fr) 120px 170px 20px}}@media (max-width:760px){.px .px-qchev{display:none}.px .px-qw .px-ord-t{display:none!important}}.px .px-qchev{color:#8a9097;transition:transform .2s;flex:none;margin-left:6px}.px .px-qw.open .px-qchev{transform:rotate(180deg)}
+.px .px-qw>.px-ord:hover{background:#f7f8f9}@media (min-width:761px){.px .px-qw>.px-ord{grid-template-columns:minmax(0,1fr) auto auto auto}}.px .px-qmore{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 12px 0 14px;border:1px solid #dfe2e6;border-radius:50px;font-size:13px;font-weight:500;color:#1d2126;background:#fff;transition:border-color .2s,background .2s}.px .px-qw>.px-ord:hover .px-qmore{border-color:#1d2126}.px .px-qw.open .px-qmore{background:#1d2126;color:#fff;border-color:#1d2126}.px .px-qmore .px-qchev{margin:0;color:currentColor}@media (max-width:760px){.px .px-qmore{display:none}.px .px-qw .px-ord-t{display:none!important}}.px .px-qchev{color:#8a9097;transition:transform .2s;flex:none;margin-left:6px}.px .px-qw.open .px-qchev{transform:rotate(180deg)}
 .px .px-qd{border-top:1px solid #eceef0;padding:18px 20px 20px;display:flex;flex-direction:column;gap:16px}
 .px .px-qtl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:12.5px;color:#8a9097}.px .px-qtl li{display:flex;flex-direction:column;gap:8px}.px .px-qtl i{height:4px;border-radius:4px;background:#e3e6e9}.px .px-qtl li.on{color:#1d2126}.px .px-qtl li.on i{background:#fc771d}
 .px .px-qmeta{margin:0;display:flex;flex-wrap:wrap;gap:10px 32px}.px .px-qmeta dt{font-size:12px;color:#8a9097;margin:0 0 2px}.px .px-qmeta dd{margin:0;font-size:14px;color:#1d2126}
@@ -1906,7 +1906,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-if="q.po" v-text="'PO ' + q.po"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part, ' : ' parts, ') + qUnits(q) + (qUnits(q) === 1 ? ' unit' : ' units')"></span></small></div>
 <span class="px-ord-t"></span>
 <span class="px-st" :class="qStat(q).c" v-text="qStat(q).t"></span>
-<svg class="px-qchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+<span class="px-qmore"><span v-text="qOpenId === q.id ? 'Hide' : 'Details'"></span><svg class="px-qchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
 </button>
 <div class="px-qd" v-if="qOpenId === q.id">
 <ol class="px-qtl"><li v-for="(t, i) in ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Ordered']" :class="i < qStat(q).at ? 'on' : ''"><i></i><span v-text="t"></span></li></ol>
