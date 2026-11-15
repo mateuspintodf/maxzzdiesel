@@ -136,7 +136,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -355,7 +355,7 @@
       });
       var out = Object.keys(sc).map(function (c) { var r = self.map[c]; return [sc[c] + (self.img(c) ? 1 : 0) + (self.specs && self.specs[c] ? 0.5 : 0), r]; })
         .sort(function (a, b) { return b[0] - a[0]; }), cats = {}, pick = [];
-      out.forEach(function (x) { if (pick.length >= 4) return; var k = x[1][3]; if ((cats[k] || 0) >= 2) return; cats[k] = (cats[k] || 0) + 1; pick.push(x[1]); });
+      out.forEach(function (x) { if (pick.length >= 8) return; var k = x[1][3]; if ((cats[k] || 0) >= 3) return; cats[k] = (cats[k] || 0) + 1; pick.push(x[1]); });
       FGC.k = key; FGC.v = pick; return pick;
     },
     get savedShip() {
@@ -391,6 +391,7 @@
     get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
     // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
+    get extras() { return (this.route === 'quote' || this.route === 'cart') && this.arg === 'extras'; },
     get inFlow() { var r = this.route; return (r === 'quote') || ((r === 'cart' || r === 'checkout') && this.canOrder); },
     get flow() { return this.route === 'quote' ? 'quote' : 'order'; },
     get step() {
@@ -438,6 +439,7 @@
       this.err = '';
       if (this.step === 1) {
         if (this.flow === 'order' && this.noPriceLines.length) { this.err = ''; this.flash('Move the parts without online price to a quote first'); return; }
+        if (!this.extras && this.forgot.length) { this.exBase = this.lines.length; return this.nav(this.flow === 'order' ? 'cart' : 'quote', 'extras'); }
         return this.nav(this.flow === 'order' ? 'checkout' : 'quote', this.flow === 'order' ? '' : 'details');
       }
       if (this.step === 2) {
@@ -634,6 +636,7 @@
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
+      if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }
       if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
