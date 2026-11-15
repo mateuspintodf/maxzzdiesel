@@ -40,6 +40,10 @@
     "api/img.js": {
       "includeFiles": "data/photos.json",
       "maxDuration": 15
+    },
+    "api/migrate-fotos.js": {
+      "includeFiles": "data/photos.json",
+      "maxDuration": 60
     }
   },
   "headers": [
