@@ -3989,11 +3989,6 @@
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212921_ba0a8452-9ea5-442f-8499-0d4de1464502.webp",
 "ext": "webp"
 },
-"delphi-ejbr04701d-fuel-injector-ssangyong": {
-"code": "DE.EJBR04701D",
-"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213058_a60fc1c1-067f-4247-ad00-d9182ad4ee26.webp",
-"ext": "webp"
-},
 "delphi-ejbr05001d-fuel-injector-jcb": {
 "code": "DE.EJBR05001D",
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213057_34a3f927-3448-42fe-befe-19229068982c.webp",
@@ -4114,11 +4109,6 @@
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_833bcf9a-ba54-470d-8267-7ce19612b2da.webp",
 "ext": "webp"
 },
-"denso-0950008011-fuel-injector-sino-truck-howo-d12-a7": {
-"code": "DN.095000-8011",
-"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213510_87c7e6a9-a4ce-46d0-b812-165078101c11.webp",
-"ext": "webp"
-},
 "denso-0950008100-fuel-injector-sinotruck-howo-a7": {
 "code": "DN.095000-8100",
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_8a7226c6-ec6d-4532-8a33-ecc7a53a5931.webp",
@@ -4169,11 +4159,6 @@
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213600_46063b41-0d89-4540-a0f0-b214518b3319.webp",
 "ext": "webp"
 },
-"lead-3264700-fuel-injector-lead": {
-"code": "LD.326-4700",
-"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213643_748c2ab8-51d1-4d12-9de6-c8144089c65b.webp",
-"ext": "webp"
-},
 "maxzz-2872127px-fuel-injector": {
 "code": "MX.2872127PX",
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213644_3f1ba8fd-9d8f-40b2-a862-e35940126e9f.webp",
@@ -4207,6 +4192,1071 @@
 "siemens-bk2q9k546ag-diesel-part-ranger-3-2-transit-2": {
 "code": "SM.BK2Q-9K546-AG",
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213654_a94404f5-ed51-4443-9c23-f4a8d5047380.webp",
+"ext": "webp"
+},
+"lead-3264700-fuel-injector-lead-2": {
+"code": "LD.326-4700",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"denso-0950008011-fuel-injector-sino-truck-howo-d12-a7-2": {
+"code": "DN.095000-8011",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_8a7226c6-ec6d-4532-8a33-ecc7a53a5931.webp",
+"ext": "webp"
+},
+"delphi-ejbr04701d-fuel-injector-ssangyong-2": {
+"code": "DE.EJBR04701D",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212913_22d17d11-fc2e-4781-a2a6-76caa1495c84.webp",
+"ext": "webp"
+},
+"rb5237650core-diesel-part-core": {
+"code": "DT.RB5237650CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175942_7ec9b36a-9334-44a7-a50a-974c60f8b98f.webp",
+"ext": "webp"
+},
+"bosch-0445110464-fuel-injector-cr-injector-yanmar": {
+"code": "BO.0.445.110.464",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201653_d213f3a9-a17c-443a-907d-4f1f4a22db78.webp",
+"ext": "webp"
+},
+"bosch-rb5235575core-diesel-part-core": {
+"code": "BO.RB5235575CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ea703ca8-6d02-4b17-ab0c-bbd323dd1c12.webp",
+"ext": "webp"
+},
+"bosch-0445124022-fuel-injector-cr-fuel-injector-voe22336268": {
+"code": "BO.0.445.124.022",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_1cbddd90-7bc5-4e14-b860-e304056341e0.webp",
+"ext": "webp"
+},
+"denso-2601006010-fuel-injector-toyota-1kd": {
+"code": "DN.260100-6010",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"1825900core-diesel-part-core": {
+"code": "GP.1825900CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180317_150d9939-f958-4a97-bbe5-36d8b1c79a07.webp",
+"ext": "webp"
+},
+"denso-295050221-fuel-injector-295050-1050": {
+"code": "DN.295050-221*",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"alliant-power-ap54904core-diesel-part-core": {
+"code": "AP.AP54904CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"bosch-0986435532core-diesel-part-core": {
+"code": "BO.0.986.435.532CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0986435519core-diesel-part-core": {
+"code": "BO.0.986.435.519CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"denso-2957000530-fuel-injector-2gd-ftv-2-4l": {
+"code": "DN.295700-0530",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"bosch-0986435251core-diesel-part-core": {
+"code": "BO.0.986.435.251CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0986435251-fuel-injector": {
+"code": "BO.0.986.435.251",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0986441029core-diesel-part-core": {
+"code": "BO.0.986.441.029CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0445110777-fuel-injector": {
+"code": "BO.0.445.110.777",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0445120076-fuel-injector-yanmar": {
+"code": "BO.0.445.120.076",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201834_e37e7985-bdad-4663-b76a-abb5b6f390b8.webp",
+"ext": "webp"
+},
+"bosch-0445110507-fuel-injector-yanmar": {
+"code": "BO.0.445.110.507",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201651_17e51679-c275-47d3-9521-ed6bded52568.webp",
+"ext": "webp"
+},
+"denso-095000588-fuel-injector-toyota-hiace-2-5l": {
+"code": "DN.095000-588#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213139_bec149e4-5fcb-45c2-b105-66d4fa7635ea.webp",
+"ext": "webp"
+},
+"delphi-bebe4d14102-fuel-injector-eui-e3": {
+"code": "DE.BEBE4D14102",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212913_b4d93b60-1515-4079-abfd-9eaa3ffadb89.webp",
+"ext": "webp"
+},
+"bosch-0986437364-fuel-injector": {
+"code": "BO.0.986.437.364",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0986435053-fuel-injector": {
+"code": "BO.0.986.435.053",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0445110968-fuel-injector-d18-d24-d34-engines": {
+"code": "BO.0.445.110.968",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0445120140-fuel-injector": {
+"code": "BO.0.445.120.140",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180406_6435ef72-32df-4b90-89b5-c8bde49f47c5.webp",
+"ext": "webp"
+},
+"bosch-0414001003-fuel-pump-unit-pump": {
+"code": "BO.0.414.001.003",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0986435547-fuel-injector": {
+"code": "BO.0.986.435.547",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0445124045-fuel-injector": {
+"code": "BO.0.445.124.045",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194226_d7566be6-7ed4-4687-96fe-11db4abb2225.webp",
+"ext": "webp"
+},
+"bosch-0445110457-fuel-injector": {
+"code": "BO.0.445.110.457",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_a02436e1-6232-47e7-b75a-dad432df676a.webp",
+"ext": "webp"
+},
+"denso-095000969-fuel-injector": {
+"code": "DN.095000-969#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202336_fad30321-7afb-4f11-818a-991b86cac3ec.webp",
+"ext": "webp"
+},
+"bosch-0445117035-fuel-injector": {
+"code": "BO.0.445.117.035",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150135_ff97b680-24ec-4c3e-a494-1000f033a2f1.webp",
+"ext": "webp"
+},
+"denso-0950006395-fuel-injector-isuzu": {
+"code": "DN.095000-6395",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"bosch-0445110566-fuel-injector": {
+"code": "BO.0.445.110.566",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_afcb898e-ea2d-4134-a293-becc576b3bd2.webp",
+"ext": "webp"
+},
+"bosch-0445117083-fuel-injector": {
+"code": "BO.0.445.117.083",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150135_ff97b680-24ec-4c3e-a494-1000f033a2f1.webp",
+"ext": "webp"
+},
+"denso-2601004030-fuel-injector-mitsubishi-triton": {
+"code": "DN.260100-4030",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202418_de17a90e-9124-4ed2-af5f-01792ecca41b.webp",
+"ext": "webp"
+},
+"bosch-0445120273-fuel-injector": {
+"code": "BO.0.445.120.273",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445120062-fuel-injector": {
+"code": "BO.0.445.120.062",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201745_2ea1efbd-9737-4650-94da-82dfa40f42db.webp",
+"ext": "webp"
+},
+"bosch-0445110540-fuel-injector": {
+"code": "BO.0.445.110.540",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0445120519-fuel-injector": {
+"code": "BO.0.445.120.519",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201834_9887b460-d240-4d12-94a8-a3f80f3cbf76.webp",
+"ext": "webp"
+},
+"bosch-0445120257-fuel-injector": {
+"code": "BO.0.445.120.257",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445120133-fuel-injector": {
+"code": "BO.0.445.120.133",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212638_c7d58aaa-f811-4049-be65-69fdd91cc4d9.webp",
+"ext": "webp"
+},
+"bosch-0986435109-fuel-injector-sprinter-2-7l": {
+"code": "BO.0.986.435.109",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0445110545-fuel-injector": {
+"code": "BO.0.445.110.545",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0414703009-fuel-injector-unit-injector": {
+"code": "BO.0.414.703.009",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445118061-fuel-injector-2023-2024-ford-6-7l-powerstroke": {
+"code": "BO.0.445.118.061",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194142_a51daf59-1a49-4c95-b8f0-e937803158d4.webp",
+"ext": "webp"
+},
+"bosch-0445110335-fuel-injector-cri-2-13-14-16": {
+"code": "BO.0.445.110.335",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_8ebf2306-555b-4feb-b5c2-f53e13147437.webp",
+"ext": "webp"
+},
+"denso-0950005391-fuel-injector-hino-j05d": {
+"code": "DN.095000-5391",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"bosch-0445120064-fuel-injector": {
+"code": "BO.0.445.120.064",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201745_2ea1efbd-9737-4650-94da-82dfa40f42db.webp",
+"ext": "webp"
+},
+"bosch-0445110313-fuel-injector": {
+"code": "BO.0.445.110.313",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_8ebf2306-555b-4feb-b5c2-f53e13147437.webp",
+"ext": "webp"
+},
+"bosch-0445120351-fuel-injector-holland": {
+"code": "BO.0.445.120.351",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194226_41823937-3065-4e21-b13b-df60bb891662.webp",
+"ext": "webp"
+},
+"denso-295050220r-fuel-injector-for-cummins-engine-qsf3-8-isb4-5": {
+"code": "DN.295050-220R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"denso-295050187-fuel-injector-isuzu": {
+"code": "DN.295050-187#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"bosch-0445116081-fuel-injector-volvo": {
+"code": "BO.0.445.116.081",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445110789-fuel-injector": {
+"code": "BO.0.445.110.789",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0445116016-fuel-injector": {
+"code": "BO.0.445.116.016",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445120214-fuel-injector-weichai": {
+"code": "BO.0.445.120.214",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"denso-2601006020-fuel-injector-hilux-2-5-2010-abril-2012-toyota": {
+"code": "DN.260100-6020",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"bosch-0445110561-fuel-injector": {
+"code": "BO.0.445.110.561",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_afcb898e-ea2d-4134-a293-becc576b3bd2.webp",
+"ext": "webp"
+},
+"bosch-0445110254-fuel-injector-hyundai-santa-fe-2": {
+"code": "BO.0.445.110.254",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"denso-095000551-fuel-injector-isuzu": {
+"code": "DN.095000-551#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"bosch-0445110101-fuel-injector": {
+"code": "BO.0.445.110.101",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bfd79fc5-15b4-4f34-9c4a-299e0021f9bf.webp",
+"ext": "webp"
+},
+"bosch-0445110544-fuel-injector": {
+"code": "BO.0.445.110.544",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0414755002-fuel-pump-diesel-fuel-injection-unit-pump-0": {
+"code": "BO.0.414.755.002",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445116024-fuel-injector-bmw-3-series-320d-coupe": {
+"code": "BO.0.445.116.024",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"denso-0950009510n-fuel-injector-neutral-box": {
+"code": "DN.095000-9510/N",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202336_fad30321-7afb-4f11-818a-991b86cac3ec.webp",
+"ext": "webp"
+},
+"bosch-0445110057-fuel-injector-peugeot-expert-2-0-hdi-2000-2007": {
+"code": "BO.0.445.110.057",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bd72b841-e4a4-4b85-9301-941ec31c1dc0.webp",
+"ext": "webp"
+},
+"bosch-0414720215r-fuel-injector-eui": {
+"code": "BO.0.414.720.215R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"denso-2957001060-fuel-injector-isuzu-dmax-4jj1-lat": {
+"code": "DN.295700-1060",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"bosch-0445110918-fuel-injector-jimic": {
+"code": "BO.0.445.110.918",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0414701082-fuel-injector-scania-1440579": {
+"code": "BO.0.414.701.082",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445118027-fuel-injector": {
+"code": "BO.0.445.118.027",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150136_8ee79bfd-1a0c-4dd2-a4f3-6a6377685de9.webp",
+"ext": "webp"
+},
+"bosch-0445115007-fuel-injector": {
+"code": "BO.0.445.115.007",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020642_ad34ef47-80dc-41e3-82f0-7e9eb73dc9a5.png",
+"ext": "png"
+},
+"bosch-0414703013-fuel-injector-unit-injector": {
+"code": "BO.0.414.703.013",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445110126-fuel-injector": {
+"code": "BO.0.445.110.126",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bfd79fc5-15b4-4f34-9c4a-299e0021f9bf.webp",
+"ext": "webp"
+},
+"denso-095000527-fuel-injector": {
+"code": "DN.095000-527#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202245_085f8bd5-12f4-48f2-91d1-de345d997508.webp",
+"ext": "webp"
+},
+"denso-095000500-fuel-injector": {
+"code": "DN.095000-500#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"bosch-0445120246-fuel-injector-deutz-tcd6-1l6": {
+"code": "BO.0.445.120.246",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445110616-fuel-injector": {
+"code": "BO.0.445.110.616",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"denso-0950008933-fuel-injector-isuzu-6hk1-4hk1": {
+"code": "DN.095000-8933",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_8a7226c6-ec6d-4532-8a33-ecc7a53a5931.webp",
+"ext": "webp"
+},
+"siemens-a2c59513553-fuel-injector-ranger-discovery-7h2q9k546cb": {
+"code": "SM.A2C59513553",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202432_ac331f41-2ee4-4fe7-a43b-575573241d0d.webp",
+"ext": "webp"
+},
+"denso-0950000741-fuel-injector-toyota": {
+"code": "DN.095000-0741",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_36f13831-f4cf-4325-be44-9b5963af388e.webp",
+"ext": "webp"
+},
+"denso-0950005474-fuel-injector": {
+"code": "DN.095000-5474",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_038d6445-0237-4fea-95a6-7891384bea08.webp",
+"ext": "webp"
+},
+"denso-0950007172-fuel-injector": {
+"code": "DN.095000-7172",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_ee89d15f-e852-4de9-b645-7b9c0bc16600.webp",
+"ext": "webp"
+},
+"denso-095000637r-fuel-injector-isuzu": {
+"code": "DN.095000-637R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213312_541a390d-58ac-4e32-9ba3-f80b3199a1b7.webp",
+"ext": "webp"
+},
+"denso-9709500075-fuel-injector-toyota-1kd-ftv-land-cruiser": {
+"code": "DN.9709500-075",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213600_46063b41-0d89-4540-a0f0-b214518b3319.webp",
+"ext": "webp"
+},
+"bosch-0445110190-fuel-injector-sprinter-cdi-311-313": {
+"code": "BO.0.445.110.190",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bfd79fc5-15b4-4f34-9c4a-299e0021f9bf.webp",
+"ext": "webp"
+},
+"bosch-0445116073-fuel-injector-free-lander": {
+"code": "BO.0.445.116.073",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445120548-fuel-injector-volvo-penta": {
+"code": "BO.0.445.120.548",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201834_9887b460-d240-4d12-94a8-a3f80f3cbf76.webp",
+"ext": "webp"
+},
+"denso-0950006640-fuel-injector-komatsu-saa6d125e-wa470": {
+"code": "DN.095000-6640",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213320_45a4097a-e5a4-4fa1-bc47-7dffdbdeea69.webp",
+"ext": "webp"
+},
+"bosch-0445120033-fuel-injector": {
+"code": "BO.0.445.120.033",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194518_d3d9114d-d908-4169-b281-8d7e7f4efd7d.webp",
+"ext": "webp"
+},
+"denso-0950005280-fuel-injector-hino-kobelco-j08e": {
+"code": "DN.095000-5280",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202245_085f8bd5-12f4-48f2-91d1-de345d997508.webp",
+"ext": "webp"
+},
+"bosch-0445120251-fuel-injector-cummins-6-7l-qsb-hpcr-injector": {
+"code": "BO.0.445.120.251",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445120386-fuel-injector-mercedes-benz-actros-mp4": {
+"code": "BO.0.445.120.386",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194226_41823937-3065-4e21-b13b-df60bb891662.webp",
+"ext": "webp"
+},
+"denso-0950009510r-fuel-injector-hino-n04c-euro-5-24v": {
+"code": "DN.095000-9510R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202336_fad30321-7afb-4f11-818a-991b86cac3ec.webp",
+"ext": "webp"
+},
+"bosch-0445110657-fuel-injector-iveco-holland-john-deere-case": {
+"code": "BO.0.445.110.657",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201744_19d07d28-40c7-4560-83de-ae8eb539c92b.webp",
+"ext": "webp"
+},
+"bosch-0445110260-fuel-injector": {
+"code": "BO.0.445.110.260",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"denso-0950007560r-fuel-injector-john-deere": {
+"code": "DN.095000-7560R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213401_28c0d2c9-1695-43b5-a37f-d5396537df94.webp",
+"ext": "webp"
+},
+"denso-0950000550r-fuel-injector-john-deere": {
+"code": "DN.095000-0550R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_36f13831-f4cf-4325-be44-9b5963af388e.webp",
+"ext": "webp"
+},
+"denso-0950007172r-fuel-injector": {
+"code": "DN.095000-7172 R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_ee89d15f-e852-4de9-b645-7b9c0bc16600.webp",
+"ext": "webp"
+},
+"denso-095000121-fuel-injector": {
+"code": "DN.095000-121*",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"denso-0950007510-fuel-injector": {
+"code": "DN.095000-7510",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213401_28c0d2c9-1695-43b5-a37f-d5396537df94.webp",
+"ext": "webp"
+},
+"bosch-0432191552-fuel-injector-volvo-penta-engine-tad1232ge": {
+"code": "BO.0.432.191.552",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150417_f87131b4-015d-459e-a446-51763569e84d.webp",
+"ext": "webp"
+},
+"bosch-0445110351-fuel-injector": {
+"code": "BO.0.445.110.351",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_8ebf2306-555b-4feb-b5c2-f53e13147437.webp",
+"ext": "webp"
+},
+"denso-0950000510-fuel-injector-nissan-x-trail-t30-2-2l-16600": {
+"code": "DN.095000-0510",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_36f13831-f4cf-4325-be44-9b5963af388e.webp",
+"ext": "webp"
+},
+"denso-0950000950-fuel-injector": {
+"code": "DN.095000-0950",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_36f13831-f4cf-4325-be44-9b5963af388e.webp",
+"ext": "webp"
+},
+"denso-0950007800-fuel-injector": {
+"code": "DN.095000-7800",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_ee89d15f-e852-4de9-b645-7b9c0bc16600.webp",
+"ext": "webp"
+},
+"denso-0950006860-fuel-injector-mitsubishi-fuso-6m60-me304627": {
+"code": "DN.095000-6860",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"bosch-0445120108-fuel-injector-volvo-penta": {
+"code": "BO.0.445.120.108",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180406_6435ef72-32df-4b90-89b5-c8bde49f47c5.webp",
+"ext": "webp"
+},
+"delphi-bebe4c01101-fuel-injector-eui-volvo-oe-reference-number": {
+"code": "DE.BEBE4C01101",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212834_96a98beb-8fee-465c-a4e5-7b6809c6f487.webp",
+"ext": "webp"
+},
+"delphi-bebe4d3401-fuel-injector-eui-volvo-oe-reference-number": {
+"code": "DE.BEBE4D3401",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212913_b4d93b60-1515-4079-abfd-9eaa3ffadb89.webp",
+"ext": "webp"
+},
+"bosch-0445120235-fuel-injector-sisu-trucks-oem-837073713": {
+"code": "BO.0.445.120.235",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_e216f068-45ed-4575-937f-2551a34a28d7.webp",
+"ext": "webp"
+},
+"bosch-0432191788-fuel-injector-volvo": {
+"code": "BO.0.432.191.788",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150417_f87131b4-015d-459e-a446-51763569e84d.webp",
+"ext": "webp"
+},
+"bosch-0986445008boschunitpump-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.986.445.008 BOSCH UNIT PUMP",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0445117034-fuel-injector": {
+"code": "BO.0.445.117.034",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150135_ff97b680-24ec-4c3e-a494-1000f033a2f1.webp",
+"ext": "webp"
+},
+"bosch-0414693005-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.693.005",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0986445008-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.986.445.008",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0414799018-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.799.018",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0414799030-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.799.030",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0414799025-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.799.025",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0986445103-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.986.445.103",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0414799038-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.799.038",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0414799017-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.799.017",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0414799009-fuel-pump-eletronic-unit-pump-for-mtu": {
+"code": "BO.0.414.799.009",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"denso-095000534-fuel-injector-isuzu-nqr75-4hk1-fvr34-6hk1": {
+"code": "DN.095000-534",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"bosch-0445120092-fuel-injector-holland-cr6-80": {
+"code": "BO.0.445.120.092",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194518_d3d9114d-d908-4169-b281-8d7e7f4efd7d.webp",
+"ext": "webp"
+},
+"bosch-0445120157-fuel-injector": {
+"code": "BO.0.445.120.157",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180406_6435ef72-32df-4b90-89b5-c8bde49f47c5.webp",
+"ext": "webp"
+},
+"bosch-0445120174-fuel-injector-volvo-penta-mercedes-mitsubishi": {
+"code": "BO.0.445.120.174",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_9e0baf9e-ec62-427c-9c5c-e5c414065c1e.webp",
+"ext": "webp"
+},
+"denso-0950005130-fuel-injector-assy-denso-nissan-x-trail-almera": {
+"code": "DN.095000-5130",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"bosch-0445120173-fuel-injector-volvo-penta-mercedes-mitsubishi": {
+"code": "BO.0.445.120.173",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_9e0baf9e-ec62-427c-9c5c-e5c414065c1e.webp",
+"ext": "webp"
+},
+"bosch-0445120289-fuel-injector-cummins": {
+"code": "BO.0.445.120.289",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445110484-fuel-injector": {
+"code": "BO.0.445.110.484",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_a02436e1-6232-47e7-b75a-dad432df676a.webp",
+"ext": "webp"
+},
+"bosch-0445120052-fuel-injector-volvo-penta-mercedes-mitsubishi": {
+"code": "BO.0.445.120.052",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201744_468be6f1-4c0e-4cac-80f4-e7c82f307bf5.webp",
+"ext": "webp"
+},
+"delphi-bebe4d21001-diesel-part-eui-for-hyundai-euro-iii-21914232": {
+"code": "DE.BEBE4D21001",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212913_b4d93b60-1515-4079-abfd-9eaa3ffadb89.webp",
+"ext": "webp"
+},
+"bosch-0414701062-fuel-injector-scania": {
+"code": "BO.0.414.701.062",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445120072-fuel-injector-4m50": {
+"code": "BO.0.445.120.072",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201834_e37e7985-bdad-4663-b76a-abb5b6f390b8.webp",
+"ext": "webp"
+},
+"delphi-bebe4d37001-diesel-part-delphi-eui-volvo": {
+"code": "DE.BEBE4D37001",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212913_b4d93b60-1515-4079-abfd-9eaa3ffadb89.webp",
+"ext": "webp"
+},
+"bosch-0414720215-fuel-injector-eui-injector": {
+"code": "BO.0.414.720.215",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445116017-fuel-injector-piezo-hyundai-for-kia": {
+"code": "BO.0.445.116.017",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445115028-fuel-injector-piezo": {
+"code": "BO.0.445.115.028",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020642_ad34ef47-80dc-41e3-82f0-7e9eb73dc9a5.png",
+"ext": "png"
+},
+"bosch-0445110044-fuel-injector-suzuki-chevrolet-citroen-fiat": {
+"code": "BO.0.445.110.044",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bd72b841-e4a4-4b85-9301-941ec31c1dc0.webp",
+"ext": "webp"
+},
+"bosch-0445110430-fuel-injector-jeep-grand-cherokee-3-0d-from": {
+"code": "BO.0.445.110.430",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_a02436e1-6232-47e7-b75a-dad432df676a.webp",
+"ext": "webp"
+},
+"bosch-0445116034-fuel-injector-amarok-2-0-2009-2012-03l130277c": {
+"code": "BO.0.445.116.034",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212551_0e653c85-1cc6-44b2-bb13-a89fc2190dbc.webp",
+"ext": "webp"
+},
+"bosch-0445116012-fuel-injector-land-rover-discovery": {
+"code": "BO.0.445.116.012",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445110269-fuel-injector": {
+"code": "BO.0.445.110.269",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"bosch-0445117084-fuel-injector-amarock": {
+"code": "BO.0.445.117.084",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150135_ff97b680-24ec-4c3e-a494-1000f033a2f1.webp",
+"ext": "webp"
+},
+"bosch-0445110519-fuel-injector-mb-a4000700187-mitsubishi": {
+"code": "BO.0.445.110.519",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"denso-295050105-fuel-injector-nissan-pathfinder-navara": {
+"code": "DN.295050-105#",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"bosch-0445110255-fuel-injector-hyundai-kia": {
+"code": "BO.0.445.110.255",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"bosch-0445120123-fuel-injector-cummins-oem-4937065-cummins-3-9": {
+"code": "BO.0.445.120.123",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180406_6435ef72-32df-4b90-89b5-c8bde49f47c5.webp",
+"ext": "webp"
+},
+"bosch-0445110251-fuel-injector-volvo-xc90-i-2-4-d-2005-2015": {
+"code": "BO.0.445.110.251",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"bosch-0445120218-fuel-injector-man": {
+"code": "BO.0.445.120.218",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445120126-fuel-injector": {
+"code": "BO.0.445.120.126",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180406_6435ef72-32df-4b90-89b5-c8bde49f47c5.webp",
+"ext": "webp"
+},
+"bosch-0445116050-fuel-injector": {
+"code": "BO.0.445.116.050",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445110512-fuel-injector-jac-2-8l": {
+"code": "BO.0.445.110.512",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201652_64818656-3036-4a22-b723-12d768082b1d.webp",
+"ext": "webp"
+},
+"bosch-0986435166-fuel-injector-amarok-2-0-tdi-16v": {
+"code": "BO.0.986.435.166",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"bosch-0445120304-fuel-injector-cummins-isle-engine-5272": {
+"code": "BO.0.445.120.304",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175829_88111263-a23e-4d84-aaa5-3d034b3dc7ba.webp",
+"ext": "webp"
+},
+"bosch-0445110682-fuel-injector-fiat-toro": {
+"code": "BO.0.445.110.682",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201744_19d07d28-40c7-4560-83de-ae8eb539c92b.webp",
+"ext": "webp"
+},
+"bosch-0432193445-fuel-injector-sth-mercedes-benz": {
+"code": "BO.0.432.193.445",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150417_f87131b4-015d-459e-a446-51763569e84d.webp",
+"ext": "webp"
+},
+"denso-0950000550-fuel-injector-john-deere": {
+"code": "DN.095000-0550",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_36f13831-f4cf-4325-be44-9b5963af388e.webp",
+"ext": "webp"
+},
+"denso-0950006813-fuel-injector-hino": {
+"code": "DN.095000-6813",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"bosch-0432193444-fuel-injector-cummins": {
+"code": "BO.0.432.193.444",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150417_f87131b4-015d-459e-a446-51763569e84d.webp",
+"ext": "webp"
+},
+"bosch-0445110265-fuel-injector-renault-master": {
+"code": "BO.0.445.110.265",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_43b8a0a8-36f0-4a2c-94bf-d4e4ebb495f9.webp",
+"ext": "webp"
+},
+"bosch-0445110248-fuel-injector-iveco-daily-2-8": {
+"code": "BO.0.445.110.248",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201557_9c7e83e3-a33f-4271-b583-c6183040dae0.webp",
+"ext": "webp"
+},
+"denso-0950006880r-fuel-injector-john-deere": {
+"code": "DN.095000-6880R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"bosch-0445110498-fuel-injector-mahindra": {
+"code": "BO.0.445.110.498",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_a02436e1-6232-47e7-b75a-dad432df676a.webp",
+"ext": "webp"
+},
+"bosch-0445110454-fuel-injector-jmc": {
+"code": "BO.0.445.110.454",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201610_a02436e1-6232-47e7-b75a-dad432df676a.webp",
+"ext": "webp"
+},
+"denso-2950500470-fuel-injector-toyota-hilux-iii-2-5-d-4d-4wd": {
+"code": "DN.295050-0470",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202418_de17a90e-9124-4ed2-af5f-01792ecca41b.webp",
+"ext": "webp"
+},
+"denso-0950008740-fuel-injector-toyota-hilux-2kd-ftv": {
+"code": "DN.095000-8740",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_8a7226c6-ec6d-4532-8a33-ecc7a53a5931.webp",
+"ext": "webp"
+},
+"denso-0950005050r-fuel-injector-john-deere": {
+"code": "DN.095000-5050R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"denso-2950500460-fuel-injector-toyota-1kd-ftv-euro-4-hilux-prado": {
+"code": "DN.295050-0460",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202418_de17a90e-9124-4ed2-af5f-01792ecca41b.webp",
+"ext": "webp"
+},
+"bosch-0445110429-fuel-injector-amarok": {
+"code": "BO.0.445.110.429",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_26d80ad6-092f-45b3-9303-e39a6a7863c1.webp",
+"ext": "webp"
+},
+"bosch-0445120028-fuel-injector-iveco": {
+"code": "BO.0.445.120.028",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194444_aadf2dc3-0759-4945-ab5b-1651194c4865.webp",
+"ext": "webp"
+},
+"denso-2957000140-fuel-injector-hyundai": {
+"code": "DN.295700-0140",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"bosch-0414701080-fuel-injector": {
+"code": "BO.0.414.701.080",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445120326-fuel-injector": {
+"code": "BO.0.445.120.326",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194226_41823937-3065-4e21-b13b-df60bb891662.webp",
+"ext": "webp"
+},
+"bosch-0445120043-fuel-injector-mwm-series-12": {
+"code": "BO.0.445.120.043",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194444_1c4dd04e-0afc-49fb-84d6-f7fcac6acd80.webp",
+"ext": "webp"
+},
+"bosch-0445116064-fuel-injector-land-rover-discovery-citroen": {
+"code": "BO.0.445.116.064",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445120336-fuel-injector-2013-2018-6-7-cummins-cab-chassis": {
+"code": "BO.0.445.120.336",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020641_db2b54bc-14f3-49cf-ae05-a88932162c77.png",
+"ext": "png"
+},
+"bosch-0445116043-fuel-injector-freelander": {
+"code": "BO.0.445.116.043",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"bosch-0445120080-fuel-injector": {
+"code": "BO.0.445.120.080",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194444_40c8ab7c-84f0-46db-bc91-cb4c832e7f80.webp",
+"ext": "webp"
+},
+"denso-0950005135-fuel-injector-nissan-x-trail-yd22-aw40a-aw4": {
+"code": "DN.095000-5135",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"bosch-0445120120-fuel-injector": {
+"code": "BO.0.445.120.120",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180406_6435ef72-32df-4b90-89b5-c8bde49f47c5.webp",
+"ext": "webp"
+},
+"bosch-0445120297-fuel-injector-cummins-isf3-8-5264272-agrale": {
+"code": "BO.0.445.120.297",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"siemens-bk2q9k546af-fuel-injector-ford-ranger-transit-citroen": {
+"code": "SM.BK2Q-9K546AF",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213654_a94404f5-ed51-4443-9c23-f4a8d5047380.webp",
+"ext": "webp"
+},
+"delphi-7135538-diesel-part-hydraulic-head": {
+"code": "DE.7135-538",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_ecb75a7e-db05-40a9-9a48-52aeab561b96.webp",
+"ext": "webp"
+},
+"delphi-28229873r-fuel-injector": {
+"code": "DE.28229873R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201957_0cececd5-174c-4103-bc6e-0fa00ae93cb3.webp",
+"ext": "webp"
+},
+"denso-2950501060-fuel-injector-nissan-navara": {
+"code": "DN.295050-1060",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"denso-2950500540-fuel-injector-hilux-2-5-final-2010-apr2012": {
+"code": "DN.295050-0540",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213559_992b9bde-fb65-4e31-b49e-af96c3e5d5b3.webp",
+"ext": "webp"
+},
+"denso-2957000560-fuel-injector-toyota-2gd-ftv-2-4l": {
+"code": "DN.295700-0560",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202417_01935eae-f4ca-463c-85a0-20b144221313.webp",
+"ext": "webp"
+},
+"denso-0950007560-fuel-injector-john-deere": {
+"code": "DN.095000-7560",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213401_28c0d2c9-1695-43b5-a37f-d5396537df94.webp",
+"ext": "webp"
+},
+"denso-0950006980-fuel-injector-isuzu-dmax-3-0l-4jj1": {
+"code": "DN.095000-6980",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"denso-0950006481-fuel-injector-john-deere": {
+"code": "DN.095000-6481",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213311_d36a9ff2-ab12-4d97-a306-012407959a44.webp",
+"ext": "webp"
+},
+"denso-0950000144-fuel-injector-isuzu-6hk1": {
+"code": "DN.095000-0144",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_36f13831-f4cf-4325-be44-9b5963af388e.webp",
+"ext": "webp"
+},
+"bosch-0445120272-fuel-injector-cummins-8-3-isc": {
+"code": "BO.0.445.120.272",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445120225-fuel-injector-yuchai-engine-yc4g": {
+"code": "BO.0.445.120.225",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"bosch-0445120074-fuel-injector-volvo": {
+"code": "BO.0.445.120.074",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201834_e37e7985-bdad-4663-b76a-abb5b6f390b8.webp",
+"ext": "webp"
+},
+"bosch-0445120049-fuel-injector-mitsubishi-fuso-canter-4-9l": {
+"code": "BO.0.445.120.049",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194444_1c4dd04e-0afc-49fb-84d6-f7fcac6acd80.webp",
+"ext": "webp"
+},
+"bosch-0445120002-fuel-injector-iveco": {
+"code": "BO.0.445.120.002",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194518_d3d9114d-d908-4169-b281-8d7e7f4efd7d.webp",
+"ext": "webp"
+},
+"bosch-0445110647-fuel-injector-amarok": {
+"code": "BO.0.445.110.647",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201744_19d07d28-40c7-4560-83de-ae8eb539c92b.webp",
+"ext": "webp"
+},
+"bosch-0445110369-fuel-injector-amarok": {
+"code": "BO.0.445.110.369",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_8ebf2306-555b-4feb-b5c2-f53e13147437.webp",
+"ext": "webp"
+},
+"bosch-0445110189reman-fuel-injector-bosch": {
+"code": "BO.0.445.110.189 REMAN",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_398363ea-96de-4fdb-a3e7-372aa4a5a7dc.png",
+"ext": "png"
+},
+"bosch-0445110183-fuel-injector": {
+"code": "BO.0.445.110.183",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_398363ea-96de-4fdb-a3e7-372aa4a5a7dc.png",
+"ext": "png"
+},
+"bosch-0445110049-fuel-injector-land-rover": {
+"code": "BO.0.445.110.049",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bd72b841-e4a4-4b85-9301-941ec31c1dc0.webp",
+"ext": "webp"
+},
+"bosch-0445110008-fuel-injector-suzuki-chevrolet-citroen-fiat": {
+"code": "BO.0.445.110.008",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201558_bd72b841-e4a4-4b85-9301-941ec31c1dc0.webp",
+"ext": "webp"
+},
+"bosch-0414750004-fuel-pump-bosch-unit-pump": {
+"code": "BO.0.414.750.004",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0986437421-fuel-injector": {
+"code": "BO.0.986.437.421",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175941_ab06cef4-f405-4cd9-ad8e-ddef42f3824c.webp",
+"ext": "webp"
+},
+"alliant-power-6920ppcore-diesel-part-core": {
+"code": "PP.6920-PP CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150138_d0d52b00-f3ee-4afe-823a-ffcf703a376f.webp",
+"ext": "webp"
+},
+"bosch-0445110629-fuel-injector": {
+"code": "BO.0.445.110.629",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201744_19d07d28-40c7-4560-83de-ae8eb539c92b.webp",
+"ext": "webp"
+},
+"bosch-0445126001-fuel-injector": {
+"code": "BO.0.445.126.001",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194226_d7566be6-7ed4-4687-96fe-11db4abb2225.webp",
+"ext": "webp"
+},
+"bosch-0445118037-fuel-injector": {
+"code": "BO.0.445.118.037",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150136_8ee79bfd-1a0c-4dd2-a4f3-6a6377685de9.webp",
+"ext": "webp"
+},
+"alliant-power-ap54905core-diesel-part-core": {
+"code": "AP.AP54905CORE",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150046_4dededb9-1ca6-4cf9-b118-04450d700298.webp",
+"ext": "webp"
+},
+"bosch-0445120212-fuel-injector-iveco": {
+"code": "BO.0.445.120.212",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
 "ext": "webp"
 }
 }
