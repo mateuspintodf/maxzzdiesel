@@ -1671,4 +1671,17 @@
   });
 
   PetiteVue.createApp(app).mount('#app');
+  // Keep the sticky offsets in sync with the fixed header and the category bar
+  (function(){
+    var root = document.documentElement;
+    function sync(){
+      var h = document.querySelector('.pxh'), b = document.querySelector('.px-bar');
+      if (h) root.style.setProperty('--pxh', h.offsetHeight + 'px');
+      if (b) root.style.setProperty('--pxbar', b.offsetHeight + 'px');
+    }
+    window.addEventListener('resize', sync);
+    window.addEventListener('hashchange', function(){ setTimeout(sync, 60); });
+    setInterval(sync, 1500);
+    sync();
+  })();
 })();
