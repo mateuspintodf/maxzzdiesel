@@ -394,6 +394,17 @@
     qUnits: function (q) { return (q.lines || []).reduce(function (a, l) { return a + (l.qty || 0); }, 0); },
     qStat: function (q) { var m = { Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Ordered', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
     requote: function (q) { var self = this; (q.lines || []).forEach(function (l) { if (self.map[l.pn]) self.addQuote(l.pn, l.qty); }); this.flash('Parts added to your quote list', 'quote'); },
+    // print the document only, with a file name the PDF dialog uses: "Maxzz Diesel Quote request MXQ-10005 Company 2026-11-15"
+    printDoc: function () {
+      var d = this.route === 'o' && this.cur ? { kind: 'order', number: this.cur.number } : this.doc, acc = this.me && this.me.account;
+      var co = acc ? acc.company : (this.qd.company || ''), t = new Date(), ymd = t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2);
+      var name = ['Maxzz Diesel', d && d.kind === 'order' ? 'Order' : 'Quote request', d && d.number && !/confirmation/i.test(d.number) ? d.number : '', co, ymd].filter(Boolean).join(' ').replace(/[\\/:*?"<>|]+/g, '-');
+      var old = document.title, html = document.documentElement;
+      document.title = name; html.classList.add('px-printing');
+      var done = function () { document.title = old; html.classList.remove('px-printing'); window.removeEventListener('afterprint', done); };
+      window.addEventListener('afterprint', done); setTimeout(function () { window.print(); setTimeout(done, 1500); }, 50);
+      track('quote_pdf', { kind: d && d.kind || '' });
+    },
     get extras() { return (this.route === 'quote' || this.route === 'cart') && this.arg === 'extras'; },
     get inFlow() { var r = this.route; return (r === 'quote') || ((r === 'cart' || r === 'checkout') && this.canOrder); },
     get flow() { return this.route === 'quote' ? 'quote' : 'order'; },
