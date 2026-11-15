@@ -1078,6 +1078,12 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 .px .px-lvl.cur{box-shadow:0 0 0 2px var(--lc) inset,0 12px 28px rgba(29,33,38,.08)}
 /* part number as plain mono text, no chip */
 .px article.sc .sc-pn{background:none;padding:0;border-radius:0;color:#5f656c;font-size:12.5px}
+/* request/login stage: injector photo as a band at the top, content below it (never behind the form) */
+.px-stage .px-stage-bg{bottom:auto!important;height:560px;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 40% 44% / cover!important}
+.px-stage .px-stage-bg:after{background:linear-gradient(180deg,rgba(18,20,23,.55) 0%,rgba(18,20,23,0) 30%,rgba(18,20,23,0) 62%,rgba(22,25,29,1) 100%)!important}
+.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:470px!important}
+@media (max-width:1000px){.px-stage .px-stage-bg{height:360px;background-position:44% 72%!important}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:280px!important}}
+@media (max-width:560px){.px-stage .px-stage-bg{height:300px}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:230px!important}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
