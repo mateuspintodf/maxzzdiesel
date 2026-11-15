@@ -23,7 +23,7 @@
     return { title: title || desc, app: app, xr: xr };
   }
   // catalog text from Unleashed comes in mixed shouting case; one consistent case for every title and application line
-  var ACR = 'UIS SN OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
+  var ACR = 'GMC UIS SN OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
   var SMALL = ['for', 'and', 'with', 'of', 'to', 'in', 'on', 'or', 'the', 'a', 'an', 'by', 'from'];
   function nice(t) {
     t = String(t || '').replace(/\s*\(=\s*[^)]*\)/g, '').replace(/\b(?:Category|Description)\s*:\s*/gi, '').replace(/\s*:\s*$/, '').replace(/\s+NEW\s*:?\s*$/i, '').trim();
@@ -168,7 +168,10 @@
       out = out.filter(function (r) { return self.hasImg(r[0]); });
       this.cat.some(function (r) { if (out.length >= 8) return true; if ((r[3] === 'Injector' || r[3] === 'Pump') && self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
       this.cat.some(function (r) { if (out.length >= 8) return true; if (self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
-      return out.slice(0, 8);
+      // reviewed titles first: the first row a visitor sees should read cleanly
+      var sp = this.specs || {}, cur = function (r) { return sp[r[0]] && sp[r[0]].title ? 0 : 1; };
+      this.cat.some(function (r) { if (out.length >= 24) return true; if (cur(r) === 0 && self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
+      return out.map(function (r, i) { return [cur(r), i, r]; }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).map(function (x) { return x[2]; }).slice(0, 8);
     },
     get engs() { return ENG; },
     get side() { return ['home', 'c', 's', 'g', 'all'].indexOf(this.route) >= 0; },
@@ -555,7 +558,7 @@
       window.addEventListener('hashchange', function () { self.readHash(); });
       // account menu: close on a click outside it, on Escape and on navigation
       var closeMenus = function (e) { [].forEach.call(document.querySelectorAll('details.pxh-me[open]'), function (d) { if (!e || !d.contains(e.target)) d.removeAttribute('open'); }); };
-      document.addEventListener('click', closeMenus); window.addEventListener('hashchange', function () { closeMenus(); });
+      document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.pxh-menu a, .pxh-menu button')) { var d = e.target.closest('details'); if (d) d.removeAttribute('open'); return; } closeMenus(e); }); window.addEventListener('hashchange', function () { closeMenus(); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
       // mobile product page: the sticky buy bar shows only once the buy box has scrolled out of view
       var mb = function () { if (self.route !== 'p') { if (self.mbarOn) self.mbarOn = false; return; } var el = document.querySelector('.px-pd-info .px-qrow'); var on = !!el && el.getBoundingClientRect().bottom < 70; if (on !== self.mbarOn) self.mbarOn = on; };

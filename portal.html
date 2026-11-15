@@ -1078,12 +1078,27 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 .px .px-lvl.cur{box-shadow:0 0 0 2px var(--lc) inset,0 12px 28px rgba(29,33,38,.08)}
 /* part number as plain mono text, no chip */
 .px article.sc .sc-pn{background:none;padding:0;border-radius:0;color:#5f656c;font-size:12.5px}
-/* request/login stage: injector photo as a band at the top, content below it (never behind the form) */
-.px-stage .px-stage-bg{bottom:auto!important;height:560px;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 40% 44% / cover!important}
-.px-stage .px-stage-bg:after{background:linear-gradient(180deg,rgba(18,20,23,.55) 0%,rgba(18,20,23,0) 30%,rgba(18,20,23,0) 62%,rgba(22,25,29,1) 100%)!important}
-.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:470px!important}
-@media (max-width:1000px){.px-stage .px-stage-bg{height:360px;background-position:44% 72%!important}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:280px!important}}
-@media (max-width:560px){.px-stage .px-stage-bg{height:300px}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:230px!important}}
+/* sign-in / request access: split layout, injector photo on the left half, text and form on the right (photo never behind the form) */
+@media (min-width:1001px){
+  .px-stage .px-stage-bg{inset:0 auto auto 0!important;width:46%;height:100vh!important;max-height:100%;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 44% 62% / cover!important}
+  .px-stage .px-stage-bg:after{background:linear-gradient(90deg,rgba(18,20,23,0) 70%,#16191d 100%),linear-gradient(180deg,rgba(18,20,23,.55) 0%,rgba(18,20,23,0) 22%)!important}
+  .is-lp .px-stage-in,.px-stage .px-stage-in{display:flex!important;flex-direction:column;gap:20px;max-width:none;margin:0;padding:130px 56px 64px calc(46% + 56px)!important}
+  .px-stage .px-stage-l{display:contents}
+  .px-stage .px-stage-l>*{order:0;max-width:600px}
+  .px-stage .px-stage-in>.px-scard,.px-stage .px-stage-in>form,.px-stage .px-stage-in>div:not(.px-stage-l){order:1;max-width:600px;width:100%}
+  .px-stage .px-ben{order:2;grid-template-columns:repeat(3,1fr)!important;margin-top:8px}
+  .is-lp .px-stage-l h1,.px-stage .px-stage-l h1{font-size:40px;line-height:1.08;margin:0}
+  .px-stage .px-stage-l>p{margin:0}
+}
+@media (max-width:1000px){
+  .px-stage .px-stage-bg{bottom:auto!important;height:300px;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 44% 72% / cover!important}
+  .px-stage .px-stage-bg:after{background:linear-gradient(180deg,rgba(18,20,23,.55) 0%,rgba(18,20,23,0) 40%,rgba(22,25,29,1) 100%)!important}
+  .is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:230px!important}
+}
+@media (max-width:560px){.px-stage .px-stage-bg{height:260px}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:200px!important}}
+</style>
+
+<style>
 /* r10 visual */
 .px-rdm2 .bar{display:none!important}.px-rdm2.ok .ic,.px-rdm2 .ic{background:none;color:#5f656c;width:auto;height:auto;justify-content:flex-start}
 .px-lvl-h .ic{background:#eef0f2!important;color:#5f656c!important}.px-lvl.cur .px-lvl-h .ic{background:#fc771d!important;color:#fff!important}
@@ -1096,8 +1111,12 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 .px .px-incart{background:#fff;border:1.5px solid #1d2126;color:#1d2126}.px .px-incart:hover{background:#f4f5f6}
 .px-sug .th:empty::after{content:'';width:22px;height:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b0b5bb' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 3v5M12 16v5M3 12h5M16 12h5'/%3E%3C/svg%3E") no-repeat center/contain}
 @media (min-width:761px){.px .px-wrap{padding-bottom:160px}}
+/* r10 sales */
+.px-prnote{font-size:13px;color:#5f656c;margin:2px 0 0;padding:0}
+.px select.px-in{-webkit-appearance:none;appearance:none;padding-right:40px!important;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%231d2126' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 16px center}
+.px input.px-in[type=date]::-webkit-calendar-picker-indicator{opacity:.55;cursor:pointer;margin-right:4px}
+@media (max-width:760px){.px .px-pd-img:has(.sc-ph){aspect-ratio:auto!important;height:180px;min-height:0}}
 </style>
-
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
 
 <section class="px-hero" v-if="!lp" :class="[route === 'home' ? '' : 'compact', adminBar ? 'adm' : '']">
@@ -1337,7 +1356,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div v-if="fits.length"><div class="px-muted" style="margin-bottom:8px">Shop this vehicle</div><div class="px-fits"><a v-for="g in fits" :href="'#/g/' + g.key" v-text="g.label + ' ' + (g.years || '')"></a></div></div>
 <div class="px-buybox" v-if="logged">
 <div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
-<div class="px-tier" v-if="canOrder && price(pr[0]) != null">Your wholesale price<span v-if="REWARDS.on && !REWARDS.demo" v-text="' · earns ' + pts(pr[0]).toLocaleString('en-US') + ' pts'"></span></div>
+<div class="px-prnote" v-if="canOrder && price(pr[0]) != null">Your wholesale price<span v-if="REWARDS.on && !REWARDS.demo" v-text="' · earns ' + pts(pr[0]).toLocaleString('en-US') + ' pts'"></span></div>
 <div class="px-qrow" v-if="canOrder && price(pr[0]) != null"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(pr[0], cs(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(pr[0])" @change="csSet(pr[0], $event.target.value); $event.target.value = cs(pr[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(pr[0], cs(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red px-buy" :class="inCart(pr[0]) ? 'in' : ''" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? 'In cart · View cart' : 'Add to cart'"></button></div>
 <p class="px-por-note" v-if="canOrder && price(pr[0]) == null">No online price for this part. Add it to a quote and our team replies within one business day.</p>
 <div class="px-qrow" v-if="!canOrder || price(pr[0]) == null"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(pr[0], sq(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(pr[0])" @change="sqSet(pr[0], $event.target.value); $event.target.value = sq(pr[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(pr[0], sq(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red px-buy" :class="inQuote(pr[0]) ? 'in' : ''" @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote · View list' : 'Add to quote'"></button></div>
@@ -1888,7 +1907,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=33"></script>
+<script src="/js/portal-app.js?v=34"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
