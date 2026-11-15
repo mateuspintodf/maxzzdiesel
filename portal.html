@@ -1181,6 +1181,14 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 .px .px-qact{display:flex;gap:10px;flex-wrap:wrap}
 .px .px-st.Quoted{background:#e8f0fe;color:#1f4fa8}.px .px-st.Accepted,.px .px-st.Ordered{background:#e6f4ea;color:#1e7a3c}.px .px-st.Closed{background:#eef0f2;color:#5f656c}
 @media (max-width:760px){.px .px-qtl{grid-template-columns:1fr;gap:6px}.px .px-qtl li{flex-direction:row;align-items:center}.px .px-qtl i{width:28px;flex:none}.px .px-qlt th:nth-child(2){display:none}.px .px-qlt td:nth-child(2){display:none}.px .px-qd{padding:14px}}
+.px .px-xl{background:#fff;border-radius:12px;padding:4px 20px}
+.px .px-xr{display:grid;grid-template-columns:56px minmax(0,1fr) 150px auto;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid #eef0f2}.px .px-xr:last-child{border-bottom:0}
+.px .px-xr .th{width:56px;height:56px;border-radius:8px;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}.px .px-xr .th img{width:100%;height:100%;object-fit:cover}
+.px .px-xr .nm{display:flex;flex-direction:column;gap:2px;min-width:0}.px .px-xr .nm .k{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#c25a12;font-weight:600}
+.px .px-xr .nm a{font-family:inherit;color:#1d2126;font-weight:500;font-size:14.5px;line-height:1.35;text-decoration:none}.px .px-xr .nm a:hover{text-decoration:underline}
+.px .px-xr .nm .px-code2{font-size:12px;font-weight:500;color:#5f656c}.px .px-xr .pr{display:flex;flex-direction:column;gap:2px;align-items:flex-end;font-size:13px}.px .px-xr .pr b{font-size:15px;font-weight:600;white-space:nowrap}.px .px-xr .pr .px-por{font-size:13px}
+.px .px-xr .ac{display:flex;gap:8px;align-items:center}.px .px-xr .ac .px-btn{min-width:84px;justify-content:center}
+@media (max-width:760px){.px .px-xl{padding:2px 14px}.px .px-xr{grid-template-columns:48px minmax(0,1fr);grid-template-areas:"t n" "p p" "a a";gap:8px 12px}.px .px-xr .th{grid-area:t;width:48px;height:48px;align-self:start}.px .px-flowp .px-fbar-a .px-ghost.px-skip{display:inline-flex;flex:none;padding:0 16px}.px .px-flowp .px-fbar-a .px-clr2{display:none}.px .px-xr .nm{grid-area:n}.px .px-xr .pr{grid-area:p;flex-direction:row;justify-content:space-between;align-items:center}.px .px-xr .ac{grid-area:a}.px .px-xr .ac .px-btn{flex:1}}
 </style>
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
 
@@ -1627,31 +1635,19 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-perk-bar" v-if="!REWARDS.demo"><i :style="{ width: Math.min(100, flowTotal / 15) + '%' }"></i></div>
 </div>
 <div class="px-sec px-forgot" v-if="extras && lines.length && forgot.length">
-<div class="px-grid4">
-<article class="sc" v-for="r in forgot" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" alt="" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
-<button type="button" class="sc-qa" v-if="false" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
-<div class="sc-body">
-<span class="sc-pn" v-html="pnw(r[0])"></span>
-<span class="sc-cat"><span v-text="catLabel(r[3])"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
-<a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="title(r)"></a>
-<span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
+<div class="px-xl">
+<div class="px-xr" v-for="r in forgot" :key="r[0]">
+<a class="th" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="title(r)"><img v-if="img(r[0])" :src="img(r[0])" @error="imgFail(r[0])" alt="" loading="lazy"><span v-else class="px-thph" v-html="icon(catIc(r[3]))"></span></a>
+<div class="nm"><span class="k"><span v-text="catLabel(r[3])"></span><span v-if="r[4]" v-text="' · ' + r[4]"></span></span><a :href="'#/p/' + encodeURIComponent(r[0])" v-text="title(r)"></a><span class="px-code2" v-html="pnw(r[0])"></span></div>
+<div class="pr" v-if="logged"><b :class="price(r[0]) == null ? 'px-por' : ''" v-text="fmt(price(r[0]))"></b><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="ac" v-if="flow === 'order' && canOrder && price(r[0]) != null"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" :disabled="inCart(r[0])" @click="add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'Added' : 'Add'"></button></div>
+<div class="ac" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inQuote(r[0]) ? 'px-incart' : 'px-dark'" :disabled="inQuote(r[0])" @click="addQuote(r[0], sq(r[0]))" v-text="inQuote(r[0]) ? 'Added' : 'Add'"></button></div>
 </div>
-<div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
-<div class="sc-act" v-if="flow === 'order' && canOrder && price(r[0]) != null"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
-<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
-</div>
-<div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
-<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
-</div>
-</article>
 </div>
 </div>
 <div class="px-fbar" v-if="lines.length">
 <div class="px-fbar-t"><span v-text="lines.length + (lines.length === 1 ? ' part, ' : ' parts, ') + units + (units === 1 ? ' unit' : ' units')"></span><b v-if="showPrice" v-text="subLabel"></b></div>
-<div class="px-fbar-a" v-if="extras"><a class="px-clr2" :href="flow === 'order' ? '#/cart' : '#/quote'">Back to list</a><button type="button" class="px-btn px-ghost" @click="next" v-if="lines.length <= exBase">Skip</button><button type="button" class="px-btn px-red" @click="next" v-text="lines.length > exBase ? 'Continue with ' + (lines.length - exBase) + ' added' : 'Continue'"></button></div>
+<div class="px-fbar-a" v-if="extras"><a class="px-clr2" :href="flow === 'order' ? '#/cart' : '#/quote'">Back to list</a><button type="button" class="px-btn px-ghost px-skip" @click="next" v-if="lines.length <= exBase">Skip</button><button type="button" class="px-btn px-red" @click="next" v-text="lines.length > exBase ? 'Continue with ' + (lines.length - exBase) + ' added' : 'Continue'"></button></div>
 <div class="px-fbar-a" v-else><button type="button" class="px-clr2" @click="clearFlow">Clear list</button><a class="px-btn px-ghost" href="#/all">Keep shopping</a><button type="button" class="px-btn px-red" @click="next">Continue</button></div>
 </div>
 </div>
@@ -2012,7 +2008,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=40"></script>
+<script src="/js/portal-app.js?v=41"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
