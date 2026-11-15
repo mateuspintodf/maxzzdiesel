@@ -2,7 +2,7 @@
    Open catalog for everyone; prices, stock, cart and orders only for signed-in, approved customers.
    Anonymous visitors can add parts to the quote list (/quote), the same list the rest of the site uses. */
 (function () {
-  var CK = 'mx-portal-cart', QK = 'mx-quote';
+  var CK = 'mx-portal-cart', QK = 'mx-quote', FGC = {};
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function norm(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
@@ -325,6 +325,31 @@
       var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], codes = (this.fit.rel[p[0]] || []).concat(sr, (this.buy && this.buy[p[0]]) || []), seen = {};
       return codes.filter(function (c) { if (seen[c] || c === p[0]) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
     },
+    // cross-sell on the cart and quote list: bought-together history first, then parts for the same vehicles and engines in complementary categories
+    get forgot() {
+      var self = this, codes = this.lines.map(function (l) { return l.code; }), key = codes.join('|') + '#' + (this.buy ? Object.keys(this.buy).length : 0) + '#' + this.cat.length;
+      if (FGC.k === key) return FGC.v;
+      var COMP = { Injector: ['Repair part', 'Nozzle', 'Kit', 'Fluid', 'Tool'], Pump: ['Repair part', 'Rail', 'Kit', 'Injector'], Nozzle: ['Repair part', 'Injector', 'Tool'], Rail: ['Repair part', 'Pump', 'Injector'], 'Repair part': ['Injector', 'Nozzle', 'Tool'], Tool: ['Repair part', 'Fluid'], Fluid: ['Tool', 'Kit'], Kit: ['Fluid', 'Repair part', 'Tool'], 'Engine parts': ['Injector', 'Repair part'] };
+      var mine = codes.map(function (c) { return self.map[c]; }).filter(Boolean), have = {}, sc = {};
+      var etok = function (t) { return String(t || '').toUpperCase().replace(/\u2011/g, '-').split(/[^A-Z0-9.]+/).filter(function (w) { return /\d/.test(w) && /[A-Z]/.test(w) && w.length >= 3 && !/^\d{4}$/.test(w); }); };
+      codes.forEach(function (c) { have[c] = 1; });
+      var bump = function (c, n) { if (!c || have[c] || !self.map[c]) return; sc[c] = (sc[c] || 0) + n; };
+      mine.forEach(function (p) {
+        ((self.buy && self.buy[p[0]]) || []).forEach(function (c) { bump(c, 6); });
+        (self.fit.rel[p[0]] || []).forEach(function (c) { bump(c, 5); });
+        var comp = COMP[p[3]] || [], f = self.fit.items[p[0]], gens = f ? f[0] : [], eng = String(p[6] || ''); var et = etok(self.title(p));
+        self.cat.forEach(function (r) {
+          if (have[r[0]] || comp.indexOf(r[3]) < 0) return;
+          var g = gens.length && self.fit.items[r[0]];
+          if (g && g[0].some(function (k) { return gens.indexOf(k) >= 0; })) bump(r[0], 3 - comp.indexOf(r[3]) * 0.2);
+          else if (eng && r[6] && String(r[6]).split('').some(function (k) { return eng.indexOf(k) >= 0; }) && etok(self.title(r)).some(function (t) { return et.indexOf(t) >= 0; })) bump(r[0], 2 - comp.indexOf(r[3]) * 0.1);
+        });
+      });
+      var out = Object.keys(sc).map(function (c) { var r = self.map[c]; return [sc[c] + (self.img(c) ? 1 : 0) + (self.specs && self.specs[c] ? 0.5 : 0), r]; })
+        .sort(function (a, b) { return b[0] - a[0]; }), cats = {}, pick = [];
+      out.forEach(function (x) { if (pick.length >= 4) return; var k = x[1][3]; if ((cats[k] || 0) >= 2) return; cats[k] = (cats[k] || 0) + 1; pick.push(x[1]); });
+      FGC.k = key; FGC.v = pick; return pick;
+    },
     get ordersSorted() { return (this.orders || []).slice().sort(function (a, b) { return (b.created || 0) - (a.created || 0); }); },
     get relShown() { var r = this.related, n = r.length >= 8 ? 8 : r.length >= 4 ? 4 : r.length; return r.slice(0, n); },
     get buyAgain() {
@@ -587,7 +612,7 @@
       if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
-      if (r === 'p' && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
+      if ((r === 'p' || r === 'cart' || r === 'quote') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
       if (r === 'p' && a && this.cat.length && !this.map[a] && this.fixPart()) return;
