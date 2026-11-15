@@ -63,6 +63,22 @@
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
   var BENCH = {
     // Remade 4:3 from the Unleashed original, and family photos for similar parts
+    'BO.0.445.214.059': '/img/p/bosch-0445214059-fuel-rail-fiat-ducato-iveco-daily.webp',
+    'BO.0.445.214.100': '/img/p/bosch-0445214100-fuel-rail-ducato-3-0-2006-a-2014-iveco.webp',
+    'BO.0.445.223.005': '/img/p/bosch-0445223005-fuel-rail-assy.webp',
+    'BO.0.445.226.040': '/img/p/bosch-0445226040-fuel-rail-qsc-qsm11.webp',
+    'BO.0.445.226.042': '/img/p/bosch-0445226042-fuel-rail.webp',
+    'BO.0.455.214.274': '/img/p/bosch-0455214274-fuel-rail.webp',
+    'DE. 28263779': '/img/p/delphi-28263779-fuel-rail-common-d34-7256757-725-6757.webp',
+    '45PP3-1': '/img/p/45pp31-sensor-3-pin-thin-screw-nissan.webp',
+    'DE.28357705': '/img/p/delphi-28357705-fuel-rail-sensor-rail.webp',
+    'DN.499000-6160': '/img/p/denso-4990006160-fuel-rail-sensor-rail.webp',
+    'DN.499000-6320': '/img/p/denso-4990006320-fuel-rail-toyota.webp',
+    'DN.499000-6340': '/img/p/denso-4990006340-fuel-rail-toyota.webp',
+    'LD.55PP30-01': '/img/p/lead-55pp3001-fuel-rail-pressure-sensor-9307-528a.webp',
+    'BO.0.445.226.025': '/img/p/bosch-0445226025-fuel-rail-constellation-19-320e-2006-ford.webp',
+    'DN.17520-EB75D': '/img/p/denso-17520eb75d-fuel-rail-nissan.webp',
+    'LD.55PP06-03': '/img/p/lead-55pp0603-fuel-rail-pressure-sensor-5ws40039.webp',
     'BO.0.433.171.962': '/img/p/bosch-0433171962-injector-nozzle-cr-nozzle.webp',
     'MX.2419680': '/img/p/lead-2419680-fuel-injector-scania-dc09.webp',
     'BO.0.433.171.953': '/img/p/bosch-0433171953-injector-nozzle.webp',
