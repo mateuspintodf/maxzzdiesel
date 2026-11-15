@@ -7,6 +7,7 @@ const { createSalesQuote } = require('../lib/unleashed-quote');
 const { nextNumber, readJson, writeJson } = require('../lib/store');
 const { sessionEmail } = require('../lib/session');
 const crypto = require('crypto');
+const { send } = require('../lib/mail');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -40,7 +41,7 @@ module.exports = async (req, res) => {
   // signed-in users keep a history of their quote requests in the store
   if (who) {
     const key = 'portal/quotes/' + crypto.createHash('sha256').update(who).digest('hex').slice(0, 24) + '.json';
-    try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }
+    try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, needBy: ship.needBy, ship: shipText, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }
   }
   if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
   try {
@@ -66,6 +67,19 @@ module.exports = async (req, res) => {
       (customer.notes ? `<p><strong>Notes:</strong> ${esc(customer.notes)}</p>` : '');
     await addNote(html, [{ id: deal.id, type: 214 }, { id: contactId, type: 202 }]);
     await addTask(`Reply to quote ${number} · ${customer.company}${b2b ? ' · B2B interest' : ''}`, `${lines.length} lines, ${units} units. ${[customer.name, customer.email, customer.phone].filter(Boolean).join(' · ')}${shipText ? ' · ' + shipText : ''}`, [{ id: deal.id, type: 216 }, { id: contactId, type: 204 }], 2);
+    // confirmation to the customer: number, status, every line; never blocks the answer
+    try {
+      const row = (l) => `<tr><td style="padding:8px 0;border-bottom:1px solid #eef0f2;font-size:14px"><b style="font-family:Menlo,Consolas,monospace;font-size:13px;color:#1d2126">${esc(l.pn)}</b><br><span style="color:#5f6670">${esc(l.name)}</span></td><td align="right" style="padding:8px 0;border-bottom:1px solid #eef0f2;font-size:14px;white-space:nowrap">Qty ${l.qty}</td></tr>`;
+      const facts = [['Quote number', number], ['Status', 'Received, in review'], ship.po && ['PO / reference', ship.po], ship.needBy && ['Needed by', ship.needBy], shipText && ['Deliver to', shipText]].filter(Boolean)
+        .map((f) => `<tr><td style="padding:3px 0;color:#8a9097;font-size:13px;width:130px">${esc(f[0])}</td><td style="padding:3px 0;font-size:14px;color:#1d2126">${esc(f[1])}</td></tr>`).join('');
+      const body = `<p>We received your quote request. Our sales team replies with price, stock and lead time within one business day.</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:6px 0 18px">${facts}</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #1d2126">${lines.map(row).join('')}</table>
+<p style="margin:10px 0 0;font-size:13px;color:#8a9097">${lines.length} ${lines.length === 1 ? 'part' : 'parts'}, ${units} ${units === 1 ? 'unit' : 'units'}. Not an order: prices and availability are confirmed in writing by our sales team.</p>${customer.notes ? `<p style="margin:14px 0 0"><b>Your notes:</b> ${esc(customer.notes)}</p>` : ''}`;
+      const host = /^https:\/\/(www\.)?maxzzdiesel\.com$/.test(req.headers.origin || '') ? req.headers.origin : 'https://www.maxzzdiesel.com';
+      await send(customer.email, 'Quote request ' + number + ' received', 'We received your quote request', body,
+        who ? { url: host + '/portal#/orders', label: 'Follow it in My orders and quotes' } : null, { name: customer.name, greet: true });
+    } catch (e) { console.error('quote mail', e.message); }
     return res.status(200).json({ ok: true, id: number });
   } catch (e) {
     console.error(e);

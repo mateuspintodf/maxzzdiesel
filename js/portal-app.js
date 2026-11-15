@@ -136,7 +136,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -391,6 +391,9 @@
     get tab() { return this.dtab || (this.spec.desc ? 'ov' : 'sp'); },
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
     // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
+    qUnits: function (q) { return (q.lines || []).reduce(function (a, l) { return a + (l.qty || 0); }, 0); },
+    qStat: function (q) { var m = { Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Ordered', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
+    requote: function (q) { var self = this; (q.lines || []).forEach(function (l) { if (self.map[l.pn]) self.addQuote(l.pn, l.qty); }); this.flash('Parts added to your quote list', 'quote'); },
     get extras() { return (this.route === 'quote' || this.route === 'cart') && this.arg === 'extras'; },
     get inFlow() { var r = this.route; return (r === 'quote') || ((r === 'cart' || r === 'checkout') && this.canOrder); },
     get flow() { return this.route === 'quote' ? 'quote' : 'order'; },

@@ -1171,6 +1171,16 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
  .px .px-d4 .px-tl{grid-template-columns:1fr;gap:12px}.px .px-d4 .px-tl li{flex-direction:row;align-items:center}.px .px-d4 .px-tl li i{width:40px;flex:none}
  .px .px-d4 .px-conf-n b{font-size:26px}.px .px-d4 .px-conf-h b{font-size:19px;line-height:1.3}.px .px-d4 .px-conf-h p{font-size:14px}
 }
+.px .px-qw{border:1px solid #e3e6e9;border-radius:10px;overflow:hidden;background:#fff}.px .px-qw>.px-ord{border:0;border-radius:0;width:100%;text-align:left;cursor:pointer;background:#fff}
+.px .px-qw>.px-ord:hover{background:#f7f8f9}@media (min-width:761px){.px .px-qw>.px-ord{grid-template-columns:minmax(0,1fr) 120px 170px 20px}}@media (max-width:760px){.px .px-qchev{display:none}.px .px-qw .px-ord-t{display:none!important}}.px .px-qchev{color:#8a9097;transition:transform .2s;flex:none;margin-left:6px}.px .px-qw.open .px-qchev{transform:rotate(180deg)}
+.px .px-qd{border-top:1px solid #eceef0;padding:18px 20px 20px;display:flex;flex-direction:column;gap:16px}
+.px .px-qtl{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:8px;font-size:12.5px;color:#8a9097}.px .px-qtl li{display:flex;flex-direction:column;gap:8px}.px .px-qtl i{height:4px;border-radius:4px;background:#e3e6e9}.px .px-qtl li.on{color:#1d2126}.px .px-qtl li.on i{background:#fc771d}
+.px .px-qmeta{margin:0;display:flex;flex-wrap:wrap;gap:10px 32px}.px .px-qmeta dt{font-size:12px;color:#8a9097;margin:0 0 2px}.px .px-qmeta dd{margin:0;font-size:14px;color:#1d2126}
+.px .px-qlt{width:100%;border-collapse:collapse;font-size:14px}.px .px-qlt th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#8a9097;font-weight:500;padding:0 8px 8px 0;border-bottom:1px solid #1d2126}.px .px-qlt td{padding:10px 8px 10px 0;border-bottom:1px solid #eef0f2;vertical-align:top}.px .px-qlt .r{text-align:right}.px .px-qlt .mono a{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:#1d2126;font-weight:600;white-space:nowrap}
+.px .px-qnt{margin:0;font-size:14px;display:flex;flex-direction:column;gap:2px}.px .px-qnt b{font-weight:500;font-size:12px;color:#8a9097}
+.px .px-qact{display:flex;gap:10px;flex-wrap:wrap}
+.px .px-st.Quoted{background:#e8f0fe;color:#1f4fa8}.px .px-st.Accepted,.px .px-st.Ordered{background:#e6f4ea;color:#1e7a3c}.px .px-st.Closed{background:#eef0f2;color:#5f656c}
+@media (max-width:760px){.px .px-qtl{grid-template-columns:1fr;gap:6px}.px .px-qtl li{flex-direction:row;align-items:center}.px .px-qtl i{width:28px;flex:none}.px .px-qlt th:nth-child(2){display:none}.px .px-qlt td:nth-child(2){display:none}.px .px-qd{padding:14px}}
 </style>
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
 
@@ -1884,10 +1894,20 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <h2>Quote requests</h2>
 <div class="px-empty" v-if="!myQuotes.length">No quote requests yet. Add parts to your quote list and send it from there.</div>
 <div class="px-list">
-<div class="px-ord" v-for="q in myQuotes" :key="q.id">
-<div><b v-text="q.id"></b><small v-text="date(q.created) + (q.po ? ' · PO ' + q.po : '') + ' · ' + (q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></small></div>
+<div class="px-qw" v-for="q in myQuotes" :key="q.id" :class="qOpenId === q.id ? 'open' : ''">
+<button type="button" class="px-ord" @click="qOpenId = qOpenId === q.id ? '' : q.id" :aria-expanded="qOpenId === q.id ? 'true' : 'false'">
+<div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-if="q.po" v-text="'PO ' + q.po"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part, ' : ' parts, ') + qUnits(q) + (qUnits(q) === 1 ? ' unit' : ' units')"></span></small></div>
 <span class="px-ord-t"></span>
-<span class="px-st Parked" v-text="q.status === 'Sent' ? 'In review' : q.status"></span>
+<span class="px-st" :class="qStat(q).c" v-text="qStat(q).t"></span>
+<svg class="px-qchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+</button>
+<div class="px-qd" v-if="qOpenId === q.id">
+<ol class="px-qtl"><li v-for="(t, i) in ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Ordered']" :class="i < qStat(q).at ? 'on' : ''"><i></i><span v-text="t"></span></li></ol>
+<dl class="px-qmeta"><div><dt>Sent</dt><dd v-text="date(q.created)"></dd></div><div v-if="q.po"><dt>PO / reference</dt><dd v-text="q.po"></dd></div><div v-if="q.needBy"><dt>Needed by</dt><dd v-text="q.needBy"></dd></div><div v-if="q.ship"><dt>Deliver to</dt><dd v-text="q.ship"></dd></div><div v-if="q.expires"><dt>Quote valid until</dt><dd v-text="date(q.expires)"></dd></div></dl>
+<table class="px-qlt"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody><tr v-for="l in (q.lines || [])"><td class="mono"><a :href="'#/p/' + encodeURIComponent(l.pn)" v-text="l.pn"></a></td><td v-text="map[l.pn] ? title(map[l.pn]) : l.name"></td><td class="r" v-text="l.qty"></td></tr></tbody></table>
+<p class="px-qnt" v-if="q.notes"><b>Your notes</b><span v-text="q.notes"></span></p>
+<div class="px-qact"><button type="button" class="px-btn px-dark px-sm" @click="requote(q)">Add these parts to my quote list</button><a class="px-btn px-ghost px-sm" :href="'mailto:sales@maxzzdiesel.com?subject=' + encodeURIComponent('About quote ' + q.id)">Ask about this quote</a></div>
+</div>
 </div>
 </div>
 </div>
@@ -1992,7 +2012,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=39"></script>
+<script src="/js/portal-app.js?v=40"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

@@ -218,8 +218,25 @@ A.quotes = async (req, res) => {
   const w = await whoami(req);
   if (!w) return res.status(401).json({ error: 'login' });
   const key = 'portal/quotes/' + crypto.createHash('sha256').update(w.email).digest('hex').slice(0, 24) + '.json';
+  const list = (await readJson(key)) || [];
+  // refresh status of recent quotes that also went to Unleashed
+  if (configured()) {
+    let changed = false;
+    const todo = list.slice(0, 10).filter((q) => q.ulGuid && !['Completed', 'Deleted'].includes(q.ulStatus) && Date.now() - (q.checked || 0) >= 5 * 60 * 1000);
+    const budget = new Promise((r) => setTimeout(r, 8000));
+    await Promise.race([budget, Promise.all(todo.map(async (q) => {
+      try {
+        const sq = await ul('SalesQuotes/' + q.ulGuid, '', { timeoutMs: 8000 });
+        const st = sq && sq.QuoteStatus;
+        if (st && st !== q.ulStatus) { q.history = (q.history || []).concat([{ s: st, at: Date.now() }]); q.ulStatus = st; }
+        if (sq && sq.QuoteExpiryDate) q.expires = sq.QuoteExpiryDate;
+        q.checked = Date.now(); changed = true;
+      } catch (e) { console.error('quote status', e.message); }
+    }))]);
+    if (changed) await writeJson(key, list).catch(() => {});
+  }
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.json({ quotes: (await readJson(key)) || [] });
+  return res.json({ quotes: list });
 };
 
 A.order = async (req, res) => {
