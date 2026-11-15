@@ -5258,5 +5258,415 @@
 "code": "BO.0.445.120.212",
 "url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
 "ext": "webp"
+},
+"kubota-0950009690-fuel-injector": {
+"code": "KB.095000-9690",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202336_fad30321-7afb-4f11-818a-991b86cac3ec.webp",
+"ext": "webp"
+},
+"bosch-0445124047-fuel-injector-cummins-6-7l-isb-2019-2021-2": {
+"code": "BR.0.445.124.047",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194226_d7566be6-7ed4-4687-96fe-11db4abb2225.webp",
+"ext": "webp"
+},
+"bosch-0445120008-fuel-injector-01-04-duramx": {
+"code": "BR.0.445.120.008",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_194518_d3d9114d-d908-4169-b281-8d7e7f4efd7d.webp",
+"ext": "webp"
+},
+"dap-0950006320-fuel-injector": {
+"code": "DAP.095000-6320",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"bosch-0445116025-fuel-injector-detroit": {
+"code": "BO. 0.445.116.025",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201835_96204b42-1e8d-4594-9c6b-c257da90ee47.webp",
+"ext": "webp"
+},
+"kingstar-28342997-fuel-injector": {
+"code": "KS.28342997",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_cd7af808-64e8-4bbd-8700-60b6dfa1e87a.webp",
+"ext": "webp"
+},
+"kingstar-0445120067-fuel-injector": {
+"code": "KS.0.445.120.067",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212559_dc88dba4-4912-41e3-999b-ff405bd85240.webp",
+"ext": "webp"
+},
+"kingstar-0445110646-fuel-injector": {
+"code": "KS.0.445.110.646",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201744_19d07d28-40c7-4560-83de-ae8eb539c92b.webp",
+"ext": "webp"
+},
+"kingstar-2950500300-fuel-injector": {
+"code": "KS.295050-0300",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202418_de17a90e-9124-4ed2-af5f-01792ecca41b.webp",
+"ext": "webp"
+},
+"kingstar-0950005471-fuel-injector": {
+"code": "KS.095000-5471",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_038d6445-0237-4fea-95a6-7891384bea08.webp",
+"ext": "webp"
+},
+"kingstar-0950005550-fuel-injector": {
+"code": "KS.095000-5550",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201956_f9345b0a-e52a-4b2c-8b8e-dd72df26f06e.webp",
+"ext": "webp"
+},
+"kingstar-0950006243-fuel-injector-nissan-for-navara-yd25-euro-iv": {
+"code": "KS.095000-6243",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213311_85a3c9ae-af7a-4fba-b5f6-aea81bdda6a3.webp",
+"ext": "webp"
+},
+"kingstar-0950008290-fuel-injector-1kd": {
+"code": "KS.095000-8290",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213520_67f6dded-17df-4076-9264-f9e8d562f041.webp",
+"ext": "webp"
+},
+"0950006491r-fuel-injector": {
+"code": "MZ.095000-6491R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202335_53ed1c4b-1cc8-4265-91e9-afe918ddddc0.webp",
+"ext": "webp"
+},
+"0950006250r-fuel-injector": {
+"code": "MZ.095000-6250R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202245_214984b5-7cca-4f9b-b388-7a005ecdf6d9.webp",
+"ext": "webp"
+},
+"0950006481r-fuel-injector-john-deere-3520-re-529149": {
+"code": "MZ.095000-6481R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213311_d36a9ff2-ab12-4d97-a306-012407959a44.webp",
+"ext": "webp"
+},
+"dap-1278216-fuel-injector": {
+"code": "DAP.127-8216",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212828_cb80fc7d-ebdd-460c-a411-903cfc199182.webp",
+"ext": "webp"
+},
+"dap-0950006800-fuel-injector-kubota": {
+"code": "DAP.095000-6800",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202300_685f62d4-b564-47d2-837e-d1e90e723072.webp",
+"ext": "webp"
+},
+"lead-3200690-fuel-injector-cat-perkins-2645a749-c6-6": {
+"code": "LD.320-0690",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_201957_e73e3970-df47-485f-b2ad-758d26ec50bd.webp",
+"ext": "webp"
+},
+"0950006480r-fuel-injector": {
+"code": "MZ.095000-6480R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213311_d36a9ff2-ab12-4d97-a306-012407959a44.webp",
+"ext": "webp"
+},
+"0950006490r-fuel-injector": {
+"code": "MZ.095000-6490R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_202335_53ed1c4b-1cc8-4265-91e9-afe918ddddc0.webp",
+"ext": "webp"
+},
+"lead-0950008290-diesel-part-inyector-cr-hilux-3-0": {
+"code": "LD.095000-8290",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213520_67f6dded-17df-4076-9264-f9e8d562f041.webp",
+"ext": "webp"
+},
+"lead-0950007761-diesel-part-inyector-cr-hilux-2-5": {
+"code": "LD.095000-7761",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_833bcf9a-ba54-470d-8267-7ce19612b2da.webp",
+"ext": "webp"
+},
+"lead-0445110141-diesel-part-inyector-cr-renault-master-2-5": {
+"code": "LD.0.445.110.141",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212312_d5a72a63-f5b7-44ba-a3aa-e57db289f379.webp",
+"ext": "webp"
+},
+"lead-0445110189-diesel-part-inyector-cr-sprinter-euro-iii": {
+"code": "LD.0.445.110.189",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_398363ea-96de-4fdb-a3e7-372aa4a5a7dc.png",
+"ext": "png"
+},
+"bosch-0414702025-fuel-injector-eui-injector": {
+"code": "BO. 0.414.702.025",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261114_020640_6e196d8f-e906-45f1-86e8-68629f314d7d.png",
+"ext": "png"
+},
+"bosch-0445120216-fuel-injector-isuzu": {
+"code": "BO. 0.445.120.216",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150329_ff08073d-b87c-466e-b68d-b9b5da3c4dda.webp",
+"ext": "webp"
+},
+"delphi-28337917-fuel-injector-bobcat-forklift-injector": {
+"code": "DE.28337917",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"caterpillar-2645a753-fuel-injector-perkins-fuel-injector": {
+"code": "PK.2645A753",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"alliant-power-64900-fuel-injector": {
+"code": "AP.64900",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"continental-a2c975920080-fuel-injector": {
+"code": "CO.A2C975920080",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213654_282adf09-ff09-4656-b0e2-80c96cd6e745.webp",
+"ext": "webp"
+},
+"siemens-jb3q9k546ab-fuel-injector-continental": {
+"code": "SM.JB3Q-9K546-AB",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213654_a94404f5-ed51-4443-9c23-f4a8d5047380.webp",
+"ext": "webp"
+},
+"cummins-4954888-fuel-injector-cummins-isx": {
+"code": "CM.4954888",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175628_b6d61ae5-0cca-424f-b504-4c23a7f69de6.webp",
+"ext": "webp"
+},
+"delphi-28359042-fuel-injector-fit-for-dfi-diesel-engine": {
+"code": "DE.28359042",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"alliant-power-53907-fuel-injector": {
+"code": "AP.53907",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"alliant-power-ap63812bj-fuel-injector-heui-navistar-detroit-perkins": {
+"code": "AP.AP63812BJ",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"delphi-bebj1c01002-fuel-injector": {
+"code": "DE.BEBJ1C01002",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212834_96a98beb-8fee-465c-a4e5-7b6809c6f487.webp",
+"ext": "webp"
+},
+"cummins-5594305-fuel-injector": {
+"code": "CM.5594305",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175628_b6d61ae5-0cca-424f-b504-4c23a7f69de6.webp",
+"ext": "webp"
+},
+"cummins-2872068px-fuel-injector-cummins-8-3l": {
+"code": "CM.2872068PX",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_175628_b6d61ae5-0cca-424f-b504-4c23a7f69de6.webp",
+"ext": "webp"
+},
+"perkins-2645a749-fuel-injector-caterpillar-c6-6": {
+"code": "PK.2645A749",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"delphi-28490086-fuel-injector": {
+"code": "DE.28490086",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"delphi-28386106-fuel-injector-for-jac-x200-t60-t8-2-0": {
+"code": "DE.28386106",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"delphi-ex635919-fuel-injector-eui": {
+"code": "DE.EX635919",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180214_76d7bac2-458e-45cf-8f2e-7c467bdc2087.webp",
+"ext": "webp"
+},
+"siemens-a2c33351900-fuel-injector-nissan-navara-np300": {
+"code": "SM.A2C33351900",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213654_282adf09-ff09-4656-b0e2-80c96cd6e745.webp",
+"ext": "webp"
+},
+"delphi-ex631753-fuel-injector-cummins-celect": {
+"code": "DE.EX631753",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180214_76d7bac2-458e-45cf-8f2e-7c467bdc2087.webp",
+"ext": "webp"
+},
+"delphi-28232242-fuel-injector": {
+"code": "DE.28232242",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"caterpillar-2321172-fuel-injector-perkins-cat-3412-heui-injector": {
+"code": "CAT.232-1172",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"dap-1278209-fuel-injector-caterpillar-injector-1278209": {
+"code": "DAP.127-8209",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212828_cb80fc7d-ebdd-460c-a411-903cfc199182.webp",
+"ext": "webp"
+},
+"dap-1278222-fuel-injector": {
+"code": "DAP.127-8222",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212828_cb80fc7d-ebdd-460c-a411-903cfc199182.webp",
+"ext": "webp"
+},
+"delphi-28565337-fuel-injector-volkswagen-california-t6-2-0-tdi": {
+"code": "DE.28565337",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"delphi-28602948-fuel-injector-ducato-old": {
+"code": "DE.28602948",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"alliant-power-50904-fuel-injector-isuzu": {
+"code": "AP.50904",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"2367011030-fuel-injector-toyota-hilux-2-8-2017": {
+"code": "TO.23670-11030",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_833bcf9a-ba54-470d-8267-7ce19612b2da.webp",
+"ext": "webp"
+},
+"isuzu-8973113725-fuel-injector": {
+"code": "IZ.8-97311372-5",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_8a7226c6-ec6d-4532-8a33-ecc7a53a5931.webp",
+"ext": "webp"
+},
+"delphi-28270450-fuel-injector-jcb-js210-4-8": {
+"code": "DE.28270450",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"lead-3260690-fuel-injector": {
+"code": "LD.326-0690",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"denso-0934008610-injector-nozzle-dlla150p861": {
+"code": "DN.093400-8610",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213105_ebac63af-5152-484b-8ae6-7a77a34b2e62.webp",
+"ext": "webp"
+},
+"caterpillar-2530618-fuel-injector": {
+"code": "CAT.253-0618",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"caterpillar-3740750r-fuel-injector": {
+"code": "CAT.374-0750R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"caterpillar-3507555r-fuel-injector": {
+"code": "CAT.350-7555R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"caterpillar-3879427r-fuel-injector": {
+"code": "CAT.387-9427R",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"delphi-bebe4g1200-fuel-injector-volvo-mack-oem-21458369": {
+"code": "DE.BEBE4G1200",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212834_96a98beb-8fee-465c-a4e5-7b6809c6f487.webp",
+"ext": "webp"
+},
+"alliant-power-50903-fuel-injector-john-deere": {
+"code": "AP.50903",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"alliant-power-52902-fuel-injector-john-deere": {
+"code": "AP.52902",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"delphi-28236381-fuel-injector-hyundai": {
+"code": "DE.28236381",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"delphi-l194pbc-injector-nozzle-bebe4d24003-bebe4d24103": {
+"code": "DE.L194PBC",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213105_ebac63af-5152-484b-8ae6-7a77a34b2e62.webp",
+"ext": "webp"
+},
+"2367039475-fuel-injector-hilux-3-0-2012-2013-2014-2015": {
+"code": "TA.23670-39475",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_833bcf9a-ba54-470d-8267-7ce19612b2da.webp",
+"ext": "webp"
+},
+"alliant-power-bn183069101-fuel-injector-2000-2003-8-7l-perkins-1300": {
+"code": "AP.BN183069101",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_150001_dd2bf5b8-258f-45ef-a6ab-2163f1e76b86.webp",
+"ext": "webp"
+},
+"delphi-28264951-fuel-injector-chevrolet-captiva-2-2l": {
+"code": "DE.28264951",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
+},
+"caterpillar-3200677-fuel-injector-perkins": {
+"code": "CAT.320-0677",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"denso-2367011030-fuel-injector-hilux-2-8": {
+"code": "DN.23670-11030",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_833bcf9a-ba54-470d-8267-7ce19612b2da.webp",
+"ext": "webp"
+},
+"delphi-l215pbc-injector-nozzle": {
+"code": "DE.L215PBC",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213105_ebac63af-5152-484b-8ae6-7a77a34b2e62.webp",
+"ext": "webp"
+},
+"delphi-l430pba-injector-nozzle": {
+"code": "DE.L430PBA",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213105_ebac63af-5152-484b-8ae6-7a77a34b2e62.webp",
+"ext": "webp"
+},
+"delphi-l322pbc-injector-nozzle": {
+"code": "DE.L322PBC",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213105_ebac63af-5152-484b-8ae6-7a77a34b2e62.webp",
+"ext": "webp"
+},
+"delphi-l216pbc-injector-nozzle-bebe4d0800-bebe4d24002": {
+"code": "DE.L216PBC",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213105_ebac63af-5152-484b-8ae6-7a77a34b2e62.webp",
+"ext": "webp"
+},
+"denso-2959000270-fuel-injector-toyota-hilux-3-0": {
+"code": "DN.295900-0270",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213600_095eb606-6b85-445b-bfd0-4cf1d3c2f1c6.webp",
+"ext": "webp"
+},
+"caterpillar-2645a751-fuel-injector": {
+"code": "CA.2645A751",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"denso-2367030270rem-fuel-injector-toyota": {
+"code": "DN.23670-30270 REM",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_833bcf9a-ba54-470d-8267-7ce19612b2da.webp",
+"ext": "webp"
+},
+"caterpillar-10r7673-fuel-injector-eui": {
+"code": "CA.10R7673",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_180055_59b62a3a-d7cf-469c-971f-d0d4f9cd81a3.webp",
+"ext": "webp"
+},
+"isuzu-8976028034-fuel-injector-isuzu-7-8l": {
+"code": "IZ.8-97602803-4",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_213509_8a7226c6-ec6d-4532-8a33-ecc7a53a5931.webp",
+"ext": "webp"
+},
+"perkins-2645a747-fuel-injector-cat-perkins-2645a747-c6-4226779m1": {
+"code": "PK.2645A747",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212827_ce3f2a9c-8e9c-4dea-a9a1-2052a3773cb5.webp",
+"ext": "webp"
+},
+"delphi-28347042-fuel-injector-bobcat-1-8l-2-4l-3-4l": {
+"code": "DE.28347042",
+"url": "https://d8j0ntlcm91z4.cloudfront.net/user_3H0oOAtHplz8jxDIim1TQJWBSuO/hf_20261115_212835_9a682a9e-988f-4c91-93ec-6ee74c0a29dc.webp",
+"ext": "webp"
 }
 }
