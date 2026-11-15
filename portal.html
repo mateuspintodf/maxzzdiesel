@@ -1138,6 +1138,29 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 }
 .px .px-forgot{margin-top:28px}.px .px-forgot .px-sh{padding-left:20px}.px .px-forgot .px-sh h2{margin:0}.px .px-forgot .px-sh .px-muted{display:block;margin-top:4px;font-size:14px}
 @media (max-width:760px){.px .px-forgot .px-sh{padding-left:12px}}
+/* r10 UX P3 */
+.px .px-iw input[type=date].px-in{position:relative}
+.px .px-iw input[type=date]::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:auto;height:auto;opacity:0;cursor:pointer}
+.px .px-sort:focus-visible,.px select.px-in:focus-visible{outline:2px solid #fc771d;outline-offset:2px}
+.px .px-fo.dis,.px .px-fo.dis:hover{background:transparent!important;cursor:default}
+.px .px-earn .ic{width:auto;height:auto;background:none;color:#1d2126;border-radius:0;justify-content:flex-start}
+.px .px-dt.me{grid-template-columns:repeat(3,minmax(0,1fr))}
+.px .px-destw{gap:8px}.px .px-dest{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.px .px-rad{display:flex;gap:10px;align-items:flex-start;border:1px solid #dfe2e6;border-radius:8px;padding:12px 14px;cursor:pointer;background:#fff;font-size:14px}
+.px .px-rad.on{border-color:#1d2126;box-shadow:0 0 0 1px #1d2126}
+.px .px-rad input{margin:3px 0 0;accent-color:#1d2126}.px .px-rad b{display:block;font-weight:500;color:#1d2126}.px .px-rad small{display:block;color:#5f656c;font-size:13px;margin-top:2px;line-height:1.4}
+@media (max-width:560px){.px .px-dest{grid-template-columns:1fr}.px .px-dt.me{grid-template-columns:1fr}}
+/* r10 reviewers + owner */
+.px .px-paper-t td.r,.px .px-ltab td.lup{white-space:nowrap}
+.px .px-hs form:focus-within{box-shadow:0 0 0 3px rgba(252,119,29,.55),0 10px 30px rgba(0,0,0,.25)}
+.px .px-qty:focus-within{border-color:#1d2126}
+.px .px-qty input{color:#1d2126;background:transparent}
+.px .px-qty button:hover{background:#f1f2f4}
+@media (max-width:760px){
+ .px .px-qp{z-index:110;top:auto;max-height:calc(100vh - 230px);max-height:calc(100dvh - 230px)}
+ .px .px-flowp .px-fbar,.px .px-mbar,.px .px-mbar.solo{right:84px!important}
+}
+@media (min-width:761px) and (max-width:1180px){.px .px-bn2{grid-template-columns:1fr!important}}
 </style>
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
 
@@ -1631,8 +1654,12 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-g3" v-if="flow === 'order' && !pickup"><label class="px-f">City *<input class="px-in" v-model="co.city" autocomplete="address-level2" required></label><label class="px-f"><span v-text="/United States|Puerto Rico|Canada/.test(co.country || '') && !pickup ? 'State *' : 'State'"></span><input class="px-in" v-model="co.state" :class="coTried && !pickup && /United States|Puerto Rico|Canada/.test(co.country || '') && !String(co.state || '').trim() ? 'bad' : ''" autocomplete="address-level1"></label><label class="px-f"><span v-text="/United States|Puerto Rico|Canada/.test(co.country || '') && !pickup ? 'ZIP *' : 'ZIP'"></span><input class="px-in" v-model="co.zip" :class="coTried && !pickup && /United States|Puerto Rico|Canada/.test(co.country || '') && !String(co.zip || '').trim() ? 'bad' : ''" autocomplete="postal-code"></label></div>
 <label class="px-f" v-if="flow === 'order' && !pickup">Country<select class="px-in" v-model="co.country"><option v-for="c in countries" v-text="c"></option></select></label>
 <label class="px-f" v-if="flow === 'order' && !pickup && (co.country !== 'United States' || /forwarder/i.test(co.method || ''))">Freight forwarder and consignee tax ID<input class="px-in" v-model="co.fwd" maxlength="160" placeholder="Forwarder name, Miami address, consignee CNPJ / RUT / NIT"></label>
-<div class="px-dt" :class="me ? 'me' : ''" v-if="flow === 'quote'"><label class="px-f" v-if="flow === 'quote' && me && !qd.phone && !(me.account)">Phone or WhatsApp<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><input class="px-in" type="tel" v-model="qd.phone" autocomplete="tel" inputmode="tel" @input="qd.phone = maskPhone(qd.phone, qd.country)" placeholder="(954) 555-0123"></span></label><label class="px-f">PO or reference<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg><input class="px-in" v-model="qd.po" maxlength="60" placeholder="Optional"></span></label><label class="px-f">Needed by<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><input class="px-in" type="date" v-model="qd.needBy"></span></label></div>
+<div class="px-dt" :class="me ? 'me' : ''" v-if="flow === 'quote'"><label class="px-f" v-if="flow === 'quote' && me && !me.phone && !me.account">Phone or WhatsApp<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><input class="px-in" type="tel" v-model="qd.phone" autocomplete="tel" inputmode="tel" @input="qd.phone = maskPhone(qd.phone, qd.country)" placeholder="(954) 555-0123"></span></label><label class="px-f">PO or reference<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg><input class="px-in" v-model="qd.po" maxlength="60" placeholder="Optional"></span></label><label class="px-f">Needed by<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><input class="px-in" type="date" v-model="qd.needBy"></span></label></div>
 <label class="px-f" v-if="flow === 'quote' && !me">City and state<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><input class="px-in" v-model="qd.city" autocomplete="address-level2" placeholder="e.g. Miami, FL"></span></label>
+<div class="px-f px-destw" v-if="flow === 'quote' && me"><span>Deliver to</span>
+<div class="px-dest" v-if="savedShip"><label class="px-rad" :class="qd.dest !== 'other' ? 'on' : ''"><input type="radio" value="same" v-model="qd.dest"><span><b>Address on file</b><small v-text="shipLine(savedShip)"></small></span></label><label class="px-rad" :class="qd.dest === 'other' ? 'on' : ''"><input type="radio" value="other" v-model="qd.dest"><span><b>A different address</b><small>Job site, branch or forwarder</small></span></label></div>
+<div class="px-g2" v-if="!savedShip || qd.dest === 'other'"><input class="px-in" v-model="qd.street" autocomplete="street-address" placeholder="Street, city, state and ZIP" aria-label="Delivery address"><select class="px-in" v-model="qd.country" aria-label="Country"><option v-for="c in countries" v-text="c"></option></select></div>
+</div>
 <label class="px-f">Notes for our team<textarea class="px-in" v-if="flow === 'order'" v-model="co.notes" placeholder="Delivery window, core return, anything sales should know"></textarea><textarea class="px-in" v-else v-model="qd.notes" placeholder="Engine serial, VIN, core return, anything sales should know"></textarea></label>
 <input type="text" id="px-qhp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 <div class="px-err" v-if="err" v-text="err"></div>
@@ -1925,7 +1952,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-toast" v-if="toast" role="status"><span v-text="toast"></span><button type="button" class="px-tact" v-if="toastKind === 'quote'" @click="qOpen = true; toast = ''">Open list</button><a class="px-tact" v-if="toastKind === 'cart'" href="#/cart">View cart</a></div>
 <div class="px-qp-bd" v-if="qOpen" :class="qClosing ? 'out' : ''" @click="qClose()"></div>
 <div class="px-qp" v-if="qOpen" :class="qClosing ? 'out' : ''" role="dialog" aria-modal="true" tabindex="-1" aria-label="My quote list" v-effect="qOpen && $nextTick(() => { toast = ''; var x = $el.querySelector('.px-qp-x'); if (x) x.focus(); })">
-<div class="px-qp-h"><span><b>My quote list</b><small v-text="quoteN + (quoteN === 1 ? ' item, ' : ' items, ') + quoteUnits + (quoteUnits === 1 ? ' unit' : ' units')"></small></span><button type="button" class="px-qp-x" aria-label="Close" @click="qClose()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+<div class="px-qp-h"><span><b>My quote list</b><small v-text="quoteN + (quoteN === 1 ? ' part, ' : ' parts, ') + quoteUnits + (quoteUnits === 1 ? ' unit' : ' units')"></small></span><button type="button" class="px-qp-x" aria-label="Close" @click="qClose()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
 <div class="px-qp-l">
 <div class="px-qp-i" v-for="(l, i) in quote" :key="l.id">
 <a class="th" :href="'#/p/' + encodeURIComponent(l.id)" @click="qOpen = false"><img v-if="img(l.id)" :src="img(l.id)" @error="imgFail(l.id)" alt=""><span v-else class="px-thph" v-html="icon(catIc(l.cat))"></span></a>
@@ -1955,7 +1982,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=36"></script>
+<script src="/js/portal-app.js?v=38"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

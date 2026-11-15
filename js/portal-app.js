@@ -3,6 +3,9 @@
    Anonymous visitors can add parts to the quote list (/quote), the same list the rest of the site uses. */
 (function () {
   var CK = 'mx-portal-cart', QK = 'mx-quote', FGC = {};
+  // featured parts whose Unleashed text reads badly; wording only, same part and numbers
+  var BRP = { BO: 'Bosch', DN: 'Denso', ZX: 'Zexel', DE: 'Delphi', FB: 'Fratelli Bosio', JV: 'Java', LD: 'Lead', RB: 'Robiel', CO: 'Continental', SI: 'Siemens', VO: 'Volvo Penta', CAT: 'Caterpillar', AP: 'Alliant Power' };
+  var TFIX = { 'BO.0.414.702.010': 'Bosch Unit Pump for Volvo Penta, Fits Volvo L180E and L180E HL' };
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function norm(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
@@ -16,6 +19,9 @@
   function parse(desc) {
     var d = String(desc || ''), xr = [], m = d.match(/\(=\s*([^)]*)\)/);
     if (m) { xr = m[1].split(/[,;]/).map(function (s) { return s.trim(); }).filter(Boolean); d = d.replace(m[0], ''); }
+    d = d.replace(/\s*=\s*([A-Z0-9][A-Z0-9.\u2011#-]{3,})/gi, function (_, c) { xr.push(c.replace(/#$/, '')); return ''; });
+    d = d.replace(/\s*=+>?\s*([^\/]*)/, function (_, c) { c = c.replace(/[()#\s]+$|^[()\s-]+/g, ''); if (c) xr.push(c); return ' '; }).replace(/[#\/\s]+$/, '');
+    d = d.replace(/\s*\b(?:Pck|Pack)\s*(?:=|of)\s*\d+\s*(?:pcs\.?)?/gi, '').replace(/\s+,/g, ',').replace(/,(?=\S)/g, ', ').replace(/\s{2,}/g, ' ');
     var parts = d.split(/\s*\/\s*Application:\s*/i);
     var title = (parts[0] || '').replace(/\s*\/\s*$/, '').trim();
     var app = (parts[1] || '').replace(/\s*\/\s*$/, '').replace(/\s*\/\s*/g, ' · ').trim();
@@ -23,22 +29,24 @@
     return { title: title || desc, app: app, xr: xr };
   }
   // catalog text from Unleashed comes in mixed shouting case; one consistent case for every title and application line
-  var ACR = 'GMC UIS SN OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
+  var ACR = 'GMC CDI FTV HDI DCI MWM MBB CRIN DMAX TDCI UIS SN OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
   var SMALL = ['for', 'and', 'with', 'of', 'to', 'in', 'on', 'or', 'the', 'a', 'an', 'by', 'from'];
   function nice(t) {
     t = String(t || '').replace(/\s*\(=\s*[^)]*\)/g, '').replace(/\b(?:Category|Description)\s*:\s*/gi, '').replace(/\s*:\s*$/, '').replace(/\s+NEW\s*:?\s*$/i, '').trim();
     // units: "2,95MM" / "2.80 MM" -> "2.95 mm"
     t = t.replace(/(\d)[,.](\d+)\s*MM\b/gi, '$1.$2 mm').replace(/(\d)\s*MM\b/gi, '$1 mm');
-    var i = 0;
+    var i = 0, lowAll = t === t.toLowerCase();
     return t.split(/(\s+)/).map(function (tok) {
       if (/^\s+$/.test(tok) || !tok) return tok;
       var first = i++ === 0;
       if (/\d/.test(tok)) return tok;               // part numbers, model codes, sizes: exactly as written
       return tok.replace(/[A-Za-z][A-Za-z']*/g, function (w) {
         var up = w.toUpperCase();
-        if (w !== up) return w;                     // already mixed case: keep as written
+        if (ACR.indexOf(up) >= 0 && w.length >= 3) return up;
+        if (w !== up && !lowAll && !/^[a-z][A-Z]+$/.test(w)) return first && /^[a-z]/.test(w) ? w.charAt(0).toUpperCase() + w.slice(1) : w;  // mixed case: keep as written
         if (up === 'NOX') return 'NOx';
         if (up === 'MM') return 'mm';
+        if (lowAll && w.length < 3 && SMALL.indexOf(w) < 0) return up;
         if (ACR.indexOf(up) >= 0 || w.length < 3 && up !== 'NO') return w;
         var lw = w.toLowerCase();
         if (!first && SMALL.indexOf(lw) >= 0) return lw;
@@ -131,7 +139,7 @@
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '' },
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, rate: 1, levels: [
       { k: 'app', n: 'Apprentice', at: 0, c: '#8a9097', perk: 'Points on every order', perks: ['1 point per US$ 1 invoiced', 'Member pricing alerts', 'Order tracking in the store'] },
       { k: 'tech', n: 'Technician', at: 10000, c: '#c87533', perk: 'Free ground freight over US$ 1,500', perks: ['Everything in Apprentice', 'Free ground freight on orders over US$ 1,500', 'Early access to new part lines'] },
@@ -350,6 +358,19 @@
       out.forEach(function (x) { if (pick.length >= 4) return; var k = x[1][3]; if ((cats[k] || 0) >= 2) return; cats[k] = (cats[k] || 0) + 1; pick.push(x[1]); });
       FGC.k = key; FGC.v = pick; return pick;
     },
+    get savedShip() {
+      var acc = this.me && this.me.account, a = acc && acc.ship;
+      if (a && typeof a === 'string') return { street: a, city: '', state: '', zip: '', country: '' };
+      if (a && (a.street || a.city)) return a;
+      var c = this.co; if (c && c.street) return { street: c.street, city: c.city, state: c.state, zip: c.zip, country: c.country };
+      return null;
+    },
+    shipLine: function (a) { return a ? [a.street, a.city, [a.state, a.zip].filter(Boolean).join(' '), a.country].filter(Boolean).join(', ') : ''; },
+    get qShip() {
+      var d = this.qd, sv = this.savedShip;
+      if (this.me && sv && d.dest !== 'other') return { street: sv.street || '', city: sv.city || '', state: sv.state || '', zip: sv.zip || '', country: sv.country || d.country };
+      return { street: d.street, city: d.city, state: '', zip: '', country: d.country };
+    },
     get ordersSorted() { return (this.orders || []).slice().sort(function (a, b) { return (b.created || 0) - (a.created || 0); }); },
     get relShown() { var r = this.related, n = r.length >= 8 ? 8 : r.length >= 4 ? 4 : r.length; return r.slice(0, n); },
     get buyAgain() {
@@ -407,7 +428,7 @@
       }
       var d = this.qd;
       return { kind: 'quote', number: 'Number on confirmation', email: me ? me.email : d.email, billTo: who().filter(Boolean),
-        shipTo: [me && acc ? acc.company : d.company, d.city, d.country].filter(Boolean), refs: ['Date ' + now, d.po ? 'PO ' + d.po : 'No PO', d.needBy ? 'Needed by ' + d.needBy : ''].filter(Boolean),
+        shipTo: me ? [acc ? acc.company : '', this.qShip.street, [this.qShip.city, this.qShip.state, this.qShip.zip].filter(Boolean).join(', '), this.qShip.country].filter(Boolean) : [d.company, d.city, d.country].filter(Boolean), refs: ['Date ' + now, d.po ? 'PO ' + d.po : 'No PO', d.needBy ? 'Needed by ' + d.needBy : ''].filter(Boolean),
         lines: ls, priced: this.showPrice && this.noPriceN < this.lines.length, total: this.flowTotal, units: this.units, notes: d.notes };
     },
     setLn: function (i, n) { if (String(n).trim() === '' || isNaN(parseInt(n, 10))) return; n = parseInt(n, 10) || 0; if (this.flow === 'quote') return this.qSet(i, n); if (n <= 0) this.remove(i); else { this.cart[i].qty = Math.min(9999, n); this.save(); } },
@@ -422,6 +443,7 @@
       if (this.step === 2) {
         if (this.flow === 'order' && !this.pickup && (!this.co.street.trim() || !this.co.city.trim())) { this.err = 'Fill in the street address and city, or choose Will call.'; return; }
         if (this.flow === 'order' && !this.pickup && /United States|Puerto Rico|Canada/.test(this.co.country || '') && (!String(this.co.state || '').trim() || !String(this.co.zip || '').trim())) { this.coTried = true; var ms = !String(this.co.state || '').trim(), mz = !String(this.co.zip || '').trim(); this.err = 'Fill in the ' + (ms && mz ? 'state and ZIP code' : ms ? 'state' : 'ZIP code') + ', or choose Will call.'; var co = this.co; setTimeout(function () { var el = document.querySelector(!String(co.state || '').trim() ? '[autocomplete=address-level1]' : '[autocomplete=postal-code]'); if (el) el.focus(); }, 30); return; }
+        if (this.flow === 'quote' && this.me && this.qd.phone && this.qd.phone.replace(/\D/g, '').length < 7) { this.err = 'Check the phone number, or leave it empty.'; return; }
         if (this.flow === 'quote' && !this.me) { var d = this.qd; if (!d.name.trim() || !d.company.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email) || d.phone.replace(/\D/g, '').length < 7) { this.err = 'Fill in name, company, e-mail and phone.'; return; } }
         return this.nav(this.flow === 'order' ? 'checkout' : 'quote', 'review');
       }
@@ -506,30 +528,30 @@
     get keyFacts() {
       var p = this.product, sp = this.spec || {}, i = parse(p && p[1]), out = [];
       if (!p) return out;
-      if (sp.eng) out.push(['Engine', sp.eng]);
+      if (sp.eng) out.push(['Engine', nice(sp.eng)]);
       if (sp.models) out.push(['Vehicles', sp.models]);
-      if (!sp.eng && i.app) out.push(['Application', i.app]);
+      if (!sp.eng && i.app) out.push(['Application', nice(i.app)]);
       if (sp.inj) out.push(['Used in', sp.inj]);
       if (p[4]) out.push(['Brand', p[4]]);
       if (sp.cond) out.push(['Condition', sp.cond]);
-      if (this.xrefs.length) out.push(['Cross references', this.xrefs.length + ' numbers, see below']);
+      if (this.xrefs.length) out.push(['Cross references', this.xrefs.length + (this.xrefs.length === 1 ? ' number' : ' numbers') + ', see below']);
       return out;
     },
     get specRows() {
       var p = this.product, sp = this.spec || {}, i = parse(p && p[1]), r = [];
       if (!p) return r;
       r.push(['Maxzz part number', p[0]]);
-      var pn = p[0].replace(/^[A-Z]{2}\./, '');
+      var pn = p[0].replace(/^[A-Z]{2,4}[.\-]/, '');
       r.push(['Manufacturer part number', pn]);
       if (p[4]) r.push(['Brand', p[4]]);
       r.push(['Part type', sp.type || p[3]]);
       if (sp.cond) r.push(['Condition', sp.cond]);
-      if (sp.eng) r.push(['Engine / generation', sp.eng]);
+      if (sp.eng) r.push(['Engine / generation', nice(sp.eng)]);
       if (sp.make) r.push(['Vehicle make', sp.make]);
       if (sp.y0) r.push(['Model years', sp.y0 + (sp.y1 ? ' to ' + sp.y1 : ' to today')]);
       if (sp.models) r.push(['Vehicles', sp.models]);
       if (sp.inj) r.push(['Used in injectors', sp.inj]);
-      if (!sp.eng && i.app) r.push(['Application (from catalog)', i.app]);
+      if (!sp.eng && i.app) r.push(['Application', nice(i.app)]);
       var u = this.book && this.book.items[p[0]] && this.book.items[p[0]][3]; if (u) r.push(['Unit', u]);
 
       return r;
@@ -564,7 +586,7 @@
       if (/e=link/.test(h)) this.err = 'That sign-in link expired or was already used. Ask for a new one below.';
       if (/e=access/.test(h)) this.err = 'Your access is not approved yet.';
       if (h) history.replaceState(null, '', location.pathname + location.hash);
-      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
+      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
@@ -585,6 +607,8 @@
       var closeMenus = function (e) { [].forEach.call(document.querySelectorAll('details.pxh-me[open]'), function (d) { if (!e || !d.contains(e.target)) d.removeAttribute('open'); }); };
       document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.pxh-menu a, .pxh-menu button')) { var d = e.target.closest('details'); if (d) d.removeAttribute('open'); return; } closeMenus(e); }); window.addEventListener('hashchange', function () { closeMenus(); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenus(); });
+      document.addEventListener('click', function (e) { if (self.vMake && e.target.closest && !e.target.closest('.px-makes, .px-engs-w')) self.vMake = ''; });
+      window.addEventListener('scroll', function () { if (!self.sugOn) return; var a = document.activeElement; if (!a || !a.getBoundingClientRect) return; var b = a.getBoundingClientRect(); if (b.bottom < 90 || b.top > window.innerHeight) { self.sugOn = false; a.blur && a.blur(); } }, { passive: true });
       // mobile product page: the sticky buy bar shows only once the buy box has scrolled out of view
       var mb = function () { if (self.route !== 'p') { if (self.mbarOn) self.mbarOn = false; return; } var el = document.querySelector('.px-pd-info .px-qrow'); var on = !!el && el.getBoundingClientRect().bottom < 70; if (on !== self.mbarOn) self.mbarOn = on; };
       window.addEventListener('scroll', mb, { passive: true }); window.addEventListener('resize', function () { mb(); var n = window.innerWidth <= 760; if (n !== self.narrow) self.narrow = n; });
@@ -595,6 +619,7 @@
       var raw = (location.hash || '').replace(/^#\/?/, ''), h; try { h = decodeURIComponent(raw); } catch (e) { h = raw; }
       var i = h.indexOf('/');
       var r = i < 0 ? h : h.slice(0, i), a = i < 0 ? '' : h.slice(i + 1);
+      this.vMake = '';
       if (r && ROUTES.indexOf(r) < 0) { location.replace('#/'); return; }
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
@@ -662,7 +687,8 @@
     loadAdmin: function () { var self = this; api('admin-list').then(function (r) { if (r.sync) self.sync = r.sync; if (r.accounts) self.accounts = r.accounts.map(function (a) { return Object.assign(a, { _q: a.customerNumber || '', _res: null, _pick: null, _busy: false }); }); }); },
 
     // display helpers
-    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = nice(sp && sp.eng ? sp.eng : i.app); return i; },
+    brandOf: function (r) { if (!r) return ''; if (r[4]) return r[4]; var m = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); return m && BRP[m[1]] || ''; },
+    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = nice(sp && sp.eng ? sp.eng : i.app); if (/^bench \/ shop use$/i.test(i.app)) i.app = ''; return i; },
     // has a photo on file (ignores load failures, so shelves do not reshuffle; failed photos show the placeholder)
     hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
@@ -682,7 +708,9 @@
     title: function (r) {
       if (!r || !r[0]) return '';
       var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return nice(sp.title);
+      if (TFIX[r[0]]) return TFIX[r[0]];
       var t = nice(parse(r[1]).title), letters = '', up = 0;
+      if (t.split(/\s+/).length <= 3) { var br = this.brandOf(r), mpn = r[0].replace(/^[A-Z]{2,4}[.\-]/, ''), ap = nice(parse(r[1]).app); t = [br && t.toLowerCase().indexOf(br.toLowerCase()) < 0 ? br : '', mpn, t].filter(Boolean).join(' ') + (ap && ap.length < 60 ? ' for ' + ap : ''); }
       if (false) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
       return t.replace(/(\w)-(?=\w)/g, '$1\u2011');
     },
@@ -840,7 +868,7 @@
       var lines = this.quote.map(function (l) { return { pn: l.id, name: String(self.title(self.map[l.id]) || l.name || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', t: Date.now() - T0,
-        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: { country: d.country, city: d.city, po: d.po, needBy: d.needBy }, lines: lines }) })
+        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, me ? this.qShip : { country: d.country, city: d.city }), lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (res) {
           if (res && res.id) number = res.id;
