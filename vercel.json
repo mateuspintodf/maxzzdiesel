@@ -36,6 +36,10 @@
     },
     "api/cron-related.js": {
       "maxDuration": 300
+    },
+    "api/img.js": {
+      "includeFiles": "data/photos.json",
+      "maxDuration": 15
     }
   },
   "headers": [
@@ -825,6 +829,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/img/p/:s",
+      "destination": "/api/img?s=:s"
+    },
     {
       "source": "/sitemap-parts.xml",
       "destination": "/api/parts?k=sitemap"
