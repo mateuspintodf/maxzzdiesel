@@ -66,7 +66,7 @@ async function priceBook(account) {
 function orderMail(o) {
   return `<p>Order <b>${esc(o.number)}</b>${o.po ? ` · PO ${esc(o.po)}` : ''}</p>
 <table width="100%" cellpadding="6" style="border-collapse:collapse;font-size:14px">${o.lines.map((l) =>
-    `<tr style="border-bottom:1px solid #eef0f2"><td>${esc(l.code)}<br><span style="color:#8a9097">${esc(l.name)}</span></td><td align="right">${l.qty} × $${l.price.toFixed(2)}</td></tr>`).join('')}
+    `<tr style="border-bottom:1px solid #eef0f2"><td>${esc(l.code)}<br><span style="color:#8a9097">${esc(l.name)}</span></td><td align="right" style="padding-left:16px;white-space:nowrap;vertical-align:top">${l.qty} × $${l.price.toFixed(2)}</td></tr>`).join('')}
 <tr><td><b>Total</b></td><td align="right"><b>$${o.total.toFixed(2)}</b></td></tr></table>`;
 }
 
