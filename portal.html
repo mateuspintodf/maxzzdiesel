@@ -1084,6 +1084,18 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 .is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:470px!important}
 @media (max-width:1000px){.px-stage .px-stage-bg{height:360px;background-position:44% 72%!important}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:280px!important}}
 @media (max-width:560px){.px-stage .px-stage-bg{height:300px}.is-lp .px-stage-in,.px-stage .px-stage-in{padding-top:230px!important}}
+/* r10 visual */
+.px-rdm2 .bar{display:none!important}.px-rdm2.ok .ic,.px-rdm2 .ic{background:none;color:#5f656c;width:auto;height:auto;justify-content:flex-start}
+.px-lvl-h .ic{background:#eef0f2!important;color:#5f656c!important}.px-lvl.cur .px-lvl-h .ic{background:#fc771d!important;color:#fff!important}
+.px-lvl-h .tag.lock{background:none!important;color:#8a9097!important;padding:0!important}
+input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appearance:none;display:none}
+.px .px-pdpn span{background:none;padding:0;border-radius:0;font-size:18px;color:#1d2126}
+.px-tagt{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#8a9097;font-weight:600}
+.px .px-btn.in{background:#fff!important;border:1.5px solid #1d2126!important;color:#1d2126!important}
+.px .px-btn.in::before{content:'';width:12px;height:12px;margin-right:6px;flex:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d2126' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") no-repeat center/contain}
+.px .px-incart{background:#fff;border:1.5px solid #1d2126;color:#1d2126}.px .px-incart:hover{background:#f4f5f6}
+.px-sug .th:empty::after{content:'';width:22px;height:22px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b0b5bb' stroke-width='1.6' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 3v5M12 16v5M3 12h5M16 12h5'/%3E%3C/svg%3E") no-repeat center/contain}
+@media (min-width:761px){.px .px-wrap{padding-bottom:160px}}
 </style>
 
 <div class="px" :class="lp ? 'is-lp' : ''" @vue:mounted="init">
@@ -1109,7 +1121,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <a v-for="(r, i) in sug" :key="r[0]" :id="'px-sug-' + i" :class="i === sugI ? 'on' : ''" role="option" :href="'#/p/' + encodeURIComponent(r[0])" @mousedown.prevent="nav('p', r[0])">
 <span class="th"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" alt=""></span>
 <span style="min-width:0"><span class="nm" style="display:block" v-text="title(r)"></span><span class="pn" v-text="r[0]"></span></span>
-<span class="ct" v-text="r[3]"></span>
+<span class="ct" v-text="catLabel(r[3])"></span>
 </a>
 <div class="none" v-if="!sug.length">No parts match. Press Enter to search everything, or ask us for a quote.</div>
 <a class="all" v-if="sug.length" href="#" @mousedown.prevent="sugOn = false; nav('s', qInput.trim())">See all results for "<span v-text="qInput.trim()"></span>"</a>
@@ -1315,7 +1327,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 <div class="px-pd">
 <div class="px-pd-img"><img v-if="img(pr[0])" :class="bench(pr[0]) ? 'bench' : ''" :src="img(pr[0])" @error="imgFail(pr[0])" :alt="info(pr).title"><button type="button" class="px-zoom" v-if="img(pr[0])" aria-label="Enlarge photo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></button><span v-else class="sc-ph big" v-html="ph(pr[3])"></span></div>
 <div class="px-pd-info">
-<div class="px-tags"><span class="sc-cat" v-text="catLabel(pr[3])"></span><span class="px-tag" v-if="pr[4]" v-text="pr[4]"></span><span class="px-tag" v-if="spec.cond" v-text="spec.cond"></span></div>
+<div class="px-tags"><span class="sc-cat" v-text="catLabel(pr[3])"></span><span class="px-tagt" v-if="pr[4]" v-text="pr[4]"></span></div>
 <h1 v-text="title(pr)"></h1>
 <p class="px-blurb" v-if="blurb" v-text="blurb"></p>
 <div class="px-pdpn pn"><span v-text="pr[0]"></span></div>
@@ -1876,7 +1888,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=32"></script>
+<script src="/js/portal-app.js?v=33"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

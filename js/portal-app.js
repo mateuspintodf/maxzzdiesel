@@ -23,21 +23,28 @@
     return { title: title || desc, app: app, xr: xr };
   }
   // catalog text from Unleashed comes in mixed shouting case; one consistent case for every title and application line
-  var ACR = 'OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
+  var ACR = 'UIS SN OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
   var SMALL = ['for', 'and', 'with', 'of', 'to', 'in', 'on', 'or', 'the', 'a', 'an', 'by', 'from'];
   function nice(t) {
-    t = String(t || '').replace(/\s*:\s*$/, '').replace(/\s+NEW\s*:?\s*$/i, '').trim();
+    t = String(t || '').replace(/\s*\(=\s*[^)]*\)/g, '').replace(/\b(?:Category|Description)\s*:\s*/gi, '').replace(/\s*:\s*$/, '').replace(/\s+NEW\s*:?\s*$/i, '').trim();
+    // units: "2,95MM" / "2.80 MM" -> "2.95 mm"
+    t = t.replace(/(\d)[,.](\d+)\s*MM\b/gi, '$1.$2 mm').replace(/(\d)\s*MM\b/gi, '$1 mm');
     var i = 0;
-    return t.replace(/[A-Za-z][A-Za-z']*/g, function (w, off) {
-      var first = i++ === 0, up = w.toUpperCase();
-      if (w !== up) return w;                       // already mixed case: keep as written
-      if (up === 'NOX') return 'NOx';
-      if (up === 'MM') return 'mm';
-      if (ACR.indexOf(up) >= 0 || w.length < 3 && up !== 'NO') return w;
-      var lw = w.toLowerCase();
-      if (!first && SMALL.indexOf(lw) >= 0) return lw;
-      return lw.charAt(0).toUpperCase() + lw.slice(1);
-    });
+    return t.split(/(\s+)/).map(function (tok) {
+      if (/^\s+$/.test(tok) || !tok) return tok;
+      var first = i++ === 0;
+      if (/\d/.test(tok)) return tok;               // part numbers, model codes, sizes: exactly as written
+      return tok.replace(/[A-Za-z][A-Za-z']*/g, function (w) {
+        var up = w.toUpperCase();
+        if (w !== up) return w;                     // already mixed case: keep as written
+        if (up === 'NOX') return 'NOx';
+        if (up === 'MM') return 'mm';
+        if (ACR.indexOf(up) >= 0 || w.length < 3 && up !== 'NO') return w;
+        var lw = w.toLowerCase();
+        if (!first && SMALL.indexOf(lw) >= 0) return lw;
+        return lw.charAt(0).toUpperCase() + lw.slice(1);
+      });
+    }).join('').replace(/(\w)-(?=\w)/g, '$1\u2011');
   }
   var CATS = [
     { k: 'Injector', label: 'Injectors', ic: 'inj' }, { k: 'Pump', label: 'Pumps', ic: 'pump' }, { k: 'Nozzle', label: 'Nozzles', ic: 'noz' },
@@ -461,7 +468,7 @@
     get pickup() { return /will call/i.test(this.co.method); },
     get blurb() {
       var p = this.product; if (!p) return '';
-      var sp = this.spec, d = sp.desc ? String(sp.desc).split('</p>')[0].replace(/<[^>]+>/g, '').replace(/\s*Ships from our [^.]*\.\s*/i, ' ').trim() : '';
+      var sp = this.spec, d = sp.desc ? String(sp.desc).split('</p>')[0].replace(/<[^>]+>/g, '').replace(/[^.]*\bships from our [^.]*\.\s*/i, ' ').trim() : '';
       if (d) return d;
       var i = parse(p[1]), type = (sp.type || p[3] || '').toLowerCase();
       if (!p[4] && !i.app && !i.xr.length) return '';
@@ -496,7 +503,7 @@
       if (sp.inj) r.push(['Used in injectors', sp.inj]);
       if (!sp.eng && i.app) r.push(['Application (from catalog)', i.app]);
       var u = this.book && this.book.items[p[0]] && this.book.items[p[0]][3]; if (u) r.push(['Unit', u]);
-      r.push(['Catalog description', p[1]]);
+
       return r;
     },
     get appRows() {
@@ -627,7 +634,7 @@
     loadAdmin: function () { var self = this; api('admin-list').then(function (r) { if (r.sync) self.sync = r.sync; if (r.accounts) self.accounts = r.accounts.map(function (a) { return Object.assign(a, { _q: a.customerNumber || '', _res: null, _pick: null, _busy: false }); }); }); },
 
     // display helpers
-    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = sp && sp.eng ? sp.eng : nice(i.app); return i; },
+    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = nice(sp && sp.eng ? sp.eng : i.app); return i; },
     // has a photo on file (ignores load failures, so shelves do not reshuffle; failed photos show the placeholder)
     hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
@@ -646,7 +653,7 @@
     bench: function (code) { return !!BENCH[code]; },
     title: function (r) {
       if (!r || !r[0]) return '';
-      var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return sp.title;
+      var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return nice(sp.title);
       var t = nice(parse(r[1]).title), letters = '', up = 0;
       if (false) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
       return t.replace(/(\w)-(?=\w)/g, '$1\u2011');
