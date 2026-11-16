@@ -2557,8 +2557,10 @@
     },
     get sug() { var q = this.qInput.trim(); if (q.length < 2 || !this.cat.length) return []; return matchSearch(this.cat, q).slice(0, 8); },
     get moreRow() {
-      var feat = this.featured;
-      return this.homePick(function (r) { return ['Pump', 'Nozzle', 'Rail', 'Tool', 'Engine parts'].indexOf(r[3]) >= 0 && feat.indexOf(r) < 0; }, 8, 'more');
+      // a mix: the best-stocked pumps, rails, nozzles, tool sets and engine parts, two of each
+      var self = this, feat = this.featured, out = [];
+      ['Pump', 'Rail', 'Nozzle', 'Tool', 'Engine parts'].forEach(function (k) { out = out.concat(self.homePick(function (r) { return r[3] === k && feat.indexOf(r) < 0; }, 2, 'more' + k)); });
+      return out.slice(0, 8);
     },
     get shown() { return this.results.slice(0, this.limit); },
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
