@@ -29,6 +29,8 @@ FIT = json.load(open(ROOT / 'data/fitment.json', encoding='utf-8'))
 ROW = {r[0]: r for r in CAT}
 PHOTOS = json.load(open(ROOT / 'data/photos.json', encoding='utf-8'))
 PH_BY = {v['code']: (k, v['ext']) for k, v in PHOTOS.items()}
+# compact code -> photo path map for the quote page thumbnails (cross-sell)
+json.dump({c: f'{k}.{e}' for c, (k, e) in PH_BY.items()}, open(ROOT / 'data/thumbs.json', 'w', encoding='utf-8'), separators=(',', ':'))
 COURSE_PH = {'bosch-crin': 'BO.0.445.124.047', 'denso-g2s': 'DN.095000-5550', 'continental-vdo': 'SM.JB3Q-9K546-AB',
              'bosch-crin-2-3': 'BO.0.445.120.384', 'cat-c7-c9': 'DE.EX634763', 'cat-c15': 'CAT.10R8502R',
              'bosch-crin-4-2': 'RB.323.50.40', 'cummins-isx15-xpi': 'CM.2894920', 'denso-g4s': 'DN.295700-0630', 'bosch-piezo': 'BO.0.445.117.043'}

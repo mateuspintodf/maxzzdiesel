@@ -20,7 +20,7 @@
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
     lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', street: '', num: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, compact: false, linkAdded: 0, linkMiss: 0, sheet: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    reviewing: false, compact: false, thumbs: {}, linkAdded: 0, linkMiss: 0, sheet: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -74,7 +74,7 @@
       this.lines.forEach(function (l) { have[l.id] = 1; });
       this.lines.forEach(function (l) { (self.fit.rel[l.id] || []).forEach(function (c) {
         if (have[c] || seen[c] || !self.map[c] || out.length >= 8) return; seen[c] = 1;
-        var p = self.map[c]; out.push({ code: c, name: p.name, why: p.kind });
+        var p = self.map[c]; out.push({ code: c, name: p.name, why: p.kind, img: self.thumbs[c] ? '/img/p/' + self.thumbs[c] : '' });
       }); });
       return out;
     },
@@ -330,6 +330,8 @@ function goTo(sel) {
   // campaign / source tracking (kept for the session, sent with the request)
   var src = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].map(function (k) { return P.get(k) ? k.replace('utm_', '') + '=' + P.get(k) : ''; }).filter(Boolean).join(' ');
   if (src) write(SK, src);
+
+  fetch('/data/thumbs.json?v=1').then(function (r) { return r.json(); }).then(function (t) { app.thumbs = t || {}; }).catch(function () {});
 
   Promise.all([
     fetch('/api/catalog').then(function (r) { return r.json(); }),
