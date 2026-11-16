@@ -20,7 +20,7 @@
   var app = PetiteVue.reactive({
     phase: 1, mode: 'vehicle', make: '', engIdx: -1, gen: '', bench: '', q: '', kind: '', limit: 30,
     lines: read(QK, []), d: Object.assign({ name: '', company: '', email: '', phone: '', type: '', country: '', state: '', city: '', zip: '', street: '', num: '', ship: 'Ground', needBy: '', po: '', notes: '', b2b: false }, read(DK, {})),
-    reviewing: false, compact: false, sheet: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
+    reviewing: false, compact: false, linkAdded: 0, linkMiss: 0, sheet: false, zipMsg: '', addr: [], addrOn: true, xsAt: 0, addrIdx: -1, sent: [], bad: [], pasteMsg: '', pasteMiss: [], number: '', sending: false, err: '', toast: '', copied: false, b2bDone: false, b2bSending: false,
     cat: [], map: {}, fit: { tree: [], items: {}, rel: {}, bench: [] }, ready: false,
     popular: POPULAR, shipOpts: SHIP,
     get tree() { return this.fit.tree; },
@@ -250,6 +250,7 @@
     },
     dirFx: function (el) { var p = this.phase * 2 + (this.reviewing ? 1 : 0); el.setAttribute('data-dir', p >= (el._p || 0) ? 'f' : 'b'); el._p = p; },
     known: function () { var d = this.d; return !!(d.name.trim() && d.company.trim() && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email.trim()) && d.phone.replace(/\D/g, '').length >= 7 && d.country); },
+    moreParts: function () { this.phase = 1; this.reviewing = false; this.linkAdded = 0; this.linkMiss = 0; this.mode = 'search'; setTimeout(function () { var q = document.getElementById('qx-q'); if (q) { q.focus(); q.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, 80); },
     toDetails: function () { if (!this.lines.length) return; this.sheet = false; this.compact = this.known(); track('quote_start_details', { items: this.lines.length }); this.phase = 2; this.reviewing = false; this.err = ''; this.toast = ''; scrollTop(); },
     validate: function () {
       var d = this.d, bad = [];
@@ -269,7 +270,7 @@
       if (bad.length) { this.compact = false; this.err = 'Please fill in the fields marked in orange.'; return; }
       this.err = '';
       if (!this.number) { var t = new Date(); this.number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase(); }
-      this.submit();
+      this.reviewing = true; scrollTop();
     },
     submit: function () {
       if (this.sending) return; var self = this, d = this.d;
@@ -288,6 +289,7 @@
         .then(function (r) { if (!r.ok) throw new Error(r.status); track('b2b_access_request', { form: 'b2b' }); self.b2bDone = true; self.b2bSending = false; })
         .catch(function () { self.b2bSending = false; self.flash('Could not send. Email sales@maxzzdiesel.com and we will add you.'); });
     },
+    keepSearching: function () { this.linkAdded = 0; this.linkMiss = 0; this.mode = 'search'; setTimeout(function () { var q = document.getElementById('qx-q'); if (q) { q.focus(); q.scrollIntoView({ behavior: 'smooth', block: 'center' }); } }, 60); },
     startOver: function () { this.lines.splice(0); this.save(); this.phase = 1; this.reviewing = false; this.number = ''; this.b2bDone = false; scrollTop(); },
     printIt: function () { window.print(); },
     maskPhone: function (v, country) {
@@ -351,7 +353,8 @@ function goTo(sel) {
         var code = map[m[1]] ? m[1] : app.findCode(m[1]);
         if (code && app.add(code, m[2] || 1, true)) n++; else miss++;
       });
-      if (n) { app.flash(n + (n === 1 ? ' part' : ' parts') + ' added from your link' + (miss ? ' (' + miss + ' not found)' : '')); app.toDetails(); }
+      if (n || miss) { app.linkAdded = n; app.linkMiss = miss; }
+      if (n) app.toDetails();
     }
     var g = P.get('gen'), q = P.get('q'), mode = P.get('mode'), mk = P.get('make');
     if (g) { var hit = null; fit.tree.forEach(function (mk) { mk.engines.forEach(function (e) { e.gens.forEach(function (x) { if (x.key.toLowerCase() === g.toLowerCase()) hit = Object.assign({ make: mk.key }, x); }); }); }); if (hit) app.jumpGen(hit); }

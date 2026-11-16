@@ -359,7 +359,7 @@ select.qx-in{appearance:auto}
 .qx-more-d summary{cursor:pointer;font-size:15px;font-weight:600;list-style-position:inside}
 .qx-more-d summary span{font-weight:400;font-size:13px;color:#5f656c;margin-left:6px}
 .qx-p2 .qx-check{margin-top:18px;padding:12px 14px;font-size:13.5px}
-.qx-known{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;padding:18px 20px;border-radius:16px;background:#eef0f2;margin-top:18px}.qx-known>div{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:14px;color:#5a5a60}.qx-known b{font-size:16px;color:#1d2126}.qx-p2-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:space-between}
+.qx-xs2{margin-top:22px;padding-top:18px;border-top:1px solid #e3e6ea}.qx-xs2-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px}@media (max-width:640px){.qx-xs2-g{grid-template-columns:minmax(0,1fr)}}.qx-xs2-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:12px 14px;border:1px solid #e3e6ea;border-radius:14px;font-size:13.5px;line-height:1.35}.qx-xs2-row b{font-weight:600;color:#1d2126;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.qx-xs2-row small{display:block;color:#8a9099;margin-top:2px}.qx-xs2-row button{border:1px solid #d32a37;background:#fff;color:#d32a37;border-radius:50px;height:36px;padding:0 14px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}.qx-xs2-row button:hover{background:#d32a37;color:#fff}.qx-added{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center;padding:18px 20px;border-radius:16px;background:#e5f4ec;border:1px solid #b9e0cb;margin-bottom:22px}.qx-added-t{display:flex;gap:12px;align-items:flex-start;min-width:0;flex:1 1 280px}.qx-added-t>div{display:flex;flex-direction:column;gap:2px;font-size:14px;color:#3d4a43}.qx-added-t b{font-size:16px;color:#1d2126}.qx-added-ic{width:32px;height:32px;border-radius:50%;background:#1f7a4d;color:#fff;display:flex;align-items:center;justify-content:center;flex:none}.qx-added-b{display:flex;flex-wrap:wrap;gap:10px}.qx-known{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;padding:18px 20px;border-radius:16px;background:#eef0f2;margin-top:18px}.qx-known>div{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:14px;color:#5a5a60}.qx-known b{font-size:16px;color:#1d2126}.qx-p2-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:space-between}
 .qx-p2 .qx-in:focus{border-color:#1e1e87;box-shadow:0 0 0 3px rgba(30,30,135,.12)}
 .qx-p2 .qx-in:focus-visible{outline:none}
 @media (max-width:640px){.qx-g2,.qx-g3{grid-template-columns:1fr}.qx-p2-actions .qx-btn{flex:1}}
@@ -408,7 +408,7 @@ select.qx-in{appearance:auto}
 </div>
 <ol class="qx-steps" aria-label="Quote steps">
 <li :class="phase === 1 ? 'on' : 'done'"><b>1</b>Parts list</li>
-<li :class="phase === 2 ? 'on' : (phase > 2 ? 'done' : '')"><b>2</b>Details and send</li>
+<li :class="phase === 2 ? 'on' : (phase > 2 ? 'done' : '')"><b>2</b>Details</li>
 <li :class="phase === 3 ? 'on' : ''"><b>3</b>Quote sent</li>
 </ol>
 </div>
@@ -484,7 +484,8 @@ select.qx-in{appearance:auto}
 
 <!-- PHASE 2: details and shipping -->
 <div class="qx-card qx-p2" v-if="phase === 2 && !reviewing">
-<div class="qx-p2-head"><div><h2 class="qx-h2">Where should we send the quote?</h2><p class="qx-muted" style="margin:4px 0 0" v-text="compact ? 'Your details are saved on this device. Check the list and send.' : 'Four fields. We confirm freight in the quote.'"></p></div><span class="qx-p2-count"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><span v-text="lines.length + (lines.length === 1 ? ' part' : ' parts') + ' to quote'"></span></span></div>
+<div class="qx-added" v-if="linkAdded" role="status"><div class="qx-added-t"><span class="qx-added-ic" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><div><b v-text="linkAdded === 1 ? 'Part added to your quote list' : linkAdded + ' parts added to your quote list'"></b><span v-text="linkMiss ? (linkMiss === 1 ? '1 part number from the link was not found. Add it as a custom line from the parts list.' : linkMiss + ' part numbers from the link were not found. Add them as custom lines from the parts list.') : 'Check the quantity in your list. Need anything else? Add more parts before you send.'"></span></div></div><button type="button" class="qx-btn qx-out" @click="moreParts">Add more parts</button></div>
+<div class="qx-p2-head"><div><h2 class="qx-h2">Where should we send the quote?</h2><p class="qx-muted" style="margin:4px 0 0" v-text="compact ? 'Your details are saved on this device. Review and send.' : 'Four fields. We confirm freight in the quote.'"></p></div><span class="qx-p2-count"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><span v-text="lines.length + (lines.length === 1 ? ' part' : ' parts') + ' to quote'"></span></span></div>
 
 <div class="qx-known" v-if="compact"><div><span class="qx-sec-t">Sending as</span><b v-text="d.name + ' · ' + d.company"></b><span v-text="d.email + ' · ' + d.phone"></span><span v-text="[d.city, d.state, d.zip, d.country].filter(Boolean).join(', ')"></span></div><button type="button" class="qx-btn qx-out" @click="compact = false">Edit details</button></div>
 <div v-if="!compact">
@@ -526,11 +527,13 @@ select.qx-in{appearance:auto}
 </details>
 
 </div>
+<div class="qx-xs2" v-if="suggest.length"><span class="qx-sec-t">Often quoted together</span>
+<div class="qx-xs2-g"><div class="qx-xs2-row" v-for="s in suggest.slice(0, 4)"><div><b v-text="s.name"></b><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Add</button></div></div></div>
 <label class="qx-check"><input type="checkbox" v-model="d.b2b"><span><b>Early access to direct B2B ordering.</b> Your pricing, stock and online orders in one place. We will invite you first.</span></label>
 <p class="qx-muted" v-if="err" style="color:#c2410c;margin:12px 0 0" v-text="err"></p>
 <div class="qx-p2-actions">
-<button type="button" class="qx-btn qx-out" @click="phase = 1">Add more parts</button>
-<button type="button" class="qx-btn qx-red" :disabled="sending" @click="toReview" v-text="sending ? 'Sending...' : 'Send quote request'"></button>
+<button type="button" class="qx-btn qx-out" @click="moreParts">Add more parts</button>
+<button type="button" class="qx-btn qx-red" @click="toReview">Review and send</button>
 </div>
 </div>
 
@@ -550,6 +553,7 @@ select.qx-in{appearance:auto}
 <p class="qx-muted" v-if="err" style="color:#c2410c;margin-top:14px" v-text="err"></p>
 <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:20px" class="qx-noprint">
 <button type="button" class="qx-btn qx-out" @click="reviewing = false">Edit details</button>
+<button type="button" class="qx-btn qx-out" @click="moreParts">Add more parts</button>
 <button type="button" class="qx-btn qx-out" @click="printIt">Print or save PDF</button>
 <button type="button" class="qx-btn qx-red" :disabled="sending" @click="submit" v-text="sending ? 'Sending...' : 'Send quote request'"></button>
 </div>
@@ -591,7 +595,7 @@ select.qx-in{appearance:auto}
 <div class="qx-xs-row" v-for="s in xsShown"><div><span v-text="s.name"></span><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Add</button></div>
 </div>
 <button type="button" class="qx-btn qx-red" v-if="phase === 1 && !lines.length" disabled style="background:#3d444d;color:#b9b9be;cursor:default">Add a part to continue</button>
-<button type="button" class="qx-btn qx-red qx-go" v-if="phase === 1 && lines.length" @click="toDetails">Continue to send</button>
+<button type="button" class="qx-btn qx-red qx-go" v-if="phase === 1 && lines.length" @click="toDetails">Continue to quote</button>
 <div class="qx-tools" v-if="lines.length"><button type="button" class="qx-tool" :class="copied ? 'ok' : ''" @click="copyLink"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span v-text="copied ? 'Link copied' : 'Share list'"></span></button><button type="button" class="qx-tool" @click="clearAll"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Clear list</button></div>
 <p style="margin:14px 0 0;color:#8a9099;font-size:12px;line-height:1.5">No payment here. Wholesale accounts can also order through the <a href="https://maxzzdiesel.store.unleashedsoftware.com/" target="_blank" rel="noopener" style="color:#fc771d">B2B portal</a>.</p>
 </aside>
@@ -703,7 +707,7 @@ select.qx-in{appearance:auto}
 <script src="/js/petite-vue.iife.js"></script>
 <script>if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) window.hsConversationsSettings = { loadImmediately: false };</script>
 <script>/* HubSpot (chat + tracking) loads on first interaction or 3 s after the page loads, off the critical path */(function(){var done=0,ev=['pointerdown','keydown','touchstart','scroll'];function go(){if(done)return;done=1;ev.forEach(function(e){removeEventListener(e,go,{passive:true})});var s=document.createElement('script');s.id='hs-script-loader';s.async=true;s.src='https://js.hs-scripts.com/14488732.js';document.body.appendChild(s);}ev.forEach(function(e){addEventListener(e,go,{passive:true,once:true})});addEventListener('load',function(){setTimeout(go,3000)});})();</script>
-<script src="/js/quote-app.js?v=23"></script>
+<script src="/js/quote-app.js?v=25"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script src="/js/track.js?v=1" defer></script>
 </body>
