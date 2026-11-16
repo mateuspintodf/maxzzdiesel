@@ -265,7 +265,7 @@ def page_shell(path, title, desc, og_img, graph, body, noindex=False, page_id='P
 BENE = [('<path d="M18.2 7.8a4.5 4.5 0 1 0 0 8.4c2-1.5 3.3-4.2 3.3-4.2s-1.3-2.7-3.3-4.2zM5.8 7.8a4.5 4.5 0 1 1 0 8.4C3.8 14.7 2.5 12 2.5 12s1.3-2.7 3.3-4.2z"/>', 'Lifetime access'),
         ('<path d="M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/>', '7-day guarantee'),
         ('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/>', '50% off the second course'),
-        ('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', 'Robiel tools and parts for students')]
+        ('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', 'Student discounts on Robiel tools and parts')]
 
 
 def bene_row():
@@ -427,6 +427,44 @@ def build_system(s, rel_links):
 
 
 # ------------------------------------------------------------------ training
+DTAB = 'https://cdn.prod.website-files.com/6ab3455fb5d6a607904368e0/'
+COURSE_IMG = {'bosch-crin': '6ad140e762b51980de1948a6_crinBosh.webp', 'denso-g2s': '6ac51c1ab365ff2655ce9726_dta-course-denso-g2s.webp',
+              'continental-vdo': '6ac51c1af4061657b86fcec0_dta-course-continental.webp', 'bosch-crin-2-3': '6ac51c1b6c0b41d04758bd42_dta-course-bosch-crin23.webp',
+              'cat-c7-c9': '6ac51c1b6c0b41d04758bd6f_dta-course-cat-c7c9.webp', 'cat-c15': '6ac51c1b6c0b41d04758bd91_dta-course-cat-c15.webp',
+              'bosch-crin-4-2': '6ac51c1ca45cd972b9cec118_dta-course-bosch-crin42.webp', 'cummins-isx15-xpi': '6ac51c1ddba3bdd15fe00aed_dta-course-isx15.webp',
+              'denso-g4s': '6ac51c1e5073e85ab360e8ee_dta-course-denso-g4s.webp', 'bosch-piezo': '6ac51c1eb365ff2655ce9854_dta-course-bosch-piezo.webp'}
+INST_IMG = {'Arthur Bonachella': '6ac51c16250466db9735d02b_dta-instructor-arthur.webp', 'Waldyr Mazzer': '6ac51c163009c482aaaa9806_dta-instructor-waldyr.webp'}
+TESTI_IMG = {'Robert Bratton': '6ac51c1ee4e6bfaaa54e7ad5_dta-t-robert-bratton.webp', 'Fred Dreis': '6ac51c203acc6ceeb6552792_dta-t-fred-dreis.webp',
+             'Jose Escoto': '6ac51c1f15250c3dc7c01c86_dta-t-jose-escoto.webp', 'Deep Gidda': '6ac51c1e3acc6ceeb655267b_dta-t-deep-gidda.webp',
+             'Raj Gidda': '6ac51c1e213486199b57d20c_dta-t-raj-gidda.webp', 'Jacob Kidd': '6ac51c203acc6ceeb655275d_dta-t-jacob-kidd.webp'}
+
+
+def testi_block(eyebrow_style, h2_style, heading='What our students say', foot=''):
+    cards = ''
+    for n, who, q in C.TESTIMONIALS:
+        img = TESTI_IMG.get(n)
+        av = (f'<img src="{DTAB}{img}" alt="{E(n)}" width="44" height="44" loading="lazy" decoding="async" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex:none;background:#3a414c">' if img else '')
+        cards += (f'<figure style="margin:0;background:#2e343e;border-radius:18px;padding:26px 26px 24px;display:flex;flex-direction:column;box-sizing:border-box;min-width:0">'
+                  f'<div style="color:#f5b301;letter-spacing:2px;font-size:18px;line-height:1">&#9733;&#9733;&#9733;&#9733;&#9733;</div>'
+                  f'<blockquote style="margin:16px 0 22px;font-size:17px;line-height:1.55;font-weight:600;color:#fff;flex:1">&ldquo;{E(q)}&rdquo;</blockquote>'
+                  f'<figcaption style="display:flex;align-items:center;gap:12px">{av}<span style="font-size:13px;line-height:1.4;color:#a0a7b1"><b style="display:block;color:#fff;font-size:14px">{E(n)}</b>{E(who)}</span></figcaption></figure>')
+    return (f'<div style="background:#22272f;border-radius:30px;padding:clamp(24px,4vw,48px);box-sizing:border-box">'
+            f'<span style="{eyebrow_style}">Diesel Tech Academy</span><h2 style="{h2_style}">{heading}</h2>'
+            f'<style>.tb-grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:28px}}@media (max-width:900px){{.tb-grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}}}@media (max-width:600px){{.tb-grid{{grid-template-columns:minmax(0,1fr)}}}}</style><div class="tb-grid">{cards}</div>{foot}</div>')
+
+
+def instructors_block():
+    bios = {'Arthur Bonachella': 'Instructor at ROBIEL, the tooling manufacturer whose kits are used in every course. Teaches Bosch Piezo, Denso G4S, ISX15, Bosch CRIN 4.2, CAT C15 Series and CAT C7/C9.',
+            'Waldyr Mazzer': '40+ years in diesel injection. Former Bosch and Delphi senior instructor across Latin America, now teaching the Diesel Tech Academy bench courses.'}
+    out = ''
+    for n in ('Arthur Bonachella', 'Waldyr Mazzer'):
+        out += (f'<article style="position:relative;border-radius:24px;overflow:hidden;min-height:420px;display:flex;align-items:flex-end;background:#2e343e url({DTAB}{INST_IMG[n]}) 50% 30%/cover no-repeat">'
+                f'<div style="position:absolute;inset:0;background:linear-gradient(rgba(25,28,33,0) 35%,rgba(25,28,33,.92))"></div>'
+                f'<div style="position:relative;padding:32px;max-width:460px"><h3 style="margin:0;color:#fff;font-size:28px;line-height:1.1;font-weight:700;letter-spacing:-.02em">{n}</h3>'
+                f'<p style="margin:10px 0 0;color:#e6e8eb;font-size:15px;line-height:1.55">{E(bios[n])}</p></div></article>')
+    return f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:20px;margin-top:30px">{out}</div>'
+
+
 def course_card(c):
     quote_attrs = []
     for code, _ in c['tools']:
@@ -435,13 +473,9 @@ def course_card(c):
         else:
             quote_attrs.append((code, title_of(code), code))
     data = json.dumps([{'id': i, 'name': n, 'pn': p} for i, n, p in quote_attrs], ensure_ascii=False)
-    who = f'<div style="margin-top:12px;font-size:14px;color:#1d2126"><b>Instructor:</b> {E(c["who"])}</div>' if c.get('who') else ''
-    tint = TINTS[C.COURSES.index(c) % len(TINTS)]
-    cap = ''
-    code = COURSE_PH.get(c['slug'])
-    if code:
-        cap = oem(code) if not code.startswith('RB.') else 'Robiel ' + code.split('.', 1)[1]
-    m = media(code, c['name'] + ' part', tint, 220, cap) if code else ''
+    who = (f'<div style="margin-top:12px;font-size:14px;color:#1d2126;display:flex;align-items:center;gap:10px">' + (f'<img src="{DTAB}{INST_IMG[c["who"]]}" alt="{E(c["who"])}" width="32" height="32" loading="lazy" style="width:32px;height:32px;border-radius:50%;object-fit:cover;object-position:50% 20%">' if c["who"] in INST_IMG else '') + f'<span><b>Instructor:</b> {E(c["who"])}</span></div>') if c.get('who') else ''
+    ci = COURSE_IMG.get(c['slug'])
+    m = (f'<div style="border-radius:20px;overflow:hidden;margin:-6px -6px 22px;aspect-ratio:344/238;background:#1d2126"><img src="{DTAB}{ci}" alt="{E(c["name"])} course" width="688" height="476" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"></div>') if ci else ''
     return f"""<div class="sx-card" style="display:flex;flex-direction:column;gap:0">
 {m}<h3 class="sx-h3">{E(c["name"])}</h3>
 <p style="margin:10px 0 0;font-size:15px">{E(c["sub"])}.</p>{who}
@@ -477,6 +511,7 @@ def build_training():
              cta_red(C.utm('training_hero'), 'Browse the courses', ' target="_blank" rel="noopener"') + cta_ghost('#bundles', 'Course bundles'),
              image='diesel-tech-academy-injector-repair-course.webp', eyebrow='Diesel Tech Academy', extra=bene_row())
     cards = ''.join(course_card(c) for c in C.COURSES)
+    TESTI = testi_block('display:inline-block;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:0 14px;font-weight:600;font-size:12px;line-height:25px;letter-spacing:.6px;text-transform:uppercase', f'margin:18px 0 0;font-family:{FONT};font-weight:600;color:#fff;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.02em')
     bund = ''
     for b in C.BUNDLES:
         items = ''.join(f'<li style="margin-bottom:6px">{E(x)}</li>' for x in b['list'])
@@ -489,7 +524,8 @@ def build_training():
 <section class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">10 courses by injector family</span><h2 class="sx-h2">Pick the injector you rebuild</h2>
 <p style="margin:16px 0 30px;max-width:760px">Each course is $297. Students get special purchasing conditions on specialized Robiel tools and parts through Maxzz Diesel.</p>
-<div class="sx-grid3">{cards}</div></div></section>
+<div class="sx-grid3">{cards}</div>
+<div style="margin-top:56px">{TESTI}</div></div></section>
 <section id="bundles" class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">Course bundles</span><h2 class="sx-h2">Three plans, from light duty to the full catalog</h2>
 <div class="sx-grid3" style="margin-top:30px">{bund}</div></div></section>
@@ -500,11 +536,10 @@ def build_training():
 <div style="display:flex;flex-direction:column;gap:12px"><a class="sx-btn wh" href="mailto:sales@maxzzdiesel.com?subject=Private%20onsite%20training">Request onsite training</a>
 <a class="sx-btn gh" href="tel:+19545864158">+1 (954)&nbsp;586-4158</a></div></div></div></section>
 <section class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
-<span class="sx-pill">Tools and parts for your course</span><h2 class="sx-h2">Training that comes with the right tooling</h2>
-<p style="margin:16px 0 0;max-width:760px">Students get special purchasing conditions on specialized Robiel tools and parts through Maxzz Diesel. Use the Quote Parts &amp; Robiel Tools button on any course to add the tool set to your list, or see the <a href="/systems/cummins-isx15-xpi">system hubs</a> for the part numbers.</p></div></section>
+<span class="sx-pill">Tools and parts for your course</span><h2 class="sx-h2">Student pricing on the right tooling</h2>
+<p style="margin:16px 0 0;max-width:760px">Students get discounted prices on specialized Robiel tools and parts through Maxzz Diesel (not included in the course price). Use the Quote Parts &amp; Robiel Tools button on any course to add the tool set to your list, or see the <a href="/systems/cummins-isx15-xpi">system hubs</a> for the part numbers.</p></div></section>
 <section class="sx" style="padding: 110px 20px 120px; box-sizing: border-box;"><div class="sx-wrap">
-<span class="sx-pill">What students say</span><h2 class="sx-h2">Diesel Tech Academy students</h2>
-<div class="sx-grid3" style="margin-top:30px">{testimonial_cards()}</div></div></section>
+<span class="sx-pill">The instructors</span><h2 class="sx-h2">People who do this work</h2>{instructors_block()}</div></section>
 {band('Questions about a course?', 'Our team answers in English, Spanish and Portuguese.', band_ctas())}
 {BULK_JS}"""
     url = SITE + path
@@ -635,26 +670,26 @@ EN_PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 
 
 UTIL_CSS = '<style id="util-css">.util a{color:rgba(255,255,255,.72);transition:color .25s}.util a:hover{color:#fc771d}.util svg{flex:none}@media (max-width:1100px){.util-mail span{display:none}}</style>'
 IC = lambda d: f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{d}</svg>'
-UTIL_LEFT = ('<div class="util util-left" style="display:flex;align-items:center;gap:22px;font-family:' + FONT + ';font-weight:500;font-size:12px;letter-spacing:.3px;">'
+UTIL_LEFT = ('<div class="util util-left" style="display:flex;align-items:center;gap:22px;margin-right:22px;font-family:' + FONT + ';font-weight:500;font-size:12px;letter-spacing:.3px;">'
              '<a href="tel:+19545864158" style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + IC('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>') + '+1 (954)&nbsp;586-4158</a>'
              '<a class="util-mail" href="mailto:sales@maxzzdiesel.com" aria-label="Email" style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + IC('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>') + '<span>sales@maxzzdiesel.com</span></a>'
-             '<span style="display:flex;align-items:center;gap:14px">'
-             '<a href="https://www.linkedin.com/company/maxzzdiesel/" target="_blank" rel="noopener" aria-label="LinkedIn" style="display:flex">' + IC('<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>') + '</a>'
-             '<a href="https://www.instagram.com/maxzzdiesel.us/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex">' + IC('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/>') + '</a>'
-             '<a href="https://www.facebook.com/maxzzdiesel" target="_blank" rel="noopener" aria-label="Facebook" style="display:flex">' + IC('<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>') + '</a></span></div>')
+             '</div>')
 UTIL_RIGHT = ('<div class="util" style="display:flex;align-items:center;gap:22px;font-family:' + FONT + ';font-weight:500;font-size:12px;letter-spacing:.3px;">'
               '<a href="/resources">Guides</a><a href="https://maxzzdiesel.store.unleashedsoftware.com/home" target="_blank" rel="noopener">B2B portal</a>')
 
 
 def patch_header(src):
     if 'class="util util-left"' in src:
+        src = re.sub(r'<span style="display:flex;align-items:center;gap:14px"><a href="https://www\.linkedin\.com.*?</span>', '', src, count=1, flags=re.S)
+        src = src.replace('class="util util-left" style="display:flex;align-items:center;gap:22px;font-family', 'class="util util-left" style="display:flex;align-items:center;gap:22px;margin-right:22px;font-family')
+        src = src.replace('class="lang-bar" style="max-width: 1320px; margin: 0 auto; height: 30px; display: flex; justify-content: space-between;', 'class="lang-bar" style="max-width: 1320px; margin: 0 auto; height: 30px; display: flex; justify-content: flex-end;')
         return src
     a = src.find('<div class="lang-bar"')
     if a < 0:
         return src
     tag_end = src.index('>', a)
     bar = src[a:tag_end]
-    bar2 = bar.replace('justify-content: flex-end', 'justify-content: space-between')
+    bar2 = bar
     lang_i = src.index('<div class="lang"', tag_end)
     src = src[:a] + bar2 + '>' + UTIL_LEFT + '<div style="display:flex;align-items:center;gap:22px">' + UTIL_RIGHT + '</div>' + src[lang_i:]
     # close the extra wrappers right after the language block: lang-bar ends with two </div> after menu
@@ -702,16 +737,12 @@ def patch_home(src):
         src = src.replace('<!-- PRODUCT LINES: The Maxzz', FINDER_SECTION + '<!-- PRODUCT LINES: The Maxzz', 1)
     if '/js/finder.js' not in src:
         src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=2" defer></script>', 1)
-    if 'id="dta-testimonials"' not in src:
-        t = ''.join(
-            f'<figure style="margin: 0; background: #ffffff; border-radius: 26px; padding: 30px; box-sizing: border-box;"><blockquote style="margin: 0; font-size: 16px; line-height: 1.65; color: #1d2126;">&ldquo;{E(q)}&rdquo;</blockquote>'
-            f'<figcaption style="margin-top: 16px; font-size: 14px;"><b style="color: #1d2126;">{E(n)}</b><br>{E(w)}</figcaption></figure>' for n, w, q in C.TESTIMONIALS)
-        block = (f'<section id="dta-testimonials" style="padding: 0 20px 120px; box-sizing: border-box;"><div style="max-width: 1320px; margin: 0 auto;">'
-                 f'<span style="display: inline-block; border: 1px solid rgba(29,33,38,0.2); color: #d32a37; border-radius: 50px; padding: 0 14px; font-family: {FONT}; font-weight: 600; font-size: 12px; line-height: 25px; letter-spacing: 0.6px; text-transform: uppercase;">Diesel Tech Academy</span>'
-                 f'<h2 style="margin: 18px 0 0; font-family: {FONT}; font-weight: 600; color: #1d2126; font-size: clamp(28px, 3vw, 42px); line-height: 1.12; letter-spacing: -0.02em;">What our students say</h2>'
-                 f'<div style="margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 16px;">{t}</div>'
-                 f'<div style="margin-top: 26px;"><a href="/training" style="color: #d32a37; font-weight: 600;">See all 10 courses &rarr;</a></div></div></section>\n')
-        src = src.replace('<!-- VOLVO ENGINE KITS -->', block + '<!-- VOLVO ENGINE KITS -->', 1)
+    src = re.sub(r'<section id="dta-testimonials".*?</section>\n?', '', src, flags=re.S)
+    eb = f'display:inline-block;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:0 14px;font-family:{FONT};font-weight:600;font-size:12px;line-height:25px;letter-spacing:.6px;text-transform:uppercase'
+    h2 = f'margin:18px 0 0;font-family:{FONT};font-weight:600;color:#fff;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.02em'
+    foot = '<div style="margin-top:26px"><a href="/training" style="color:#fff;font-weight:600;border-bottom:1px solid #d32a37;padding-bottom:2px">See all 10 courses &rarr;</a></div>'
+    block = f'<section id="dta-testimonials" style="padding: 0 20px 120px; box-sizing: border-box;"><div style="max-width: 1320px; margin: 0 auto;">{testi_block(eb, h2, foot=foot)}</div></section>\n'
+    src = src.replace('<!-- VOLVO ENGINE KITS -->', block + '<!-- VOLVO ENGINE KITS -->', 1)
     return patch_tags(src)
 
 
