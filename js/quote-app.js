@@ -27,6 +27,9 @@
     get curMake() { var m = this.make; return this.fit.tree.filter(function (x) { return x.key === m; })[0] || null; },
     get curEngine() { var m = this.curMake; return m && this.engIdx >= 0 ? m.engines[this.engIdx] : null; },
     get curGen() { var g = this.gen, out = null; this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (x) { if (x.key === g) out = x; }); }); }); return out; },
+    get printLines() { return this.phase === 3 && this.sent.length ? this.sent : this.lines; },
+    get printUnits() { return this.printLines.reduce(function (s, l) { return s + (l.qty || 1); }, 0); },
+    get today() { try { return new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return ''; } },
     get units() { return this.lines.reduce(function (s, l) { return s + (l.qty || 1); }, 0); },
     get benchGroups() {
       var self = this;
