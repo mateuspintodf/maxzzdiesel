@@ -2446,7 +2446,7 @@
       return 'All parts';
     },
     // base set for the route; the sidebar filters stack on top of it
-    get memoKey() { return [this.route, this.arg, this.cat.length, JSON.stringify(this.f), this.sortBy, this.book ? this.book.at : 0, Object.keys(this.imgs).length].join('|'); },
+    get memoKey() { return [this.route, this.arg, this.cat.length, JSON.stringify(this.f), this.sortBy, this.book ? this.book.at : 0, Object.keys(this.imgs).length, this.rank ? 1 : 0, this.popRank ? 1 : 0, this.specs ? 1 : 0].join('|'); },
     get base() {
       var k = this.route + '|' + this.arg + '|' + this.cat.length + '|' + (this.fit.tree.length) + '|' + (this.book ? this.book.at : 0) + '|' + this.hideOut;
       if (MEMO.baseK === k) return MEMO.base;
@@ -2474,7 +2474,16 @@
     },
     resultsCalc: function () {
       var self = this, out = this.base.filter(function (x) { return self.pass(x); }), s = this.sortBy;
-      if (!s) return out;
+      if (!s && this.route === 's') return out; // a search keeps its relevance order
+      if (!s) {
+        // Suggested: photo first, then injectors, pumps and nozzles ahead of the rest; within each, hand-picked, then sales history and stock, Cummins a step up
+        var CW = { Injector: 0, Pump: 1, Nozzle: 2, Rail: 3, Kit: 4, 'Repair part': 5, Tool: 6, Fluid: 7, 'Engine parts': 8 }, sp = this.specs || {};
+        var key = function (r) {
+          var c = r[0], w = CW[r[3]] != null ? CW[r[3]] : 9;
+          return (self.hasImg(c) ? 0 : 1e8) + w * 1e5 + (PICKS[c] ? -5000 : 0) + (String(r[6] || '').indexOf('c') >= 0 ? -300 : 0) + (self.pk(c) + self.rk(c)) / 2 + (sp[c] && sp[c].title ? 0 : 0.5);
+        };
+        return out.map(function (r, i) { return [key(r), i, r]; }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).map(function (x) { return x[2]; });
+      }
       out = out.slice();
       var pr = function (x) { var p = self.price(x[0]); return p == null ? (s === 'plo' ? 1e12 : -1) : p; };
       if (s === 'pn') out.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });

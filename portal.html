@@ -1421,7 +1421,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <!-- LIST: category, search, vehicle -->
 <div v-if="route === 'c' || route === 's' || route === 'g' || route === 'all'">
 <div class="px-crumb"><a href="#/">Store</a> / <span v-text="listTitle"></span></div>
-<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span style="white-space:nowrap" v-text="cat.length ? results.length.toLocaleString('en-US') + (results.length === 1 ? ' part' : ' parts') : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="">Best match</option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
+<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span style="white-space:nowrap" v-text="cat.length ? results.length.toLocaleString('en-US') + (results.length === 1 ? ' part' : ' parts') : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="" v-text="route === 's' ? 'Best match' : 'Suggested'"></option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
 <div class="px-hint" v-if="!logged"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><a href="#/login">Sign in</a> to see your prices, live stock and order online.</span></div>
 <div class="px-chips" v-if="chips.length"><button type="button" class="px-chip" v-for="c in chips" @click="toggle(c.g, c.k)"><span v-text="c.label"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 <div class="px-empty" v-if="cat.length && !results.length">
@@ -2068,7 +2068,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=78"></script>
+<script src="/js/portal-app.js?v=79"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
