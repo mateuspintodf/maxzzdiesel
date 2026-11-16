@@ -78,6 +78,7 @@ def title_of(code):
     sp = SPECS.get(code) or {}
     t = sp.get('title')
     if t:
+        t = t.replace('–', ' to ')
         m = t.split(': ')
         if len(m) == 2 and m[0].lower().endswith(m[1].lower()):
             t = m[0]
@@ -363,7 +364,7 @@ def triad(s):
     fl = ''.join(f'<li style="margin-bottom:8px">{E(n)}<div style="font-size:13px;color:#8a9099">{E(d)}</div>'
                  f'<div style="margin-top:6px">{btn_add(code, "Add fluid")}</div></li>' for code, n, d in C.FLUIDS)
     parts_codes = [code for _, code in hub_rows(s)[:0]]
-    parts_card = (f'<div class="sx-card"><span class="sx-pill">1. The parts</span><h3 class="sx-h3" style="margin-top:16px">Parts in stock in Florida</h3>'
+    parts_card = (f'<div class="sx-card"><span class="sx-pill">1. The parts</span><h3 class="sx-h3" style="margin-top:16px">Parts from our Florida stock and partner network</h3>'
                   f'<p style="margin:12px 0 18px">Genuine and aftermarket components for {E(s["apps"])}, matched by part number and shipped from Coconut Creek, FL. Most in-stock orders ship the same business day.</p>'
                   f'<a class="sx-btn red" href="#parts">See the part numbers</a> <a class="sx-btn ol" href="/quote" style="margin-top:8px">Request a quote</a></div>')
     tool_card = (f'<div class="sx-card"><span class="sx-pill">2. Bench tooling and fluids</span><h3 class="sx-h3" style="margin-top:16px">Robiel tools and Maxzz fluids</h3>'
@@ -532,7 +533,7 @@ def build_training():
 <section class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <div class="sx-card" style="background:#1d2126;color:#dedede;padding:clamp(28px,5vw,60px);display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:30px;align-items:center">
 <div><span class="sx-pill dk">Private onsite training</span><h2 class="sx-h2" style="color:#fff">Train your team at your bench or in Florida</h2>
-<p style="margin:16px 0 0;color:#dedede">Labs and shops can schedule hands-on training at their own test bench or at the Diesel Tech Academy facility in Coral Springs, Florida. Tell us the injector families and the number of technicians and we build the program.</p></div>
+<p style="margin:16px 0 0;color:#dedede">Our instructor comes to your shop and trains your team at your own test bench. Tell us the injector families and the number of technicians and we build the program.</p></div>
 <div style="display:flex;flex-direction:column;gap:14px;align-items:flex-end;text-align:right">{cta_red("https://www.dieseltechacademy.com/onsite-training", "Request onsite training", ' target="_blank" rel="noopener"')}
 <p style="margin:0;color:#dedede;font-size:15px">Prefer to talk? Call <a href="tel:+19545864158" style="color:#fff;font-weight:600;white-space:nowrap">+1 (954)&nbsp;586-4158</a></p></div></div></div></section>
 <section class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">

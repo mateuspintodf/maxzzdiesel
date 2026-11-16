@@ -118,6 +118,51 @@
   ],
   "redirects": [
     {
+      "source": "/pt/training",
+      "destination": "/training",
+      "permanent": true
+    },
+    {
+      "source": "/es/training",
+      "destination": "/training",
+      "permanent": true
+    },
+    {
+      "source": "/pt/resources",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/es/resources",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/pt/guides",
+      "destination": "/pt/guides/diesel-fuel-injection",
+      "permanent": true
+    },
+    {
+      "source": "/es/guides",
+      "destination": "/es/guides/diesel-fuel-injection",
+      "permanent": true
+    },
+    {
+      "source": "/systems",
+      "destination": "/injection-parts",
+      "permanent": true
+    },
+    {
+      "source": "/guides",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/resources/cp4-pump-failure-ford-6-7-powerstroke-duramax-l5p-solution",
+      "destination": "/resources/cp4-pump-failure-ford-6-7-powerstroke-ram-cummins-solution",
+      "permanent": true
+    },
+    {
       "source": "/store/",
       "destination": "/parts",
       "permanent": true
@@ -534,11 +579,6 @@
     },
     {
       "source": "/embrace-the-future-with-hdaw24-featuring-the-fully-equipped-theme",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/category/:slug*",
       "destination": "/",
       "permanent": true
     },
