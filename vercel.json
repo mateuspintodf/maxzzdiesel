@@ -118,6 +118,181 @@
   ],
   "redirects": [
     {
+      "source": "/store/",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/storeoff/",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/shop",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/shop/",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/products/",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/products",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/nozzles/",
+      "destination": "/parts/c/nozzles",
+      "permanent": true
+    },
+    {
+      "source": "/injector/",
+      "destination": "/parts/c/injectors",
+      "permanent": true
+    },
+    {
+      "source": "/injectors",
+      "destination": "/parts/c/injectors",
+      "permanent": true
+    },
+    {
+      "source": "/injectors/",
+      "destination": "/parts/c/injectors",
+      "permanent": true
+    },
+    {
+      "source": "/repair-kits/",
+      "destination": "/parts/c/repair-parts",
+      "permanent": true
+    },
+    {
+      "source": "/valves/",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/connector-tubes/",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/pumps/",
+      "destination": "/parts/c/pumps",
+      "permanent": true
+    },
+    {
+      "source": "/pumps",
+      "destination": "/parts/c/pumps",
+      "permanent": true
+    },
+    {
+      "source": "/about-us",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/about-us/",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us/",
+      "destination": "/quote",
+      "permanent": true
+    },
+    {
+      "source": "/contact-us",
+      "destination": "/quote",
+      "permanent": true
+    },
+    {
+      "source": "/academy/",
+      "destination": "/training",
+      "permanent": true
+    },
+    {
+      "source": "/academy",
+      "destination": "/training",
+      "permanent": true
+    },
+    {
+      "source": "/tools",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/tools/",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/feed/",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/feed",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/comments/feed",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/comments/feed/",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/wp-json/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/category/:path*",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/tag/:path*",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/author/:path*",
+      "destination": "/",
+      "permanent": true
+    },
+    {
+      "source": "/product/tool-set-:s",
+      "destination": "/tool-sets",
+      "permanent": true
+    },
+    {
+      "source": "/product/:slug",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/product-category/:path*",
+      "destination": "/parts",
+      "permanent": true
+    },
+    {
+      "source": "/page/:n",
+      "destination": "/",
+      "permanent": true
+    },
+    {
       "source": "/wp-admin",
       "destination": "/",
       "permanent": true
