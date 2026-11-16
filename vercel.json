@@ -40,10 +40,6 @@
     "api/img.js": {
       "includeFiles": "data/photos.json",
       "maxDuration": 15
-    },
-    "api/ingest-fotos.js": {
-      "includeFiles": "data/*.json",
-      "maxDuration": 60
     }
   },
   "headers": [
