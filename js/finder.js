@@ -43,6 +43,21 @@
     try { window.dispatchEvent(new StorageEvent('storage', { key: QK })); } catch (e) {}
   }
 
+  var SYS = [
+    ['Cummins ISX15 / X15 XPI', '/systems/cummins-isx15-xpi', 'isx15 x15 xpi cummins heavy duty 2872405'],
+    ['Detroit DD15 (Bosch CRIN 4.2)', '/systems/detroit-dd15-bosch-crin-4-2', 'dd15 detroit crin 4.2 bosch'],
+    ['Duramax L5P (Denso G4S)', '/systems/duramax-l5p-denso-g4s', 'l5p duramax denso g4s gm chevy gmc'],
+    ['Ram 6.7L Cummins (Bosch CRIN)', '/systems/cummins-6-7-bosch-crin', 'cummins 6.7 ram isb crin cp3 bosch dodge'],
+    ['Ford 6.7L Power Stroke (CP4)', '/systems/ford-6-7-powerstroke-cp4', 'ford powerstroke power stroke 6.7 cp4 bosch'],
+    ['CAT C15 / C7 / C9', '/systems/caterpillar-c15-c7-c9', 'cat caterpillar c15 c7 c9 heui meui']
+  ];
+  function sysHits(toks) {
+    return SYS.filter(function (x) {
+      var h = norm(x[0] + ' ' + x[2]);
+      return toks.every(function (t) { return h.indexOf(t) > -1; });
+    });
+  }
+
   function render(term) {
     var raw = term.trim();
     if (raw.length < 2) { out.innerHTML = ''; return; }
@@ -54,6 +69,11 @@
       if (ok) hits.push(cat[i]);
     }
     var h = '';
+    var sh = sysHits(toks);
+    if (sh.length) {
+      h += '<div style="display:flex;flex-wrap:wrap;gap:8px;padding:2px 0 12px;align-items:center;font-size:13px;color:#8a9099">Systems: ' +
+        sh.map(function (x) { return '<a href="' + x[1] + '" style="border:1px solid #d3d7dc;border-radius:50px;padding:4px 14px;color:#1d2126">' + esc(x[0]) + '</a>'; }).join('') + '</div>';
+    }
     hits.forEach(function (r) {
       h += '<div class="pf-r"><b>' + esc(oem(r[0], r[1])) + '</b><span>' + esc(r[1]) + '</span>' +
         '<button type="button" data-id="' + esc(r[0]) + '">Add to quote list</button></div>';
@@ -87,6 +107,14 @@
     } else return;
     var t = b.textContent; b.textContent = 'Added to your list';
     setTimeout(function () { b.textContent = t; }, 1600);
+  });
+
+  document.addEventListener('click', function (e) {
+    var c = e.target.closest && e.target.closest('[data-q]');
+    if (!c) return;
+    q.value = c.getAttribute('data-q');
+    q.focus();
+    load().then(function () { render(q.value); });
   });
 
   var m = /[?&]q=([^&]*)/.exec(location.search);

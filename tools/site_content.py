@@ -175,7 +175,7 @@ SYS_BY = {s['slug']: s for s in SYSTEMS}
 # ---------------------------------------------------------------- technical guides (published as drafts, noindex)
 GUIDES = [
     dict(
-        slug='detroit-dd15-bosch-crin-4-2-rebuild-solenoid-guide', sys='detroit-dd15-bosch-crin-4-2', course='bosch-crin-4-2', who='Arthur Bonachella',
+        slug='detroit-dd15-bosch-crin-4-2-rebuild-solenoid-guide', ph='detroit-dd15', sys='detroit-dd15-bosch-crin-4-2', course='bosch-crin-4-2', who='Arthur Bonachella',
         title='Bosch CRIN 4.2 (Detroit DD15) Rebuild Guide: How to Disassemble Without Breaking Solenoid Pins, Critical Measurements & Part Numbers',
         short='Bosch CRIN 4.2 (Detroit DD15) rebuild guide',
         meta='How to disassemble a Bosch CRIN 4.2 injector from a Detroit DD15 without breaking the solenoid pins, which measurements matter and which parts to order.',
@@ -211,7 +211,7 @@ GUIDES = [
              ('Which tool set do I need?', 'Robiel 323.50.40 is the tool set listed for the Bosch CRIN 4.2 injector.'),
              ('Is the course hands-on?', 'Yes. The Diesel Tech Academy Bosch CRIN 4.2 course teaches teardown without breaking solenoid pins, assembly and validation.')]),
     dict(
-        slug='cummins-isx15-xpi-injector-failure-symptoms-repair-parts', sys='cummins-isx15-xpi', course='cummins-isx15-xpi', who='Arthur Bonachella',
+        slug='cummins-isx15-xpi-injector-failure-symptoms-repair-parts', ph='cummins-isx15', sys='cummins-isx15-xpi', course='cummins-isx15-xpi', who='Arthur Bonachella',
         title='Cummins ISX15 XPI Injector Failure Symptoms, Electrical Bench Validation & Rebuild Components',
         short='Cummins ISX15 XPI injector failure symptoms and repair',
         meta='Symptoms of a failing Cummins ISX15 XPI injector, how to validate it electrically on the bench and which rebuild components and part numbers to order.',
@@ -244,7 +244,7 @@ GUIDES = [
              ('Which Robiel set covers the XPI?', 'Robiel 323.50.38 is listed for XPI, ISX15, ISL and Foton.'),
              ('Is there an ISX15 XPI course?', 'Yes. The Diesel Tech Academy Cummins ISX15 XPI Injector course covers disassembly, assembly and electrical validation.')]),
     dict(
-        slug='bosch-piezo-injector-ultrasonic-cleaning-warning-0445115', sys='ford-6-7-powerstroke-cp4', course='bosch-piezo', who='Arthur Bonachella',
+        slug='bosch-piezo-injector-ultrasonic-cleaning-warning-0445115', ph='bosch-piezo', sys='ford-6-7-powerstroke-cp4', course='bosch-piezo', who='Arthur Bonachella',
         title='Why Bosch Piezo Injector Bodies (0445115/116/117) Must Never Go in an Ultrasonic Cleaner: Safe Cleaning & Testing Protocol',
         short='Bosch piezo injector ultrasonic cleaning warning',
         meta='Why the body of a Bosch piezo injector (0445115, 0445116, 0445117) must never go in an ultrasonic cleaner, and the safe cleaning and bench test protocol.',
@@ -272,7 +272,7 @@ GUIDES = [
              ('Which fluids do you recommend?', 'Maxzz Fluid Series 2271 Sonic for the ultrasonic bath, 2221S Solv for solvent cleaning and 4113 CAL for bench testing.'),
              ('Is there a course?', 'Yes. The Diesel Tech Academy Bosch Piezo Injector (0445115/116/117) course covers the rule and the safe rebuild.')]),
     dict(
-        slug='cp4-pump-failure-ford-6-7-powerstroke-duramax-l5p-solution', sys='ford-6-7-powerstroke-cp4', course='bosch-piezo', who='Waldyr Mazzer',
+        slug='cp4-pump-failure-ford-6-7-powerstroke-duramax-l5p-solution', ph='cp4-pump', sys='ford-6-7-powerstroke-cp4', course='bosch-piezo', who='Waldyr Mazzer',
         title='CP4 High-Pressure Pump Failure & Fuel System Contamination: Complete Restoration Guide for Ford 6.7L Power Stroke, 5th Gen Cummins & Duramax L5P',
         short='CP4 pump failure and fuel system restoration guide',
         meta='What happens when a CP4 high pressure pump fails, how the debris contaminates the fuel system and what to replace on a Ford 6.7L, 5th Gen Cummins or Duramax L5P.',

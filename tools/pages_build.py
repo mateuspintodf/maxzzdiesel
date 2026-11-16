@@ -27,6 +27,27 @@ CAT = json.load(open(ROOT / 'data/catalog.json', encoding='utf-8'))
 SPECS = json.load(open(ROOT / 'data/specs.json', encoding='utf-8'))
 FIT = json.load(open(ROOT / 'data/fitment.json', encoding='utf-8'))
 ROW = {r[0]: r for r in CAT}
+PHOTOS = json.load(open(ROOT / 'data/photos.json', encoding='utf-8'))
+PH_BY = {v['code']: (k, v['ext']) for k, v in PHOTOS.items()}
+COURSE_PH = {'bosch-crin': 'BO.0.445.124.047', 'denso-g2s': 'DN.095000-5550', 'continental-vdo': 'SM.JB3Q-9K546-AB',
+             'bosch-crin-2-3': 'BO.0.445.120.384', 'cat-c7-c9': 'DE.EX634763', 'cat-c15': 'CAT.10R8502R',
+             'bosch-crin-4-2': 'RB.323.50.40', 'cummins-isx15-xpi': 'CM.2894920', 'denso-g4s': 'DN.295700-0630', 'bosch-piezo': 'BO.0.445.117.043'}
+GUIDE_PH = {'detroit-dd15': 'DAP.F.00V.X50.083', 'cummins-isx15': 'CM.2894920', 'bosch-piezo': 'BO.0.445.117.043', 'cp4-pump': 'BO.0.445.010.859'}
+TINTS = ['#f1f2f4', '#fde9eb', '#fff1e4', '#e9eafb', '#eaf3ee', '#f4efe6']
+
+
+def photo(code):
+    v = PH_BY.get(code)
+    return f'/img/p/{v[0]}.{v[1]}' if v else None
+
+
+def media(code, alt, tint='#f1f2f4', h=210, cap=''):
+    u = photo(code)
+    if not u:
+        return ''
+    c = f'<span style="position:absolute;left:14px;bottom:12px;background:#fff;border-radius:50px;padding:4px 12px;font-size:12px;font-weight:600;color:#1d2126">{E(cap)}</span>' if cap else ''
+    return (f'<div style="position:relative;background:{tint};border-radius:20px;height:{h}px;margin:-6px -6px 22px;display:flex;align-items:center;justify-content:center;overflow:hidden">'
+            f'<img src="{u}" alt="{E(alt)}" width="400" height="300" loading="lazy" decoding="async" style="max-height:88%;max-width:88%;object-fit:contain">{c}</div>')
 FONT = "'BDO Grotesk', 'Helvetica Neue', Arial, sans-serif"
 ARROW = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"></path><path d="M7 7h10v10"></path></svg>'
 CAT_ORDER = ['Injectors', 'Nozzles', 'Control valves', 'Solenoids', 'Injector components', 'Pumps', 'Pump repair kits', 'Pump components',
@@ -124,14 +145,21 @@ CSS = """<style>
 .sx-btn.wh{background:#fff;color:#1d2126 !important}.sx-btn.wh:hover{background:#fc771d;color:#fff !important}
 .sx-btn.gh{border:1px solid rgba(255,255,255,.6);color:#fff !important}.sx-btn.gh:hover{background:#fff;color:#1d2126 !important}
 .sx-faq details{background:#fff;border-radius:20px;padding:0 26px;margin-bottom:10px}
-.sx-faq summary{cursor:pointer;list-style:none;padding:22px 0;font-weight:600;font-size:18px;color:#1d2126;display:flex;justify-content:space-between;gap:16px}
+.sx-faq summary{cursor:pointer;list-style:none;padding:24px 0;font-weight:600;font-size:18px;color:#1d2126;display:flex;justify-content:space-between;gap:16px}
 .sx-faq summary::-webkit-details-marker{display:none}
 .sx-faq summary:after{content:"+";color:#d32a37;font-size:24px;line-height:1}
 .sx-faq details[open] summary:after{content:"\\2212"}
-.sx-faq p{margin:0 0 22px}
+.sx-faq details[open] summary{padding-bottom:12px}
+.sx .sx-faq details > p{margin:0 !important;padding:0 40px 28px 0;font-size:16px;line-height:1.7}
 .sx-tag{display:inline-block;border:1px solid #dfe3e7;border-radius:50px;padding:3px 14px;font-size:13px;color:#1d2126 !important;background:#fff}
 .sx-tag:hover{border-color:#d32a37}
-.sx-ans{background:#1d2126;color:#fff;border-radius:26px;padding:30px 34px;border-left:6px solid #fc771d}
+.sx-ans{background:#1d2126;color:#fff;border-radius:26px;padding:34px 38px;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:28px;align-items:center}
+.sx-ans .ph{background:#2a3037;border-radius:20px;height:170px;display:flex;align-items:center;justify-content:center}
+.sx-ans .ph img{max-width:86%%;max-height:86%%;object-fit:contain}
+.sx-ans.nophoto{grid-template-columns:1fr}
+.sx-bene{display:flex;flex-wrap:wrap;gap:12px 34px;margin-top:30px;color:#fff;font-size:15px}
+.sx-bene span{display:inline-flex;align-items:center;gap:10px}
+.sx-bene svg{color:#fc771d;flex:none}
 .sx-ans b{display:block;font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:#fc771d;margin-bottom:10px}
 .sx-ans p{margin:0;font-size:18px;line-height:1.6;color:#fff}
 .sx-art h2{margin:44px 0 0;font-weight:600;color:#1d2126;font-size:clamp(24px,2.4vw,32px);line-height:1.15;letter-spacing:-.02em}
@@ -143,7 +171,8 @@ CSS = """<style>
 .sx-mini p{margin:0 0 14px;font-size:14px;line-height:1.5}
 .sx-draft{background:#fff4e5;border:1px solid #f3c58a;border-radius:16px;padding:14px 18px;font-size:14px;color:#6b4200;margin-top:18px}
 @media (max-width:980px){.sx-grid3,.sx-grid4{grid-template-columns:repeat(2,minmax(0,1fr))}.sx-art-grid{grid-template-columns:1fr !important}.sx-aside{position:static}}
-@media (max-width:640px){.sx-grid3,.sx-grid2,.sx-grid4{grid-template-columns:1fr}.sx-card{padding:24px 20px}}
+@media (max-width:760px){.sx-ans{grid-template-columns:1fr}.sx-ans .ph{height:150px}}
+@media (max-width:640px){.sx-grid3,.sx-grid2,.sx-grid4{grid-template-columns:minmax(0,1fr)}.sx-card{padding:24px 20px;min-width:0}.sx-card *{max-width:100%%}.sx button,.sx .btn{min-height:44px}}@media (max-width:760px){body{padding-bottom:88px}}
 </style>""" % {'f': FONT}
 
 ADD_JS = """<script>(function(){var QK='mx-quote';function rd(){try{var v=JSON.parse(localStorage.getItem(QK)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
@@ -233,20 +262,31 @@ def page_shell(path, title, desc, og_img, graph, body, noindex=False, page_id='P
     return pre + '<main>\n' + MODAL + CSS + '\n' + body + '\n' + post
 
 
-def hero(crumbs, h1, lead, ctas, image='diesel-injection-test-bench-equipment.webp', eyebrow=None):
+BENE = [('<path d="M18.2 7.8a4.5 4.5 0 1 0 0 8.4c2-1.5 3.3-4.2 3.3-4.2s-1.3-2.7-3.3-4.2zM5.8 7.8a4.5 4.5 0 1 1 0 8.4C3.8 14.7 2.5 12 2.5 12s1.3-2.7 3.3-4.2z"/>', 'Lifetime access'),
+        ('<path d="M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/>', '7-day guarantee'),
+        ('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/>', '50% off the second course'),
+        ('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', 'Robiel tools and parts for students')]
+
+
+def bene_row():
+    return '<div class="sx-bene">' + ''.join(
+        f'<span><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{p}</svg>{t}</span>' for p, t in BENE) + '</div>'
+
+
+def hero(crumbs, h1, lead, ctas, image='diesel-injection-test-bench-equipment.webp', eyebrow=None, extra=''):
     bc = '<span style="margin: 0 10px;">/</span>'.join(
         (f'<a href="{b}" style="color: #b9b9be;">{E(a)}</a>' if b else f'<span style="color: #ffffff;">{E(a)}</span>') for a, b in crumbs)
     return f"""<section style="position: relative; box-sizing: border-box;">
-<div class="l-hero" style="position: relative; min-height: 560px; background: #0e0f11; border-radius: 0 0 30px 30px; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+<div class="l-hero" style="position: relative; min-height: 560px; background: #0e0f11; border-radius: 0 0 30px 30px; overflow: hidden; display: flex; align-items: center;">
 {img(image, '', 'kb', 'position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; opacity: .55;', lazy=False)}
 <span style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(14,15,17,0.86) 0%, rgba(14,15,17,0.62) 45%, rgba(14,15,17,0.9) 100%);"></span>
-<div style="position: relative; width: 100%; max-width: 1060px; margin: 0 auto; padding: 170px 20px 80px; box-sizing: border-box;">
+<div style="position: relative; width: 100%; box-sizing: border-box; padding: 0 20px;"><div style="max-width: 1320px; margin: 0 auto; padding: 190px 40px 80px; box-sizing: border-box;">
 <div style="font-family: {FONT}; font-size: 13px; color: #8a9099; letter-spacing: 0.4px;">{bc}</div>
 {f'<span class="sx-pill dk" style="margin-top:22px;font-family:{FONT}">{E(eyebrow)}</span>' if eyebrow else ''}
 <h1 style="margin: 22px 0 0; font-family: {FONT}; font-weight: 700; color: #ffffff; font-size: clamp(32px, 4.4vw, 62px); line-height: 1.06; letter-spacing: -0.03em; max-width: 980px;">{h1}</h1>
 <p style="margin: 22px 0 0; max-width: 720px; color: #dedede; font-size: 18px; line-height: 1.65;">{lead}</p>
-<div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px;">{ctas}</div>
-</div></div></section>"""
+<div style="display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px;">{ctas}</div>{extra}
+</div></div></div></section>"""
 
 
 def cta_red(href, label, target=''):
@@ -396,14 +436,18 @@ def course_card(c):
             quote_attrs.append((code, title_of(code), code))
     data = json.dumps([{'id': i, 'name': n, 'pn': p} for i, n, p in quote_attrs], ensure_ascii=False)
     who = f'<div style="margin-top:12px;font-size:14px;color:#1d2126"><b>Instructor:</b> {E(c["who"])}</div>' if c.get('who') else ''
+    tint = TINTS[C.COURSES.index(c) % len(TINTS)]
+    cap = ''
+    code = COURSE_PH.get(c['slug'])
+    if code:
+        cap = oem(code) if not code.startswith('RB.') else 'Robiel ' + code.split('.', 1)[1]
+    m = media(code, c['name'] + ' part', tint, 220, cap) if code else ''
     return f"""<div class="sx-card" style="display:flex;flex-direction:column;gap:0">
-<span class="sx-pill" style="align-self:flex-start">$297</span>
-<h3 class="sx-h3" style="margin-top:16px">{E(c["name"])}</h3>
+{m}<h3 class="sx-h3">{E(c["name"])}</h3>
 <p style="margin:10px 0 0;font-size:15px">{E(c["sub"])}.</p>{who}
-<ul style="list-style:none;margin:16px 0 0;padding:0;font-size:13px;color:#5a5a60"><li>Lifetime access</li><li>7-day guarantee</li><li>50% off the second course</li></ul>
 <div style="margin-top:auto;padding-top:22px;display:flex;flex-direction:column;gap:10px">
-<a class="sx-btn red" href="{C.utm('training_catalog')}" target="_blank" rel="noopener">Enroll Now ($297) &#8599;</a>
-<button type="button" class="sx-btn ol" style="cursor:pointer;background:transparent;font-family:{FONT}" data-bulk='{E(data)}'>Quote Parts &amp; Robiel Tools for this Unit</button>
+<a class="sx-btn red" href="{C.utm('training_catalog')}" target="_blank" rel="noopener" style="justify-content:center">Enroll Now ($297) &#8599;</a>
+<button type="button" class="sx-btn ol" style="cursor:pointer;background:transparent;font-family:{FONT};justify-content:center" data-bulk='{E(data)}'>Quote Parts &amp; Robiel Tools for this Unit</button>
 </div></div>"""
 
 
@@ -431,7 +475,7 @@ def build_training():
     h = hero([('Home', '/'), ('Training', None)], 'Diesel Tech Academy: <span style="color:#fc771d">Official Training</span> by Maxzz Diesel',
              'Ten online courses by injector family, taught at a working bench. $297 each, 50% off the second course, lifetime access and a 7-day guarantee.',
              cta_red(C.utm('training_hero'), 'Browse the courses', ' target="_blank" rel="noopener"') + cta_ghost('#bundles', 'Course bundles'),
-             image='diesel-tech-academy-injector-repair-course.webp', eyebrow='Diesel Tech Academy')
+             image='diesel-tech-academy-injector-repair-course.webp', eyebrow='Diesel Tech Academy', extra=bene_row())
     cards = ''.join(course_card(c) for c in C.COURSES)
     bund = ''
     for b in C.BUNDLES:
@@ -444,7 +488,7 @@ def build_training():
     body = f"""{h}
 <section class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">10 courses by injector family</span><h2 class="sx-h2">Pick the injector you rebuild</h2>
-<p style="margin:16px 0 30px;max-width:760px">Each course is $297 with lifetime access and a 7-day guarantee. Take a second course and it is 50% off. Students get special purchasing conditions on specialized Robiel tools and parts through Maxzz Diesel.</p>
+<p style="margin:16px 0 30px;max-width:760px">Each course is $297. Students get special purchasing conditions on specialized Robiel tools and parts through Maxzz Diesel.</p>
 <div class="sx-grid3">{cards}</div></div></section>
 <section id="bundles" class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">Course bundles</span><h2 class="sx-h2">Three plans, from light duty to the full catalog</h2>
@@ -480,7 +524,8 @@ def build_resources():
              cta_red('/quote', 'Request a quote') + cta_ghost('/training', 'Diesel Tech Academy courses'), eyebrow='Maxzz Diesel Resources')
     cards = ''
     for g_ in C.GUIDES:
-        cards += (f'<a class="sx-card" href="/resources/{g_["slug"]}" style="display:flex;flex-direction:column;color:#5a5a60 !important;text-decoration:none">'
+        cards += (f'<a class="sx-card" href="/resources/{g_["slug"]}" style="display:flex;flex-direction:column;color:#5a5a60 !important;text-decoration:none">' +
+                  media(GUIDE_PH.get(g_['ph']), g_['short'], TINTS[C.GUIDES.index(g_) % len(TINTS)], 220) +
                   f'<span class="sx-pill" style="align-self:flex-start">Technical guide</span>'
                   f'<h3 class="sx-h3" style="margin-top:16px">{E(g_["title"])}</h3>'
                   f'<p style="margin:12px 0 0;font-size:15px">{E(g_["meta"])}</p>'
@@ -535,6 +580,7 @@ def build_guide(g):
     codes = codes[:g['parts']['n']]
     ptable = parts_table(codes, None)
     reviewed = REVIEWED
+    gph = photo(GUIDE_PH.get(g['ph']))
     byline = ('Technical review: ' if reviewed else 'Technical review pending: ') + (
         'Waldyr Mazzer (40+ years in diesel injection, former Bosch and Delphi senior instructor) and Arthur Bonachella (Robiel and Diesel Tech Academy instructor).')
     secs = ''
@@ -545,15 +591,15 @@ def build_guide(g):
             secs += guide_table(sec[2])
     faq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{E(q)}</summary><p>{E(a)}</p></details>' for i, (q, a) in enumerate(g['faq']))
     draft = ('' if GUIDES_LIVE else '<div class="sx-draft"><b>Draft.</b> This guide is waiting for technical review by Waldyr Mazzer and Arthur Bonachella. It is not indexed by search engines yet.</div>')
-    body = f"""<section style="padding: 150px 20px 0; box-sizing: border-box;"><div class="sx sx-wrap">
-<div style="font-size:13px;color:#8a9099"><a href="/" style="color:#8a9099">Home</a> / <a href="/resources" style="color:#8a9099">Technical Guides</a> / <span style="color:#1d2126">{E(g["short"])}</span></div>
+    body = f"""<style>.util a{{color:#4a5058 !important}}.util a:hover{{color:#d32a37 !important}}</style><section style="padding: 150px 20px 0; box-sizing: border-box;"><div class="sx sx-wrap" style="padding:0 40px">
+<div style="font-size:14px;color:#5a6169"><a href="/" style="color:#5a6169">Home</a> / <a href="/resources" style="color:#5a6169">Technical Guides</a> / <span style="color:#1d2126">{E(g["short"])}</span></div>
 <span class="sx-pill" style="margin-top:22px">Technical guide</span>
 <h1 style="margin:16px 0 0;font-family:{FONT};font-weight:700;color:#1d2126;font-size:clamp(28px,3.4vw,46px);line-height:1.1;letter-spacing:-.02em;max-width:1000px">{E(g["title"])}</h1>
 <p style="margin:16px 0 0;font-size:14px;max-width:900px"><b style="color:#1d2126">By the Maxzz Diesel technical team.</b> {E(byline)}</p>{draft}
 </div></section>
 <section class="sx" style="padding: 40px 20px 0; box-sizing: border-box;"><div class="sx-wrap sx-art-grid" style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start">
 <article class="sx-art" style="min-width:0">
-<div class="sx-ans"><b>Direct answer</b><p>{E(g["answer"])}</p></div>
+<div class="sx-ans{'' if gph else ' nophoto'}"><div><b>Direct answer</b><p>{E(g["answer"])}</p></div>{('<div class="ph"><img src="' + gph + '" alt="' + E(g["short"]) + '" width="300" height="300" loading="lazy"></div>') if gph else ''}</div>
 {secs}
 <h2>Part numbers</h2><p>Real part numbers from our catalog for this application. Press the button to add a line to your quote list.</p>{ptable}
 <h2>Frequently asked questions</h2><div class="sx-faq" style="margin-top:18px">{faq}</div>
@@ -587,8 +633,43 @@ EN_PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 
             'quote', 'terms', 'tool-sets', 'who-we-serve', 'training', 'resources']
 
 
+UTIL_CSS = '<style id="util-css">.util a{color:rgba(255,255,255,.72);transition:color .25s}.util a:hover{color:#fc771d}.util svg{flex:none}@media (max-width:1100px){.util-mail span{display:none}}</style>'
+IC = lambda d: f'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">{d}</svg>'
+UTIL_LEFT = ('<div class="util util-left" style="display:flex;align-items:center;gap:22px;font-family:' + FONT + ';font-weight:500;font-size:12px;letter-spacing:.3px;">'
+             '<a href="tel:+19545864158" style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + IC('<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/>') + '+1 (954)&nbsp;586-4158</a>'
+             '<a class="util-mail" href="mailto:sales@maxzzdiesel.com" aria-label="Email" style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + IC('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>') + '<span>sales@maxzzdiesel.com</span></a>'
+             '<span style="display:flex;align-items:center;gap:14px">'
+             '<a href="https://www.linkedin.com/company/maxzzdiesel/" target="_blank" rel="noopener" aria-label="LinkedIn" style="display:flex">' + IC('<path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/>') + '</a>'
+             '<a href="https://www.instagram.com/maxzzdiesel.us/" target="_blank" rel="noopener" aria-label="Instagram" style="display:flex">' + IC('<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".6"/>') + '</a>'
+             '<a href="https://www.facebook.com/maxzzdiesel" target="_blank" rel="noopener" aria-label="Facebook" style="display:flex">' + IC('<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>') + '</a></span></div>')
+UTIL_RIGHT = ('<div class="util" style="display:flex;align-items:center;gap:22px;font-family:' + FONT + ';font-weight:500;font-size:12px;letter-spacing:.3px;">'
+              '<a href="/resources">Guides</a><a href="https://maxzzdiesel.store.unleashedsoftware.com/home" target="_blank" rel="noopener">B2B portal</a>')
+
+
+def patch_header(src):
+    if 'class="util util-left"' in src:
+        return src
+    a = src.find('<div class="lang-bar"')
+    if a < 0:
+        return src
+    tag_end = src.index('>', a)
+    bar = src[a:tag_end]
+    bar2 = bar.replace('justify-content: flex-end', 'justify-content: space-between')
+    lang_i = src.index('<div class="lang"', tag_end)
+    src = src[:a] + bar2 + '>' + UTIL_LEFT + '<div style="display:flex;align-items:center;gap:22px">' + UTIL_RIGHT + '</div>' + src[lang_i:]
+    # close the extra wrappers right after the language block: lang-bar ends with two </div> after menu
+    end = src.index('</div></div></div>', lang_i) + len('</div></div>')
+    src = src[:end] + '</div>' + src[end:]
+    src = re.sub(r'<a class="nav-phone"[^>]*>.*?</a>\s*', '', src, count=1, flags=re.S)
+    src = re.sub(r'<a class="navl" href="/resources"[^>]*>Guides</a>\s*', '', src)
+    if 'id="util-css"' not in src:
+        src = src.replace('</head>', UTIL_CSS + '</head>', 1)
+    return src
+
+
 def patch_nav(src):
     src = src.replace(NAV_OLD, NAV_NEW)
+    src = patch_header(src)
     if 'href="/training">Training<span class="mn-ar">' not in src:
         src = MN_RE.sub(lambda m: (f'<a class="mn-link" href="/training">Training{m.group(1)}</a>'
                                    f'<a class="mn-link" href="/resources">Technical Guides{m.group(1)}</a>' + m.group(0)), src, count=1)
@@ -614,8 +695,13 @@ FINDER_BAND = f"""<!-- QUICK PART FINDER -->
 
 
 def patch_home(src):
-    if 'id="finder-shortcut"' not in src:
-        src = src.replace('<!-- PRODUCT LINES: The Maxzz', FINDER_BAND + '<!-- PRODUCT LINES: The Maxzz', 1)
+    src = re.sub(r'<!-- QUICK PART FINDER -->\s*<section id="finder-shortcut".*?</form></section>\s*', '', src, flags=re.S)
+    if '<!--pf-start-->' in src:
+        src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->', lambda m: FINDER_SECTION, src, flags=re.S)
+    else:
+        src = src.replace('<!-- PRODUCT LINES: The Maxzz', FINDER_SECTION + '<!-- PRODUCT LINES: The Maxzz', 1)
+    if '/js/finder.js' not in src:
+        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=2" defer></script>', 1)
     if 'id="dta-testimonials"' not in src:
         t = ''.join(
             f'<figure style="margin: 0; background: #ffffff; border-radius: 26px; padding: 30px; box-sizing: border-box;"><blockquote style="margin: 0; font-size: 16px; line-height: 1.65; color: #1d2126;">&ldquo;{E(q)}&rdquo;</blockquote>'
@@ -629,28 +715,34 @@ def patch_home(src):
     return patch_tags(src)
 
 
-FINDER_SECTION = f"""<!-- QUICK PART FINDER -->
+FINDER_SECTION = f"""<!--pf-start-->
 <section id="finder" style="padding: 60px 20px 0; box-sizing: border-box;"><div style="max-width: 1320px; margin: 0 auto; background: #ffffff; border-radius: 30px; padding: clamp(24px, 4vw, 50px); box-sizing: border-box;">
 <span style="display: inline-block; border: 1px solid rgba(29,33,38,0.2); color: #d32a37; border-radius: 50px; padding: 0 14px; font-family: {FONT}; font-weight: 600; font-size: 12px; line-height: 25px; letter-spacing: 0.6px; text-transform: uppercase;">Quick part finder</span>
 <h2 style="margin: 16px 0 0; font-family: {FONT}; font-weight: 600; color: #1d2126; font-size: clamp(26px, 2.8vw, 38px); line-height: 1.12; letter-spacing: -0.02em;">Search by engine, system or part number</h2>
 <div style="margin-top: 22px; position: relative;"><input id="pf-q" type="search" autocomplete="off" placeholder="Search by Engine, System or OEM / Bosch / Denso Part Number (e.g., 2872405, CRIN 4.2, ISX15, CP4)..." aria-label="Search by engine, system or part number" style="width: 100%; height: 60px; border-radius: 50px; border: 1px solid #d3d7dc; padding: 0 28px; font-family: {FONT}; font-size: 16px; box-sizing: border-box;"></div>
 <div id="pf-out" aria-live="polite" style="margin-top: 14px;"></div>
-<div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: {FONT}; font-size: 13px; color: #8a9099;">Popular systems: <a class="sx-tag" href="/systems/cummins-isx15-xpi" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Cummins ISX15 XPI</a><a href="/systems/detroit-dd15-bosch-crin-4-2" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Detroit DD15 CRIN 4.2</a><a href="/systems/duramax-l5p-denso-g4s" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Duramax L5P</a><a href="/systems/cummins-6-7-bosch-crin" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Ram 6.7L Cummins</a><a href="/systems/ford-6-7-powerstroke-cp4" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Ford 6.7L Power Stroke</a><a href="/systems/caterpillar-c15-c7-c9" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">CAT C15 / C7 / C9</a></div>
+<div style="margin-top: 18px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: {FONT}; font-size: 13px; color: #8a9099;">Brands: @@BRANDS@@</div>
+<div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: {FONT}; font-size: 13px; color: #8a9099;">Popular systems: <a class="sx-tag" href="/systems/cummins-isx15-xpi" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Cummins ISX15 XPI</a><a href="/systems/detroit-dd15-bosch-crin-4-2" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Detroit DD15 CRIN 4.2</a><a href="/systems/duramax-l5p-denso-g4s" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Duramax L5P</a><a href="/systems/cummins-6-7-bosch-crin" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Ram 6.7L Cummins</a><a href="/systems/ford-6-7-powerstroke-cp4" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">Ford 6.7L Power Stroke</a><a href="/systems/caterpillar-c15-c7-c9" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126;">CAT C15 / C7 / C9</a></div>
 </div></section>
 @@PFCSS@@
 """
 
 
+BR = ''.join(f'<button type="button" data-q="{b}" style="border: 1px solid #dfe3e7; border-radius: 50px; padding: 3px 14px; color: #1d2126; background: #fff; font-family: {FONT}; font-size: 13px; cursor: pointer;">{b}</button>' for b in ['Bosch', 'Denso', 'Delphi', 'Cummins', 'Caterpillar', 'LEAD', 'Robiel', 'Fratelli Bosio', 'Java', 'Maxzz'])
+FINDER_SECTION = FINDER_SECTION.replace('@@BRANDS@@', BR) + '<!--pf-end-->'
 FINDER_SECTION = FINDER_SECTION.replace("@@PFCSS@@", '<style>#pf-out .pf-r{display:flex;align-items:center;gap:14px;padding:12px 4px;border-bottom:1px solid #eceef0}#pf-out .pf-r b{color:#1d2126;font-size:15px}#pf-out .pf-r span{flex:1;min-width:0;font-size:14px;color:#5a5a60}#pf-out button{font-family:FONTX;cursor:pointer;border:0;border-radius:50px;background:#1d2126;color:#fff;padding:10px 16px;font-size:13px;white-space:nowrap}#pf-out button:hover{background:#d32a37}#pf-out .pf-c{background:#d32a37;padding:14px 22px;font-size:15px}</style>'.replace("FONTX", FONT))
 
 
 def patch_parts(src):
-    if 'id="finder"' not in src:
+    src = re.sub(r'<!-- QUICK PART FINDER -->\s*<section id="finder".*?</style>\s*', '', src, count=1, flags=re.S)
+    if '<!--pf-start-->' in src:
+        src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->', lambda m: FINDER_SECTION, src, flags=re.S)
+    else:
         # after the first hero section
         i = src.index('</section>', src.index('<section style="position: relative; box-sizing: border-box;">')) + len('</section>')
         src = src[:i] + '\n' + FINDER_SECTION + src[i:]
     if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=1" defer></script>', 1)
+        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=2" defer></script>', 1)
     # chips become links to the system hubs
     old = '<div style="display: contents" v-for="ch in cur.chips"><span style="border: 1px solid #d3d7dc;'
     if old in src and ':href="ch.href"' not in src:
@@ -675,6 +767,7 @@ def patch_quote(src):
     if 'qx-stock' not in src:
         src = src.replace('<div class="qx-trust">\n', '<div class="qx-trust">\n' + badge + '\n', 1)
         src = src.replace('.qx-paste summary{padding:8px 0}', '.qx-paste summary{padding:8px 0}.qx-stock{display:inline-flex;align-items:center;gap:8px;background:#1d2126;color:#fff;border-radius:50px;padding:8px 16px;font-weight:600}', 1)
+    src = src.replace('border-radius:0 0 30px 30px;padding:122px 20px 28px', 'border-radius:0 0 30px 30px;padding:160px 20px 28px')
     return src
 
 
