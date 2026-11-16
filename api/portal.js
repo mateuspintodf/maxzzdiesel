@@ -8,7 +8,8 @@
 const crypto = require('crypto');
 const { readJson, writeJson, cached, nextNumber } = require('../lib/store');
 const { ul, configured } = require('../lib/unleashed');
-const { loginToken, verify, setSession, clearSession, sessionEmail } = require('../lib/session');
+const { loginToken, verify, setSession, clearSession } = require('../lib/session');
+const { authenticate } = require('../lib/auth');
 const { send, esc } = require('../lib/mail');
 const { upsertContact, addNote, addTask } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
@@ -36,16 +37,7 @@ async function loadDb() { return (await readJson(DB)) || { users: {}, accounts: 
 const money = (n) => Math.round(n * 100) / 100;
 const id = () => crypto.randomBytes(8).toString('hex');
 
-async function whoami(req) {
-  const email = sessionEmail(req);
-  if (!email) return null;
-  const db = await loadDb();
-  const u = db.users[email];
-  const admin = isAdmin(email);
-  if (!u && !admin) return null;
-  const acc = u && u.account ? db.accounts[u.account] : null;
-  return { email, admin, user: u || null, account: acc || null, db };
-}
+const whoami = (req) => authenticate(req);
 
 // prices for one account: its Unleashed tier, or the default sell price
 async function priceBook(account) {
@@ -357,6 +349,18 @@ A['admin-approve'] = async (req, res) => {
     { url: base(req) + '/portal', label: 'Open the portal' }, { name: u.name, greet: true });
   return res.json({ ok: true });
 };
+// Admin: ends every open session of one person (or all people of a company) at once; they sign in again by e-mail link.
+A['admin-revoke'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await adminOnly(req, res); if (!w) return;
+  const b = readBody(req);
+  const email = clean(b.email, 160).toLowerCase(), now = Date.now();
+  const u = w.db.users[email];
+  if (u) u.revokedBefore = now;
+  else { w.db.revokedBefore = w.db.revokedBefore || {}; w.db.revokedBefore[email] = now; }
+  await writeJson(DB, w.db);
+  return res.json({ ok: true });
+};
 A['admin-reject'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await adminOnly(req, res); if (!w) return;
@@ -365,7 +369,7 @@ A['admin-reject'] = async (req, res) => {
   if (!acc) return res.status(404).json({ error: 'account' });
   acc.status = 'rejected'; acc.rejectedBy = w.email; acc.reason = clean(b.reason, 400);
   const people = Object.values(w.db.users).filter((u) => u.account === acc.id);
-  people.forEach((u) => { u.status = 'rejected'; });
+  people.forEach((u) => { u.status = 'rejected'; u.revokedBefore = Date.now(); });
   await writeJson(DB, w.db);
   if (b.notify) for (const u of people) await send(u.email, 'About your Maxzz B2B portal request', 'About your request',
     `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/quote or reply to this e-mail.</p>`, null, { name: u.name, greet: true });

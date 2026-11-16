@@ -8,6 +8,8 @@
   var TFIX = { 'BO.0.414.702.010': 'Bosch Unit Pump for Volvo Penta, Fits Volvo L180E and L180E HL' };
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  // what the browser remembers belongs to one signed-in person: it is wiped on sign-out, on a revoked session and when a different person signs in
+  function forget() { try { ['mx-portal-cart', 'mx-portal-ship', 'mx-portal-recent', 'mx-portal-who'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} }
   function norm(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
   function api(path, opts) {
     opts = opts || {};
@@ -2789,13 +2791,15 @@
         self.meLoaded = true;
         if (me._status === 200) {
           self.me = me;
+          if (read('mx-portal-who', '') !== me.email) { forget(); self.cart = []; self.recent = []; self.co.street = self.co.city = self.co.state = self.co.zip = self.co.fwd = ''; }
+          write('mx-portal-who', me.email);
           if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
           if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
-        }
+        } else if (me._status === 401) forget();
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
       // account menu: close on a click outside it, on Escape and on navigation
@@ -3079,7 +3083,7 @@
         })
         .catch(function () { self.busy = false; self.err = 'We could not send it right now. Try again, or e-mail the list to sales@maxzzdiesel.com.'; });
     },
-    logout: function () { api('logout', { body: {} }).then(function () { location.href = '/portal'; }); },
+    logout: function () { forget(); api('logout', { body: {} }).then(function () { location.href = '/portal'; }); },
 
     // admin
     lookup: function (a) { var self = this; if (!a._q.trim()) return; a._busy = true; api('admin-lookup?code=' + encodeURIComponent(a._q.trim())).then(function (r) { a._busy = false; a._res = r.customers || []; if (r.error) self.flash(r.error); }); },

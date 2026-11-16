@@ -5,7 +5,7 @@ const { EMAIL, clean, readBody } = require('../lib/validate');
 const { guard } = require('../lib/guard');
 const { createSalesQuote } = require('../lib/unleashed-quote');
 const { nextNumber, readJson, writeJson } = require('../lib/store');
-const { sessionEmail } = require('../lib/session');
+const { authenticate } = require('../lib/auth');
 const crypto = require('crypto');
 const { send } = require('../lib/mail');
 
@@ -28,7 +28,7 @@ module.exports = async (req, res) => {
   const extra = [shipText && ('Ship to: ' + shipText), ship.method && ('Delivery: ' + ship.method), ship.needBy && ('Needed by: ' + ship.needBy),
     ship.po && ('PO / reference: ' + ship.po), b2b && 'Wants early access to the B2B ordering platform', source && ('Source: ' + source)].filter(Boolean);
   // signed-in store users already have a verified e-mail and contact on file: phone is optional for them
-  const who = store ? sessionEmail(req) : null;
+  const who = store ? (((await authenticate(req)) || {}).email || null) : null;
   const phoneOk = customer.phone.replace(/\D/g, '').length >= 7 || (!customer.phone && who && who === customer.email);
   if (!customer.name || !customer.company || !EMAIL.test(customer.email) || !phoneOk || !lines.length) {
     return res.status(400).json({ error: 'missing fields' });
