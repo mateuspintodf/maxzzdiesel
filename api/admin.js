@@ -183,6 +183,178 @@ A['admin-save'] = async (req, res) => {
   await PS.audit(w.email, before ? 'admin.update' : 'admin.create', 'admin', email, before && { role: before.role, active: before.active }, { role, active });
   return res.json({ ok: true });
 };
+// ---------------------------------------------------------------- Unleashed import into segments
+const addrOf = (c) => { const a = (c.Addresses || []).find((x) => /physical|street/i.test(x.AddressType || '')) || (c.Addresses || [])[0] || {}; return { city: a.City || '', state: a.Region || '', country: a.Country || '' }; };
+async function allCustomers() {
+  const out = [];
+  for (let page = 1; page <= 20; page++) {
+    const d = await ul('Customers', 'pageSize=500&pageNumber=' + page, { timeoutMs: 40000 });
+    (d.Items || []).forEach((c) => out.push(c));
+    if (!d.Pagination || page >= (d.Pagination.NumberOfPages || 1)) break;
+  }
+  return out;
+}
+// codes of customers with at least one sales order since a date (used by the "bought in the last N months" filter)
+async function buyersSince(months) {
+  const since = new Date(Date.now() - months * 30.44 * 864e5).toISOString().slice(0, 10), codes = new Set();
+  for (let page = 1; page <= 40; page++) {
+    const d = await ul('SalesOrders', 'orderStatus=Completed,Placed,Parked,Backordered&startDate=' + since + '&pageSize=200&pageNumber=' + page, { timeoutMs: 40000 });
+    (d.Items || []).forEach((o) => { if (o.Customer && o.Customer.CustomerCode) codes.add(o.Customer.CustomerCode); });
+    if (!d.Pagination || page >= (d.Pagination.NumberOfPages || 1)) break;
+  }
+  return codes;
+}
+const list = (v) => (Array.isArray(v) ? v : String(v || '').split(',')).map((x) => String(x).trim().toLowerCase()).filter(Boolean);
+async function selectCustomers(f) {
+  f = f || {};
+  let rows = (await allCustomers()).filter((c) => c.CustomerCode && !c.Obsolete);
+  const tiers = list(f.tiers), types = list(f.types), countries = list(f.countries), states = list(f.states), q = String(f.name || '').trim().toLowerCase();
+  if (tiers.length) rows = rows.filter((c) => tiers.includes(String(c.SellPriceTier || '').toLowerCase()));
+  if (types.length) rows = rows.filter((c) => types.includes(String(c.CustomerType || '').toLowerCase()));
+  if (countries.length) rows = rows.filter((c) => countries.includes(addrOf(c).country.toLowerCase()));
+  if (states.length) rows = rows.filter((c) => states.includes(addrOf(c).state.toLowerCase()));
+  if (q) rows = rows.filter((c) => (c.CustomerName + ' ' + c.CustomerCode).toLowerCase().includes(q));
+  if (f.hasEmail) rows = rows.filter((c) => EMAIL.test(String(c.Email || '').trim()));
+  const m = parseInt(f.boughtWithinMonths, 10);
+  if (m > 0) { const buyers = await buyersSince(Math.min(m, 120)); rows = rows.filter((c) => buyers.has(c.CustomerCode)); }
+  const nb = parseInt(f.notBoughtWithinMonths, 10);
+  if (nb > 0) { const buyers = await buyersSince(Math.min(nb, 120)); rows = rows.filter((c) => !buyers.has(c.CustomerCode)); }
+  return rows;
+}
+const facet = (rows, fn) => { const m = {}; rows.forEach((c) => { const k = fn(c) || '(none)'; m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 40); };
+A['import-preview'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
+  const rows = await selectCustomers(readBody(req).filters);
+  const have = new Set((await db.select('companies', 'select=unleashed_code&unleashed_code=not.is.null')).map((r) => r.unleashed_code));
+  return res.json({ total: rows.length, alreadyInPortal: rows.filter((c) => have.has(c.CustomerCode)).length, withEmail: rows.filter((c) => EMAIL.test(String(c.Email || '').trim())).length,
+    tiers: facet(rows, (c) => c.SellPriceTier), types: facet(rows, (c) => c.CustomerType), countries: facet(rows, (c) => addrOf(c).country),
+    sample: rows.slice(0, 15).map((c) => ({ code: c.CustomerCode, name: c.CustomerName, tier: c.SellPriceTier || '', type: c.CustomerType || '', email: c.Email || '', city: addrOf(c).city, country: addrOf(c).country })) });
+};
+async function segmentByName(name, by) {
+  const e = encodeURIComponent(name);
+  const f = (await db.select('segments', 'select=*&name=eq.' + e + '&limit=1'))[0];
+  return f || (await db.insert('segments', [{ name, created_by: by }]))[0];
+}
+A.import = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
+  const b = readBody(req), segName = clean(b.segment, 80);
+  if (!segName) return res.status(400).json({ error: 'Give the segment a name (for example Rebuilders).' });
+  const rows = await selectCustomers(b.filters);
+  if (!rows.length) return res.status(400).json({ error: 'No customer matches these filters.' });
+  const seg = await segmentByName(segName, w.email);
+  await db.update('segments', 'id=eq.' + seg.id, { rules: b.filters || {} });
+  const existing = {}; (await db.select('companies', 'select=id,unleashed_code&unleashed_code=not.is.null')).forEach((r) => { existing[r.unleashed_code] = r.id; });
+  const fresh = rows.filter((c) => !existing[c.CustomerCode]);
+  for (let i = 0; i < fresh.length; i += 100) {
+    const made = await db.insert('companies', fresh.slice(i, i + 100).map((c) => { const a = addrOf(c); return { name: c.CustomerName || c.CustomerCode, unleashed_code: c.CustomerCode, unleashed_guid: /^[0-9a-f-]{36}$/i.test(c.Guid || '') ? c.Guid : null,
+      tier: c.SellPriceTier || null, payment_terms: c.PaymentTerm || null, stop_credit: !!c.StopCredit, customer_type: c.CustomerType || null, city: a.city || null, state: a.state || null, country: a.country || null,
+      status: 'prospect', source: 'unleashed_import', contact_email: String(c.Email || '').trim().toLowerCase() || null, contact_name: [c.ContactFirstName, c.ContactLastName].filter(Boolean).join(' ') || null, contact_phone: c.PhoneNumber || null, tier_synced_at: new Date().toISOString() }; }));
+    made.forEach((m) => { existing[m.unleashed_code] = m.id; });
+  }
+  const links = rows.map((c) => ({ company_id: existing[c.CustomerCode], segment_id: seg.id, added_by: w.email })).filter((l) => l.company_id);
+  for (let i = 0; i < links.length; i += 200) await db.insert('company_segments', links.slice(i, i + 200), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
+  await PS.audit(w.email, 'import.run', 'segment', seg.id, null, { segment: segName, matched: rows.length, created: fresh.length });
+  return res.json({ ok: true, segment: segName, matched: rows.length, created: fresh.length, alreadyThere: rows.length - fresh.length });
+};
+A.segments = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  const segs = await db.select('segments', 'select=*&order=name');
+  const links = await db.select('company_segments', 'select=segment_id,company_id');
+  const ids = [...new Set(links.map((l) => l.company_id))];
+  const st = {}; if (ids.length) (await db.select('companies', 'select=id,status&id=in.(' + ids.join(',') + ')')).forEach((c) => { st[c.id] = c.status; });
+  return res.json({ segments: segs.map((g) => { const m = links.filter((l) => l.segment_id === g.id); const by = {}; m.forEach((l) => { const k = st[l.company_id] || '?'; by[k] = (by[k] || 0) + 1; });
+    return { id: g.id, name: g.name, description: g.description || '', invite_subject: g.invite_subject || '', invite_body: g.invite_body || '', members: m.length, byStatus: by }; }) });
+};
+A['segment-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), name = clean(b.name, 80);
+  if (!name) return res.status(400).json({ error: 'name' });
+  const patch = { description: clean(b.description, 300) || null, invite_subject: clean(b.invite_subject, 150) || null, invite_body: clean(b.invite_body, 4000) || null };
+  const seg = await segmentByName(name, w.email);
+  await db.update('segments', 'id=eq.' + seg.id, patch);
+  await PS.audit(w.email, 'segment.save', 'segment', seg.id, null, { name });
+  return res.json({ ok: true });
+};
+// move companies in or out of a segment by hand
+A['segment-members'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), ids = (Array.isArray(b.companies) ? b.companies : []).map((x) => clean(x, 60)).filter((x) => /^[0-9a-f-]{36}$/i.test(x)).slice(0, 500);
+  const seg = (await db.select('segments', 'select=id&id=eq.' + clean(b.segment, 60) + '&limit=1'))[0];
+  if (!seg || !ids.length) return res.status(400).json({ error: 'segment' });
+  if (b.remove) await db.remove('company_segments', 'segment_id=eq.' + seg.id + '&company_id=in.(' + ids.join(',') + ')');
+  else await db.insert('company_segments', ids.map((c) => ({ company_id: c, segment_id: seg.id, added_by: w.email })), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
+  return res.json({ ok: true });
+};
+
+// ---------------------------------------------------------------- terms (draft until a superadmin publishes)
+A.terms = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  return res.json({ terms: await db.select('terms_versions', 'select=*&order=created_at.desc') });
+};
+A['terms-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), version = clean(b.version, 40), body = String(b.body || '').slice(0, 60000);
+  if (!version || !body.trim()) return res.status(400).json({ error: 'version and text are required' });
+  const cur = (await db.select('terms_versions', 'select=status&version=eq.' + encodeURIComponent(version) + '&limit=1'))[0];
+  if (cur && cur.status !== 'draft') return res.status(409).json({ error: 'A published version cannot be edited. Save it under a new version name.' });
+  await db.insert('terms_versions', [{ version, body, status: 'draft' }], { onConflict: 'version' });
+  await PS.audit(w.email, 'terms.save', 'terms', version);
+  return res.json({ ok: true });
+};
+A['terms-publish'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const version = clean(readBody(req).version, 40);
+  const t = (await db.select('terms_versions', 'select=status&version=eq.' + encodeURIComponent(version) + '&limit=1'))[0];
+  if (!t || t.status !== 'draft') return res.status(404).json({ error: 'draft not found' });
+  await db.update('terms_versions', 'status=eq.published', { status: 'retired' });
+  await db.update('terms_versions', 'version=eq.' + encodeURIComponent(version), { status: 'published', published_at: new Date().toISOString(), published_by: w.email });
+  await PS.audit(w.email, 'terms.publish', 'terms', version);
+  return res.json({ ok: true });
+};
+
+// ---------------------------------------------------------------- proactive invite: one click per company, always by an admin
+A.invite = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), id = clean(b.company, 60);
+  const t = (await db.select('terms_versions', 'select=version&status=eq.published&limit=1'))[0];
+  if (!t) return res.status(409).json({ error: 'Publish the terms before inviting anyone (Invites > Terms).' });
+  const co = (await db.select('companies', 'select=*&id=eq.' + id + '&limit=1'))[0];
+  if (!co) return res.status(404).json({ error: 'company' });
+  if (!co.unleashed_code) return res.status(409).json({ error: 'Link this company to an Unleashed customer first (Customers > Approve).' });
+  if (co.status === 'active') return res.status(409).json({ error: 'This company is already active.' });
+  const email = clean(b.email || co.contact_email, 160).toLowerCase(), name = clean(b.name || co.contact_name, 120);
+  if (!EMAIL.test(email)) return res.status(400).json({ error: 'Add the e-mail of the person to invite.' });
+  const owner = (await db.select('users', 'select=id,company_id&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0];
+  if (owner && owner.company_id !== co.id) return res.status(409).json({ error: 'That e-mail already belongs to another company in the portal.' });
+  let uid = owner && owner.id;
+  if (!uid) uid = (await db.insert('users', [{ company_id: co.id, email, name: name || null, phone: co.contact_phone || null, role: 'owner', status: 'pending', invited_at: new Date().toISOString(), invited_by: w.email }]))[0].id;
+  else await db.update('users', 'id=eq.' + uid, { invited_at: new Date().toISOString(), invited_by: w.email });
+  const seg = (await db.select('company_segments', 'select=segment_id&company_id=eq.' + co.id + '&limit=1'))[0];
+  const sg = seg ? (await db.select('segments', 'select=invite_subject,invite_body&id=eq.' + seg.segment_id + '&limit=1'))[0] : null;
+  const nonce = await SDB.newLink(email, 'invite', 14 * 864e5);
+  const subject = (sg && sg.invite_subject) || 'You are invited to the Maxzz Diesel B2B portal';
+  const body = (sg && sg.invite_body) ? String(sg.invite_body).split(/\n{2,}/).map((p) => '<p>' + esc(p).replace(/\n/g, '<br>') + '</p>').join('') : `<p>We opened a wholesale account for <b>${esc(co.name)}</b> in the Maxzz Diesel B2B portal. You will see your own prices and live stock, request quotes and track your orders.</p>`;
+  await send(email, subject, 'You are invited', body + '<p style="color:#8a9097;font-size:13px">The link is yours and works for 14 days.</p>', { url: base(req) + '/portal?iv=' + encodeURIComponent(nonce), label: 'Open my account' }, { name, greet: true });
+  await db.update('companies', 'id=eq.' + co.id, { status: 'invited' });
+  await PS.audit(w.email, 'invite.send', 'company', co.id, null, { email });
+  return res.json({ ok: true });
+};
 A.audit = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });

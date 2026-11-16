@@ -2316,7 +2316,7 @@
 
   var app = PetiteVue.reactive({
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
-    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, lt: '', myQuotes: [], hbg: 0, email: '', sentPending: false,
+    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, rate: 1, levels: [
@@ -2782,6 +2782,8 @@
       var self = this, h = location.search;
       if (/e=link/.test(h)) this.err = 'That sign-in link expired or was already used. Ask for a new one below.';
       if (/e=access/.test(h)) this.err = 'Your access is not approved yet.';
+      var iv = h.match(/[?&]iv=([^&]+)/);
+      if (iv) { this.iv = { t: decodeURIComponent(iv[1]), info: null, agree: false, name: '' }; location.hash = '#/login'; api('invite-info?t=' + encodeURIComponent(this.iv.t)).then(function (r) { if (r._status === 200) { self.iv.info = r; self.iv.name = r.name || ''; } else { self.iv = null; self.err = 'That invitation link expired or was already used. Ask us for a new one.'; } }); }
       var lt = h.match(/[?&]lt=([^&]+)/);
       if (lt) { this.lt = decodeURIComponent(lt[1]); location.hash = '#/login'; }
       if (h) history.replaceState(null, '', location.pathname + location.hash);
@@ -3041,6 +3043,13 @@
     },
 
     // sign in and access
+    acceptInvite: function () {
+      var self = this; if (this.busy || !this.iv || !this.iv.agree) return; this.busy = true; this.err = '';
+      api('accept', { body: { t: this.iv.t, agree: true, name: this.iv.name } }).then(function (r) {
+        self.busy = false;
+        if (r._status === 200) { location.replace('/portal'); location.reload(); } else self.err = r.error && r.error !== 'link' ? r.error : 'That invitation link expired or was already used. Ask us for a new one.';
+      });
+    },
     confirmLogin: function () {
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
       api('confirm', { body: { t: this.lt } }).then(function (r) {

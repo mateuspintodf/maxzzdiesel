@@ -14,6 +14,7 @@ const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
 const dbm = require('../lib/db');
 const { hiddenSet } = require('../lib/hidden');
+const vouchers = require('../lib/vouchers');
 const { send, esc } = require('../lib/mail');
 const { upsertContact, addNote, addTask } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
@@ -155,6 +156,34 @@ A.confirm = async (req, res) => {
   await startSession(req, res, link.email, user);
   return res.json({ ok: true });
 };
+// ---- invitation: the link opens a welcome page; acceptance of the published terms creates the session
+A['invite-info'] = async (req, res) => {
+  if (!PS.on()) return res.status(404).json({ error: 'off' });
+  const l = await SDB.peekLink(clean(req.query.t, 100));
+  if (!l || l.kind !== 'invite') return res.status(400).json({ error: 'link' });
+  const { user, account } = await PS.loadOne(l.email);
+  const t = (await dbm.select('terms_versions', 'select=version,body&status=eq.published&limit=1'))[0];
+  if (!user || !account || !t) return res.status(400).json({ error: 'link' });
+  return res.json({ company: account.company, name: user.name || '', email: l.email, terms: t });
+};
+A.accept = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req) || !PS.on()) return res.status(405).json({ error: 'method' });
+  if (await limited(req, 'accept', 10, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const b = readBody(req);
+  if (b.agree !== true) return res.status(400).json({ error: 'Please accept the terms to continue.' });
+  const tok = clean(b.t, 100), l = await SDB.peekLink(tok);
+  if (!l || l.kind !== 'invite') return res.status(400).json({ error: 'link' });
+  const t = (await dbm.select('terms_versions', 'select=version&status=eq.published&limit=1'))[0];
+  const { user, account } = await PS.loadOne(l.email);
+  if (!t || !user || !account) return res.status(400).json({ error: 'link' });
+  if (!(await SDB.useLink(tok))) return res.status(400).json({ error: 'link' });
+  const now = new Date().toISOString();
+  await dbm.update('users', 'id=eq.' + user.id, { status: 'approved', terms_version: t.version, terms_accepted_at: now, name: clean(b.name, 120) || user.name || null });
+  await dbm.update('companies', 'id=eq.' + account.id, { status: 'active', approved_by: 'invite', approved_at: now });
+  await PS.audit(l.email, 'invite.accept', 'company', account.id, null, { terms: t.version });
+  await SDB.create(req, res, 'customer', l.email, user.id);
+  return res.json({ ok: true });
+};
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); if (PS.on()) await SDB.end(req, res, 'customer'); else clearSession(res); return res.json({ ok: true }); };
 
 A.me = async (req, res) => {
@@ -211,6 +240,27 @@ A.prices = async (req, res) => {
   return res.json(book);
 };
 
+// price a cart the way the order will, then check a voucher against it (the browser only says which code and which parts)
+async function cartSubtotal(w, rawLines) {
+  const book = await priceBook(w.account, w.admin); let sub = 0;
+  if (!book) return null;
+  for (const l of (Array.isArray(rawLines) ? rawLines : []).slice(0, 200)) {
+    const p = l && book.items[clean(l.code, 60)]; if (!p || p[0] == null) continue;
+    sub += p[0] * Math.min(9999, Math.max(1, parseInt(l.qty, 10) || 0));
+  }
+  return money(sub);
+}
+A['voucher-check'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req) || !PS.on()) return res.status(405).json({ error: 'method' });
+  const w = await whoami(req);
+  if (!w || !w.account || w.account.status !== 'approved') return res.status(w ? 403 : 401).json({ error: 'login' });
+  if (await limited(req, 'voucher', 30, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const b = readBody(req), sub = await cartSubtotal(w, b.lines);
+  if (sub == null) return res.status(503).json({ error: 'catalog syncing' });
+  const r = await vouchers.evaluate(clean(b.code, 40), w.account.id, sub);
+  if (!r.ok) return res.status(200).json({ ok: false, error: r.error });
+  return res.json({ ok: true, code: r.voucher.code, discount: r.discount, subtotal: sub, total: money(sub - r.discount), description: r.voucher.description || '' });
+};
 A.orders = async (req, res) => {
   const w = await whoami(req);
   if (!w || !w.account) return res.status(w ? 403 : 401).json({ error: 'login' });
@@ -291,27 +341,36 @@ A.order = async (req, res) => {
   const pickup = /will call/i.test(ship.method);
   if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
   if (!pickup && /United States|Puerto Rico|Canada/.test(ship.country) && (!ship.state || !ship.zip)) return res.status(400).json({ error: 'Please fill in the state and ZIP code.' });
-  const subtotal = money(lines.reduce((a, l) => a + l.total, 0));
+  let subtotal = money(lines.reduce((a, l) => a + l.total, 0));
+  const gross = subtotal;
+  let vch = null, discount = 0;
+  if (PS.on() && clean(b.voucher, 40)) {
+    const r = await vouchers.evaluate(clean(b.voucher, 40), w.account.id, gross);
+    if (!r.ok) return res.status(400).json({ error: r.error, voucher: true });
+    vch = r.voucher; discount = r.discount; subtotal = money(gross - discount);
+  }
   const t = new Date();
   // database mode: the order id is derived from (company, idempotency key) and is also the Unleashed Sales Order Guid,
   // so a retry after a timeout reuses the same Guid and can never create a second order
   const oid = PS.on() ? PS.orderIdFor(w.account.id, idem) : id();
   const o = { id: oid, number: PS.on() ? await PS.nextNumber('order') : await nextNumber('order'),
     idem, created: Date.now(), by: w.email, po: clean(b.po, 40), notes: clean(b.notes, 800), ship, lines, subtotal, total: subtotal, status: 'Received', live: false, history: [{ s: 'Received', at: Date.now() }] };
+  if (vch) { o.voucher = vch.code; o.discount = discount; o.gross = gross; }
 
   // database mode: the order is on record before Unleashed is called
   if (PS.on()) {
-    try { await PS.saveOrder(w.account.id, w.user && w.user.id, o, { tier: w.account.tier, stopCredit: w.account.stopCredit }); }
+    try { await PS.saveOrder(w.account.id, w.user && w.user.id, o, { tier: w.account.tier, stopCredit: w.account.stopCredit });
+      if (vch && !(await vouchers.redeem(vch, w.account.id, o.id, discount))) { await PS.dropOrder(o.id).catch(() => {}); return res.status(400).json({ error: 'This voucher has reached its limit.', voucher: true }); } }
     catch (e) { if (e.status === 409) { const prev = await PS.findOrderByIdem(w.account.id, idem); if (prev) return res.json({ ok: true, order: prev }); } console.error('order save', e.message); return res.status(503).json({ error: 'We could not place the order right now. Please try again in a moment.' }); }
   }
   if (liveOrders() && configured() && w.account.customerCode) {
     const guid = PS.on() ? o.id : crypto.randomUUID();
     const body = {
       Guid: guid, OrderStatus: 'Parked', OrderDate: t.toISOString(), Customer: { CustomerCode: w.account.customerCode },
-      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
+      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, vch ? 'VOUCHER ' + vch.code + ' (-$' + discount.toFixed(2) + ')' : '', lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
-      SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, LineTotal: l.total, LineTax: 0 })),
+      SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, DiscountRate: vch ? money(discount / gross * 1e4) / 1e4 : undefined, LineTotal: vch ? money(l.total * (1 - discount / gross)) : l.total, LineTax: 0 })),
       SubTotal: subtotal, TaxRate: 0, TaxTotal: 0, Total: subtotal
     };
     try {

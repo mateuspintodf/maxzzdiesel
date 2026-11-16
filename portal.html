@@ -1839,13 +1839,22 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <p class="px-muted">Your access is waiting for approval. You get an e-mail as soon as it is ready.</p>
 <a class="px-btn px-red" href="#/" style="width:100%;margin-top:18px">Back to the store</a>
 </div>
+<div class="px-scard" v-if="route === 'login' && iv && iv.info">
+<h2>Welcome, <span v-text="iv.info.company"></span></h2>
+<p class="px-muted">You were invited to the Maxzz Diesel B2B portal. Read and accept the terms to open your account.</p>
+<label class="px-f" style="margin-top:14px">Your name<input class="px-in" v-model="iv.name" autocomplete="name"></label>
+<div style="max-height:220px;overflow:auto;border:1px solid #e3e5e8;border-radius:12px;padding:12px;margin-top:12px;white-space:pre-wrap;font-size:13px" v-text="iv.info.terms.body"></div>
+<label style="display:flex;gap:10px;align-items:flex-start;margin-top:12px;font-size:14px"><input type="checkbox" v-model="iv.agree" style="margin-top:3px"><span>I accept the terms (version <span v-text="iv.info.terms.version"></span>).</span></label>
+<button class="px-btn px-red" style="width:100%;margin-top:16px" :disabled="busy || !iv.agree" @click="acceptInvite" v-text="busy ? 'Opening...' : 'Accept and open my account'"></button>
+<div class="px-err" v-if="err" v-text="err"></div>
+</div>
 <div class="px-scard" v-if="route === 'login' && lt">
 <h2>Confirm sign in</h2>
 <p class="px-muted">One more click to finish signing in on this device.</p>
 <button class="px-btn px-red" style="width:100%;margin-top:18px" :disabled="busy" @click="confirmLogin" v-text="busy ? 'Signing in...' : 'Sign in to the portal'"></button>
 <div class="px-err" v-if="err" v-text="err"></div>
 </div>
-<div class="px-scard" v-if="route === 'login' && !lt">
+<div class="px-scard" v-if="route === 'login' && !lt && !(iv && iv.info)">
 <h2>Sign in</h2>
 <p class="px-muted">Enter the e-mail on your account. We send you a sign-in link, no password needed.</p>
 <form @submit.prevent="sendLink" style="margin-top:18px;display:flex;flex-direction:column;gap:12px" novalidate>
@@ -2031,7 +2040,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=71"></script>
+<script src="/js/portal-app.js?v=72"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
