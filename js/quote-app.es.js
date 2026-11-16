@@ -298,7 +298,7 @@
     printIt: function () { window.print(); },
     maskPhone: function (v, country) {
       var d = String(v || '').replace(/\D/g, '');
-      var intl = !country && /^\s*\+/.test(String(v || '')) && !/^\s*\+\s*1/.test(String(v || '')); if (!intl && /United States|Puerto Rico|Canada/.test(country || 'United States')) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
+      var intl = /^\s*\+/.test(String(v || '')) && !/^\s*\+\s*1(\D|$)/.test(String(v || '')); if (!intl && /United States|Puerto Rico|Canada/.test(country || 'United States')) { if (d.length === 11 && d[0] === '1') d = d.slice(1); d = d.slice(0, 10); if (d.length < 4) return d; if (d.length < 7) return '(' + d.slice(0, 3) + ') ' + d.slice(3); return '(' + d.slice(0, 3) + ') ' + d.slice(3, 6) + '-' + d.slice(6); }
       return v && String(v).trim().charAt(0) === '+' ? '+' + d.slice(0, 15) : (d ? '+' + d.slice(0, 15) : '');
     },
     flash: function (msg) { var self = this; this.toast = msg; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
