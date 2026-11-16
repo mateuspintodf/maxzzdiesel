@@ -966,7 +966,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 }
 .px-clr-top{display:none;justify-content:flex-end;margin:-6px 0 4px}@media (max-width:760px){.px-clr-top{display:flex}}
 .px-ltab .px-code2,.px .px-ltab td .px-code2{overflow-wrap:normal;word-break:keep-all}
-.px-trust{margin:14px 0 0;font-size:14px;color:#c9ced3;display:flex;flex-wrap:wrap;gap:4px 14px}.px-trust span{white-space:nowrap}.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}
+.px-trust{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:8px}.px-trust span{display:inline-flex;align-items:center;gap:8px;border:1px solid #3d444d;border-radius:50px;padding:5px 12px;font-size:12.5px;line-height:18px;color:#e6e7e9;white-space:nowrap}.px-trust svg{color:#fc771d;flex:none}
 .px-nf{margin-top:18px;background:#fff;border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.px-nf b{font-weight:500;color:#1d2126}.px-nf p{margin:2px 0 0;font-size:14px;color:#5f656c}
 @media (max-width:760px){.px-hero:not(.compact) .px-kpis{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.px-kpis>a{min-width:0}.px-kpis .px-rw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.px-eng{display:grid;grid-template-columns:72px 1fr;gap:8px}.px-eng b{min-width:0}.px-eng .px-gen{grid-column:2}}
 @media (min-width:761px){.px-pd-info{padding-bottom:72px}}
@@ -985,9 +985,9 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
   .px .px-ltab .px-code2{white-space:nowrap}
 }
 /* r3 visual */
-@media (min-width:761px){.px-trust,.px-acc-line{flex-wrap:nowrap;white-space:nowrap;max-width:none}.px-hero-in>div{flex-basis:min(880px,100%)}}
-@media (min-width:761px) and (max-width:1199px){.px-trust,.px-acc-line{flex-wrap:wrap;white-space:normal}}
-@media (max-width:760px){.px-trust{flex-direction:column;gap:4px}.px-trust span::before,.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}}
+@media (min-width:761px){.px-acc-line{flex-wrap:nowrap;white-space:nowrap;max-width:none}.px-hero-in>div{flex-basis:min(880px,100%)}}
+@media (min-width:761px) and (max-width:1199px){.px-acc-line{flex-wrap:wrap;white-space:normal}}
+
 .px-ordw{flex-wrap:wrap;border:1px solid #eef0f2;border-radius:9px;padding:6px;background:#fff}.px-ordw .px-ord{border:0}.px-ordw:hover{border-color:#c9ced3}
 @media (max-width:760px){.px-ordw{gap:6px}.px-ordw .px-reo{margin:0 10px 10px}}
 .px-nf .px-btns{gap:8px;flex-wrap:wrap}
@@ -1222,7 +1222,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span v-text="me.account ? 'Price list ' + ((book && book.tier) || '...') : 'Admin preview, default prices'"></span>
 <span v-text="'Stock updated ' + ago(book && book.stockAt)"></span>
 </div>
-<p v-if="!logged && route === 'home'" class="px-trust"><span>Since 1992</span><span>Warehouse in Coconut Creek, FL</span><span>Bosch, Denso, Delphi, Zexel, Robiel</span><span>Ships to the US and Latin America</span></p>
+<p v-if="!logged && route === 'home'" class="px-trust"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Since 1992</span><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>5,800+ parts in Florida</span><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>In-stock parts ship same day</span><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>US and Latin America</span></p>
 <div class="px-pend" v-if="me && !logged && me.account && me.account.status === 'pending'">Your wholesale access is under review. We will e-mail you as soon as it is approved; meanwhile you can browse and build a quote list.</div>
 <div class="px-hs">
 <form @submit.prevent="search" role="search" autocomplete="off"><input type="search" role="combobox" :aria-expanded="sugOn && sug.length ? 'true' : 'false'" :aria-activedescendant="sugI >= 0 ? 'px-sug-' + sugI : ''" v-model="qInput" @input="sugInput" @focus="sugOn = true" @blur="sugBlur" @keydown="sugKey" :placeholder="narrow ? 'Part number or engine' : 'Part number, cross reference or engine'" aria-label="Search parts" aria-autocomplete="list" aria-controls="px-sug"><button class="px-btn px-red">Search</button></form>

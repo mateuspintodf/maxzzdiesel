@@ -804,8 +804,7 @@ def patch_quote(src):
     src = src.replace('<details style="margin-top:14px"><summary style="cursor:pointer;font-size:15px', '<details open style="margin-top:14px"><summary style="cursor:pointer;font-size:15px')
     badge = ('<span class="qx-stock"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>'
              'Stocked in Coconut Creek, FL: Same-Business-Day Shipping on most in-stock orders</span>')
-    if 'qx-stock' not in src:
-        src = src.replace('<div class="qx-trust">\n', '<div class="qx-trust">\n' + badge + '\n', 1)
+    if False:  # trust pills are now one standard set in tools/quote_main.html
         src = src.replace('.qx-paste summary{padding:8px 0}', '.qx-paste summary{padding:8px 0}.qx-stock{display:inline-flex;align-items:center;gap:8px;background:#1d2126;color:#fff;border-radius:50px;padding:8px 16px;font-weight:600}', 1)
     src = src.replace('border-radius:0 0 30px 30px;padding:122px 20px 28px', 'border-radius:0 0 30px 30px;padding:160px 20px 28px')
     return src
