@@ -48,7 +48,7 @@ src = src.replace(f'"{old_t}"', f'"{title_en}"').replace(f'"{old_t} | Maxzz Dies
 src = src.replace(f'"{old_d}"', f'"{desc}"')
 src = src.replace(f'{SITE}/policies', URL)
 src = src.replace('<meta property="og:type" content="website">', '<meta property="og:type" content="article">')
-src = re.sub(r'(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*', r'\g<1>' + SITE + IMG.replace('.webp', '.jpg'), src)
+src = re.sub(r'(<meta (?:property="og:image"|name="twitter:image") content=")[^"]*', r'\g<1>' + SITE + '/assets/mg/maxzz-diesel-og.jpg', src)
 art = {"@type": "Article", "@id": URL + "#article", "headline": G.TITLE[0], "description": G.DESC[0], "image": SITE + IMG.replace('.webp', '.jpg'),
        "datePublished": G.DATE, "dateModified": G.DATE, "inLanguage": "en-US", "mainEntityOfPage": {"@id": URL + "#webpage"},
        "author": {"@id": SITE + "/#org"}, "publisher": {"@id": SITE + "/#org"},

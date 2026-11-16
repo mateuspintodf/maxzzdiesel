@@ -197,6 +197,20 @@ A.me = async (req, res) => {
   });
 };
 
+
+// A new access request also opens a prospect customer in Unleashed, so approval links to it instead of retyping the company.
+// On by default in production; on previews only with ACCESS_TO_UNLEASHED=1 (keeps tests out of the real Unleashed). ACCESS_TO_UNLEASHED=0 turns it off.
+const prospectOn = () => configured() && process.env.ACCESS_TO_UNLEASHED !== '0' && (process.env.ACCESS_TO_UNLEASHED === '1' || process.env.VERCEL_ENV === 'production');
+async function createProspect(f) {
+  const t = new Date(), code = 'WEB' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+  const guid = crypto.randomUUID(), parts = f.name.split(/\s+/);
+  const where = [f.city, f.state, f.zip, f.country].filter(Boolean).join(', ');
+  const body = { Guid: guid, CustomerCode: code, CustomerName: f.company.slice(0, 100), ContactFirstName: parts[0] || '', ContactLastName: parts.slice(1).join(' '),
+    Email: f.email, PhoneNumber: f.phone, Notes: ['Website B2B access request, pending approval.', f.type, where, f.notes].filter(Boolean).join(' | ').slice(0, 500) };
+  await ul('Customers/' + guid, '', { method: 'POST', body, timeoutMs: 15000 });
+  return { code, guid };
+}
+
 // ---- access request ------------------------------------------------------
 A.request = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -208,6 +222,11 @@ A.request = async (req, res) => {
   if (!f.name || !f.company || !EMAIL.test(f.email) || f.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'missing fields' });
   const prior = PS.on() ? (await PS.loadOne(f.email)).user : (await loadDb()).users[f.email];
   if (prior && prior.status !== 'rejected') return res.json({ ok: true, already: prior.status });
+  let prospect = null;
+  if (prospectOn() && !f.customerNumber) {
+    try { prospect = await createProspect(f); f.customerNumber = prospect.code; f.notes = ['Unleashed prospect created by the website: ' + prospect.code, f.notes].filter(Boolean).join(' | '); }
+    catch (e) { console.error('unleashed prospect', e.message); }
+  }
   if (PS.on()) await PS.createRequest(f);
   else {
   const db = await loadDb();
@@ -218,13 +237,13 @@ A.request = async (req, res) => {
   }
   try {
     const cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company });
-    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? ' · Unleashed customer ' + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
+    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? (prospect ? ' · Unleashed prospect created: ' : ' · Unleashed customer ') + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
     await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).', [{ id: cid, type: 204 }], 4);
   } catch (e) { console.error('hubspot', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
     `<p>Thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`, null, { name: f.name });
   if (admins().length) await send(admins(), 'New B2B portal request: ' + f.company, 'New access request',
-    `<p><b>${esc(f.company)}</b> · ${esc(f.name)} · ${esc(f.email)} · ${esc(f.phone)}</p><p>${esc([f.type, f.city, f.state, f.country].filter(Boolean).join(' · '))}</p>${f.customerNumber ? `<p>Says Unleashed customer: ${esc(f.customerNumber)}</p>` : ''}`,
+    `<p><b>${esc(f.company)}</b> · ${esc(f.name)} · ${esc(f.email)} · ${esc(f.phone)}</p><p>${esc([f.type, f.city, f.state, f.country].filter(Boolean).join(' · '))}</p>${f.customerNumber ? `<p>${prospect ? 'Prospect created in Unleashed' : 'Says Unleashed customer'}: ${esc(f.customerNumber)}</p>` : ''}`,
     { url: base(req) + '/portal#admin', label: 'Review in the portal' }, { internal: true });
   return res.json({ ok: true });
 };

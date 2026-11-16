@@ -283,12 +283,13 @@
         b2b: !!d.b2b, source: read(SK, ''), hp: val('qx-hp'), t: Date.now() - T0, lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-        .then(function () { track('generate_lead', { form: 'quote', quote_id: self.number, items: self.lines.length, units: self.units, country: d.country, b2b_interest: !!d.b2b }); self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
+        .then(function () { track('generate_lead', { form: 'quote', quote_id: self.number, items: self.lines.length, units: self.units, country: d.country, b2b_interest: !!d.b2b }); self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; if (d.b2b) { fetch('/api/portal/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(self.accessBody()) }).then(function () { track('b2b_access_request', { form: 'quote_checkbox' }); }).catch(function () {}); } self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
         .catch(function () { self.sending = false; self.err = 'Não conseguimos enviar agora. Tente de novo ou mande a lista para sales@maxzzdiesel.com.'; });
     },
+    accessBody: function () { var d = this.d; return { name: d.name, company: d.company, email: d.email, phone: d.phone, country: d.country, state: d.state, city: d.city, zip: d.zip, type: d.type, notes: 'Requested from the quote page' + (this.number ? ', quote ' + this.number : '') }; },
     askB2B: function () {
       if (this.b2bSending) return; var self = this, d = this.d; this.b2bSending = true;
-      fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ hp: val('qx-hp'), t: Date.now() - T0, name: d.name, email: d.email, phone: d.phone, type: 'B2B platform early access · ' + (d.type || '') + ' · ' + d.company }) })
+      fetch('/api/portal/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(self.accessBody()) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); track('b2b_access_request', { form: 'b2b' }); self.b2bDone = true; self.b2bSending = false; })
         .catch(function () { self.b2bSending = false; self.flash('Não foi possível enviar. Escreva para sales@maxzzdiesel.com e incluímos você.'); });
     },

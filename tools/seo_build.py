@@ -78,7 +78,7 @@ TITLES = {
     'terms': 'Terms and Conditions | Maxzz Diesel',
     'privacy': 'Privacy Policy | Maxzz Diesel',
 }
-OG_IMG = {'index': 'hero-2', 'injection-parts': 'parts-hero', 'aftertreatment': 'nox-final', 'fluids': 'fluids-final',
+OG_IMG = {'index': 'maxzz-diesel-og', 'injection-parts': 'parts-hero', 'aftertreatment': 'nox-final', 'fluids': 'fluids-final',
           'tool-sets': 'toolsets-bench-hero', 'contamination-kits': 'contam-kit', 'about': 'about'}
 
 HEAD_START, HEAD_END = '<!--seo-head-->', '<!--/seo-head-->'
@@ -91,7 +91,7 @@ RETITLE = os.environ.get('SEO_RETITLE') == '1'
 def head_block(page):
     url = SITE + '/' if page == 'index' else f'{SITE}/{page}'
     title = TITLES.get(page, 'Maxzz Diesel')
-    img = f"{SITE}/assets/mg/{OG_IMG.get(page, 'hero-2')}.jpg"
+    img = f"{SITE}/assets/mg/{OG_IMG.get(page, 'maxzz-diesel-og')}.jpg"
     parts = [f'<link rel="canonical" href="{url}">',
              f'<meta property="og:url" content="{url}">',
              f'<meta property="og:site_name" content="Maxzz Diesel"><meta property="og:locale" content="en_US">',

@@ -1,8 +1,11 @@
 // POST /api/account
-// Wholesale account request from the home page: creates or updates the contact in HubSpot and adds a note.
-const { upsertContact, addNote, addTask, esc } = require('../lib/hubspot');
+// Wholesale account request from the site (footer form and the quote page). It is the same access request as the B2B portal:
+// it lands in the portal approval queue, opens a prospect in Unleashed (production) and creates the HubSpot contact, note and task.
 const { EMAIL, clean, readBody } = require('../lib/validate');
 const { guard } = require('../lib/guard');
+const portal = require('./portal');
+
+const FREE = /^(gmail|googlemail|hotmail|outlook|live|yahoo|icloud|me|aol|msn|proton|protonmail|uol|bol|terra|ig)\./i;
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -10,16 +13,11 @@ module.exports = async (req, res) => {
   const b = readBody(req);
   const g = guard(req, b);
   if (g) return res.status(g[0]).json(g[1]);
-  const c = { name: clean(b.name, 120), phone: clean(b.phone, 40), email: clean(b.email, 160).toLowerCase(), type: clean(b.type, 80), company: '' };
-  if (!c.name || !EMAIL.test(c.email) || c.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'missing fields' });
-  if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
-  try {
-    const id = await upsertContact(c);
-    await addNote(`<p><strong>Wholesale account request</strong> from the website.</p><p>${esc(c.name)} · ${esc(c.email)} · ${esc(c.phone)} · ${esc(c.type)}</p>`, [{ id, type: 202 }]);
-    await addTask(`New wholesale account request · ${c.name}`, `${c.email} · ${c.phone} · ${c.type}`, [{ id, type: 204 }], 4);
-    return res.status(200).json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    return res.status(502).json({ error: 'crm error' });
-  }
+  const email = clean(b.email, 160).toLowerCase(), name = clean(b.name, 120);
+  if (!name || !EMAIL.test(email) || clean(b.phone, 40).replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'missing fields' });
+  const dom = email.split('@')[1] || '';
+  const company = clean(b.company, 160) || (dom && !FREE.test(dom) ? dom.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : name + ' (company to confirm)');
+  req.body = Object.assign({}, b, { name, email, company, hp: '' });
+  req.query = Object.assign({}, req.query, { a: 'request' });
+  return portal(req, res);
 };

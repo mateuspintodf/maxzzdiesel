@@ -426,7 +426,7 @@ def build_system(s, rel_links):
     g.append(course_ld(C.COURSE_BY[s['course']], url))
     g.append(faq_ld(path, s['faq']))
     title = s['title'] + ' | Maxzz Diesel'
-    return page_shell(path, title if len(title) <= 80 else s['crumb'] + ' Parts, Tools & Training | Maxzz Diesel', s['meta'], 'diesel-injectors-and-fuel-rails-test-bench', g, body, page_id='Systems')
+    return page_shell(path, title if len(title) <= 80 else s['crumb'] + ' Parts, Tools & Training | Maxzz Diesel', s['meta'], 'maxzz-diesel-og', g, body, page_id='Systems')
 
 
 # ------------------------------------------------------------------ training
@@ -586,7 +586,7 @@ def build_resources():
     g = webpage(path, title, desc, [('Home', '/'), ('Technical Guides', path)], 'CollectionPage')
     if GUIDES_LIVE:
         g.append({'@type': 'ItemList', 'itemListElement': [{'@type': 'ListItem', 'position': i + 1, 'url': f'{SITE}/resources/{x["slug"]}', 'name': x['title']} for i, x in enumerate(C.GUIDES)]})
-    return page_shell(path, title, desc, 'robiel-injector-tool-sets-on-bench', g, body, page_id='Resources')
+    return page_shell(path, title, desc, 'maxzz-diesel-og', g, body, page_id='Resources')
 
 
 def guide_table(t):
@@ -661,7 +661,7 @@ def build_guide(g):
            'author': {'@type': 'Organization', '@id': SITE + '/#org', 'name': 'Maxzz Diesel'}, 'publisher': {'@id': SITE + '/#org'},
            'abstract': g['answer']}
     graph += [art, faq_ld(path, g['faq']), course_ld(C.COURSE_BY[g['course']], url)]
-    return page_shell(path, g['short'] + ' | Maxzz Diesel', gdesc, 'diesel-injection-common-rail-injector-bench', graph, body, noindex=not GUIDES_LIVE, page_id='Guide')
+    return page_shell(path, g['short'] + ' | Maxzz Diesel', gdesc, 'maxzz-diesel-og', graph, body, noindex=not GUIDES_LIVE, page_id='Guide')
 
 
 # ------------------------------------------------------------------ patches on existing pages
