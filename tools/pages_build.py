@@ -633,7 +633,7 @@ def build_guide(g):
             secs += guide_table(sec[2])
     faq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{E(q)}</summary><p>{E(a)}</p></details>' for i, (q, a) in enumerate(g['faq']))
     draft = ('' if GUIDES_LIVE else '<div class="sx-draft"><b>Draft.</b> This guide is waiting for technical review by Waldyr Mazzer and Arthur Bonachella. It is not indexed by search engines yet.</div>')
-    body = f"""<style>.util a{{color:#4a5058 !important}}.util a:hover{{color:#d32a37 !important}}</style><section style="padding: 150px 20px 0; box-sizing: border-box;"><div class="sx sx-wrap" style="padding:0 40px">
+    body = f"""<style>.util a,.lang button{{color:#4a5058 !important}}.util a:hover{{color:#d32a37 !important}}</style><section style="padding: 150px 20px 0; box-sizing: border-box;"><div class="sx sx-wrap" style="padding:0 40px">
 <div style="font-size:14px;color:#5a6169"><a href="/" style="color:#5a6169">Home</a> / <a href="/resources" style="color:#5a6169">Technical Guides</a> / <span style="color:#1d2126">{E(g["short"])}</span></div>
 <span class="sx-pill" style="margin-top:22px">Technical guide</span>
 <h1 style="margin:16px 0 0;font-family:{FONT};font-weight:700;color:#1d2126;font-size:clamp(28px,3.4vw,46px);line-height:1.1;letter-spacing:-.02em;max-width:1000px">{E(g["title"])}</h1>
