@@ -204,7 +204,10 @@ A.me = async (req, res) => {
 const prospectOn = () => configured() && process.env.ACCESS_TO_UNLEASHED !== '0' && (process.env.ACCESS_TO_UNLEASHED === '1' || process.env.VERCEL_ENV === 'production');
 // an Unleashed customer whose primary contact already uses this email (no duplicates)
 async function findCustomerByEmail(email) {
-  const d = await ul('Customers', 'contactEmail=' + encodeURIComponent(email) + '&includeObsolete=true&pageSize=10', { timeoutMs: 12000 });
+  const q = 'contactEmail=' + encodeURIComponent(email) + '&includeObsolete=true&pageSize=10';
+  let d;
+  try { d = await ul('Customers', q, { timeoutMs: 12000 }); }
+  catch (e) { console.error('unleashed email lookup', e.message); d = await ul('Customers', q, { timeoutMs: 12000, sign: decodeURIComponent(q) }); }
   const hit = ((d && d.Items) || []).find((c) => String(c.Email || '').toLowerCase() === email);
   return hit ? { code: hit.CustomerCode, guid: hit.Guid, name: hit.CustomerName, existing: true } : null;
 }
@@ -232,7 +235,8 @@ A.request = async (req, res) => {
   let prospect = null;
   if (prospectOn() && !f.customerNumber) {
     try {
-      prospect = await findCustomerByEmail(f.email) || await createProspect(f);
+      try { prospect = await findCustomerByEmail(f.email); } catch (e) { console.error('unleashed email lookup failed', e.message); }
+      if (!prospect) prospect = await createProspect(f);
       f.customerNumber = prospect.code;
       f.notes = [(prospect.existing ? 'Existing Unleashed customer found by email: ' + prospect.code + ' (' + prospect.name + ')' : 'Unleashed prospect created by the website: ' + prospect.code), f.notes].filter(Boolean).join(' | ');
     }
