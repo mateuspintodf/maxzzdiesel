@@ -479,8 +479,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-gen{border:1px solid #dfe2e6;background:#fff;border-radius:50px;height:34px;padding:0 14px;font:inherit;font-size:13px;cursor:pointer}
 .px-gen:hover{border-color:#1d2126}
 .px-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.sc{position:relative;background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .25s}
-.sc:hover{box-shadow:0 12px 28px rgba(29,33,38,.08)}
+.sc{position:relative;background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .25s;box-shadow:0 0 0 1px #dcdfe3}.sc .sc-img{border-bottom:1px solid #e6e8eb}
+.sc:hover{box-shadow:0 0 0 1px #c9cdd2,0 12px 28px rgba(29,33,38,.08)}
 .sc-img{position:relative;aspect-ratio:4/3;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .sc-pnb{position:absolute;top:10px;left:10px;z-index:2;background:#d32a37;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;font-weight:600;letter-spacing:.01em;line-height:1;padding:4px 6px;border-radius:4px;box-shadow:none;max-width:calc(100% - 64px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc-img img{width:100%;height:100%;object-fit:contain;padding:12px;mix-blend-mode:multiply}
@@ -828,7 +828,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px .px-fab-b{transition:transform .3s cubic-bezier(.2,.9,.25,1),box-shadow .3s}.px .px-fab-b:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(14,15,17,.34)}
 .px-fab-b{animation:pxPop .45s cubic-bezier(.3,1.4,.5,1) both}
 .sc{transition:box-shadow .4s,transform .4s cubic-bezier(.2,.9,.25,1)}
-.sc:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(29,33,38,.12)}
+.sc:hover{transform:translateY(-4px);box-shadow:0 0 0 1px #c9cdd2,0 20px 40px rgba(29,33,38,.12)}
 .sc-img img{transition:transform .7s cubic-bezier(.2,.9,.25,1)}
 .sc:hover .sc-img img{transform:scale(1.06)}
 .sc-pnb{transition:transform .35s cubic-bezier(.2,.9,.25,1)}.sc:hover .sc-pnb{transform:translateY(-1px)}
