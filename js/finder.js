@@ -5,7 +5,7 @@
   var out = document.getElementById('pf-out');
   if (!q || !out) return;
   var QK = 'mx-quote';
-  var cat = null, fit = null, loading = null, hay = null;
+  var cat = null, fit = null, loading = null, hay = null, stock = null;
 
   function norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ''); }
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -20,9 +20,11 @@
     if (loading) return loading;
     loading = Promise.all([
       fetch('/api/catalog').then(function (r) { return r.json(); }),
-      fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).catch(function () { return { tree: [], items: {} }; })
+      fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).catch(function () { return { tree: [], items: {} }; }),
+      fetch('/api/instock').then(function (r) { return r.json(); }).catch(function () { return { codes: null }; })
     ]).then(function (v) {
       cat = v[0]; fit = v[1];
+      if (v[2] && v[2].codes && v[2].codes.length) { stock = {}; v[2].codes.forEach(function (c) { stock[c] = 1; }); }
       var gl = {};
       (fit.tree || []).forEach(function (mk) { (mk.engines || []).forEach(function (en) { (en.gens || []).forEach(function (g) { gl[g.key] = [mk.label, en.label, g.label, g.years, g.vehicles].join(' '); }); }); });
       hay = cat.map(function (r) {
@@ -66,7 +68,7 @@
     for (var i = 0; i < cat.length && hits.length < 8; i++) {
       var ok = true;
       for (var t = 0; t < toks.length; t++) { if (hay[i].indexOf(toks[t]) < 0) { ok = false; break; } }
-      if (ok) hits.push(cat[i]);
+      if (ok && (!stock || stock[cat[i][0]])) hits.push(cat[i]);
     }
     var h = '';
     var sh = sysHits(toks);
@@ -78,7 +80,7 @@
       h += '<div class="pf-r"><b>' + esc(oem(r[0], r[1])) + '</b><span>' + esc(r[1]) + '</span>' +
         '<button type="button" data-id="' + esc(r[0]) + '">Add to quote list</button></div>';
     });
-    if (!hits.length) h += '<div style="padding:8px 4px;font-size:14px;color:#5a5a60">No match in the catalog for this search.</div>';
+    if (!hits.length) h += '<div style="padding:8px 4px;font-size:14px;color:#5a5a60">No in-stock match for this search. Add the part number below and our team will confirm availability.</div>';
     var code = raw.replace(/\s+/g, ' ');
     if (/\d/.test(code) && code.length >= 4) {
       h += '<div style="padding-top:14px"><button type="button" class="pf-c" data-custom="' + esc(code) + '">Add custom Part Number ' + esc(code) + ' directly to your Quote List</button></div>';

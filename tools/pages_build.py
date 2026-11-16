@@ -473,7 +473,7 @@ def course_card(c):
         else:
             quote_attrs.append((code, title_of(code), code))
     data = json.dumps([{'id': i, 'name': n, 'pn': p} for i, n, p in quote_attrs], ensure_ascii=False)
-    who = (f'<div style="margin-top:12px;font-size:14px;color:#1d2126;display:flex;align-items:center;gap:10px">' + (f'<img src="{DTAB}{INST_IMG[c["who"]]}" alt="{E(c["who"])}" width="32" height="32" loading="lazy" style="width:32px;height:32px;border-radius:50%;object-fit:cover;object-position:50% 20%">' if c["who"] in INST_IMG else '') + f'<span><b>Instructor:</b> {E(c["who"])}</span></div>') if c.get('who') else ''
+    who = f'<div style="margin-top:12px;font-size:14px;color:#1d2126"><b>Instructor:</b> {E(c["who"])}</div>' if c.get('who') else ''
     ci = COURSE_IMG.get(c['slug'])
     m = (f'<div style="border-radius:20px;overflow:hidden;margin:-6px -6px 22px;aspect-ratio:344/238;background:#1d2126"><img src="{DTAB}{ci}" alt="{E(c["name"])} course" width="688" height="476" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block"></div>') if ci else ''
     return f"""<div class="sx-card" style="display:flex;flex-direction:column;gap:0">
@@ -533,8 +533,8 @@ def build_training():
 <div class="sx-card" style="background:#1d2126;color:#dedede;padding:clamp(28px,5vw,60px);display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:30px;align-items:center">
 <div><span class="sx-pill dk">Private onsite training</span><h2 class="sx-h2" style="color:#fff">Train your team at your bench or in Florida</h2>
 <p style="margin:16px 0 0;color:#dedede">Labs and shops can schedule hands-on training at their own test bench or at the Diesel Tech Academy facility in Coral Springs, Florida. Tell us the injector families and the number of technicians and we build the program.</p></div>
-<div style="display:flex;flex-direction:column;gap:12px"><a class="sx-btn wh" href="mailto:sales@maxzzdiesel.com?subject=Private%20onsite%20training">Request onsite training</a>
-<a class="sx-btn gh" href="tel:+19545864158">+1 (954)&nbsp;586-4158</a></div></div></div></section>
+<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start">{cta_red("https://www.dieseltechacademy.com/onsite-training", "Request onsite training", ' target="_blank" rel="noopener"')}
+<p style="margin:0;color:#dedede;font-size:15px">Prefer to talk? Call <a href="tel:+19545864158" style="color:#fff;font-weight:600;white-space:nowrap">+1 (954)&nbsp;586-4158</a></p></div></div></div></section>
 <section class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">Tools and parts for your course</span><h2 class="sx-h2">Student pricing on the right tooling</h2>
 <p style="margin:16px 0 0;max-width:760px">Students get discounted prices on specialized Robiel tools and parts through Maxzz Diesel (not included in the course price). Use the Quote Parts &amp; Robiel Tools button on any course to add the tool set to your list, or see the <a href="/systems/cummins-isx15-xpi">system hubs</a> for the part numbers.</p></div></section>
@@ -736,7 +736,7 @@ def patch_home(src):
     else:
         src = src.replace('<!-- PRODUCT LINES: The Maxzz', FINDER_SECTION + '<!-- PRODUCT LINES: The Maxzz', 1)
     if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=2" defer></script>', 1)
+        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=3" defer></script>', 1)
     src = re.sub(r'<section id="dta-testimonials".*?</section>\n?', '', src, flags=re.S)
     eb = f'display:inline-block;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:0 14px;font-family:{FONT};font-weight:600;font-size:12px;line-height:25px;letter-spacing:.6px;text-transform:uppercase'
     h2 = f'margin:18px 0 0;font-family:{FONT};font-weight:600;color:#fff;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.02em'
@@ -773,7 +773,7 @@ def patch_parts(src):
         i = src.index('</section>', src.index('<section style="position: relative; box-sizing: border-box;">')) + len('</section>')
         src = src[:i] + '\n' + FINDER_SECTION + src[i:]
     if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=2" defer></script>', 1)
+        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=3" defer></script>', 1)
     # chips become links to the system hubs
     old = '<div style="display: contents" v-for="ch in cur.chips"><span style="border: 1px solid #d3d7dc;'
     if old in src and ':href="ch.href"' not in src:
