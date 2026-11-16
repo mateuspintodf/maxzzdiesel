@@ -38,9 +38,9 @@ module.exports = async (req, res) => {
   }
   // quotes also go to Unleashed as a Draft sales quote: store quotes when PORTAL_QUOTES_LIVE=1, website quotes when
   // SITE_QUOTES_UNLEASHED=1. Never blocks the request; HubSpot always gets the full quote.
-  const ulq = await createSalesQuote(req, { number, customer, lines, notes: customer.notes }, { site: !store });
-  console.log('unleashed quote', store ? 'store' : 'site', ulq.ok ? 'created ' + (ulq.number || '') : (ulq.skipped ? 'skipped ' + (ulq.reason || 'off') : 'failed ' + (ulq.error || '')));
-  if (ulq.ok) { extra.push('Unleashed sales quote: ' + (ulq.number || ulq.guid) + ' (' + (store ? 'store' : 'website') + ' ref ' + number + ')'); if (store && ulq.number) number = ulq.number; }
+  const ulq = await createSalesQuote(req, { number, customer, lines, notes: customer.notes, ship }, { site: !store });
+  console.log('unleashed parked order', store ? 'store' : 'site', ulq.ok ? 'created ' + (ulq.number || '') : (ulq.skipped ? 'skipped ' + (ulq.reason || 'off') : 'failed ' + (ulq.error || '')));
+  if (ulq.ok) { extra.push('Unleashed parked sales order: ' + (ulq.number || ulq.guid) + ' on ' + ulq.code + ' (' + (store ? 'store' : 'website') + ' ref ' + number + ')'); if (store && ulq.number) number = ulq.number; }
   // signed-in users keep a history of their quote requests in the store
   if (who) {
     const key = 'portal/quotes/' + crypto.createHash('sha256').update(who).digest('hex').slice(0, 24) + '.json';
@@ -74,7 +74,7 @@ module.exports = async (req, res) => {
     // alert to the sales team with direct links to the deal and the contact
     await notifyTeam(`New quote request ${number} · ${customer.company}`, (store ? 'New B2B store quote' : 'New quote request from the website'),
       [['Quote', number], ['Customer', [customer.name, customer.company].filter(Boolean).join(' · ')], ['Email', customer.email], ['Phone', customer.phone],
-        ['Ship to', shipText], ['Parts', `${lines.length} lines, ${units} units`], ['Unleashed', ulq.ok ? 'Draft sales quote ' + (ulq.number || ulq.guid) : ''], ['B2B access', b2b ? 'Asked for B2B portal access' : '']],
+        ['Ship to', shipText], ['Parts', `${lines.length} lines, ${units} units`], ['Unleashed', ulq.ok ? 'Parked sales order ' + (ulq.number || ulq.guid) + ' on ' + ulq.code + (ulq.matched ? ' (existing customer)' : '') : (ulq.error ? 'Not created: ' + ulq.error : '')], ['B2B access', b2b ? 'Asked for B2B portal access' : '']],
       [{ label: 'Open the deal in HubSpot', url: hubDeal(deal.id) }, { label: 'Open the contact', url: hubContact(contactId) }],
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #1d2126">${lines.slice(0, 40).map((l) => `<tr><td style="padding:6px 0;border-bottom:1px solid #eef0f2;font-size:13px"><b>${esc(l.pn)}</b> · ${esc(l.name)}</td><td align="right" style="padding:6px 0;border-bottom:1px solid #eef0f2;font-size:13px">x${l.qty}</td></tr>`).join('')}</table>`);
     // confirmation to the customer: number, status, every line; never blocks the answer
