@@ -16,7 +16,47 @@
     return fetch('/api/portal/' + path, { method: opts.body ? 'POST' : 'GET', credentials: 'same-origin', headers: opts.body ? { 'Content-Type': 'application/json' } : {}, body: opts.body ? JSON.stringify(opts.body) : undefined })
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._status = r.status; return j; }); });
   }
-  function track(ev, p) { try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: ev }, p || {})); } catch (e) {} }
+  // First-party behaviour log (api/track): random visitor id, 30 min visit id, first-touch UTM. Never blocks the page.
+  var Beacon = (function () {
+    var q = [], timer = 0, ids = null;
+    function rnd() { return Math.random().toString(36).slice(2, 10) + Date.now().toString(36); }
+    function get(k, st) { try { return (st || localStorage).getItem(k); } catch (e) { return null; } }
+    function put(k, v, st) { try { (st || localStorage).setItem(k, v); } catch (e) {} }
+    function init() {
+      if (ids) return ids;
+      var v = get('mx-vid'); if (!v) { v = rnd(); put('mx-vid', v); }
+      var raw = get('mx-vis', sessionStorage), now = Date.now(), vis = null;
+      try { vis = JSON.parse(raw); } catch (e) {}
+      if (!vis || now - vis.t > 30 * 60 * 1000) vis = { id: rnd(), t: now, ref: document.referrer ? (document.referrer.split('/')[2] || '') : '' };
+      vis.t = now; put('mx-vis', JSON.stringify(vis), sessionStorage);
+      var utm = null; try { utm = JSON.parse(get('mx-utm') || 'null'); } catch (e) {}
+      if (!utm) { var sp = new URLSearchParams(location.search), u = {}; ['source', 'medium', 'campaign', 'term', 'content'].forEach(function (k) { var x = sp.get('utm_' + k); if (x) u[k] = x; }); if (Object.keys(u).length) { utm = u; put('mx-utm', JSON.stringify(u)); } }
+      ids = { visitor: v, session: vis.id, referrer: vis.ref && vis.ref !== location.host ? vis.ref : '', utm: utm };
+      return ids;
+    }
+    function flush() {
+      timer = 0; if (!q.length) return;
+      var body = JSON.stringify(Object.assign({ events: q.splice(0, 20) }, init()));
+      try { if (navigator.sendBeacon && navigator.sendBeacon('/api/track', new Blob([body], { type: 'text/plain' }))) return; } catch (e) {}
+      try { fetch('/api/track', { method: 'POST', body: body, keepalive: true, credentials: 'same-origin' }); } catch (e) {}
+    }
+    return {
+      send: function (type, o) { try { q.push(Object.assign({ type: type, path: location.hash.slice(1, 120) }, o || {})); if (!timer) timer = setTimeout(flush, 1200); } catch (e) {} },
+      flush: flush,
+    };
+  })();
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') Beacon.flush(); });
+  function hashEvent() {
+    var m = location.hash.match(/^#\/([a-z]+)(?:\/(.+))?/); if (!m) return Beacon.send('page', { path: 'home' });
+    var a = m[2] ? decodeURIComponent(m[2]) : '';
+    if (m[1] === 'p') Beacon.send('product', { code: a }); else if (m[1] === 's') Beacon.send('search', { query: a }); else if (m[1] === 'cart') Beacon.send('cart_view'); else Beacon.send('page', { path: m[1] });
+  }
+  window.addEventListener('hashchange', hashEvent); setTimeout(hashEvent, 600);
+  var TMAP = { add_to_cart: function (p) { return ['cart_add', { code: p.item_id, qty: p.quantity }]; }, generate_lead: function (p) { return /order/.test(p.form || '') ? ['order', { props: { number: p.quote_id, items: p.items } }] : ['quote', { props: { id: p.quote_id, items: p.items } }]; } };
+  function track(ev, p) {
+    try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: ev }, p || {})); } catch (e) {}
+    try { var f = TMAP[ev]; if (f) { var r = f(p || {}); Beacon.send(r[0], r[1]); } } catch (e) {}
+  }
   // "Fuel Injector / Application: 13-18 6.7L DODGE CUMMINS / (= 0.986.435.621)" -> title, application, cross refs
   function parse(desc) {
     var d = String(desc || ''), xr = [], m = d.match(/\(=\s*([^)]*)\)/);
@@ -2316,7 +2356,7 @@
 
   var app = PetiteVue.reactive({
     route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
-    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
+    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, rate: 1, levels: [
@@ -2963,7 +3003,7 @@
       write(QK, this.quote); this.picks[code] = 1;
       this.flash(n + ' added to your quote list', 'quote'); this.pop(); track('quote_add_item', { item_id: code, quantity: n, source: 'store' });
     },
-    save: function () { write(CK, this.cart); },
+    save: function () { write(CK, this.cart); if (this.vch && this.vch.ok) { this.vch.ok = false; this.vch.msg = 'Your cart changed. Apply the voucher again.'; } },
     inCart: function (code) { return this.cart.some(function (l) { return l.code === code; }); },
     add: function (code, n) {
       if (!this.canOrder) return this.addQuote(code);
@@ -2974,7 +3014,7 @@
       track('add_to_cart', { item_id: code, quantity: n, source: 'store' });
     },
     setQty: function (i, v) { var n = parseInt(v, 10) || 0; if (n <= 0) return this.remove(i); this.cart[i].qty = Math.min(9999, n); this.save(); },
-    remove: function (i) { this.cart.splice(i, 1); this.save(); },
+    remove: function (i) { var rl = this.cart[i]; if (rl) Beacon.send('cart_remove', { code: rl.code, qty: rl.qty }); this.cart.splice(i, 1); this.save(); },
     clearCart: function () { this.cart.splice(0); this.save(); },
     lineTotal: function (l) { var p = this.price(l.code); return p == null ? 0 : p * l.qty; },
     find: function (raw) {
@@ -3023,20 +3063,30 @@
       this.save(); write(QK, this.quote); this.nav('cart'); var n = o.lines.length - skipped; if (!n) { this.nav('quote'); this.flash('Added to your quote list. These parts are priced by sales.', 'quote'); return; }
       this.flash(n + (n === 1 ? ' part' : ' parts') + ' added to your cart' + (skipped ? '. ' + skipped + ' without online price added to your quote list' : ''), skipped ? 'quote' : 'cart');
     },
+    applyVoucher: function () {
+      var self = this, code = String(this.vch.code || '').trim(); if (!code) return;
+      api('voucher-check', { body: { code: code, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }) } }).then(function (r) {
+        if (r._status !== 200) { self.vch.ok = false; self.vch.msg = r.error === 'login' ? 'Sign in to use a voucher.' : 'Could not check the voucher. Try again.'; return; }
+        self.vch.ok = !!r.ok; self.vch.discount = r.discount || 0; self.vch.total = r.total || 0; self.vch.msg = r.ok ? '' : (r.error || 'This voucher is not valid.');
+        Beacon.send('voucher', { props: { code: code, ok: !!r.ok } });
+      }).catch(function () { self.vch.msg = 'Connection problem. Try again.'; });
+    },
+    clearVoucher: function () { this.vch = { code: '', ok: false, discount: 0, total: 0, msg: '' }; },
     placeOrder: function () {
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
       if (this.noPriceLines.length) { this.busy = false; this.err = 'Remove the parts without online price first (' + this.noPriceLines.join(', ') + '). You can send them as a quote request.'; return; }
       if (!this.idem) this.idem = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      var body = { idem: this.idem, po: this.co.po, notes: this.co.notes, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }),
+      Beacon.send('checkout', { value: this.flowTotal });
+      var body = { idem: this.idem, voucher: this.vch.ok ? this.vch.code : undefined, po: this.co.po, notes: this.co.notes, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }),
         ship: { name: this.co.name, street: this.pickup ? '' : this.co.street, city: this.pickup ? '' : this.co.city, state: this.pickup ? '' : this.co.state, zip: this.pickup ? '' : this.co.zip, country: this.co.country, method: this.co.method, fwd: this.co.fwd } };
       write('mx-portal-ship', { method: this.co.method, name: this.co.name, street: this.co.street, city: this.co.city, state: this.co.state, zip: this.co.zip, country: this.co.country, fwd: this.co.fwd });
       api('order', { body: body }).then(function (r) {
         self.busy = false;
-        if (r._status !== 200) { self.err = r.error || 'We could not place the order. Please try again.'; return; }
+        if (r._status !== 200) { if (r.voucher) self.clearVoucher(); self.err = r.error || 'We could not place the order. Please try again.'; return; }
         if (!r.order) { self.idem = ''; self.clearCart(); self.nav('orders'); self.flash('Order received. It will show in your orders shortly.', 'cart'); return; }
         track('generate_lead', { form: 'portal_order', quote_id: r.order.number, items: r.order.lines.length });
         self.idem = '';
-        self.orders.unshift(r.order); self.cur = r.order; self.justPlaced = r.order.id; self.co.po = ''; self.co.notes = '';
+        self.orders.unshift(r.order); self.cur = r.order; self.justPlaced = r.order.id; self.co.po = ''; self.co.notes = ''; self.clearVoucher();
         self.nav('o', r.order.id); self.flash('Order received. We will e-mail you when it is approved.');
         setTimeout(function () { self.cart.splice(0); self.save(); }, 0);
       }).catch(function () { self.busy = false; self.err = 'Connection problem. Your cart is saved; try again.'; });

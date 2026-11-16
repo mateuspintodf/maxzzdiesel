@@ -20,7 +20,7 @@ button,input{font:inherit;color:inherit}
 .login{max-width:420px;margin:12vh auto}
 h1,h2,h3{margin:0 0 8px}h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
 .muted{color:var(--muted);font-size:14px}
-input[type=email],input[type=text]{width:100%;padding:11px 14px;border:1px solid #d5d8dc;border-radius:12px;background:#fff}
+input[type=email],input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:11px 14px;border:1px solid #d5d8dc;border-radius:12px;background:#fff}
 .btn{background:var(--red);color:#fff;border:0;border-radius:999px;padding:10px 18px;cursor:pointer;font-weight:600}
 .btn.ghost{background:#fff;color:var(--ink);border:1px solid #d5d8dc;font-weight:400}
 .btn:disabled{opacity:.5;cursor:default}
@@ -31,6 +31,7 @@ input[type=email],input[type=text]{width:100%;padding:11px 14px;border:1px solid
 .err{color:var(--red);margin-top:10px;font-size:14px}
 .person{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
 .hit{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+textarea{min-height:110px;font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:10px 0}label.l{font-size:12px;color:var(--muted);display:block;margin:0 0 3px}.stat{display:inline-block;margin:0 18px 8px 0}.stat b{font-size:22px;display:block}.sm{font-size:12px;padding:5px 12px}
 table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
 </style>
 </head>
@@ -38,7 +39,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
 <div id="app"></div>
 <script>
 (function () {
-  var app = document.getElementById('app'), S = { me: null, tab: 'clients', data: null, err: '', lt: '', q: '', open: null, found: {}, busy: false, audit: null, sent: false };
+  var app = document.getElementById('app'), S = { me: null, tab: 'clients', data: null, err: '', lt: '', q: '', open: null, found: {}, busy: false, audit: null, sent: false, ex: {} };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function api(a, body, qs) {
     return fetch('/api/admin?a=' + a + (qs || ''), { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
@@ -48,11 +49,21 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   function draw() {
     if (!S.me) return drawLogin();
     var h = '<div class="top"><b>Maxzz Admin</b><span class="muted" style="color:#aaa">' + esc(S.me.email) + ' · ' + esc(S.me.role) + '</span><span class="sp"></span><button data-act="out">Sign out</button></div><div class="wrap">';
-    h += '<div class="tabs"><button data-tab="clients" class="' + (S.tab === 'clients' ? 'on' : '') + '">Customers</button><button data-tab="prospects" class="' + (S.tab === 'prospects' ? 'on' : '') + '">Invites</button><button data-tab="audit" class="' + (S.tab === 'audit' ? 'on' : '') + '">Activity log</button></div>';
+    h += '<div class="tabs" style="flex-wrap:wrap">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
     if (S.err) h += '<div class="card err">' + esc(S.err) + '</div>';
-    h += S.tab === 'audit' ? drawAudit() : S.tab === 'prospects' ? drawProspects() : drawClients();
+    h += (VIEWS[S.tab] || drawClients)();
     app.innerHTML = h + '</div>';
   }
+  var TABS = [['clients', 'Customers'], ['prospects', 'Invites'], ['import', 'Import & segments'], ['terms', 'Terms'], ['vouchers', 'Vouchers'], ['products', 'Products'], ['events', 'Behavior'], ['loyalty', 'Loyalty'], ['admins', 'Admin users'], ['audit', 'Activity log']];
+  var VIEWS = { clients: function () { return drawClients(); }, prospects: function () { return drawProspects(); }, audit: function () { return drawAudit(); }, import: function () { return drawImport(); }, terms: function () { return drawTerms(); }, vouchers: function () { return drawVouchers(); }, products: function () { return drawProducts(); }, events: function () { return drawEvents(); }, loyalty: function () { return drawLoyalty(); }, admins: function () { return drawAdmins(); } };
+  var LOAD = { prospects: ['prospects', 'prospects'], audit: ['audit', 'audit', 'rows'], terms: ['terms', 'terms', 'terms'], vouchers: ['vouchers', 'vouchers', 'vouchers'], products: ['hidden', 'hid', 'hidden'], events: ['events', 'ev'], loyalty: ['loyalty', 'loy'], admins: ['admins', 'adm'], import: ['segments', 'segs', 'segments'] };
+  function loadTab(t) { var L = LOAD[t]; if (!L || t === 'prospects') return; var qs = t === 'events' ? '&days=' + (S.days || 30) : ''; api(L[0], null, qs).then(function (r) { if (r._status === 200) { S[L[1]] = L[2] ? r[L[2]] : r; draw(); } else fail(r); }); }
+  function ld() { return '<div class="card muted">Loading...</div>'; }
+  function fld(g, k, label, v, type, ph) { return '<div><label class="l">' + label + '</label><input type="' + (type || 'text') + '" data-g="' + g + '" data-k="' + k + '" value="' + esc(v == null ? '' : v) + '" placeholder="' + esc(ph || '') + '"></div>'; }
+  function grp(g) { var o = {}; [].forEach.call(app.querySelectorAll('[data-g="' + g + '"]'), function (i) { o[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value.trim(); }); return o; }
+  function money(n) { return '$' + Number(n || 0).toFixed(2); }
+  function dstr(v) { return v ? new Date(v).toLocaleDateString() : ''; }
+  function topTable(title, rows) { return '<div style="flex:1;min-width:230px"><h3>' + title + '</h3><table>' + ((rows || []).map(function (r) { return '<tr><td>' + esc(r.k) + '</td><td align="right">' + r.c + '</td></tr>'; }).join('') || '<tr><td class="muted">No data yet</td></tr>') + '</table></div>'; }
   function drawLogin() {
     var h = '<div class="card login">';
     if (S.lt) h += '<h1>Confirm sign in</h1><p class="muted">One more click to finish signing in on this device.</p><button class="btn" data-act="confirm"' + (S.busy ? ' disabled' : '') + '>Sign in to admin</button>';
@@ -93,7 +104,7 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
     h += '<div class="card"><h2>Prospects <span class="muted">' + S.prospects.length + '</span></h2>';
     if (!S.prospects.length) h += '<p class="muted">Nobody here yet.</p>';
     S.prospects.forEach(function (p) {
-      h += '<div class="person"><span><b>' + esc(p.company) + '</b> <span class="pill">' + esc(p.status) + '</span> <span class="muted">' + esc(p.source === 'manual' ? 'added by hand' : p.source) + (p.code ? ' · ' + esc(p.code) : '') + ' ' + esc([p.city, p.state].filter(Boolean).join(', ')) + '</span><br><span class="muted">' + (p.users.map(function (u) { return esc(u.name || '') + ' ' + esc(u.email); }).join(' · ') || 'no contact yet') + '</span></span></div>';
+      h += '<div class="person"><span><b>' + esc(p.company) + '</b> <span class="pill">' + esc(p.status) + '</span> <span class="muted">' + esc(p.source === 'manual' ? 'added by hand' : p.source) + (p.code ? ' · ' + esc(p.code) : '') + ' ' + esc([p.city, p.state].filter(Boolean).join(', ')) + '</span><br><span class="muted">' + (p.users.map(function (u) { return esc(u.name || '') + ' ' + esc(u.email); }).join(' · ') || 'no contact yet') + '</span></span>' + (p.code && p.status !== 'active' ? '<button class="btn sm" data-act="invite" data-id="' + esc(p.id) + '" data-email="' + esc((p.users[0] || {}).email || '') + '">' + (p.status === 'invited' ? 'Invite again' : 'Send invite') + '</button>' : '<span class="muted">link to Unleashed first</span>') + '</div>';
     });
     return h + '</div>';
   }
@@ -101,14 +112,81 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
     if (!S.audit) return '<div class="card muted">Loading...</div>';
     return '<div class="card"><table><tr><th>When</th><th>Who</th><th>What</th><th>On</th></tr>' + S.audit.map(function (r) { return '<tr><td>' + esc(new Date(r.at).toLocaleString()) + '</td><td>' + esc(r.admin_email) + '</td><td>' + esc(r.action) + '</td><td>' + esc(r.entity_id) + '</td></tr>'; }).join('') + '</table></div>';
   }
+
+  function drawImport() {
+    var f = S.ex.imp || {}, h = '<div class="card"><h2>Import customers from Unleashed</h2><p class="muted">Pick who to bring in, give the group a name, and it becomes a segment you can invite one company at a time. Nobody gets an e-mail from this step. Unleashed stays the source of truth.</p><div class="grid">' +
+      fld('imp', 'segment', 'Segment name *', f.segment, 'text', 'Rebuilders') + fld('imp', 'tiers', 'Price tiers (comma)', f.tiers, 'text', 'Tier 1, Tier 2') + fld('imp', 'types', 'Customer types', f.types) + fld('imp', 'countries', 'Countries', f.countries) + fld('imp', 'states', 'States', f.states) + fld('imp', 'name', 'Name contains', f.name) +
+      fld('imp', 'boughtWithinMonths', 'Bought in the last N months', f.boughtWithinMonths, 'number') + fld('imp', 'notBoughtWithinMonths', 'Did NOT buy in the last N months', f.notBoughtWithinMonths, 'number') + '</div>' +
+      '<label><input type="checkbox" data-g="imp" data-k="hasEmail"' + (f.hasEmail ? ' checked' : '') + '> only customers with an e-mail in Unleashed</label><div class="row" style="margin-top:12px"><button class="btn ghost" data-act="imp-prev"' + (S.busy ? ' disabled' : '') + '>Preview</button><button class="btn" data-act="imp-run"' + (S.busy ? ' disabled' : '') + '>Import into segment</button></div></div>';
+    var p = S.ex.prev; if (p) h += '<div class="card"><h3>Preview</h3><div class="stat"><b>' + p.total + '</b>match</div><div class="stat"><b>' + p.alreadyInPortal + '</b>already in the portal</div><div class="stat"><b>' + p.withEmail + '</b>with e-mail</div><table><tr><th>Code</th><th>Name</th><th>Tier</th><th>Type</th><th>Where</th></tr>' + p.sample.map(function (c) { return '<tr><td>' + esc(c.code) + '</td><td>' + esc(c.name) + '</td><td>' + esc(c.tier) + '</td><td>' + esc(c.type) + '</td><td>' + esc([c.city, c.country].filter(Boolean).join(', ')) + '</td></tr>'; }).join('') + '</table><p class="muted">First 15 shown.</p></div>';
+    if (S.ex.done) h += '<div class="card"><b>Done.</b> ' + esc(S.ex.done) + '</div>';
+    h += '<div class="card"><h2>Segments</h2>';
+    if (!S.segs) return h + '<p class="muted">Loading...</p></div>';
+    if (!S.segs.length) h += '<p class="muted">No segments yet.</p>';
+    S.segs.forEach(function (g) {
+      h += '<div class="person" style="display:block"><div class="row"><b>' + esc(g.name) + '</b><span class="muted">' + g.members + ' companies · ' + Object.keys(g.byStatus).map(function (k) { return g.byStatus[k] + ' ' + esc(k); }).join(', ') + '</span><span style="flex:1"></span><button class="btn ghost sm" data-act="seg-edit" data-id="' + esc(g.id) + '">' + (S.ex.seg === g.id ? 'Close' : 'Invite text') + '</button></div>';
+      if (S.ex.seg === g.id) h += '<div style="margin-top:8px"><label class="l">E-mail subject for this segment</label><input type="text" data-g="sg" data-k="invite_subject" value="' + esc(g.invite_subject) + '"><label class="l" style="margin-top:8px">Message (blank line = new paragraph; the sign-in button is added)</label><textarea data-g="sg" data-k="invite_body">' + esc(g.invite_body) + '</textarea><p><button class="btn sm" data-act="seg-save" data-name="' + esc(g.name) + '">Save</button></p></div>';
+      h += '</div>';
+    });
+    return h + '</div>';
+  }
+  function drawTerms() {
+    if (!S.terms) return ld();
+    var h = '<div class="card"><h2>Terms of use for the portal</h2><p class="muted">Customers accept the published version when they open an invite. Nothing is published until you press Publish, and nobody can be invited before then. A published version cannot be edited: save changes as a new version.</p>' +
+      '<div class="grid">' + fld('tm', 'version', 'Version name', S.ex.tmv || '', 'text', 'v1') + '</div><label class="l">Text</label><textarea id="tmb" data-g="tm" data-k="body" style="min-height:260px">' + esc(S.ex.tmb || '') + '</textarea><p><button class="btn" data-act="tm-save">Save draft</button></p></div><div class="card"><h3>Versions</h3>';
+    if (!S.terms.length) h += '<p class="muted">None yet.</p>';
+    S.terms.forEach(function (t) { h += '<div class="person"><span><b>' + esc(t.version) + '</b> <span class="pill ' + (t.status === 'published' ? 'approved' : t.status === 'draft' ? 'pending' : '') + '">' + esc(t.status) + '</span> <span class="muted">' + esc(dstr(t.published_at || t.created_at)) + '</span></span><span><button class="btn ghost sm" data-act="tm-load" data-v="' + esc(t.version) + '">Open</button> ' + (t.status === 'draft' ? '<button class="btn sm" data-act="tm-pub" data-v="' + esc(t.version) + '">Publish</button>' : '') + '</span></div>'; });
+    return h + '</div>';
+  }
+  function drawVouchers() {
+    if (!S.vouchers) return ld();
+    var f = S.ex.v || {}, h = '<div class="card"><h2>' + (f.id ? 'Edit voucher' : 'New voucher') + '</h2><p class="muted">One voucher per order, never combined. It discounts the order after the customer\'s tier price. Leave the customer blank for a voucher open to every approved customer.</p><div class="grid">' +
+      fld('v', 'code', 'Code *', f.code, 'text', 'BF27') + fld('v', 'description', 'Description', f.description) +
+      '<div><label class="l">Type</label><select data-g="v" data-k="kind"><option value="percent"' + (f.kind !== 'fixed' ? ' selected' : '') + '>Percent off</option><option value="fixed"' + (f.kind === 'fixed' ? ' selected' : '') + '>Fixed amount off</option></select></div>' +
+      fld('v', 'value', 'Value * (% or $)', f.value, 'number') + fld('v', 'starts_at', 'Starts', (f.starts_at || '').slice(0, 10), 'date') + fld('v', 'expires_at', 'Expires * (end of day)', (f.expires_at || '').slice(0, 10), 'date') +
+      fld('v', 'min_subtotal', 'Minimum order $', f.min_subtotal, 'number') + fld('v', 'max_uses', 'Total uses (blank = no limit)', f.max_uses, 'number') + fld('v', 'max_uses_per_company', 'Uses per customer', f.max_uses_per_company, 'number') + fld('v', 'company_code', 'Only this Unleashed customer code', f.company_code) + '</div>' +
+      '<div class="row"><button class="btn" data-act="v-save">' + (f.id ? 'Save changes' : 'Create voucher') + '</button>' + (f.id ? '<button class="btn ghost" data-act="v-new">Cancel</button>' : '') + '</div></div><div class="card"><h3>Vouchers</h3>';
+    if (!S.vouchers.length) h += '<p class="muted">None yet.</p>';
+    else { h += '<table><tr><th>Code</th><th>Offer</th><th>Valid</th><th>Who</th><th>Used</th><th></th></tr>';
+      S.vouchers.forEach(function (v) { var live = v.active && Date.parse(v.expires_at) > Date.now() && Date.parse(v.starts_at) <= Date.now();
+        h += '<tr><td><b>' + esc(v.code) + '</b><br><span class="muted">' + esc(v.description || '') + '</span></td><td>' + (v.kind === 'percent' ? Number(v.value) + '%' : money(v.value)) + (v.min_subtotal ? '<br><span class="muted">min ' + money(v.min_subtotal) + '</span>' : '') + '</td><td>' + esc(dstr(v.starts_at)) + ' to ' + esc(dstr(v.expires_at)) + '<br><span class="pill ' + (live ? 'approved' : 'rejected') + '">' + (live ? 'live' : !v.active ? 'off' : Date.parse(v.expires_at) < Date.now() ? 'expired' : 'not started') + '</span></td><td>' + esc(v.company_name || 'everyone') + '</td><td>' + v.uses + (v.max_uses ? ' / ' + v.max_uses : '') + '<br><span class="muted">-' + money(v.discount_total) + '</span></td><td><button class="btn ghost sm" data-act="v-edit" data-id="' + esc(v.id) + '">Edit</button> <button class="btn ghost sm" data-act="v-tog" data-id="' + esc(v.id) + '" data-on="' + (v.active ? '' : '1') + '">' + (v.active ? 'Turn off' : 'Turn on') + '</button></td></tr>'; });
+      h += '</table>'; }
+    return h + '</div>';
+  }
+  function drawProducts() {
+    var h = '<div class="card"><h2>Product visibility</h2><p class="muted">Every product is visible to customers unless it is on this list. Listed products show only to admins. Changes take up to a minute to reach customers.</p><label class="l">Product codes (separated by space, comma or new line)</label><textarea data-g="hd" data-k="codes">' + esc((S.ex.hd || {}).codes || '') + '</textarea><div class="grid">' + fld('hd', 'reason', 'Reason (optional)', (S.ex.hd || {}).reason) + '</div><div class="row"><button class="btn" data-act="hd-hide">Hide from customers</button><button class="btn ghost" data-act="hd-show">Show to customers again</button></div></div>';
+    if (!S.hid) return h + ld();
+    h += '<div class="card"><h3>Hidden now <span class="muted">' + S.hid.length + '</span></h3>';
+    if (!S.hid.length) h += '<p class="muted">Nothing is hidden.</p>'; else h += '<table><tr><th>Code</th><th>Reason</th><th>By</th><th>Since</th></tr>' + S.hid.map(function (r) { return '<tr><td>' + esc(r.code) + '</td><td>' + esc(r.reason || '') + '</td><td>' + esc(r.hidden_by) + '</td><td>' + esc(dstr(r.created_at)) + '</td></tr>'; }).join('') + '</table>';
+    return h + '</div>';
+  }
+  function drawEvents() {
+    var e = S.ev, h = '<div class="card"><div class="row"><h2 style="margin:0">Behavior</h2><select data-act-change="days" style="max-width:160px">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Last ' + d + ' days</option>'; }).join('') + '</select><span class="muted">Kept for 12 months. Customers are tied to their company once signed in.</span></div></div>';
+    if (!e) return h + ld();
+    h += '<div class="card"><div class="stat"><b>' + e.total + '</b>events</div><div class="stat"><b>' + e.visitors + '</b>visitors</div>' + (e.sample ? '<p class="muted">Showing the latest 5,000 events of the period.</p>' : '') + '<div class="row" style="align-items:flex-start;gap:24px">' + topTable('Event types', e.by_type) + topTable('Top products viewed', e.top_products) + topTable('Most added to cart', e.top_cart_adds) + '</div><div class="row" style="align-items:flex-start;gap:24px;margin-top:14px">' + topTable('Searches', e.top_searches) + topTable('Pages', e.top_pages) + topTable('Where visitors came from', e.sources) + topTable('Regions', e.regions) + topTable('Devices', e.devices) + '</div></div>';
+    return h;
+  }
+  function drawLoyalty() {
+    if (!S.loy) return ld();
+    var s = S.loy.settings || {}, h = '<div class="card"><h2>Loyalty program</h2><p class="muted">Built and switched off. Points are not earned or shown to customers until you turn it on, and the rules below are only a starting point to review.</p><div class="stat"><b>' + S.loy.companies_with_points + '</b>companies with points</div><div class="stat"><b>' + S.loy.points_outstanding + '</b>points outstanding</div>' +
+      '<div class="grid">' + fld('ly', 'points_per_usd', 'Points per $1 spent', s.points_per_usd == null ? 1 : s.points_per_usd, 'number') + fld('ly', 'usd_per_point', '$ value of one point', s.usd_per_point == null ? 0.01 : s.usd_per_point, 'number') + fld('ly', 'expiry_months', 'Points expire after N months (blank = never)', s.expiry_months, 'number') + '</div>' +
+      '<label><input type="checkbox" data-g="ly" data-k="enabled"' + (s.enabled ? ' checked' : '') + '> Program enabled</label><p><button class="btn" data-act="ly-save">Save</button></p></div>';
+    return h;
+  }
+  function drawAdmins() {
+    if (!S.adm) return ld();
+    var f = S.ex.ad || {}, h = '<div class="card"><h2>Admin users</h2><p class="muted">Superadmin: everything. Sales: customers, invites, vouchers, products, behavior. Marketing: invites, import, vouchers, behavior. A role change takes effect at the next sign-in.</p><div class="grid">' + fld('ad', 'email', 'E-mail *', f.email, 'text') + fld('ad', 'name', 'Name', f.name) +
+      '<div><label class="l">Role</label><select data-g="ad" data-k="role">' + (S.adm.roles || []).map(function (r) { return '<option' + (f.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select></div></div><div class="row"><button class="btn" data-act="ad-save">Save admin</button></div></div><div class="card"><h3>People with admin access</h3>';
+    S.adm.admins.forEach(function (a) { h += '<div class="person"><span><b>' + esc(a.name || a.email) + '</b> <span class="muted">' + esc(a.email) + '</span> <span class="pill">' + esc(a.role) + '</span> ' + (a.active ? '' : '<span class="pill rejected">off</span>') + (a.bootstrap ? ' <span class="pill">from server setting</span>' : '') + '</span>' + (a.bootstrap ? '' : '<span><button class="btn ghost sm" data-act="ad-edit" data-e="' + esc(a.email) + '">Edit</button> <button class="btn ghost sm" data-act="ad-tog" data-e="' + esc(a.email) + '">' + (a.active ? 'Turn off' : 'Turn on') + '</button></span>') + '</div>'; });
+    return h + '</div>';
+  }
   function loadProspects() { api('prospects').then(function (r) { if (r.prospects) { S.prospects = r.prospects; draw(); } else fail(r); }); }
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Something went wrong.'); if (r._status === 401) S.me = null; S.busy = false; draw(); }
   app.addEventListener('input', function (e) { if (e.target.id === 'q') { S.q = e.target.value; var p = e.target.selectionStart; draw(); var n = document.getElementById('q'); if (n) { n.focus(); n.setSelectionRange(p, p); } } });
   app.addEventListener('click', function (e) {
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = '';
-    if (t.dataset.tab) { S.tab = t.dataset.tab; if (S.tab === 'prospects') loadProspects();
-    if (S.tab === 'audit') api('audit').then(function (r) { if (r.rows) { S.audit = r.rows; draw(); } else fail(r); }); return draw(); }
+    if (t.dataset.tab) { S.tab = t.dataset.tab; S.err = ''; if (S.tab === 'prospects') loadProspects(); else loadTab(S.tab); return draw(); }
     var act = t.dataset.act, id = t.dataset.id;
     if (act === 'send') { var em = document.getElementById('em').value.trim(); if (!em) return; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
     if (act === 'confirm') { S.busy = true; draw(); api('confirm', { t: S.lt }).then(function (r) { S.busy = false; if (r._status === 200) { S.lt = ''; boot(); } else { S.lt = ''; S.err = 'That link expired or was already used. Ask for a new one.'; draw(); } }); }
@@ -119,7 +197,38 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
     if (act === 'approve') { var c = S.found[id][+t.dataset.i]; if (!confirm('Link this company to ' + c.code + ' ' + c.name + ' and approve access?')) return; api('approve', { account: id, customer: c }).then(function (r) { if (r.ok) { S.open = null; load(); } else fail(r); }); }
     if (act === 'reject') { var why = prompt('Reason (optional, shown if you notify them):'); if (why === null) return; api('reject', { account: id, reason: why, notify: confirm('Send them an e-mail about it?') }).then(function (r) { if (r.ok) load(); else fail(r); }); }
     if (act === 'revoke') { if (!confirm('End every open session of ' + t.dataset.email + '?')) return; api('revoke', { email: t.dataset.email }).then(function (r) { if (r.ok) load(); else fail(r); }); }
+
+    var done = function (r, after) { S.busy = false; if (r.ok || r.vouchers || r.total != null) { if (after) after(r); } else fail(r); };
+    if (act === 'invite') { var em2 = t.dataset.email || prompt('E-mail of the person to invite:'); if (!em2) return; if (!confirm('Send the portal invite to ' + em2 + '?')) return; api('invite', { company: id, email: em2 }).then(function (r) { done(r, function () { S.err = ''; alert('Invite sent to ' + em2 + '.'); loadProspects(); }); }); }
+    if (act === 'imp-prev' || act === 'imp-run') {
+      var g = grp('imp'); S.ex.imp = g; var filters = { tiers: g.tiers, types: g.types, countries: g.countries, states: g.states, name: g.name, boughtWithinMonths: g.boughtWithinMonths, notBoughtWithinMonths: g.notBoughtWithinMonths, hasEmail: g.hasEmail };
+      if (act === 'imp-run' && !g.segment) { S.err = 'Give the segment a name first.'; return draw(); }
+      if (act === 'imp-run' && !confirm('Create these customers as prospects in segment "' + g.segment + '"? No e-mail is sent.')) return;
+      S.busy = true; S.ex.done = ''; draw();
+      api(act === 'imp-prev' ? 'import-preview' : 'import', act === 'imp-prev' ? { filters: filters } : { filters: filters, segment: g.segment }).then(function (r) { done(r, function () { if (act === 'imp-prev') S.ex.prev = r; else { S.ex.done = r.created + ' new prospects created, ' + r.alreadyThere + ' were already in the portal, ' + r.matched + ' in segment "' + r.segment + '".'; S.ex.prev = null; loadTab('import'); } draw(); }); });
+    }
+    if (act === 'seg-edit') { S.ex.seg = S.ex.seg === id ? null : id; return draw(); }
+    if (act === 'seg-save') { var sg = grp('sg'); sg.name = t.dataset.name; api('segment-save', sg).then(function (r) { done(r, function () { S.ex.seg = null; loadTab('import'); }); }); }
+    if (act === 'tm-save') { var tm = grp('tm'); S.ex.tmv = tm.version; S.ex.tmb = document.getElementById('tmb').value; api('terms-save', { version: tm.version, body: S.ex.tmb }).then(function (r) { done(r, function () { loadTab('terms'); }); }); }
+    if (act === 'tm-load') { var tv = S.terms.filter(function (x) { return x.version === t.dataset.v; })[0]; S.ex.tmv = tv.version + (tv.status === 'draft' ? '' : '-2'); S.ex.tmb = tv.body; return draw(); }
+    if (act === 'tm-pub') { if (!confirm('Publish terms ' + t.dataset.v + '? Customers will be asked to accept this text. A published version cannot be edited.')) return; api('terms-publish', { version: t.dataset.v }).then(function (r) { done(r, function () { loadTab('terms'); }); }); }
+    if (act === 'v-save') {
+      var v = grp('v'); S.ex.v = Object.assign({}, S.ex.v || {}, v);
+      var body = { id: (S.ex.v || {}).id, code: v.code, description: v.description, kind: v.kind, value: v.value, min_subtotal: v.min_subtotal, max_uses: v.max_uses, max_uses_per_company: v.max_uses_per_company, company_id: (S.ex.v || {}).company_id || '', company_code: v.company_code, starts_at: v.starts_at ? new Date(v.starts_at + 'T00:00:00').toISOString() : '', expires_at: v.expires_at ? new Date(v.expires_at + 'T23:59:59').toISOString() : '' };
+      api('voucher-save', body).then(function (r) { done(r, function () { S.ex.v = {}; loadTab('vouchers'); }); });
+    }
+    if (act === 'v-new') { S.ex.v = {}; return draw(); }
+    if (act === 'v-edit') { var vv = S.vouchers.filter(function (x) { return x.id === id; })[0]; S.ex.v = Object.assign({}, vv, { company_code: '' }); return draw(); }
+    if (act === 'v-tog') { api('voucher-toggle', { id: id, active: !!t.dataset.on }).then(function (r) { done(r, function () { loadTab('vouchers'); }); }); }
+    if (act === 'hd-hide' || act === 'hd-show') { var hd = grp('hd'); S.ex.hd = hd; if (act === 'hd-hide' && !confirm('Hide these products from every customer?')) return; api('hidden-set', { hide: act === 'hd-hide', codes: hd.codes, reason: hd.reason }).then(function (r) { done(r, function () { S.ex.hd = {}; loadTab('products'); }); }); }
+    if (act === 'ly-save') { var ly = grp('ly'); api('loyalty-save', ly).then(function (r) { done(r, function () { loadTab('loyalty'); }); }); }
+    if (act === 'ad-save') { var ad = grp('ad'); api('admin-save', { email: ad.email, name: ad.name, role: ad.role, active: true }).then(function (r) { done(r, function () { S.ex.ad = {}; loadTab('admins'); }); }); }
+    if (act === 'ad-edit') { S.ex.ad = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; return draw(); }
+    if (act === 'ad-tog') { var ax = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; api('admin-save', { email: ax.email, name: ax.name, role: ax.role, active: !ax.active }).then(function (r) { done(r, function () { loadTab('admins'); }); }); }
   });
+  app.addEventListener('change', function (e) { if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; S.ev = null; draw(); loadTab('events'); } });
+  (function () {
+  })();
   function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; draw(); } }); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();

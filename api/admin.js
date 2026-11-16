@@ -378,9 +378,15 @@ A['voucher-save'] = async (req, res) => {
   if (!(value > 0) || (kind === 'percent' && value > 100)) return res.status(400).json({ error: kind === 'percent' ? 'Percent must be between 0 and 100.' : 'Value must be above zero.' });
   if (!expires || isNaN(expires) || isNaN(starts)) return res.status(400).json({ error: 'Set the start and the expiry dates.' });
   if (expires <= starts) return res.status(400).json({ error: 'Expiry must be after the start.' });
+  let companyId = clean(b.company_id, 60) || null;
+  if (clean(b.company_code, 40)) {
+    const co = (await db.select('companies', 'select=id&unleashed_code=eq.' + encodeURIComponent(clean(b.company_code, 40)) + '&limit=1'))[0];
+    if (!co) return res.status(400).json({ error: 'No portal company with that Unleashed code. Import or approve it first.' });
+    companyId = co.id;
+  }
   const rec = {
     code, description: clean(b.description, 200) || null, kind, value,
-    company_id: clean(b.company_id, 60) || null,
+    company_id: companyId,
     min_subtotal: num(b.min_subtotal) > 0 ? num(b.min_subtotal) : null,
     starts_at: starts.toISOString(), expires_at: expires.toISOString(),
     max_uses: num(b.max_uses) > 0 ? Math.floor(num(b.max_uses)) : null,
