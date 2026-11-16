@@ -241,10 +241,10 @@ nav[aria-label="Main"] img{height:32px !important}
 .sx .sx-faq details > p{margin:0 !important;padding:0 40px 28px 0;font-size:16px;line-height:1.7}
 .sx-tag{display:inline-block;border:1px solid #dfe3e7;border-radius:50px;padding:3px 14px;font-size:13px;color:#1d2126 !important;background:#fff}
 .sx-tag:hover{border-color:#d32a37}
-.sx-ans{background:#1d2126;color:#fff;border-radius:26px;padding:34px 38px;display:grid;grid-template-columns:minmax(0,1fr) 190px;gap:28px;align-items:center}
-.sx-ans .ph{background:#2a3037;border-radius:20px;height:170px;display:flex;align-items:center;justify-content:center}
-.sx-ans .ph img{max-width:86%;max-height:86%;object-fit:contain}
-.sx-ans.nophoto{grid-template-columns:1fr}
+.sx-ans{background:#1d2126;color:#fff;border-radius:26px;padding:0 0 0 38px;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:32px;align-items:stretch;overflow:hidden}.sx-ans>div:first-child{padding:34px 0;align-self:center}
+.sx-ans .ph{background:#e9eaec;border-radius:0;min-height:220px;position:relative;overflow:hidden}
+.sx-ans .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.sx-ans.nophoto{grid-template-columns:1fr;padding:34px 38px}.sx-ans.nophoto>div:first-child{padding:0}@media (max-width:760px){.sx-ans{grid-template-columns:1fr;padding:0;gap:0}.sx-ans>div:first-child{padding:28px 22px}.sx-ans .ph{min-height:200px;order:2}}
 .sx-bene{display:flex;flex-wrap:wrap;gap:12px 34px;margin-top:30px;color:#fff;font-size:15px}
 .sx-bene span{display:inline-flex;align-items:center;gap:10px}
 .sx-bene svg{color:#fc771d;flex:none}
@@ -338,6 +338,7 @@ nav[aria-label="Main"] img{height:32px !important}
 </div>
 
 </div>
+
 
 
 
