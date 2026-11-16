@@ -265,7 +265,7 @@ def page_shell(path, title, desc, og_img, graph, body, noindex=False, page_id='P
 
 BENE = [('<path d="M18.2 7.8a4.5 4.5 0 1 0 0 8.4c2-1.5 3.3-4.2 3.3-4.2s-1.3-2.7-3.3-4.2zM5.8 7.8a4.5 4.5 0 1 1 0 8.4C3.8 14.7 2.5 12 2.5 12s1.3-2.7 3.3-4.2z"/>', 'Lifetime access'),
         ('<path d="M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/>', '7-day guarantee'),
-        ('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/>', '50% off the second course'),
+        ('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/>', '50% off your second course, by email'),
         ('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', 'Student discounts on Robiel tools and parts')]
 
 
@@ -376,7 +376,7 @@ def triad(s):
         courses += f'<p style="margin:12px 0 0"><b style="color:#1d2126">{E(c2["name"])}</b><br>{E(c2["sub"])}. Instructor: {E(c2["who"])}.</p>'
     dta_card = (f'<div class="sx-card" style="background:#1e1e87;color:#dfe0ff"><span class="sx-pill dk" style="color:#fff;border-color:rgba(255,255,255,.4)">3. Official training</span>'
                 f'<h3 class="sx-h3" style="margin-top:16px;color:#fff">Diesel Tech Academy: $297</h3>{courses.replace("color:#1d2126", "color:#fff")}'
-                f'<p style="margin:14px 0 18px;font-size:14px">Lifetime access, 7-day guarantee, 50% off the second course.</p>'
+                f'<p style="margin:14px 0 18px;font-size:14px">Lifetime access, 7-day guarantee, and a 50% off voucher for your second course sent by email after your first purchase.</p>'
                 f'<a class="sx-btn wh" href="{link}" target="_blank" rel="noopener">Enroll Now ($297) &#8599;</a> '
                 f'<a class="sx-btn gh" href="/training" style="margin-top:8px">All 10 courses</a></div>')
     return f'<div class="sx-grid3" style="align-items:stretch">{parts_card}{tool_card}{dta_card}</div>'
@@ -508,7 +508,7 @@ def build_training():
     title = 'Diesel Tech Academy: Official Training by Maxzz Diesel'
     desc = 'Ten injector courses from the Diesel Tech Academy at $297 each, with lifetime access, a 7-day guarantee and Robiel tools and parts through Maxzz Diesel.'
     h = hero([('Home', '/'), ('Training', None)], 'Diesel Tech Academy: <span style="color:#fc771d">Official Training</span> by Maxzz Diesel',
-             'Ten online courses by injector family, taught at a working bench. $297 each, 50% off the second course, lifetime access and a 7-day guarantee.',
+             'Ten online courses by injector family, taught at a working bench. $297 each, lifetime access and a 7-day guarantee. After your first purchase we email you a 50% off voucher for the second course.',
              cta_red(C.utm('training_hero'), 'Browse the courses', ' target="_blank" rel="noopener"') + cta_ghost('#bundles', 'Course bundles'),
              image='diesel-tech-academy-injector-repair-course.webp', eyebrow='Diesel Tech Academy', extra=bene_row())
     cards = ''.join(course_card(c) for c in C.COURSES)
@@ -569,7 +569,7 @@ def build_resources():
                   f'<span style="margin-top:16px;color:#d32a37;font-weight:600">Read the guide &rarr;</span></div></a>')
     rg_css = ('<style>.rg-card{display:grid !important;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:center}'
               '.rg-img{width:230px;height:230px;border-radius:16px;position:relative;overflow:hidden}.rg-txt .sx-h3{font-size:20px !important;line-height:1.25 !important}.rg-txt p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
-              '.rg-img img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain}'
+              '.rg-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}'
               '.rg-txt{display:flex;flex-direction:column;min-width:0}'
               '@media (max-width:560px){.rg-card{grid-template-columns:1fr !important}.rg-img{width:100%;height:auto;aspect-ratio:16/10}}</style>')
     sysl = ''.join(f'<a class="sx-tag" href="/systems/{s["slug"]}">{E(s["crumb"])}</a> ' for s in C.SYSTEMS)
