@@ -9,6 +9,7 @@ const { authenticate } = require('../lib/auth');
 const crypto = require('crypto');
 const PS = require('../lib/portal-store');
 const { send } = require('../lib/mail');
+const { notifyTeam, hubDeal, hubContact } = require('../lib/notify');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -70,6 +71,12 @@ module.exports = async (req, res) => {
       (customer.notes ? `<p><strong>Notes:</strong> ${esc(customer.notes)}</p>` : '');
     await addNote(html, [{ id: deal.id, type: 214 }, { id: contactId, type: 202 }]);
     await addTask(`Reply to quote ${number} · ${customer.company}${b2b ? ' · B2B interest' : ''}`, `${lines.length} lines, ${units} units. ${[customer.name, customer.email, customer.phone].filter(Boolean).join(' · ')}${shipText ? ' · ' + shipText : ''}`, [{ id: deal.id, type: 216 }, { id: contactId, type: 204 }], 2);
+    // alert to the sales team with direct links to the deal and the contact
+    await notifyTeam(`New quote request ${number} · ${customer.company}`, (store ? 'New B2B store quote' : 'New quote request from the website'),
+      [['Quote', number], ['Customer', [customer.name, customer.company].filter(Boolean).join(' · ')], ['Email', customer.email], ['Phone', customer.phone],
+        ['Ship to', shipText], ['Parts', `${lines.length} lines, ${units} units`], ['Unleashed', ulq.ok ? 'Draft sales quote ' + (ulq.number || ulq.guid) : ''], ['B2B access', b2b ? 'Asked for B2B portal access' : '']],
+      [{ label: 'Open the deal in HubSpot', url: hubDeal(deal.id) }, { label: 'Open the contact', url: hubContact(contactId) }],
+      `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #1d2126">${lines.slice(0, 40).map((l) => `<tr><td style="padding:6px 0;border-bottom:1px solid #eef0f2;font-size:13px"><b>${esc(l.pn)}</b> · ${esc(l.name)}</td><td align="right" style="padding:6px 0;border-bottom:1px solid #eef0f2;font-size:13px">x${l.qty}</td></tr>`).join('')}</table>`);
     // confirmation to the customer: number, status, every line; never blocks the answer
     try {
       const row = (l) => `<tr><td style="padding:8px 0;border-bottom:1px solid #eef0f2;font-size:14px"><b style="font-family:Menlo,Consolas,monospace;font-size:13px;color:#1d2126">${esc(l.pn)}</b><br><span style="color:#5f6670">${esc(l.name)}</span></td><td align="right" width="70" style="padding:8px 0 8px 16px;border-bottom:1px solid #eef0f2;font-size:14px;white-space:nowrap;vertical-align:top;color:#1d2126">Qty <b>${l.qty}</b></td></tr>`;

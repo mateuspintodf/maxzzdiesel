@@ -17,6 +17,7 @@ const { hiddenSet } = require('../lib/hidden');
 const vouchers = require('../lib/vouchers');
 const { send, esc } = require('../lib/mail');
 const { upsertContact, addNote, addTask } = require('../lib/hubspot');
+const { notifyTeam, hubContact } = require('../lib/notify');
 const { EMAIL, clean, readBody } = require('../lib/validate');
 
 const ALLOWED = [/^https:\/\/(www\.)?maxzzdiesel\.com$/, /^https:\/\/maxzzdiesel(-[a-z0-9-]+)?\.vercel\.app$/];
@@ -201,6 +202,12 @@ A.me = async (req, res) => {
 // A new access request also opens a prospect customer in Unleashed, so approval links to it instead of retyping the company.
 // On by default in production; on previews only with ACCESS_TO_UNLEASHED=1 (keeps tests out of the real Unleashed). ACCESS_TO_UNLEASHED=0 turns it off.
 const prospectOn = () => configured() && process.env.ACCESS_TO_UNLEASHED !== '0' && (process.env.ACCESS_TO_UNLEASHED === '1' || process.env.VERCEL_ENV === 'production');
+// an Unleashed customer whose primary contact already uses this email (no duplicates)
+async function findCustomerByEmail(email) {
+  const d = await ul('Customers', 'contactEmail=' + encodeURIComponent(email) + '&includeObsolete=true&pageSize=10', { timeoutMs: 12000 });
+  const hit = ((d && d.Items) || []).find((c) => String(c.Email || '').toLowerCase() === email);
+  return hit ? { code: hit.CustomerCode, guid: hit.Guid, name: hit.CustomerName, existing: true } : null;
+}
 async function createProspect(f) {
   const t = new Date(), code = 'WEB' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
   const guid = crypto.randomUUID(), parts = f.name.split(/\s+/);
@@ -224,7 +231,11 @@ A.request = async (req, res) => {
   if (prior && prior.status !== 'rejected') return res.json({ ok: true, already: prior.status });
   let prospect = null;
   if (prospectOn() && !f.customerNumber) {
-    try { prospect = await createProspect(f); f.customerNumber = prospect.code; f.notes = ['Unleashed prospect created by the website: ' + prospect.code, f.notes].filter(Boolean).join(' | '); }
+    try {
+      prospect = await findCustomerByEmail(f.email) || await createProspect(f);
+      f.customerNumber = prospect.code;
+      f.notes = [(prospect.existing ? 'Existing Unleashed customer found by email: ' + prospect.code + ' (' + prospect.name + ')' : 'Unleashed prospect created by the website: ' + prospect.code), f.notes].filter(Boolean).join(' | ');
+    }
     catch (e) { console.error('unleashed prospect', e.message); }
   }
   if (PS.on()) await PS.createRequest(f);
@@ -235,16 +246,18 @@ A.request = async (req, res) => {
   db.users[f.email] = { email: f.email, name: f.name, phone: f.phone, role: 'owner', account: accId, status: 'pending', created: Date.now() };
   await writeJson(DB, db);
   }
+  let cid = null;
   try {
-    const cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company });
-    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? (prospect ? ' · Unleashed prospect created: ' : ' · Unleashed customer ') + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
+    cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company });
+    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? (prospect ? (prospect.existing ? ' · Existing Unleashed customer: ' : ' · Unleashed prospect created: ') : ' · Unleashed customer ') + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
     await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).', [{ id: cid, type: 204 }], 4);
   } catch (e) { console.error('hubspot', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
     `<p>Thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`, null, { name: f.name });
-  if (admins().length) await send(admins(), 'New B2B portal request: ' + f.company, 'New access request',
-    `<p><b>${esc(f.company)}</b> · ${esc(f.name)} · ${esc(f.email)} · ${esc(f.phone)}</p><p>${esc([f.type, f.city, f.state, f.country].filter(Boolean).join(' · '))}</p>${f.customerNumber ? `<p>${prospect ? 'Prospect created in Unleashed' : 'Says Unleashed customer'}: ${esc(f.customerNumber)}</p>` : ''}`,
-    { url: base(req) + '/portal#admin', label: 'Review in the portal' }, { internal: true });
+  await notifyTeam('New B2B access request: ' + f.company, 'New B2B access request from the website',
+    [['Company', f.company], ['Contact', f.name], ['Email', f.email], ['Phone', f.phone], ['Location', [f.type, f.city, f.state, f.country].filter(Boolean).join(' · ')],
+      ['Unleashed', f.customerNumber ? (prospect ? (prospect.existing ? 'Existing customer ' : 'Prospect created ') : 'Says customer ') + f.customerNumber : 'Not created'], ['Notes', f.notes]],
+    [{ label: 'Approve in the portal', url: base(req) + '/portal#admin' }, { label: 'Open the contact in HubSpot', url: hubContact(cid) }]);
   return res.json({ ok: true });
 };
 
@@ -410,7 +423,8 @@ A.order = async (req, res) => {
   await send(w.email, 'Order received ' + o.number, 'We received your order',
     `<p>Thanks. Our sales team reviews every order and you will get an e-mail when it is approved, with confirmed quantities and ship date.</p>${orderMail(o)}`,
     { url: base(req) + '/portal#orders', label: 'Track your order' }, { name: w.user && w.user.name, greet: true });
-  if (admins().length) await send(admins(), 'Portal order ' + o.number + ' · ' + w.account.company, 'New portal order',
+  const orderTo = Array.from(new Set((process.env.VERCEL_ENV === 'production' ? String(process.env.TEAM_NOTIFY || 'admin@maxzzdiesel.com,michael@maxzzdiesel.com').toLowerCase().split(/[,\s]+/).filter(Boolean) : []).concat(admins())));
+  if (orderTo.length) await send(orderTo, 'Portal order ' + o.number + ' · ' + w.account.company, 'New portal order',
     `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${w.account.stopCredit ? '<p><b>Credit hold:</b> this customer is on stop credit in Unleashed. Check payment before releasing.</p>' : ''}${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${orderMail(o)}`, null, { internal: true });
   } catch (e) { console.error('order mail', e.message); }
   return res.json({ ok: true, order: o });
