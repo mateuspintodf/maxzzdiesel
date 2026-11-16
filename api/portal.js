@@ -315,6 +315,7 @@ A.order = async (req, res) => {
       if (PS.on()) await PS.orderLive(o.id, o.unleashedNumber, 'Parked').catch((e2) => console.error('order live save', e2.message));
     } catch (e) {
       console.error('sales order failed', e.message);
+      if (admins().length) send(admins(), 'ALERT: portal order failed ' + o.number + ' · ' + w.account.company, 'Order could not reach Unleashed', `<p><b>${esc(w.account.company)}</b> · ${esc(w.email)} · total $${o.total.toFixed(2)}</p><p>Unleashed said: ${esc(String(e.message).slice(0, 200))}</p><p>The customer was told to try again. Nothing was created in Unleashed unless it answered after the timeout; a retry reuses the same order id.</p>`, null, { internal: true }).catch(() => {});
       if (PS.on()) await PS.dropOrder(o.id).catch(() => {}); // not sent: the retry uses the same Guid
       return res.status(502).json({ error: 'We could not place the order right now. Your cart is saved; please try again or call us.' });
     }

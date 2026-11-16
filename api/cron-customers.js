@@ -3,6 +3,7 @@
 const db = require('../lib/db');
 const PS = require('../lib/portal-store');
 const { ul, configured } = require('../lib/unleashed');
+const { send } = require('../lib/mail');
 
 module.exports = async (req, res) => {
   const secret = process.env.CRON_SECRET;
@@ -20,6 +21,10 @@ module.exports = async (req, res) => {
       await db.update('companies', 'id=eq.' + c.id, patch);
     } catch (e) { failed++; console.error('customer sync', c.id, e.message); }
   }
-  if (failed) console.error('customer sync: ' + failed + ' of ' + cos.length + ' failed');
+  if (failed) {
+    console.error('customer sync: ' + failed + ' of ' + cos.length + ' failed');
+    const to = String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
+    if (to.length) await send(to, 'ALERT: customer sync from Unleashed had failures', 'Customer sync', '<p>' + failed + ' of ' + cos.length + ' portal companies could not be refreshed from Unleashed. Tier and credit hold may be stale for them.</p>', null, { internal: true }).catch(() => {});
+  }
   return res.json({ ok: true, companies: cos.length, changed, failed });
 };

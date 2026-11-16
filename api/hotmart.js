@@ -3,6 +3,7 @@
 // Set HOTMART_HOTTOK in Vercel to the token shown in Hotmart > Tools > Webhook.
 const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
+const dbm = require('../lib/db');
 
 // Robiel kit that matches each course family (first match wins).
 const KITS = [
@@ -32,6 +33,12 @@ module.exports = async (req, res) => {
   const course = clean(product.name, 160) || 'DTA course';
   const tx = clean(purchase.transaction, 60);
   const kit = (KITS.find(([re]) => re.test(course)) || [null, '', 'Course kit']);
+  // a retry of the same sale must not create a second deal: the transaction is claimed first (database), released if HubSpot fails
+  const claim = tx && dbm.configured() ? 'hotmart:' + tx : '';
+  if (claim) {
+    try { const r = await dbm.insert('webhook_events', [{ key: claim, source: 'hotmart' }], { onConflict: 'key', ignoreDuplicates: true }); if (!r || !r.length) return res.status(200).json({ ok: true, duplicate: true }); }
+    catch (e) { console.error('hotmart claim', e.message); }
+  }
   try {
     const contactId = await upsertContact({ name: clean(buyer.name, 120), email, phone: clean(buyer.checkout_phone || buyer.phone, 40), source: 'Hotmart DTA' });
     const deal = await hs('/crm/v3/objects/deals', 'POST', {
@@ -49,6 +56,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({ ok: true });
   } catch (e) {
     console.error(e);
+    if (claim) await dbm.remove('webhook_events', 'key=eq.' + encodeURIComponent(claim)).catch(() => {});
     return res.status(502).json({ error: 'crm error' });
   }
 };
