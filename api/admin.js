@@ -355,6 +355,115 @@ A.invite = async (req, res) => {
   await PS.audit(w.email, 'invite.send', 'company', co.id, null, { email });
   return res.json({ ok: true });
 };
+
+// ---------------------------------------------------------------- vouchers
+const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+A.vouchers = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const rows = await db.select('vouchers', 'select=*,companies(name)&order=created_at.desc&limit=300');
+  const red = await db.select('voucher_redemptions', 'select=voucher_id,discount&limit=20000');
+  const by = {}; red.forEach((r) => { const x = by[r.voucher_id] || (by[r.voucher_id] = { n: 0, sum: 0 }); x.n++; x.sum += Number(r.discount); });
+  return res.json({ vouchers: rows.map((v) => ({ ...v, company_name: v.companies && v.companies.name, uses: (by[v.id] || { n: 0 }).n, discount_total: (by[v.id] || { sum: 0 }).sum, companies: undefined })) });
+};
+A['voucher-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), id = clean(b.id, 60);
+  const code = clean(b.code, 40).replace(/\s+/g, '').toUpperCase();
+  const kind = b.kind === 'fixed' ? 'fixed' : 'percent', value = num(b.value);
+  const starts = b.starts_at ? new Date(b.starts_at) : new Date(), expires = b.expires_at ? new Date(b.expires_at) : null;
+  if (!/^[A-Z0-9_-]{3,40}$/.test(code)) return res.status(400).json({ error: 'Code: 3 to 40 letters, numbers, - or _.' });
+  if (!(value > 0) || (kind === 'percent' && value > 100)) return res.status(400).json({ error: kind === 'percent' ? 'Percent must be between 0 and 100.' : 'Value must be above zero.' });
+  if (!expires || isNaN(expires) || isNaN(starts)) return res.status(400).json({ error: 'Set the start and the expiry dates.' });
+  if (expires <= starts) return res.status(400).json({ error: 'Expiry must be after the start.' });
+  const rec = {
+    code, description: clean(b.description, 200) || null, kind, value,
+    company_id: clean(b.company_id, 60) || null,
+    min_subtotal: num(b.min_subtotal) > 0 ? num(b.min_subtotal) : null,
+    starts_at: starts.toISOString(), expires_at: expires.toISOString(),
+    max_uses: num(b.max_uses) > 0 ? Math.floor(num(b.max_uses)) : null,
+    max_uses_per_company: num(b.max_uses_per_company) > 0 ? Math.floor(num(b.max_uses_per_company)) : null,
+    active: b.active !== false,
+  };
+  try {
+    if (id) { await db.update('vouchers', 'id=eq.' + id, rec); await PS.audit(w.email, 'voucher.update', 'voucher', id, null, { code }); }
+    else { const r = await db.insert('vouchers', [{ ...rec, created_by: w.email }]); await PS.audit(w.email, 'voucher.create', 'voucher', r[0].id, null, { code }); }
+  } catch (e) { return res.status(409).json({ error: /duplicate|unique/i.test(e.message) ? 'That code already exists.' : 'Could not save.' }); }
+  return res.json({ ok: true });
+};
+A['voucher-toggle'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), id = clean(b.id, 60);
+  await db.update('vouchers', 'id=eq.' + id, { active: !!b.active });
+  await PS.audit(w.email, b.active ? 'voucher.on' : 'voucher.off', 'voucher', id);
+  return res.json({ ok: true });
+};
+
+// ---------------------------------------------------------------- product visibility (hidden = admin-only)
+A.hidden = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  return res.json({ hidden: await db.select('hidden_products', 'select=*&order=created_at.desc&limit=2000') });
+};
+A['hidden-set'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req);
+  const codes = (Array.isArray(b.codes) ? b.codes : String(b.codes || '').split(/[\s,;]+/)).map((c) => clean(c, 60)).filter(Boolean).slice(0, 500);
+  if (!codes.length) return res.status(400).json({ error: 'Add at least one product code.' });
+  if (b.hide) await db.insert('hidden_products', codes.map((code) => ({ code, reason: clean(b.reason, 200) || null, hidden_by: w.email })), { onConflict: 'code' });
+  else await db.remove('hidden_products', 'code=in.(' + codes.map((c) => '"' + c.replace(/"/g, '') + '"').join(',') + ')');
+  await PS.audit(w.email, b.hide ? 'product.hide' : 'product.show', 'product', codes.join(',').slice(0, 200));
+  return res.json({ ok: true, n: codes.length });
+};
+
+// ---------------------------------------------------------------- behaviour log: summaries for BI
+A.events = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
+  const since = new Date(Date.now() - days * 864e5).toISOString();
+  const company = clean(req.query.company, 60);
+  const q = 'select=at,visitor_id,type,path,code,qty,value,query,device,country,region,city,utm,referrer,company_id,user_id&at=gte.' + since + (company ? '&company_id=eq.' + company : '') + '&order=at.desc&limit=' + (company ? 500 : 5000);
+  const rows = await db.select('events', q);
+  if (company) return res.json({ timeline: rows.slice(0, 500) });
+  const top = (key, n = 15) => { const m = {}; rows.forEach((r) => { const k = r[key]; if (k) m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, n).map(([k, c]) => ({ k, c })); };
+  const of = (t) => rows.filter((r) => r.type === t);
+  const adds = {}; of('cart_add').forEach((r) => { if (r.code) adds[r.code] = (adds[r.code] || 0) + (r.qty || 1); });
+  const src = {}; rows.forEach((r) => { const u = r.utm && r.utm.source; const k = u || (r.referrer ? 'ref:' + r.referrer : 'direct'); src[k] = (src[k] || 0) + 1; });
+  return res.json({
+    days, total: rows.length, sample: rows.length >= 5000,
+    visitors: new Set(rows.map((r) => r.visitor_id)).size,
+    by_type: top('type', 20), top_products: top('code'), top_searches: top('query'), top_pages: top('path'),
+    top_cart_adds: Object.entries(adds).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([k, c]) => ({ k, c })),
+    sources: Object.entries(src).sort((a, b) => b[1] - a[1]).slice(0, 15).map(([k, c]) => ({ k, c })),
+    devices: top('device', 5), regions: top('region', 15),
+  });
+};
+
+// ---------------------------------------------------------------- loyalty (off until the rules are decided)
+A.loyalty = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const s = (await db.select('loyalty_settings', 'select=*&id=eq.1'))[0];
+  const rows = await db.select('loyalty_ledger', 'select=company_id,points');
+  const bal = {}; rows.forEach((r) => { bal[r.company_id] = (bal[r.company_id] || 0) + r.points; });
+  return res.json({ settings: s, companies_with_points: Object.keys(bal).length, points_outstanding: Object.values(bal).reduce((a, b) => a + b, 0) });
+};
+A['loyalty-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const b = readBody(req);
+  const rec = { enabled: !!b.enabled, points_per_usd: Math.max(0, num(b.points_per_usd) || 1), usd_per_point: Math.max(0, num(b.usd_per_point) || 0.01), expiry_months: num(b.expiry_months) > 0 ? Math.floor(num(b.expiry_months)) : null, updated_by: w.email, updated_at: new Date().toISOString() };
+  await db.insert('loyalty_settings', [{ id: 1, ...rec }], { onConflict: 'id' });
+  await PS.audit(w.email, 'loyalty.save', 'loyalty', '1', null, rec);
+  return res.json({ ok: true });
+};
 A.audit = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });

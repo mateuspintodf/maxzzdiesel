@@ -9,6 +9,8 @@ module.exports = async (req, res) => {
   const secret = process.env.CRON_SECRET;
   if (!secret || req.headers.authorization !== `Bearer ${secret}`) return res.status(401).json({ error: 'unauthorized' });
   if (!PS.on() || !configured()) return res.json({ skipped: true });
+  // behaviour log kept 12 months
+  let purged = 0; try { purged = Number(await db.rpc('purge_old_events')) || 0; } catch (e) { console.error('purge events', e.message); }
   const cos = await db.select('companies', 'select=id,unleashed_guid,tier,payment_terms,stop_credit&status=eq.active&unleashed_guid=not.is.null');
   let changed = 0, failed = 0;
   for (const c of cos) {
@@ -26,5 +28,5 @@ module.exports = async (req, res) => {
     const to = String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
     if (to.length) await send(to, 'ALERT: customer sync from Unleashed had failures', 'Customer sync', '<p>' + failed + ' of ' + cos.length + ' portal companies could not be refreshed from Unleashed. Tier and credit hold may be stale for them.</p>', null, { internal: true }).catch(() => {});
   }
-  return res.json({ ok: true, companies: cos.length, changed, failed });
+  return res.json({ ok: true, companies: cos.length, changed, failed, purged });
 };
