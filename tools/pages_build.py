@@ -48,7 +48,7 @@ def oem(code):
     sp = SPECS.get(code) or {}
     for tok in str(sp.get('title', '')).split():
         t = tok.strip(':,')
-        if re.search(r'\d', t) and len(re.sub(r'[^0-9a-z]', '', t, flags=re.I)) >= 4:
+        if re.search(r'\d', t) and len(re.sub(r'[^0-9a-z]', '', t, flags=re.I)) >= 4 and not re.match(r'^(ISX|ISL|ISB|QSX|DD|CP|L5P|C)\d*[A-Z]?\d*$', t, re.I):
             return t
     return code.split('.', 1)[-1] if '.' in code else code
 

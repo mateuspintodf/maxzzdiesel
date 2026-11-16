@@ -11,7 +11,7 @@
   function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function oem(code, name) {
     var t = String(name || '').split(/\s+/);
-    for (var i = 0; i < t.length; i++) { var x = t[i].replace(/[:,]/g, ''); if (/\d/.test(x) && x.replace(/[^0-9a-z]/gi, '').length >= 4) return x; }
+    for (var i = 0; i < t.length; i++) { var x = t[i].replace(/[:,]/g, ''); if (/\d/.test(x) && x.replace(/[^0-9a-z]/gi, '').length >= 4 && !/^(ISX|ISL|ISB|QSX|DD|CP|L5P|C)\d*[A-Z]?\d*$/i.test(x)) return x; }
     return code.indexOf('.') > -1 ? code.split('.').slice(1).join('.') : code;
   }
   function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
