@@ -89,7 +89,7 @@ A.related = async (req, res) => {
 A.health = async (req, res) => {
   let db = 'ok';
   try { if (PS.on()) await dbm.select('sequences', 'select=name&limit=1'); else await readJson(DB); } catch (e) { db = 'error: ' + String(e && (e.name + ' ' + e.message)).slice(0, 160); }
-  return res.json({ ok: db === 'ok', db });
+  return res.json({ ok: db === 'ok' }); // no detail on a public endpoint
 };
 
 // ---- sign in -------------------------------------------------------------

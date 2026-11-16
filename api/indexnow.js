@@ -5,7 +5,7 @@ const HOST = 'www.maxzzdiesel.com';
 
 module.exports = async (req, res) => {
   const secret = process.env.CRON_SECRET;
-  if (secret ? req.headers.authorization !== `Bearer ${secret}` : !/vercel-cron/i.test(req.headers['user-agent'] || '')) return res.status(401).json({ error: 'unauthorized' });
+  if (!secret || req.headers.authorization !== `Bearer ${secret}`) return res.status(401).json({ error: 'unauthorized' });
   if (process.env.VERCEL_ENV && process.env.VERCEL_ENV !== 'production') return res.status(200).json({ skipped: 'not production' });
   try {
     const urls = [];
