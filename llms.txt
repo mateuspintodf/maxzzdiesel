@@ -30,8 +30,34 @@
 - [Shipping, returns and warranty](https://www.maxzzdiesel.com/policies)
 - [Request a quote](https://www.maxzzdiesel.com/quote)
 
+## Systems (part numbers, tooling and training by engine)
+- [Cummins ISX15 XPI](https://www.maxzzdiesel.com/systems/cummins-isx15-xpi): Cummins ISX15, X15 and ISX / QSX15 heavy-duty engines
+- [Detroit DD15 CRIN 4.2](https://www.maxzzdiesel.com/systems/detroit-dd15-bosch-crin-4-2): Detroit DD13, DD15 and DD16 heavy-duty engines
+- [Duramax L5P Denso G4S](https://www.maxzzdiesel.com/systems/duramax-l5p-denso-g4s): 2017 to 2023 Chevrolet Silverado HD and GMC Sierra HD with the Duramax L5P 6.6L
+- [Ram 6.7L Cummins](https://www.maxzzdiesel.com/systems/cummins-6-7-bosch-crin): 2007.5 to 2022+ Dodge and Ram 2500 / 3500 with the Cummins 6.7L, and Cummins ISB / QSB 6.7L
+- [Ford 6.7L Power Stroke CP4](https://www.maxzzdiesel.com/systems/ford-6-7-powerstroke-cp4): 2011 and newer Ford Super Duty F-250 / F-350 / F-450 with the 6.7L Power Stroke
+- [CAT C15 / C7 / C9](https://www.maxzzdiesel.com/systems/caterpillar-c15-c7-c9): Caterpillar C15 (MEUI), C12, C13, C7, C9 and 3126B engines
+
+## Technical guides
+- [Technical Guides](https://www.maxzzdiesel.com/resources): rebuild procedures, failure symptoms and part numbers for common rail injectors and CP4 pumps
+
 ## Training
-- [Diesel Tech Academy](https://www.dieseltechacademy.com/): diesel injector repair courses, online or onsite
+- [Diesel Tech Academy: Official Training by Maxzz Diesel](https://www.maxzzdiesel.com/training): 10 online courses, $297 each, 50% off the second course, lifetime access, 7-day guarantee. Bundles: Titanium $697, Max $1,197, Complete $1,597. Private onsite training available. Enrollment: https://www.dieseltechacademy.com/
+- Bosch CRIN Injector: Commercial vehicle CRIN line: disassembly, assembly and validation
+- Denso G2S Injector: John Deere application: full rebuild and precision assembly steps
+- Continental (Siemens VDO) Injector: Piezo actuator teardown, high-precision assembly and validation
+- Bosch CRIN 2 & 3 / Euro 5 Injector: Ram 6.7L Cummins: 6 lessons plus the injection delivery table
+- CAT C7/C9 Injector (HEUI): Oil-to-fuel seal protection and needle lift measured by subtraction
+- CAT C15 Series Injector (MEUI): Procedures covering C10, C12, C15 and C32 applications
+- Bosch CRIN 4.2 Injector (Detroit DD15): Teardown without breaking solenoid pins, assembly and validation
+- Cummins ISX15 XPI Injector: Disassembly, assembly and electrical validation on XPI units
+- Denso G4S Injector (Duramax L5P 6.6L): Full solenoid injector rebuild and calibration
+- Bosch Piezo Injector (0445115/116/117): Why the body never goes in the ultrasonic cleaner, plus the safe rebuild
+
+## History
+- Founded in 1992 as TW Diesel in Sao Paulo, Brazil by Waldyr Mazzer. In the United States since 2013 as DRM Diesel Parts dba Maxzz Diesel, run by Waldyr, Douglas and Michael Mazzer. Member of the Association of Diesel Specialists (ADS).
+- Stocked in Coconut Creek, FL. Most in-stock orders ship the same business day.
+- Quote channels: B2B quote at https://www.maxzzdiesel.com/quote (paste a list of part numbers and quantities), phone +1 (954) 586-4158, sales@maxzzdiesel.com.
 
 ## Languages
 - Spanish (Latin America): https://www.maxzzdiesel.com/es

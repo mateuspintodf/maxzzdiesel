@@ -19,16 +19,19 @@ PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 'in
          'policies', 'privacy', 'quote', 'terms', 'tool-sets', 'who-we-serve']
 
 ORG_NODE = {
-    '@type': ['Organization', 'WholesaleStore'],
+    '@type': ['Organization', 'WholesaleStore', 'AutoPartsStore'],
     '@id': SITE + '/#org',
     'name': 'Maxzz Diesel',
+    'legalName': 'DRM Diesel Parts dba Maxzz Diesel',
+    'alternateName': ['Maxzz Diesel Parts', 'TW Diesel'],
     'url': SITE + '/',
     'logo': SITE + '/assets/favicon.svg',
     'image': SITE + '/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg',
     'description': 'Wholesale supplier of diesel fuel injection parts: common rail injectors, high-pressure pumps, nozzles, '
                    'control valves, repair kits, Robiel tool sets, ISO 4113 calibration fluid and SCR / NOx aftertreatment test '
-                   'equipment for rebuilders, injection labs, distributors and fleets. Stocked in Coconut Creek, Florida, since 1992.',
+                   'equipment for rebuilders, injection labs, distributors and fleets. Founded in 1992 as TW Diesel in São Paulo, Brazil; US operations since 2013; stocked in Coconut Creek, Florida.',
     'foundingDate': '1992',
+    'foundingLocation': {'@type': 'Place', 'name': 'São Paulo, Brazil'},
     'founder': [{'@type': 'Person', 'name': 'Waldyr Mazzer'}, {'@type': 'Person', 'name': 'Douglas Mazzer'},
                 {'@type': 'Person', 'name': 'Michael Mazzer'}],
     'address': {'@type': 'PostalAddress', 'streetAddress': '6601 Lyons Road, Ste H-6', 'addressLocality': 'Coconut Creek',
@@ -47,7 +50,11 @@ ORG_NODE = {
     'knowsAbout': ['Diesel fuel injection', 'Common rail injectors', 'High-pressure fuel pumps', 'Injector rebuilding',
                    'SCR aftertreatment', 'NOx sensors', 'ISO 4113 calibration fluid', 'Bosch', 'Denso', 'Delphi', 'Robiel',
                    'LEAD', 'Fratelli Bosio', 'SLP'],
-    'subOrganization': [{'@type': 'EducationalOrganization', 'name': 'Diesel Tech Academy', 'url': 'https://www.dieseltechacademy.com/'},
+    'brand': [{'@type': 'Brand', 'name': n} for n in ('Denso', 'Robiel', 'Delphi Technologies', 'Bosch', 'LEAD Diesel Components',
+                                                      'Fratelli Bosio', 'SLP (Swedish Lorry Parts)')],
+    'subOrganization': [{'@type': 'EducationalOrganization', 'name': 'Diesel Tech Academy', 'url': 'https://www.dieseltechacademy.com/',
+                         'address': {'@type': 'PostalAddress', 'streetAddress': '12223 NW 35th St', 'addressLocality': 'Coral Springs',
+                                     'addressRegion': 'FL', 'postalCode': '33065', 'addressCountry': 'US'}},
                         {'@type': 'Organization', 'name': 'Volvo Engine Kits', 'url': 'https://volvoenginekits.com/'}],
     'sameAs': ['https://www.linkedin.com/company/maxzzdiesel/', 'https://www.instagram.com/maxzzdiesel.us/',
                'https://www.facebook.com/maxzzdiesel'],
@@ -77,6 +84,8 @@ OG_IMG = {'index': 'hero-2', 'injection-parts': 'parts-hero', 'aftertreatment': 
 HEAD_START, HEAD_END = '<!--seo-head-->', '<!--/seo-head-->'
 BODY_START, BODY_END = '<!--seo-static-->', '<!--/seo-static-->'
 E = html.escape
+import os
+RETITLE = os.environ.get('SEO_RETITLE') == '1'
 
 
 def head_block(page):
@@ -109,6 +118,11 @@ def js_const(src, name):
     except json.JSONDecodeError: return None
 
 
+CHIP_HREF = {'Cummins': '/systems/cummins-6-7-bosch-crin', 'Power Stroke': '/systems/ford-6-7-powerstroke-cp4',
+             'Duramax': '/systems/duramax-l5p-denso-g4s', 'ISX15 and XPI': '/systems/cummins-isx15-xpi',
+             'CP3': '/systems/cummins-6-7-bosch-crin', 'CP4': '/systems/ford-6-7-powerstroke-cp4'}
+
+
 def tabs_html(tabs):
     out = []
     for t in tabs:
@@ -118,7 +132,7 @@ def tabs_html(tabs):
         if t.get('text'): out.append(f'<p>{E(t["text"])}</p>')
         if t.get('checks'): out.append('<ul>' + ''.join(f'<li>{E(c)}</li>' for c in t['checks']) + '</ul>')
         if t.get('rows'): out.append('<table>' + ''.join(f'<tr><th>{E(r[0])}</th><td>{E(r[1])}</td></tr>' for r in t['rows']) + '</table>')
-        if t.get('chips'): out.append(f'<p>{E(t.get("chipsLabel") or "")}</p><ul>' + ''.join(f'<li>{E(c)}</li>' for c in t['chips']) + '</ul>')
+        if t.get('chips'): out.append(f'<p>{E(t.get("chipsLabel") or "")}</p><ul>' + ''.join((f'<li><a href="{CHIP_HREF[c]}">{E(c)}</a></li>' if c in CHIP_HREF else f'<li>{E(c)}</li>') for c in t['chips']) + '</ul>')
         if t.get('code'): out.append(f'<p>{E(t.get("codeEyebrow", ""))} {E(t["code"])} {E(t.get("codeSub", ""))}</p>')
         href = t.get('ctaHref') or '/quote'
         out.append(f'<p><a href="{E(href)}">{E(t.get("ctaLabel") or "Add to my quote")}</a></p>')
@@ -158,7 +172,7 @@ def process(page):
     # 2. head block
     src = re.sub(re.escape(HEAD_START) + '.*?' + re.escape(HEAD_END), '', src, flags=re.S)
     src = src.replace('</head>', head_block(page) + '</head>', 1)
-    t = TITLES.get(page)
+    t = TITLES.get(page) if RETITLE else None
     if t:
         src = re.sub(r'<title>.*?</title>', '<title>' + E(t) + '</title>', src, count=1, flags=re.S)
         src = re.sub(r'<meta property="og:title" content="[^"]*">', '<meta property="og:title" content="' + E(t.split(' | ')[0]) + '">', src, count=1)
@@ -174,15 +188,15 @@ def process(page):
         block = f'{BODY_START}<section class="seo-static" aria-hidden="true">{static}</section>{BODY_END}'
         # place it after the app root, before the page scripts
         src = src.replace('<script src="/js/petite-vue.iife.js"></script>', block + '\n<script src="/js/petite-vue.iife.js"></script>', 1)
-    # 4. home H1
+    # 4. home H1: the big brand line stays as is visually but becomes a <p>; the descriptive line is the real <h1>
     if page == 'index' and '<h1 style=' in src and 'Diesel&nbsp;injection.</h1>' in src:
-        src = re.sub(r'<h1 (style="[^"]*")>Diesel&nbsp;injection\.</h1>', lambda m: '<p ' + m.group(1)[:-1] + '; letter-spacing: -0.02em; text-wrap: balance">Diesel&nbsp;injection.</p>', src, count=1)
-        old = re.search(r'<p (style="[^"]*")>Injectors, pumps, rails, kits, fluids and repair parts for rebuilders, injection labs and distributors\. Stocked in Florida\. Most orders ship the same business&nbsp;day\.</p>', src)
+        src = re.sub(r'<h1 (style="[^"]*")>Diesel&nbsp;injection\.</h1>', lambda m: '<p ' + m.group(1) + '>Diesel&nbsp;injection.</p>', src, count=1)
+        old = re.search(r'<p (style="[^"]*")>Diesel injectors, pumps, common rail rebuild parts and test bench supplies for rebuilders and injection labs\. Stocked in Florida\. Most orders ship the same business&nbsp;day\.</p>', src)
         if old:
             st = old.group(1)
-            st2 = st[:-1] + ('; font-weight: inherit' if 'font-weight' not in st else '') + '; letter-spacing: normal; text-wrap: pretty"'
-            new = (f'<h1 {st2}>Diesel injectors, pumps, common rail rebuild parts and test bench supplies '
-                   f'for rebuilders and injection labs. Stocked in Florida. Most orders ship the same business&nbsp;day.</h1>')
+            st_h = st[:-1] + '; font-weight: 600; color: #ffffff' + '"'
+            new = (f'<h1 {st_h}>Diesel Fuel Injectors, High-Pressure Pumps, Common Rail Rebuild Parts &amp; Test Bench Supplies</h1>'
+                   f'<p {st}>For rebuilders and injection labs. Stocked in Florida. Most orders ship the same business&nbsp;day.</p>')
             src = src.replace(old.group(0), new, 1)
     if src != orig:
         p.write_text(src, encoding='utf-8')

@@ -199,7 +199,7 @@
     },
     {
       "source": "/blog",
-      "destination": "/",
+      "destination": "/resources",
       "permanent": true
     },
     {
@@ -840,6 +840,21 @@
     {
       "source": "/assets/mg/kit-bench-323.50.38.png",
       "destination": "/assets/mg/robiel-tool-kit-323-50-38-diesel-injector-bench.png",
+      "permanent": true
+    },
+    {
+      "source": "/about-maxzz/",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/blog/",
+      "destination": "/resources",
+      "permanent": true
+    },
+    {
+      "source": "/contact/",
+      "destination": "/quote",
       "permanent": true
     }
   ],
