@@ -63,6 +63,8 @@
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
   var BENCH = {
     // Remade 4:3 from the Unleashed original, and family photos for similar parts
+    'RB.323.02.121': '/img/p/robiel-32302121-cleaning-brush-rail.webp',
+    'RB.323.02.291': '/img/p/robiel-32302291-tightness-test-tool-crin-3-cr-valve.webp',
     'RB.323.50.39': '/img/p/robiel-3235039-tool-set-delphi-e3-hd-cat-15-unit.webp',
     'RB.323.50.041': '/img/p/robiel-32350041-tool-set-bosch-eui-eup-valve-changeover.webp',
     'RB.323.50.043': '/img/p/robiel-32350043-tool-set-bosch-eui-eup-valve-changeover.webp',
