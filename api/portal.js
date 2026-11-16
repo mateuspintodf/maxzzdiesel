@@ -202,16 +202,7 @@ A.me = async (req, res) => {
 // A new access request also opens a prospect customer in Unleashed, so approval links to it instead of retyping the company.
 // On by default in production; on previews only with ACCESS_TO_UNLEASHED=1 (keeps tests out of the real Unleashed). ACCESS_TO_UNLEASHED=0 turns it off.
 const prospectOn = () => configured() && process.env.ACCESS_TO_UNLEASHED !== '0' && (process.env.ACCESS_TO_UNLEASHED === '1' || process.env.VERCEL_ENV === 'production');
-// an Unleashed customer whose primary contact already uses this email (no duplicates)
-async function findCustomerByEmail(email) {
-  const q = 'contactEmail=' + encodeURIComponent(email) + '&includeObsolete=true&pageSize=10';
-  let d;
-  // Unleashed signs the decoded query (the + and @ of an e-mail break an encoded signature with a 403)
-  try { d = await ul('Customers', q, { timeoutMs: 12000, sign: decodeURIComponent(q) }); }
-  catch (e) { console.error('unleashed email lookup', e.message); d = await ul('Customers', q, { timeoutMs: 12000 }); }
-  const hit = ((d && d.Items) || []).find((c) => String(c.Email || '').toLowerCase() === email);
-  return hit ? { code: hit.CustomerCode, guid: hit.Guid, name: hit.CustomerName, existing: true } : null;
-}
+const { findCustomerByEmail } = require('../lib/unleashed');
 async function createProspect(f) {
   const t = new Date(), code = 'WEB' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
   const guid = crypto.randomUUID(), parts = f.name.split(/\s+/);
