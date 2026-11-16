@@ -389,7 +389,7 @@ def build_system(s, rel_links):
     rows = hub_rows(s)
     sections = []
     ctas = cta_red('/quote', 'Request a quote') + cta_ghost('#parts', 'Part numbers and cross-reference')
-    crumbs = [('Home', '/'), ('Parts', '/injection-parts'), (s['crumb'], None)]
+    crumbs = [('Home', '/'), ('Injection parts', '/injection-parts'), (s['crumb'], None)]
     h = hero(crumbs, E(s['title']), E(s['lead']), ctas, image=s.get('img', 'common-rail-diesel-injector-test-bench.webp'), eyebrow=s['apps'])
     facts = ''.join(f'<div class="sx-card" style="padding:22px 24px"><div style="font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:#8a9099;font-weight:600">{E(k)}</div>'
                     f'<div style="margin-top:6px;color:#1d2126;font-weight:600;font-size:16px;line-height:1.4">{E(v)}</div></div>' for k, v in s['facts'])
@@ -420,7 +420,7 @@ def build_system(s, rel_links):
         '@type': 'Product', '@id': f'{SITE}/parts/{slug(code)}#product', 'name': title_of(code), 'sku': code, 'mpn': oem(code),
         'category': cat, 'brand': {'@type': 'Brand', 'name': brand_of(code) or 'Maxzz Diesel'}, 'url': f'{SITE}/parts/{slug(code)}'}}
         for i, (cat, code) in enumerate(rows[:20])]
-    g = webpage(path, s['title'], s['meta'], [('Home', '/'), ('Parts', '/injection-parts'), (s['crumb'], path)], 'CollectionPage',
+    g = webpage(path, s['title'], s['meta'], [('Home', '/'), ('Injection parts', '/injection-parts'), (s['crumb'], path)], 'CollectionPage',
                 {'about': {'@type': 'Thing', 'name': s['apps']}, 'mainEntity': {'@id': url + '#parts'}})
     g.append({'@type': 'ItemList', '@id': url + '#parts', 'name': f'Part numbers for the {s["crumb"]}', 'numberOfItems': len(prods), 'itemListElement': prods})
     g.append(course_ld(C.COURSE_BY[s['course']], url))
@@ -557,9 +557,9 @@ def build_resources():
     path = '/resources'
     title = 'Technical Guides for Diesel Injection Rebuilders | Maxzz Diesel'
     desc = 'Technical guides on common rail injector rebuilds, failure symptoms, piezo injector cleaning and CP4 pump failure, with part numbers and bench tooling.'
-    h = hero([('Home', '/'), ('Technical Guides', None)], 'Technical Guides for <span style="color:#fc771d">Diesel Injection</span> Rebuilders',
+    h = hero([('Home', '/'), ('Technical guides', None)], 'Technical guides for <span style="color:#fc771d">diesel injection</span> rebuilders',
              'Rebuild procedures, failure symptoms and part numbers for the injectors and pumps shops see every day, written for the bench.',
-             cta_red('/quote', 'Request a quote') + cta_ghost('/training', 'Diesel Tech Academy courses'), eyebrow='Maxzz Diesel Resources')
+             cta_red('/quote', 'Request a quote') + cta_ghost('/training', 'Diesel Tech Academy courses'), eyebrow='Technical guides')
     cards = ''
     for g_ in C.GUIDES:
         _u = photo(GUIDE_PH.get(g_['ph']))
@@ -583,7 +583,7 @@ def build_resources():
 <span class="sx-pill">System hubs</span><h2 class="sx-h2">Part numbers by engine</h2>
 <p style="margin:16px 0 20px;max-width:760px">Every hub has a cross-reference table, the matching Robiel tooling and the Diesel Tech Academy course for the injector.</p>{sysl}</div></section>
 {band('Need parts for a rebuild?', 'Send the part numbers and we answer in one business day.', band_ctas())}"""
-    g = webpage(path, title, desc, [('Home', '/'), ('Technical Guides', path)], 'CollectionPage')
+    g = webpage(path, title, desc, [('Home', '/'), ('Technical guides', path)], 'CollectionPage')
     if GUIDES_LIVE:
         g.append({'@type': 'ItemList', 'itemListElement': [{'@type': 'ListItem', 'position': i + 1, 'url': f'{SITE}/resources/{x["slug"]}', 'name': x['title']} for i, x in enumerate(C.GUIDES)]})
     return page_shell(path, title, desc, 'maxzz-diesel-og', g, body, page_id='Resources')
@@ -636,7 +636,7 @@ def build_guide(g):
     faq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{E(q)}</summary><p>{E(a)}</p></details>' for i, (q, a) in enumerate(g['faq']))
     draft = ('' if GUIDES_LIVE else '<div class="sx-draft"><b>Draft.</b> This guide is waiting for technical review by Waldyr Mazzer and Arthur Bonachella. It is not indexed by search engines yet.</div>')
     body = f"""<style>.util a,.lang button{{color:#4a5058 !important}}.util a:hover{{color:#d32a37 !important}}</style><section style="padding: 150px 20px 0; box-sizing: border-box;"><div class="sx sx-wrap" style="padding:0 40px">
-<div style="font-size:14px;color:#5a6169"><a href="/" style="color:#5a6169">Home</a> / <a href="/resources" style="color:#5a6169">Technical Guides</a> / <span style="color:#1d2126">{E(g["short"])}</span></div>
+<div style="font-size:14px;color:#5a6169"><a href="/" style="color:#5a6169">Home</a> / <a href="/resources" style="color:#5a6169">Technical guides</a> / <span style="color:#1d2126">{E(g["short"])}</span></div>
 <span class="sx-pill" style="margin-top:22px">Technical guide</span>
 <h1 style="margin:16px 0 0;font-family:{FONT};font-weight:700;color:#1d2126;font-size:clamp(28px,3.4vw,46px);line-height:1.1;letter-spacing:-.02em;max-width:1000px">{E(g["title"])}</h1>
 <p style="margin:16px 0 0;font-size:14px;max-width:900px"><b style="color:#1d2126">By the Maxzz Diesel technical team.</b> {E(byline)}</p>{draft}
@@ -655,7 +655,7 @@ def build_guide(g):
 <p style="margin:24px 0 0;font-size:14px">More on this engine: <a href="/systems/{s["slug"]}">{E(s["crumb"])} part numbers and tooling</a>.</p></div></section>"""
     url = SITE + path
     gdesc = g['meta']
-    graph = webpage(path, g['title'], gdesc, [('Home', '/'), ('Technical Guides', '/resources'), (g['short'], path)], 'WebPage')
+    graph = webpage(path, g['title'], gdesc, [('Home', '/'), ('Technical guides', '/resources'), (g['short'], path)], 'WebPage')
     art = {'@type': 'TechArticle', '@id': url + '#article', 'headline': g['title'][:110], 'description': gdesc, 'url': url,
            'inLanguage': 'en-US', 'datePublished': TODAY, 'dateModified': TODAY, 'mainEntityOfPage': {'@id': url + '#webpage'},
            'author': {'@type': 'Organization', '@id': SITE + '/#org', 'name': 'Maxzz Diesel'}, 'publisher': {'@id': SITE + '/#org'},
@@ -684,7 +684,7 @@ UTIL_LEFT = ('<div class="util util-left" style="display:flex;align-items:center
              '<a class="util-mail" href="mailto:sales@maxzzdiesel.com" aria-label="Email" style="display:flex;align-items:center;gap:8px;white-space:nowrap">' + IC('<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>') + '<span>sales@maxzzdiesel.com</span></a>'
              '</div>')
 UTIL_RIGHT = ('<div class="util" style="display:flex;align-items:center;gap:22px;font-family:' + FONT + ';font-weight:500;font-size:12px;letter-spacing:.3px;">'
-              '<a href="/resources">Guides</a><a href="https://maxzzdiesel.store.unleashedsoftware.com/home" target="_blank" rel="noopener">B2B portal</a>')
+              '<a href="/resources">Technical guides</a>')
 
 
 def patch_header(src):
@@ -716,7 +716,7 @@ def patch_nav(src):
     src = patch_header(src)
     if 'href="/training">Training<span class="mn-ar">' not in src:
         src = MN_RE.sub(lambda m: (f'<a class="mn-link" href="/training">Training{m.group(1)}</a>'
-                                   f'<a class="mn-link" href="/resources">Technical Guides{m.group(1)}</a>' + m.group(0)), src, count=1)
+                                   f'<a class="mn-link" href="/resources">Technical guides{m.group(1)}</a>' + m.group(0)), src, count=1)
     if '>Technical&nbsp;Guides</a>' not in src:
         src = src.replace(FOOT_OLD, FOOT_NEW)
     return src
