@@ -2011,11 +2011,11 @@
       { c: 'Experiences', i: 'bench', n: 'Bench day at Maxzz Florida', d: 'A day at our Coconut Creek bench with our technicians.', p: 35000 },
       { c: 'Experiences', i: 'mic', n: 'Private technical session', d: 'One hour online with our senior instructor on your toughest case.', p: 30000 },
       { c: 'Experiences', i: 'people', n: 'Trade show meetup', d: 'Lunch with the Maxzz team at ADS or AAPEX.', p: 20000 }], sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
-    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
+    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
 
-    get cats() { var self = this; return CATS.map(function (c) { return Object.assign({ n: self.cat.filter(function (r) { return r[3] === c.k; }).length }, c); }).filter(function (c) { return c.n; }); },
+    get cats() { var self = this; return CATS.map(function (c) { return Object.assign({ n: self.cat.filter(function (r) { return r[3] === c.k && !(self.hideOut && self.hid(r[0])); }).length }, c); }).filter(function (c) { return c.n; }); },
     get logged() { return !!(this.me && (this.me.admin || (this.me.account && this.me.account.status === 'approved'))); },
     get canOrder() { return !!(this.me && this.me.account && this.me.account.status === 'approved'); },
     get pendingCount() { return this.accounts.filter(function (a) { return a.status === 'pending'; }).length; },
@@ -2044,12 +2044,12 @@
     // base set for the route; the sidebar filters stack on top of it
     get memoKey() { return [this.route, this.arg, this.cat.length, JSON.stringify(this.f), this.sortBy, this.book ? this.book.at : 0, Object.keys(this.imgs).length].join('|'); },
     get base() {
-      var k = this.route + '|' + this.arg + '|' + this.cat.length + '|' + (this.fit.tree.length);
+      var k = this.route + '|' + this.arg + '|' + this.cat.length + '|' + (this.fit.tree.length) + '|' + (this.book ? this.book.at : 0) + '|' + this.hideOut;
       if (MEMO.baseK === k) return MEMO.base;
       MEMO.baseK = k; MEMO.base = this.baseCalc(); return MEMO.base;
     },
     baseCalc: function () {
-      var r = this.route, a = this.arg, self = this, list = this.cat;
+      var r = this.route, a = this.arg, self = this, list = this.hideOut ? this.cat.filter(function (x) { return !self.hid(x[0]); }) : this.cat;
       if (r === 'g') return list.filter(function (x) { var f = self.fit.items[x[0]]; return f && f[0].indexOf(a) >= 0; });
       if (r === 's') return matchSearch(list, a);
       return list;
@@ -2061,6 +2061,7 @@
       if (skip !== 'eng' && f.eng.length && !f.eng.some(function (e) { return (x[6] || '').indexOf(e) >= 0; })) return false;
       if (skip !== 'photo' && f.photo && !this.img(x[0])) return false;
       if (skip !== 'stock' && f.stock && !(this.qty(x[0]) > 0)) return false;
+      if (skip !== 'out' && f.out && !(this.qty(x[0]) != null && this.qty(x[0]) <= 0)) return false;
       return true;
     },
     get results() {
@@ -2159,7 +2160,7 @@
       return { more: list.length > 8, items: this.allBrands ? list : list.slice(0, 8) };
     },
     get fEngs() { var n = this.facet('eng'); return ENG.map(function (e) { return { k: e.k, label: e.label, n: n[e.k] || 0 }; }); },
-    get fCount() { var f = this.f; return f.cat.length + f.brand.length + f.eng.length + (f.photo ? 1 : 0) + (f.stock ? 1 : 0); },
+    get fCount() { var f = this.f; return f.cat.length + f.brand.length + f.eng.length + (f.photo ? 1 : 0) + (f.stock ? 1 : 0) + (f.out ? 1 : 0); },
     get chips() {
       var f = this.f, out = [];
       f.cat.forEach(function (k) { var c = CATS.filter(function (x) { return x.k === k; })[0]; out.push({ g: 'cat', k: k, label: c ? c.label : k }); });
@@ -2168,6 +2169,7 @@
       if (this.route === 'g') { var gg = this.genOf(this.arg); out.unshift({ g: 'veh', label: gg ? gg.label + ' ' + (gg.years || '') : 'Vehicle' }); }
       if (f.photo) out.push({ g: 'photo', label: 'With photo' });
       if (f.stock) out.push({ g: 'stock', label: 'In stock' });
+      if (f.out) out.push({ g: 'out', label: 'Out of stock' });
       return out;
     },
     get sug() { var q = this.qInput.trim(); if (q.length < 2 || !this.cat.length) return []; return matchSearch(this.cat, q).slice(0, 8); },
@@ -2495,8 +2497,8 @@
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
-      if (r === 'c') this.f = { cat: [a], brand: [], eng: [], photo: false, stock: false };
-      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], photo: false, stock: false };
+      if (r === 'c') this.f = { cat: [a], brand: [], eng: [], photo: false, stock: false, out: false };
+      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], photo: false, stock: false, out: false };
       if (r === 'orders' && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
@@ -2539,13 +2541,13 @@
     toggle: function (g, k) {
       if (g === 'veh') { this.nav('all'); return; }
       var f = this.f;
-      if (g === 'photo' || g === 'stock') f[g] = !f[g];
+      if (g === 'photo' || g === 'stock' || g === 'out') f[g] = !f[g];
       else { var i = f[g].indexOf(k); if (i < 0) f[g].push(k); else f[g].splice(i, 1); }
       this.limit = 24;
       if (this.route === 'home' || (this.route === 'c' && !(f.cat.length === 1 && f.cat[0] === this.arg))) { history.pushState(null, '', '#/all'); this.route = 'all'; this.arg = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }
     },
-    on: function (g, k) { return g === 'photo' || g === 'stock' ? this.f[g] : this.f[g].indexOf(k) >= 0; },
-    clearF: function () { this.f = { cat: [], brand: [], eng: [], photo: false, stock: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
+    on: function (g, k) { return g === 'photo' || g === 'stock' || g === 'out' ? this.f[g] : this.f[g].indexOf(k) >= 0; },
+    clearF: function () { this.f = { cat: [], brand: [], eng: [], photo: false, stock: false, out: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
     genOf: function (key) { var out = null; this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (g) { if (g.key === key) out = g; }); }); }); return out; },
     logos: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
     pickMake: function (k) {
@@ -2561,6 +2563,8 @@
     hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
     price: function (code) { var p = this.book && this.book.items[code]; return p ? p[0] : null; },
+    get hideOut() { return !!(this.logged && this.me && !this.me.admin && this.book); },
+    hid: function (code) { var n = this.qty(code); return n != null && n <= 0; },
     qty: function (code) { var p = this.book && this.book.items[code]; return p ? p[1] : null; },
     stockClass: function (code) { var n = this.qty(code); return n == null || n <= 0 ? 'out' : n < 5 ? 'low' : ''; },
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },

@@ -1276,6 +1276,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <h3>Availability</h3>
 <label class="px-fo" :class="on('photo') ? 'on' : ''"><input type="checkbox" :checked="on('photo')" @change="toggle('photo')"><span class="bx"></span><span class="l">With photo</span></label>
 <label class="px-fo" v-if="logged" :class="on('stock') ? 'on' : ''"><input type="checkbox" :checked="on('stock')" @change="toggle('stock')"><span class="bx"></span><span class="l">In stock</span></label>
+<label class="px-fo" v-if="me && me.admin" :class="on('out') ? 'on' : ''"><input type="checkbox" :checked="on('out')" @change="toggle('out')"><span class="bx"></span><span class="l">Out of stock (admin)</span></label>
 </div>
 </aside>
 <div class="px-main">
@@ -2024,7 +2025,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=66"></script>
+<script src="/js/portal-app.js?v=67"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
