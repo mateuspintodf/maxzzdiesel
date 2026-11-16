@@ -63,6 +63,15 @@
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
   var BENCH = {
     // Remade 4:3 from the Unleashed original, and family photos for similar parts
+    'RB.323.50.39': '/img/p/robiel-3235039-tool-set-delphi-e3-hd-cat-15-unit.webp',
+    'RB.323.50.041': '/img/p/robiel-32350041-tool-set-bosch-eui-eup-valve-changeover.webp',
+    'RB.323.50.043': '/img/p/robiel-32350043-tool-set-bosch-eui-eup-valve-changeover.webp',
+    'RB.323.50.063': '/img/p/robiel-32350063-tool-set-common-rail-bosch-crin-2-crin-3.webp',
+    'RB.323.50.072': '/img/p/robiel-32350072-tool-set-common-rail-bosch-cri-1-0-2-1.webp',
+    'RB.323.50.111': '/img/p/robiel-32350111-tool-set-bosch-eui-eup-units-tool-kit.webp',
+    'RB.323.50.35': '/img/p/robiel-3235035-tool-set-cp1h-cp1h3-bosch-pump.webp',
+    'RB.350.50.041': '/img/p/robiel-35050041-tool-set-bosch-eui-eup-valve-changeover.webp',
+    'RB.350.50.33': '/img/p/robiel-3505033-tool-set-delphi-eui-sarie-a1-a3-e1-e3-ncv.webp',
     'BO.0.445.214.059': '/img/p/bosch-0445214059-fuel-rail-fiat-ducato-iveco-daily.webp',
     'BO.0.445.214.100': '/img/p/bosch-0445214100-fuel-rail-ducato-3-0-2006-a-2014-iveco.webp',
     'BO.0.445.223.005': '/img/p/bosch-0445223005-fuel-rail-assy.webp',
