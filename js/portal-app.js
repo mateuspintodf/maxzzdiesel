@@ -2866,6 +2866,7 @@
       fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
+      if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) self.buy = j.rel; }).catch(function () {}); }
       fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
