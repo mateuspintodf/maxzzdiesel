@@ -18,7 +18,7 @@ FLUIDS = [('ST.4113/5.3gal', 'Maxzz Fluid Series 4113 CAL', 'ISO 4113 calibratio
 # 10 Diesel Tech Academy courses. tools = Robiel sets added by "Quote Parts & Robiel Tools for this Unit"
 COURSES = [
     dict(slug='bosch-crin', name='Bosch CRIN Injector', sub='Commercial vehicle CRIN line: disassembly, assembly and validation',
-         who=None, tools=[('RB.323.50.102', None)], group='hd'),
+         who='Arthur Bonachella', tools=[('RB.323.50.102', None)], group='hd'),
     dict(slug='denso-g2s', name='Denso G2S Injector', sub='John Deere application: full rebuild and precision assembly steps',
          who='Waldyr Mazzer', tools=[('RB.323.50.083', None)], group='hd'),
     dict(slug='continental-vdo', name='Continental (Siemens VDO) Injector', sub='Piezo actuator teardown, high-precision assembly and validation',

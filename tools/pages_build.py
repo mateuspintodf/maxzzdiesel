@@ -533,7 +533,7 @@ def build_training():
 <div class="sx-card" style="background:#1d2126;color:#dedede;padding:clamp(28px,5vw,60px);display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:30px;align-items:center">
 <div><span class="sx-pill dk">Private onsite training</span><h2 class="sx-h2" style="color:#fff">Train your team at your bench or in Florida</h2>
 <p style="margin:16px 0 0;color:#dedede">Labs and shops can schedule hands-on training at their own test bench or at the Diesel Tech Academy facility in Coral Springs, Florida. Tell us the injector families and the number of technicians and we build the program.</p></div>
-<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-start">{cta_red("https://www.dieseltechacademy.com/onsite-training", "Request onsite training", ' target="_blank" rel="noopener"')}
+<div style="display:flex;flex-direction:column;gap:14px;align-items:flex-end;text-align:right">{cta_red("https://www.dieseltechacademy.com/onsite-training", "Request onsite training", ' target="_blank" rel="noopener"')}
 <p style="margin:0;color:#dedede;font-size:15px">Prefer to talk? Call <a href="tel:+19545864158" style="color:#fff;font-weight:600;white-space:nowrap">+1 (954)&nbsp;586-4158</a></p></div></div></div></section>
 <section class="sx" style="padding: 110px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">Tools and parts for your course</span><h2 class="sx-h2">Student pricing on the right tooling</h2>
