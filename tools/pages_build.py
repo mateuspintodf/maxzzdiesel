@@ -560,17 +560,23 @@ def build_resources():
              cta_red('/quote', 'Request a quote') + cta_ghost('/training', 'Diesel Tech Academy courses'), eyebrow='Maxzz Diesel Resources')
     cards = ''
     for g_ in C.GUIDES:
-        cards += (f'<a class="sx-card" href="/resources/{g_["slug"]}" style="display:flex;flex-direction:column;color:#5a5a60 !important;text-decoration:none">' +
-                  media(GUIDE_PH.get(g_['ph']), g_['short'], TINTS[C.GUIDES.index(g_) % len(TINTS)], 220) +
-                  f'<span class="sx-pill" style="align-self:flex-start">Technical guide</span>'
-                  f'<h3 class="sx-h3" style="margin-top:16px">{E(g_["title"])}</h3>'
-                  f'<p style="margin:12px 0 0;font-size:15px">{E(g_["meta"])}</p>'
-                  f'<span style="margin-top:20px;color:#d32a37;font-weight:600">Read the guide &rarr;</span></a>')
+        _u = photo(GUIDE_PH.get(g_['ph']))
+        _img = (f'<div class="rg-img" style="background:{TINTS[C.GUIDES.index(g_) % len(TINTS)]}"><img src="{_u}" alt="{E(g_["short"])}" width="400" height="300" loading="lazy" decoding="async"></div>') if _u else ''
+        cards += (f'<a class="sx-card rg-card" href="/resources/{g_["slug"]}" style="color:#5a5a60 !important;text-decoration:none">' + _img +
+                  f'<div class="rg-txt"><span class="sx-pill" style="align-self:flex-start">Technical guide</span>'
+                  f'<h3 class="sx-h3" style="margin-top:14px">{E(g_["title"])}</h3>'
+                  f'<p style="margin:10px 0 0;font-size:15px">{E(g_["meta"])}</p>'
+                  f'<span style="margin-top:16px;color:#d32a37;font-weight:600">Read the guide &rarr;</span></div></a>')
+    rg_css = ('<style>.rg-card{display:grid !important;grid-template-columns:230px minmax(0,1fr);gap:24px;align-items:center}'
+              '.rg-img{width:230px;height:230px;border-radius:16px;position:relative;overflow:hidden}.rg-txt .sx-h3{font-size:20px !important;line-height:1.25 !important}.rg-txt p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
+              '.rg-img img{position:absolute;inset:8%;width:84%;height:84%;object-fit:contain}'
+              '.rg-txt{display:flex;flex-direction:column;min-width:0}'
+              '@media (max-width:560px){.rg-card{grid-template-columns:1fr !important}.rg-img{width:100%;height:auto;aspect-ratio:16/10}}</style>')
     sysl = ''.join(f'<a class="sx-tag" href="/systems/{s["slug"]}">{E(s["crumb"])}</a> ' for s in C.SYSTEMS)
     body = f"""{h}
 <section class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">Guides</span><h2 class="sx-h2">Start with the system you work on</h2>
-<div class="sx-grid2" style="margin-top:30px">{cards}</div></div></section>
+{rg_css}<div class="sx-grid2" style="margin-top:30px">{cards}</div></div></section>
 <section class="sx" style="padding: 100px 20px 120px; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">System hubs</span><h2 class="sx-h2">Part numbers by engine</h2>
 <p style="margin:16px 0 20px;max-width:760px">Every hub has a cross-reference table, the matching Robiel tooling and the Diesel Tech Academy course for the injector.</p>{sysl}</div></section>
