@@ -8,6 +8,7 @@ const { nextNumber, readJson, writeJson } = require('../lib/store');
 const { authenticate } = require('../lib/auth');
 const crypto = require('crypto');
 const PS = require('../lib/portal-store');
+const dbm = require('../lib/db');
 const { send } = require('../lib/mail');
 const { notifyTeam, hubDeal, hubContact } = require('../lib/notify');
 
@@ -47,7 +48,23 @@ module.exports = async (req, res) => {
     if (PS.on()) { try { await PS.saveQuote(auth.account && auth.account.id, auth.user && auth.user.id, who, { id: number, ship: shipText, po: ship.po, needBy: ship.needBy, notes: customer.notes, ulGuid: ulq.guid || null, lines }); } catch (e) { console.error('quote history', e.message); } }
     else try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, needBy: ship.needBy, ship: shipText, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }
   }
-  if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
+  // every website quote is also kept in the portal database (Supabase) before HubSpot, so a CRM failure never loses it
+  let kept = !!who;
+  if (!who && dbm.configured()) {
+    try {
+      await PS.saveQuote(null, null, customer.email, { id: number, ship: shipText, po: ship.po, needBy: ship.needBy, ulGuid: ulq.guid || null, lines,
+        notes: [[customer.name, customer.company, customer.phone, customer.type].filter(Boolean).join(' · '), ship.method && ('Delivery: ' + ship.method), b2b && 'Asked for B2B access', source && ('Source: ' + source), customer.notes].filter(Boolean).join('\n') });
+      kept = true;
+    } catch (e) { console.error('quote db', e.message); }
+  }
+  const crmDown = async (why) => {
+    console.error('quote crm', why);
+    await notifyTeam(`ACTION: quote ${number} saved, HubSpot incomplete`, 'Website quote needs manual follow-up',
+      [['Quote', number], ['Customer', [customer.name, customer.company].filter(Boolean).join(' · ')], ['Email', customer.email], ['Phone', customer.phone], ['Parts', lines.length + ' lines'], ['Reason', why]], [],
+      `<p>${lines.slice(0, 40).map((l) => esc(l.pn) + ' x' + l.qty).join('<br>')}</p>`);
+    return res.status(200).json({ ok: true, id: number, crm: false });
+  };
+  if (!process.env.HUBSPOT_TOKEN) return kept ? crmDown('HubSpot not configured') : res.status(503).json({ error: 'crm not configured' });
   try {
     const contactId = await upsertContact(Object.assign({}, customer, { source: 'Website quote request' }));
     const units = lines.reduce((s, l) => s + l.qty, 0);
@@ -93,6 +110,7 @@ module.exports = async (req, res) => {
     return res.status(200).json({ ok: true, id: number });
   } catch (e) {
     console.error(e);
+    if (kept) return crmDown('HubSpot error: ' + String(e.message || e).slice(0, 120));
     return res.status(502).json({ error: 'crm error' });
   }
 };
