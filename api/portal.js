@@ -206,8 +206,9 @@ const prospectOn = () => configured() && process.env.ACCESS_TO_UNLEASHED !== '0'
 async function findCustomerByEmail(email) {
   const q = 'contactEmail=' + encodeURIComponent(email) + '&includeObsolete=true&pageSize=10';
   let d;
-  try { d = await ul('Customers', q, { timeoutMs: 12000 }); }
-  catch (e) { console.error('unleashed email lookup', e.message); d = await ul('Customers', q, { timeoutMs: 12000, sign: decodeURIComponent(q) }); }
+  // Unleashed signs the decoded query (the + and @ of an e-mail break an encoded signature with a 403)
+  try { d = await ul('Customers', q, { timeoutMs: 12000, sign: decodeURIComponent(q) }); }
+  catch (e) { console.error('unleashed email lookup', e.message); d = await ul('Customers', q, { timeoutMs: 12000 }); }
   const hit = ((d && d.Items) || []).find((c) => String(c.Email || '').toLowerCase() === email);
   return hit ? { code: hit.CustomerCode, guid: hit.Guid, name: hit.CustomerName, existing: true } : null;
 }
