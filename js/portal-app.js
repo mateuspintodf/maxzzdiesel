@@ -103,7 +103,9 @@
   ];
   var ENG = [{ k: 'f', label: 'Ford · Power Stroke' }, { k: 'c', label: 'Ram / Dodge · Cummins' }, { k: 'd', label: 'Chevy / GMC · Duramax' }, { k: 'h', label: 'Heavy duty trucks' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
-  var HPC = {};
+  var HPC = {}, POP = { src: null, v: null };
+  // hand-picked for the Suggested order on the portal home
+  var PICKS = { 'BO.0.986.435.433': 1, 'BO.0.986.435.410': 1, 'BO.0.445.117.023': 1, 'BO.0.445.020.146': 1 };
   var BENCH = {
     // Remade 4:3 from the Unleashed original, and family photos for similar parts
     'RB.410.08.009': '/img/p/robiel-41008009-repair-kit-bosch-6-7l-powerstroke.webp',
@@ -2390,18 +2392,37 @@
     get pendingCount() { return this.accounts.filter(function (a) { return a.status === 'pending'; }).length; },
     get engMake() { var k = this.vMake || this.vLast; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
     get curMake() { var k = this.vMake; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
-    // home blocks: the parts with the deepest stock first (order from /api/instock, no quantities), photo first within that
-    rk: function (c) { var r = this.rank; return r && r[c] != null ? r[c] : 1e6; },
+    // home blocks. Suggested (default): hand-picked parts, then what sells most (sales history) and what has the deepest stock (order from /api/instock, no quantities); photo first
+    rk: function (c) { var r = this.rank; return r && r[c] != null ? r[c] : 1500; },
+    get pop() {
+      var b = this.buy; if (!b || !Object.keys(b).length) return null;
+      if (POP.src === b) return POP.v;
+      var n = {}; Object.keys(b).forEach(function (k) { n[k] = (n[k] || 0) + (b[k] || []).length; (b[k] || []).forEach(function (c) { n[c] = (n[c] || 0) + 1; }); });
+      var m = {}; Object.keys(n).sort(function (x, y) { return n[y] - n[x]; }).forEach(function (c, i) { m[c] = i; });
+      POP.src = b; POP.v = m; return m;
+    },
+    pk: function (c) { var p = this.pop; return p && p[c] != null ? p[c] : 1500; },
+    get hBrand() { return this.hsort.indexOf('b:') === 0 ? this.hsort.slice(2) : ''; },
+    get hBrands() {
+      var n = {}; this.cat.forEach(function (r) { if (r[4] && (r[3] === 'Injector' || r[3] === 'Pump' || r[3] === 'Repair part')) n[r[4]] = (n[r[4]] || 0) + 1; });
+      return Object.keys(n).filter(function (b) { return b !== 'Other' && n[b] >= 10; }).sort(function (a, b) { return n[b] - n[a]; }).slice(0, 6);
+    },
     homePick: function (keep, n, tag) {
-      var mk = tag + '|' + this.cat.length + '|' + (this.rank ? 1 : 0) + '|' + Object.keys(this.imgs).length + '|' + (this.specs ? 1 : 0) + '|' + (this.book ? this.book.at : 0) + '|' + this.hsort;
+      var mk = tag + '|' + this.cat.length + '|' + (this.rank ? 1 : 0) + '|' + (this.pop ? 1 : 0) + '|' + Object.keys(this.imgs).length + '|' + (this.specs ? 1 : 0) + '|' + (this.book ? this.book.at : 0) + '|' + this.hsort;
       if (HPC[tag] && HPC[tag].k === mk) return HPC[tag].v;
-      var self = this, sp = this.specs || {}, pool = this.cat.filter(function (r) { return keep(r) && !(self.hideOut && self.hid(r[0])); });
-      var sc = function (r) { return (self.hasImg(r[0]) ? 0 : 2e6) + self.rk(r[0]) + (sp[r[0]] && sp[r[0]].title ? 0 : 0.5); };
+      var self = this, sp = this.specs || {}, s = this.hsort, br = this.hBrand;
+      var pool = this.cat.filter(function (r) { return keep(r) && (!br || r[4] === br) && !(self.hideOut && self.hid(r[0])); });
+      var base = function (r) {
+        if (s === 'stock') return self.rk(r[0]);
+        if (s === 'pop') return self.pk(r[0]) + self.rk(r[0]) / 1e4;
+        return (PICKS[r[0]] ? -1e4 : 0) + (self.pk(r[0]) + self.rk(r[0])) / 2;
+      };
+      var sc = function (r) { return (self.hasImg(r[0]) ? 0 : 2e6) + base(r) + (sp[r[0]] && sp[r[0]].title ? 0 : 0.5); };
       var v = this.homeSort(pool.map(function (r, i) { return [sc(r), i, r]; }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).slice(0, n).map(function (x) { return x[2]; }));
       HPC[tag] = { k: mk, v: v }; return v;
     },
     homeSort: function (list) {
-      var self = this, s = this.hsort; if (!s) return list;
+      var self = this, s = this.hsort; if (['pn', 'plo', 'phi'].indexOf(s) < 0) return list;
       var pr = function (x) { var p = self.price(x[0]); return p == null ? (s === 'plo' ? 1e12 : -1) : p; };
       list = list.slice();
       if (s === 'pn') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
@@ -2897,7 +2918,7 @@
       if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
-      if ((r === 'p' || r === 'cart' || r === 'quote') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
+      if ((r === 'p' || r === 'cart' || r === 'quote' || r === 'home') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
       if (r === 'p' && a && this.cat.length && !this.map[a] && this.fixPart()) return;

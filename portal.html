@@ -1325,7 +1325,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 
 <div class="px-sec">
-<div class="px-sh"><h2>Featured parts</h2><span class="px-sh-r"><select class="px-sort" v-model="hsort" aria-label="Sort"><option value="">Most in stock</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option></select><a href="#/all">All parts</a></span></div>
+<div class="px-sh"><h2>Featured parts</h2><span class="px-sh-r"><select class="px-sort" v-model="hsort" aria-label="Show"><option value="">Suggested</option><option value="pop">Popular</option><option value="stock">Most in stock</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><optgroup label="Brand"><option v-for="b in hBrands" :value="'b:' + b" v-text="b"></option></optgroup></select><a href="#/all">All parts</a></span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in featured" :key="r[0]">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
@@ -2067,7 +2067,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=75"></script>
+<script src="/js/portal-app.js?v=76"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
