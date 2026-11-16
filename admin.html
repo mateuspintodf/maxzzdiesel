@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Maxzz Admin</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+@font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-DemiBold.woff2) format('woff2');font-weight:600;font-display:swap}
+:root{--ground:#e7e8ea;--card:#fff;--ink:#1d2126;--muted:#7a7f87;--line:#eceef0;--red:#d32a37;--ok:#1f8a4c;--warn:#c26a0a;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit}
+.top{background:#111;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:16px}
+.top b{font-weight:600}.top .sp{flex:1}.top button{background:none;border:1px solid #555;color:#fff;border-radius:999px;padding:6px 14px;cursor:pointer}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border-radius:20px;padding:20px;margin:0 0 14px}
+.login{max-width:420px;margin:12vh auto}
+h1,h2,h3{margin:0 0 8px}h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
+.muted{color:var(--muted);font-size:14px}
+input[type=email],input[type=text]{width:100%;padding:11px 14px;border:1px solid #d5d8dc;border-radius:12px;background:#fff}
+.btn{background:var(--red);color:#fff;border:0;border-radius:999px;padding:10px 18px;cursor:pointer;font-weight:600}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid #d5d8dc;font-weight:400}
+.btn:disabled{opacity:.5;cursor:default}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:8px;margin:0 0 14px}.tabs button{border:0;background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer}.tabs button.on{background:#111;color:#fff}
+.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;background:#eef0f2}
+.pill.pending{background:#fde8c8;color:var(--warn)}.pill.approved{background:#d8f0e1;color:var(--ok)}.pill.rejected{background:#f7d9dc;color:var(--red)}
+.err{color:var(--red);margin-top:10px;font-size:14px}
+.person{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
+.hit{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+  var app = document.getElementById('app'), S = { me: null, tab: 'clients', data: null, err: '', lt: '', q: '', open: null, found: {}, busy: false, audit: null, sent: false };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function api(a, body, qs) {
+    return fetch('/api/admin?a=' + a + (qs || ''), { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._status = r.status; return j; }); });
+  }
+  function load() { api('list').then(function (d) { if (d._status === 401) { S.me = null; } else S.data = d; draw(); }); }
+  function draw() {
+    if (!S.me) return drawLogin();
+    var h = '<div class="top"><b>Maxzz Admin</b><span class="muted" style="color:#aaa">' + esc(S.me.email) + ' · ' + esc(S.me.role) + '</span><span class="sp"></span><button data-act="out">Sign out</button></div><div class="wrap">';
+    h += '<div class="tabs"><button data-tab="clients" class="' + (S.tab === 'clients' ? 'on' : '') + '">Customers</button><button data-tab="audit" class="' + (S.tab === 'audit' ? 'on' : '') + '">Activity log</button></div>';
+    if (S.err) h += '<div class="card err">' + esc(S.err) + '</div>';
+    h += S.tab === 'audit' ? drawAudit() : drawClients();
+    app.innerHTML = h + '</div>';
+  }
+  function drawLogin() {
+    var h = '<div class="card login">';
+    if (S.lt) h += '<h1>Confirm sign in</h1><p class="muted">One more click to finish signing in on this device.</p><button class="btn" data-act="confirm"' + (S.busy ? ' disabled' : '') + '>Sign in to admin</button>';
+    else if (S.sent) h += '<h1>Check your e-mail</h1><p class="muted">If the address is an admin, a sign-in link is on its way. It works once and expires in 20 minutes.</p>';
+    else h += '<h1>Maxzz Admin</h1><p class="muted">Enter your e-mail. We send a sign-in link.</p><p><input type="email" id="em" placeholder="name@maxzzdiesel.com" autocomplete="email"></p><button class="btn" data-act="send"' + (S.busy ? ' disabled' : '') + '>E-mail me a link</button>';
+    app.innerHTML = h + (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') + '</div>';
+  }
+  function drawClients() {
+    if (!S.data) return '<div class="card muted">Loading...</div>';
+    var q = S.q.toLowerCase(), list = S.data.accounts.filter(function (a) { return !q || (a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email; }).join(' ')).toLowerCase().indexOf(q) >= 0; });
+    var pend = S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length;
+    var h = '<div class="card"><div class="row"><h2 style="margin:0">Customers</h2><span class="muted">' + S.data.accounts.length + ' total · ' + pend + ' waiting</span><span style="flex:1"></span><input type="text" id="q" placeholder="Search company, code or e-mail" value="' + esc(S.q) + '" style="max-width:280px"></div></div>';
+    list.forEach(function (a) {
+      h += '<div class="card"><div class="row"><h3 style="margin:0">' + esc(a.company) + '</h3><span class="pill ' + esc(a.status) + '">' + esc(a.status) + '</span>' + (a.customerCode ? '<span class="muted">' + esc(a.customerCode) + (a.tier ? ' · ' + esc(a.tier) : '') + '</span>' : '') + '</div>';
+      h += '<p class="muted" style="margin:6px 0">' + esc([a.type, a.city, a.state, a.country].filter(Boolean).join(' · ')) + (a.customerNumber ? ' · says Unleashed: ' + esc(a.customerNumber) : '') + (a.notes ? '<br>' + esc(a.notes) : '') + '</p>';
+      a.users.forEach(function (u) {
+        var n = (S.data.openSessions || {})[u.email.toLowerCase()] || 0;
+        h += '<div class="person"><span>' + esc(u.name) + ' · ' + esc(u.email) + ' · ' + esc(u.phone) + ' <span class="pill ' + esc(u.status) + '">' + esc(u.status) + '</span> ' + (n ? '<span class="pill">' + n + ' open session' + (n > 1 ? 's' : '') + '</span>' : '') + '</span>' + (n ? '<button class="btn ghost" data-act="revoke" data-email="' + esc(u.email) + '">End sessions</button>' : '') + '</div>';
+      });
+      if (a.status !== 'approved') {
+        h += '<div class="row" style="margin-top:12px"><button class="btn" data-act="open" data-id="' + esc(a.id) + '">' + (S.open === a.id ? 'Close' : 'Approve...') + '</button>' + (a.status === 'pending' ? '<button class="btn ghost" data-act="reject" data-id="' + esc(a.id) + '">Reject</button>' : '') + '</div>';
+        if (S.open === a.id) {
+          h += '<div style="margin-top:12px"><div class="row"><input type="text" data-look="' + esc(a.id) + '" placeholder="Unleashed customer code or name" value="' + esc(a.customerNumber || a.company) + '" style="flex:1"><button class="btn ghost" data-act="look" data-id="' + esc(a.id) + '">Search Unleashed</button></div>';
+          (S.found[a.id] || []).forEach(function (c, i) { h += '<div class="hit"><span><b>' + esc(c.code) + '</b> ' + esc(c.name) + ' · ' + esc(c.tier || 'no tier') + (c.stopCredit ? ' · <b style="color:#d32a37">STOP CREDIT</b>' : '') + '</span><button class="btn" data-act="approve" data-id="' + esc(a.id) + '" data-i="' + i + '">Link and approve</button></div>'; });
+          h += '</div>';
+        }
+      }
+      h += '</div>';
+    });
+    return h;
+  }
+  function drawAudit() {
+    if (!S.audit) return '<div class="card muted">Loading...</div>';
+    return '<div class="card"><table><tr><th>When</th><th>Who</th><th>What</th><th>On</th></tr>' + S.audit.map(function (r) { return '<tr><td>' + esc(new Date(r.at).toLocaleString()) + '</td><td>' + esc(r.admin_email) + '</td><td>' + esc(r.action) + '</td><td>' + esc(r.entity_id) + '</td></tr>'; }).join('') + '</table></div>';
+  }
+  function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Something went wrong.'); if (r._status === 401) S.me = null; S.busy = false; draw(); }
+  app.addEventListener('input', function (e) { if (e.target.id === 'q') { S.q = e.target.value; var p = e.target.selectionStart; draw(); var n = document.getElementById('q'); if (n) { n.focus(); n.setSelectionRange(p, p); } } });
+  app.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
+    S.err = '';
+    if (t.dataset.tab) { S.tab = t.dataset.tab; if (S.tab === 'audit') api('audit').then(function (r) { if (r.rows) { S.audit = r.rows; draw(); } else fail(r); }); return draw(); }
+    var act = t.dataset.act, id = t.dataset.id;
+    if (act === 'send') { var em = document.getElementById('em').value.trim(); if (!em) return; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
+    if (act === 'confirm') { S.busy = true; draw(); api('confirm', { t: S.lt }).then(function (r) { S.busy = false; if (r._status === 200) { S.lt = ''; boot(); } else { S.lt = ''; S.err = 'That link expired or was already used. Ask for a new one.'; draw(); } }); }
+    if (act === 'out') api('logout', {}).then(function () { S.me = null; S.data = null; draw(); });
+    if (act === 'open') { S.open = S.open === id ? null : id; draw(); }
+    if (act === 'look') { var inp = app.querySelector('[data-look="' + id + '"]'); api('lookup', null, '&code=' + encodeURIComponent(inp.value)).then(function (r) { if (r.customers) { S.found[id] = r.customers; if (!r.customers.length) S.err = 'No Unleashed customer found.'; draw(); } else fail(r); }); }
+    if (act === 'approve') { var c = S.found[id][+t.dataset.i]; if (!confirm('Link this company to ' + c.code + ' ' + c.name + ' and approve access?')) return; api('approve', { account: id, customer: c }).then(function (r) { if (r.ok) { S.open = null; load(); } else fail(r); }); }
+    if (act === 'reject') { var why = prompt('Reason (optional, shown if you notify them):'); if (why === null) return; api('reject', { account: id, reason: why, notify: confirm('Send them an e-mail about it?') }).then(function (r) { if (r.ok) load(); else fail(r); }); }
+    if (act === 'revoke') { if (!confirm('End every open session of ' + t.dataset.email + '?')) return; api('revoke', { email: t.dataset.email }).then(function (r) { if (r.ok) load(); else fail(r); }); }
+  });
+  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; draw(); } }); }
+  var lt = location.search.match(/[?&]lt=([^&]+)/);
+  if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
+})();
+</script>
+</body>
+</html>
