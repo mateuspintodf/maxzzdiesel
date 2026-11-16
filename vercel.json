@@ -118,6 +118,11 @@
   ],
   "redirects": [
     {
+      "source": "/fratelli-bosio",
+      "destination": "/partners",
+      "permanent": true
+    },
+    {
       "source": "/pt/training",
       "destination": "/training",
       "permanent": true
@@ -523,22 +528,22 @@
       "permanent": true
     },
     {
-      "source": "/cart",
+      "source": "/cart/:path*",
       "destination": "/quote",
       "permanent": true
     },
     {
-      "source": "/purchase-completion",
+      "source": "/purchase-completion/:path*",
       "destination": "/quote",
       "permanent": true
     },
     {
-      "source": "/minha-conta",
+      "source": "/minha-conta/:path*",
       "destination": "/portal",
       "permanent": true
     },
     {
-      "source": "/my-account",
+      "source": "/my-account/:path*",
       "destination": "/portal",
       "permanent": true
     },
