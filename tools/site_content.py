@@ -291,7 +291,7 @@ GUIDES = [
                         ['Return lines and fuel temperature sensor', 'Replace per the kit', 'Carry debris back to the tank side'],
                         ['Tank, supply lines, lift pump and filters', 'Flush and replace the filters', 'Protect the new pump from remaining debris']])),
             ('Kits and part numbers by engine',
-             ['Maxzz Diesel sells the repair as contamination kits so a shop orders one box: Contamination Kit Essentials for the Ford 6.7L Power Stroke (HC3Z-9B246-B for 2017 to 2019, EC3Z-9B246-B for 2011 to 2014) and for the 5th Gen Cummins 6.7L. For the Duramax L5P the catalog lists the Alliant Power DCR pump conversion kit 608990 and the Denso HU294050-0701 pump; ask our team to confirm fitment for your pump.']),
+             ['Maxzz Diesel sells the repair as contamination kits so a shop orders one box: Contamination Kit Essentials for the Ford 6.7L Power Stroke (HC3Z-9B246-B for 2017 to 2019, EC3Z-9B246-B for 2011 to 2014) and for the 5th Gen Cummins 6.7L.']),
             ('After the repair',
              ['Verify the repair rather than assuming it. Check rail pressure behavior with the scan tool, inspect the new filters after the first hours of operation and keep the old parts available for the customer. A used pump that has already shed metal should be returned with the engine and not reused in another repair. Rebuilders who repair CP3 pumps can use Robiel tool set 323.50.34 for the CP3.']),
         ],
