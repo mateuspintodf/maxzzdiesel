@@ -2394,21 +2394,21 @@
     get curMake() { var k = this.vMake; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
     // home blocks. Suggested (default): hand-picked parts, then what sells most (sales history) and what has the deepest stock (order from /api/instock, no quantities); photo first
     rk: function (c) { var r = this.rank; return r && r[c] != null ? r[c] : 1500; },
-    get pop() {
+    get popRank() {
       var b = this.buy; if (!b || !Object.keys(b).length) return null;
       if (POP.src === b) return POP.v;
       var n = {}; Object.keys(b).forEach(function (k) { n[k] = (n[k] || 0) + (b[k] || []).length; (b[k] || []).forEach(function (c) { n[c] = (n[c] || 0) + 1; }); });
       var m = {}; Object.keys(n).sort(function (x, y) { return n[y] - n[x]; }).forEach(function (c, i) { m[c] = i; });
       POP.src = b; POP.v = m; return m;
     },
-    pk: function (c) { var p = this.pop; return p && p[c] != null ? p[c] : 1500; },
+    pk: function (c) { var p = this.popRank; return p && p[c] != null ? p[c] : 1500; },
     get hBrand() { return this.hsort.indexOf('b:') === 0 ? this.hsort.slice(2) : ''; },
     get hBrands() {
       var n = {}; this.cat.forEach(function (r) { if (r[4] && (r[3] === 'Injector' || r[3] === 'Pump' || r[3] === 'Repair part')) n[r[4]] = (n[r[4]] || 0) + 1; });
       return Object.keys(n).filter(function (b) { return b !== 'Other' && n[b] >= 10; }).sort(function (a, b) { return n[b] - n[a]; }).slice(0, 6);
     },
     homePick: function (keep, n, tag) {
-      var mk = tag + '|' + this.cat.length + '|' + (this.rank ? 1 : 0) + '|' + (this.pop ? 1 : 0) + '|' + Object.keys(this.imgs).length + '|' + (this.specs ? 1 : 0) + '|' + (this.book ? this.book.at : 0) + '|' + this.hsort;
+      var mk = tag + '|' + this.cat.length + '|' + (this.rank ? 1 : 0) + '|' + (this.popRank ? 1 : 0) + '|' + Object.keys(this.imgs).length + '|' + (this.specs ? 1 : 0) + '|' + (this.book ? this.book.at : 0) + '|' + this.hsort;
       if (HPC[tag] && HPC[tag].k === mk) return HPC[tag].v;
       var self = this, sp = this.specs || {}, s = this.hsort, br = this.hBrand;
       var pool = this.cat.filter(function (r) { return keep(r) && (!br || r[4] === br) && !(self.hideOut && self.hid(r[0])); });
