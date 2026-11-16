@@ -122,6 +122,10 @@ const ck = (r) => String(r.headers['Set-Cookie'] || '').split(';')[0];
   await call(portal, 'request', { method: 'POST', body: { name: 'Bob', company: 'Bob Co', email: 'bob@bob.com', phone: '3055550123' } });
   r = await call(admin, 'list', { cookie: acookie }); const bob = r.d.accounts.find((a) => a.company === 'Bob Co');
   r = await call(admin, 'reject', { method: 'POST', cookie: acookie, body: { account: bob.id, reason: 'no' } }); assert.equal(r.d.ok, true); assert.equal(T.users.find((u) => u.email === 'bob@bob.com').status, 'rejected');
+  // 9b. manual prospect (not in Unleashed), shows in the Invites list, cannot reuse an e-mail
+  r = await call(admin, 'addprospect', { method: 'POST', cookie: acookie, body: { company: 'Hand Added Co', email: 'hand@added.com', name: 'Hal' } }); assert.equal(r.d.ok, true, JSON.stringify(r.d));
+  r = await call(admin, 'addprospect', { method: 'POST', cookie: acookie, body: { company: 'Dup', email: 'hand@added.com' } }); assert.equal(r.s, 409);
+  r = await call(admin, 'prospects', { cookie: acookie }); assert.equal(r.d.prospects.length, 1); assert.equal(r.d.prospects[0].users[0].email, 'hand@added.com'); assert.equal(r.d.prospects[0].source, 'manual');
   // 10. admin session limits
   const s = T.sessions.find((x) => x.kind === 'admin'); s.idle_expires_at = new Date(Date.now() - 1000).toISOString();
   r = await call(admin, 'list', { cookie: acookie }); assert.equal(r.s, 401, 'idle expiry');

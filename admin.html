@@ -48,9 +48,9 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
   function draw() {
     if (!S.me) return drawLogin();
     var h = '<div class="top"><b>Maxzz Admin</b><span class="muted" style="color:#aaa">' + esc(S.me.email) + ' · ' + esc(S.me.role) + '</span><span class="sp"></span><button data-act="out">Sign out</button></div><div class="wrap">';
-    h += '<div class="tabs"><button data-tab="clients" class="' + (S.tab === 'clients' ? 'on' : '') + '">Customers</button><button data-tab="audit" class="' + (S.tab === 'audit' ? 'on' : '') + '">Activity log</button></div>';
+    h += '<div class="tabs"><button data-tab="clients" class="' + (S.tab === 'clients' ? 'on' : '') + '">Customers</button><button data-tab="prospects" class="' + (S.tab === 'prospects' ? 'on' : '') + '">Invites</button><button data-tab="audit" class="' + (S.tab === 'audit' ? 'on' : '') + '">Activity log</button></div>';
     if (S.err) h += '<div class="card err">' + esc(S.err) + '</div>';
-    h += S.tab === 'audit' ? drawAudit() : drawClients();
+    h += S.tab === 'audit' ? drawAudit() : S.tab === 'prospects' ? drawProspects() : drawClients();
     app.innerHTML = h + '</div>';
   }
   function drawLogin() {
@@ -84,19 +84,35 @@ table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;p
     });
     return h;
   }
+  function drawProspects() {
+    var f = S.form || {};
+    var h = '<div class="card"><h2>Add a customer by hand</h2><p class="muted">For a customer that is not in Unleashed yet, or one you want to invite first. They stay as a prospect until approved.</p><div class="row">' +
+      ['company:Company *', 'name:Contact name', 'email:E-mail', 'phone:Phone', 'city:City', 'state:State'].map(function (x) { var k = x.split(':')[0]; return '<input type="text" data-f="' + k + '" placeholder="' + x.split(':')[1] + '" value="' + esc(f[k] || '') + '" style="flex:1;min-width:150px">'; }).join('') +
+      '<button class="btn" data-act="addp"' + (S.busy ? ' disabled' : '') + '>Add</button></div></div>';
+    if (!S.prospects) return h + '<div class="card muted">Loading...</div>';
+    h += '<div class="card"><h2>Prospects <span class="muted">' + S.prospects.length + '</span></h2>';
+    if (!S.prospects.length) h += '<p class="muted">Nobody here yet.</p>';
+    S.prospects.forEach(function (p) {
+      h += '<div class="person"><span><b>' + esc(p.company) + '</b> <span class="pill">' + esc(p.status) + '</span> <span class="muted">' + esc(p.source === 'manual' ? 'added by hand' : p.source) + (p.code ? ' · ' + esc(p.code) : '') + ' ' + esc([p.city, p.state].filter(Boolean).join(', ')) + '</span><br><span class="muted">' + (p.users.map(function (u) { return esc(u.name || '') + ' ' + esc(u.email); }).join(' · ') || 'no contact yet') + '</span></span></div>';
+    });
+    return h + '</div>';
+  }
   function drawAudit() {
     if (!S.audit) return '<div class="card muted">Loading...</div>';
     return '<div class="card"><table><tr><th>When</th><th>Who</th><th>What</th><th>On</th></tr>' + S.audit.map(function (r) { return '<tr><td>' + esc(new Date(r.at).toLocaleString()) + '</td><td>' + esc(r.admin_email) + '</td><td>' + esc(r.action) + '</td><td>' + esc(r.entity_id) + '</td></tr>'; }).join('') + '</table></div>';
   }
+  function loadProspects() { api('prospects').then(function (r) { if (r.prospects) { S.prospects = r.prospects; draw(); } else fail(r); }); }
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Something went wrong.'); if (r._status === 401) S.me = null; S.busy = false; draw(); }
   app.addEventListener('input', function (e) { if (e.target.id === 'q') { S.q = e.target.value; var p = e.target.selectionStart; draw(); var n = document.getElementById('q'); if (n) { n.focus(); n.setSelectionRange(p, p); } } });
   app.addEventListener('click', function (e) {
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = '';
-    if (t.dataset.tab) { S.tab = t.dataset.tab; if (S.tab === 'audit') api('audit').then(function (r) { if (r.rows) { S.audit = r.rows; draw(); } else fail(r); }); return draw(); }
+    if (t.dataset.tab) { S.tab = t.dataset.tab; if (S.tab === 'prospects') loadProspects();
+    if (S.tab === 'audit') api('audit').then(function (r) { if (r.rows) { S.audit = r.rows; draw(); } else fail(r); }); return draw(); }
     var act = t.dataset.act, id = t.dataset.id;
     if (act === 'send') { var em = document.getElementById('em').value.trim(); if (!em) return; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
     if (act === 'confirm') { S.busy = true; draw(); api('confirm', { t: S.lt }).then(function (r) { S.busy = false; if (r._status === 200) { S.lt = ''; boot(); } else { S.lt = ''; S.err = 'That link expired or was already used. Ask for a new one.'; draw(); } }); }
+    if (act === 'addp') { var f = {}; [].forEach.call(app.querySelectorAll('[data-f]'), function (i) { f[i.dataset.f] = i.value.trim(); }); S.form = f; S.busy = true; draw(); api('addprospect', f).then(function (r) { S.busy = false; if (r.ok) { S.form = {}; loadProspects(); } else fail(r); }); }
     if (act === 'out') api('logout', {}).then(function () { S.me = null; S.data = null; draw(); });
     if (act === 'open') { S.open = S.open === id ? null : id; draw(); }
     if (act === 'look') { var inp = app.querySelector('[data-look="' + id + '"]'); api('lookup', null, '&code=' + encodeURIComponent(inp.value)).then(function (r) { if (r.customers) { S.found[id] = r.customers; if (!r.customers.length) S.err = 'No Unleashed customer found.'; draw(); } else fail(r); }); }

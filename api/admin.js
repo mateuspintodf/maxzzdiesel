@@ -134,6 +134,30 @@ A.revoke = async (req, res) => {
   await PS.audit(w.email, 'session.revoke', 'user', email);
   return res.json({ ok: true });
 };
+// Invites tab: companies that are not active yet (prospects added by hand or imported), with the contact to invite
+A.prospects = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  const cos = await db.select('companies', 'select=*&status=in.(prospect,ready,invited)&order=created_at.desc&limit=500');
+  const us = cos.length ? await db.select('users', 'select=email,name,phone,company_id,status&company_id=in.(' + cos.map((c) => c.id).join(',') + ')') : [];
+  return res.json({ prospects: cos.map((c) => ({ id: c.id, company: c.name, status: c.status, source: c.source, code: c.unleashed_code || '', city: c.city || '', state: c.state || '', country: c.country || '',
+    users: us.filter((u) => u.company_id === c.id).map((u) => ({ email: u.email, name: u.name, phone: u.phone, status: u.status })) })) });
+};
+// Manual inclusion: a customer that is not in Unleashed yet (or that the team wants to invite first). Creates the company as a prospect
+// and, when an e-mail is given, its contact (pending: it only gets in after the team approves and links it to Unleashed).
+A.addprospect = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req);
+  const f = { company: clean(b.company, 160), name: clean(b.name, 120), email: clean(b.email, 160).toLowerCase(), phone: clean(b.phone, 40), city: clean(b.city, 80), state: clean(b.state, 60), country: clean(b.country, 60), notes: clean(b.notes, 800) };
+  if (!f.company) return res.status(400).json({ error: 'Company name is required.' });
+  if (f.email && !EMAIL.test(f.email)) return res.status(400).json({ error: 'That e-mail does not look right.' });
+  if (f.email && (await db.select('users', 'select=id&email=eq.' + encodeURIComponent(f.email) + '&limit=1')).length) return res.status(409).json({ error: 'That e-mail already belongs to a portal user.' });
+  const co = (await db.insert('companies', [{ name: f.company, city: f.city || null, state: f.state || null, country: f.country || null, notes: f.notes || null, status: 'prospect', source: 'manual' }]))[0];
+  if (f.email) await db.insert('users', [{ company_id: co.id, email: f.email, name: f.name || null, phone: f.phone || null, role: 'owner', status: 'pending' }]);
+  await PS.audit(w.email, 'prospect.add', 'company', co.id, null, { company: f.company });
+  return res.json({ ok: true, id: co.id });
+};
 A.audit = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
