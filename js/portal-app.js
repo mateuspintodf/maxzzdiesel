@@ -103,6 +103,7 @@
   ];
   var ENG = [{ k: 'f', label: 'Ford · Power Stroke' }, { k: 'c', label: 'Ram / Dodge · Cummins' }, { k: 'd', label: 'Chevy / GMC · Duramax' }, { k: 'h', label: 'Heavy duty trucks' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
+  var HPC = {};
   var BENCH = {
     // Remade 4:3 from the Unleashed original, and family photos for similar parts
     'RB.410.08.009': '/img/p/robiel-41008009-repair-kit-bosch-6-7l-powerstroke.webp',
@@ -2378,7 +2379,7 @@
       { c: 'Training', i: 'school', n: 'DTA complete bundle', d: 'Every DTA course for one technician.', p: 40000 },
       { c: 'Experiences', i: 'bench', n: 'Bench day at Maxzz Florida', d: 'A day at our Coconut Creek bench with our technicians.', p: 35000 },
       { c: 'Experiences', i: 'mic', n: 'Private technical session', d: 'One hour online with our senior instructor on your toughest case.', p: 30000 },
-      { c: 'Experiences', i: 'people', n: 'Trade show meetup', d: 'Lunch with the Maxzz team at ADS or AAPEX.', p: 20000 }], sortBy: '', specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
+      { c: 'Experiences', i: 'people', n: 'Trade show meetup', d: 'Lunch with the Maxzz team at ADS or AAPEX.', p: 20000 }], sortBy: '', hsort: '', rank: null, specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
     vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
@@ -2389,17 +2390,31 @@
     get pendingCount() { return this.accounts.filter(function (a) { return a.status === 'pending'; }).length; },
     get engMake() { var k = this.vMake || this.vLast; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
     get curMake() { var k = this.vMake; return this.fit.tree.filter(function (m) { return m.key === k; })[0] || null; },
-    get featured() {
-      var self = this, picks = Object.keys(BENCH).concat(['BO.0.986.435.433', 'BO.0.986.435.410', 'BO.0.445.117.023', 'BO.0.445.020.146']);
-      var out = picks.map(function (c) { return self.map[c]; }).filter(Boolean);
-      out = out.filter(function (r) { return self.hasImg(r[0]); });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if ((r[3] === 'Injector' || r[3] === 'Pump') && self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
-      // reviewed titles first: the first row a visitor sees should read cleanly
-      var sp = this.specs || {}, cur = function (r) { return sp[r[0]] && sp[r[0]].title ? 0 : 1; };
-      this.cat.some(function (r) { if (out.length >= 24) return true; if (cur(r) === 0 && self.hasImg(r[0]) && out.indexOf(r) < 0) out.push(r); return false; });
-      return out.map(function (r, i) { return [cur(r), i, r]; }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).map(function (x) { return x[2]; }).slice(0, 8);
+    // home blocks: the parts with the deepest stock first (order from /api/instock, no quantities), photo first within that
+    rk: function (c) { var r = this.rank; return r && r[c] != null ? r[c] : 1e6; },
+    homePick: function (keep, n, tag) {
+      var mk = tag + '|' + this.cat.length + '|' + (this.rank ? 1 : 0) + '|' + Object.keys(this.imgs).length + '|' + (this.specs ? 1 : 0) + '|' + (this.book ? this.book.at : 0) + '|' + this.hsort;
+      if (HPC[tag] && HPC[tag].k === mk) return HPC[tag].v;
+      var self = this, sp = this.specs || {}, pool = this.cat.filter(function (r) { return keep(r) && !(self.hideOut && self.hid(r[0])); });
+      var sc = function (r) { return (self.hasImg(r[0]) ? 0 : 2e6) + self.rk(r[0]) + (sp[r[0]] && sp[r[0]].title ? 0 : 0.5); };
+      var v = this.homeSort(pool.map(function (r, i) { return [sc(r), i, r]; }).sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).slice(0, n).map(function (x) { return x[2]; }));
+      HPC[tag] = { k: mk, v: v }; return v;
     },
+    homeSort: function (list) {
+      var self = this, s = this.hsort; if (!s) return list;
+      var pr = function (x) { var p = self.price(x[0]); return p == null ? (s === 'plo' ? 1e12 : -1) : p; };
+      list = list.slice();
+      if (s === 'pn') list.sort(function (a, b) { return a[0] < b[0] ? -1 : 1; });
+      if (s === 'plo') list.sort(function (a, b) { return pr(a) - pr(b); });
+      if (s === 'phi') list.sort(function (a, b) { return pr(b) - pr(a); });
+      return list;
+    },
+    get featured() {
+      var main = this.homePick(function (r) { return r[3] === 'Injector'; }, 8, 'inj');
+      if (main.length < 8) main = main.concat(this.homePick(function (r) { return r[3] === 'Pump'; }, 8 - main.length, 'pmp'));
+      return main;
+    },
+    get repairRow() { return this.homePick(function (r) { return r[3] === 'Repair part'; }, 8, 'rep'); },
     get engs() { return ENG; },
     get side() { return ['home', 'c', 's', 'g', 'all'].indexOf(this.route) >= 0; },
     get listTitle() {
@@ -2542,10 +2557,8 @@
     },
     get sug() { var q = this.qInput.trim(); if (q.length < 2 || !this.cat.length) return []; return matchSearch(this.cat, q).slice(0, 8); },
     get moreRow() {
-      var self = this, out = [], feat = this.featured;
-      ['Pump', 'Tool', 'Nozzle'].forEach(function (k) { var n = 0; self.cat.some(function (r) { if (r[3] === k && self.hasImg(r[0]) && out.indexOf(r) < 0 && feat.indexOf(r) < 0) { out.push(r); n++; } return n >= (k === 'Pump' ? 2 : 1); }); });
-      this.cat.some(function (r) { if (out.length >= 8) return true; if (self.hasImg(r[0]) && r[3] !== 'Injector' && out.indexOf(r) < 0 && feat.indexOf(r) < 0) out.push(r); return false; });
-      return out.slice(0, 8);
+      var feat = this.featured;
+      return this.homePick(function (r) { return ['Pump', 'Nozzle', 'Rail', 'Tool', 'Engine parts'].indexOf(r[3]) >= 0 && feat.indexOf(r) < 0; }, 8, 'more');
     },
     get shown() { return this.results.slice(0, this.limit); },
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
@@ -2830,6 +2843,7 @@
       fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
+      fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
         self.meLoaded = true;

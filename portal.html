@@ -13,7 +13,8 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}</style>
+<style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}.px-sh-r{display:flex;align-items:center;gap:14px}.px-sh-r .px-sort{height:38px}@media(max-width:560px){.px-sh{flex-wrap:wrap;gap:8px}.px-sh-r{width:100%;justify-content:space-between}}
+</style>
 <style>[v-cloak]{opacity:0}html,body{margin:0;background:#eef0f2}a{color:inherit;text-decoration:none}</style>
 
 <style>@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Light.woff2') format('woff2');font-weight:300;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-DemiBold.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-ExtraBold.woff2') format('woff2');font-weight:800;font-style:normal;font-display:swap}
@@ -1324,9 +1325,34 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 
 <div class="px-sec">
-<div class="px-sh"><h2>Featured parts</h2><a href="#/all">All parts</a></div>
+<div class="px-sh"><h2>Featured parts</h2><span class="px-sh-r"><select class="px-sort" v-model="hsort" aria-label="Sort"><option value="">Most in stock</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option></select><a href="#/all">All parts</a></span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in featured" :key="r[0]">
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
+<div class="sc-body">
+<span class="sc-pn" v-html="pnw(r[0])"></span>
+<span class="sc-cat"><span v-text="catLabel(r[3])"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
+<a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="title(r)"></a>
+<span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
+</div>
+<div class="sc-buy" v-if="logged">
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
+</div>
+<div class="sc-buy" v-else>
+<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
+</div>
+</article>
+</div>
+</div>
+
+<div class="px-sec" v-if="repairRow.length">
+<div class="px-sh"><h2>Repair parts</h2><a href="#/c/Repair%20part">All repair parts</a></div>
+<div class="px-grid4">
+<article class="sc" v-for="r in repairRow" :key="r[0]">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
@@ -2041,7 +2067,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=73"></script>
+<script src="/js/portal-app.js?v=74"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

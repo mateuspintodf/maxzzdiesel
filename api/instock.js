@@ -1,5 +1,5 @@
 // GET /api/instock
-// Returns the product codes that have stock on hand right now (no quantities, no prices).
+// Returns the product codes that have stock on hand right now, deepest stock first (no quantities, no prices).
 // Built from the stock copy api/cron-stock.js keeps in the private store. Used by the quick part finder.
 const { readJson } = require('../lib/store');
 
@@ -11,7 +11,7 @@ module.exports = async (req, res) => {
     if (!memo.codes || Date.now() - memo.at > TTL) {
       const st = await readJson('portal/stock.json');
       const qty = (st && st.qty) || {};
-      const codes = Object.keys(qty).filter((c) => Number(qty[c]) > 0);
+      const codes = Object.keys(qty).filter((c) => Number(qty[c]) > 0).sort((a, b) => Number(qty[b]) - Number(qty[a]));
       memo = { at: Date.now(), codes: codes.length ? codes : null };
     }
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
