@@ -1839,7 +1839,13 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <p class="px-muted">Your access is waiting for approval. You get an e-mail as soon as it is ready.</p>
 <a class="px-btn px-red" href="#/" style="width:100%;margin-top:18px">Back to the store</a>
 </div>
-<div class="px-scard" v-if="route === 'login'">
+<div class="px-scard" v-if="route === 'login' && lt">
+<h2>Confirm sign in</h2>
+<p class="px-muted">One more click to finish signing in on this device.</p>
+<button class="px-btn px-red" style="width:100%;margin-top:18px" :disabled="busy" @click="confirmLogin" v-text="busy ? 'Signing in...' : 'Sign in to the portal'"></button>
+<div class="px-err" v-if="err" v-text="err"></div>
+</div>
+<div class="px-scard" v-if="route === 'login' && !lt">
 <h2>Sign in</h2>
 <p class="px-muted">Enter the e-mail on your account. We send you a sign-in link, no password needed.</p>
 <form @submit.prevent="sendLink" style="margin-top:18px;display:flex;flex-direction:column;gap:12px" novalidate>
@@ -2025,7 +2031,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=70"></script>
+<script src="/js/portal-app.js?v=71"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

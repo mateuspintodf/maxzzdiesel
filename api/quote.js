@@ -7,6 +7,7 @@ const { createSalesQuote } = require('../lib/unleashed-quote');
 const { nextNumber, readJson, writeJson } = require('../lib/store');
 const { authenticate } = require('../lib/auth');
 const crypto = require('crypto');
+const PS = require('../lib/portal-store');
 const { send } = require('../lib/mail');
 
 module.exports = async (req, res) => {
@@ -19,7 +20,7 @@ module.exports = async (req, res) => {
   const customer = { name: clean(c.name, 120), company: clean(c.company, 160), email: clean(c.email, 160).toLowerCase(), phone: clean(c.phone, 40), type: clean(c.type, 80), notes: clean(c.notes, 2000) };
   const lines = (Array.isArray(b.lines) ? b.lines : []).slice(0, 300).map((l) => ({ pn: clean(l.pn, 80), name: clean(l.name, 240), qty: Math.max(1, Math.min(99999, parseInt(l.qty, 10) || 1)) }));
   const store = /B2B store/.test(clean(b.source, 300));
-  let number = store ? await nextNumber('quote') : (clean(b.number, 40) || ('QR-' + Date.now()));
+  let number = store ? (PS.on() ? await PS.nextNumber('quote') : await nextNumber('quote')) : (clean(b.number, 40) || ('QR-' + Date.now()));
   const s = b.shipping || {};
   const ship = { street: clean(s.street, 160), country: clean(s.country, 60), state: clean(s.state, 60), city: clean(s.city, 80), zip: clean(s.zip, 20), method: clean(s.method, 60), needBy: clean(s.needBy, 20), po: clean(s.po, 60) };
   const b2b = b.b2b === true;
@@ -28,7 +29,8 @@ module.exports = async (req, res) => {
   const extra = [shipText && ('Ship to: ' + shipText), ship.method && ('Delivery: ' + ship.method), ship.needBy && ('Needed by: ' + ship.needBy),
     ship.po && ('PO / reference: ' + ship.po), b2b && 'Wants early access to the B2B ordering platform', source && ('Source: ' + source)].filter(Boolean);
   // signed-in store users already have a verified e-mail and contact on file: phone is optional for them
-  const who = store ? (((await authenticate(req)) || {}).email || null) : null;
+  const auth = store ? await authenticate(req) : null;
+  const who = auth ? auth.email : null;
   const phoneOk = customer.phone.replace(/\D/g, '').length >= 7 || (!customer.phone && who && who === customer.email);
   if (!customer.name || !customer.company || !EMAIL.test(customer.email) || !phoneOk || !lines.length) {
     return res.status(400).json({ error: 'missing fields' });
@@ -41,7 +43,8 @@ module.exports = async (req, res) => {
   // signed-in users keep a history of their quote requests in the store
   if (who) {
     const key = 'portal/quotes/' + crypto.createHash('sha256').update(who).digest('hex').slice(0, 24) + '.json';
-    try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, needBy: ship.needBy, ship: shipText, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }
+    if (PS.on()) { try { await PS.saveQuote(auth.account && auth.account.id, auth.user && auth.user.id, who, { id: number, ship: shipText, po: ship.po, needBy: ship.needBy, notes: customer.notes, ulGuid: ulq.guid || null, lines }); } catch (e) { console.error('quote history', e.message); } }
+    else try { const list = (await readJson(key)) || []; list.unshift({ id: number, created: Date.now(), status: 'Sent', ulGuid: ulq.guid || null, po: ship.po, needBy: ship.needBy, ship: shipText, notes: customer.notes, lines }); await writeJson(key, list.slice(0, 200)); } catch (e) { console.error('quote history', e.message); }
   }
   if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
   try {
