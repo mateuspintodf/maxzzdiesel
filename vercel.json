@@ -118,6 +118,36 @@
   ],
   "redirects": [
     {
+      "source": "/product/tool-set-cp3-pump",
+      "destination": "/parts/rb-323-50-34",
+      "permanent": true
+    },
+    {
+      "source": "/product/tool-set-isx15-xpi-isl",
+      "destination": "/parts/rb-323-50-38",
+      "permanent": true
+    },
+    {
+      "source": "/product/tool-set-volvo-d12a-d12c-d12d-d13a",
+      "destination": "/parts/rb-323-50-33",
+      "permanent": true
+    },
+    {
+      "source": "/product/fixing-flange-cp3-pump",
+      "destination": "/parts/rb-324-55-01",
+      "permanent": true
+    },
+    {
+      "source": "/product/bracket-high-pressure-pump",
+      "destination": "/parts/rb-324-55-00",
+      "permanent": true
+    },
+    {
+      "source": "/wp-content/uploads/2023/11/Repair-Kits-JAVA-2.pdf",
+      "destination": "/parts/v/java",
+      "permanent": true
+    },
+    {
       "source": "/fratelli-bosio",
       "destination": "/partners",
       "permanent": true
@@ -418,7 +448,7 @@
       "permanent": true
     },
     {
-      "source": "/java",
+      "source": "/java/:path*",
       "destination": "/partners",
       "permanent": true
     },
@@ -548,38 +578,38 @@
       "permanent": true
     },
     {
-      "source": "/volvo-penta-launches-new-line-of-diesel-engine-parts-for-marine-applications-promising-increased-performance-and-efficiency",
-      "destination": "/",
+      "source": "/volvo-penta-launches-new-line-of-diesel-engine-parts-for-marine-applications-promising-increased-performance-and-efficiency/:path*",
+      "destination": "/partners",
       "permanent": true
     },
     {
-      "source": "/new-study-shows-diesel-injection-parts-can-improve-fuel-efficiency-and-reduce-emissions",
-      "destination": "/",
+      "source": "/new-study-shows-diesel-injection-parts-can-improve-fuel-efficiency-and-reduce-emissions/:path*",
+      "destination": "/resources",
       "permanent": true
     },
     {
-      "source": "/volvos-new-line-of-diesel-engine-parts-for-heavy-equipment-promises-increased-efficiency-and-durability",
-      "destination": "/",
+      "source": "/volvos-new-line-of-diesel-engine-parts-for-heavy-equipment-promises-increased-efficiency-and-durability/:path*",
+      "destination": "/partners",
       "permanent": true
     },
     {
-      "source": "/what-happens-when-gasoline-meets-diesel",
-      "destination": "/",
+      "source": "/what-happens-when-gasoline-meets-diesel/:path*",
+      "destination": "/resources",
       "permanent": true
     },
     {
-      "source": "/maximizing-the-lifespan-of-diesel-engines-in-trucks",
-      "destination": "/",
+      "source": "/maximizing-the-lifespan-of-diesel-engines-in-trucks/:path*",
+      "destination": "/resources",
       "permanent": true
     },
     {
-      "source": "/what-is-the-best-diesel-today",
-      "destination": "/",
+      "source": "/what-is-the-best-diesel-today/:path*",
+      "destination": "/resources",
       "permanent": true
     },
     {
-      "source": "/can-older-engines-run-on-diesel-s-10",
-      "destination": "/",
+      "source": "/can-older-engines-run-on-diesel-s-10/:path*",
+      "destination": "/resources",
       "permanent": true
     },
     {
