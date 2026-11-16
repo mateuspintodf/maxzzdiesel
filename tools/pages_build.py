@@ -19,8 +19,8 @@ import site_content as C
 
 SITE = SB.SITE
 E = html.escape
-GUIDES_LIVE = False       # guides stay noindex and out of the sitemap until they are reviewed by Waldyr and Arthur
-REVIEWED = False          # flips the byline from "review pending" to "reviewed by"
+GUIDES_LIVE = True       # guides stay noindex and out of the sitemap until they are reviewed by Waldyr and Arthur
+REVIEWED = True          # flips the byline from "review pending" to "reviewed by"
 TODAY = '2026-11-16'
 
 CAT = json.load(open(ROOT / 'data/catalog.json', encoding='utf-8'))
