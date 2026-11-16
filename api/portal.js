@@ -13,6 +13,7 @@ const { authenticate } = require('../lib/auth');
 const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
 const dbm = require('../lib/db');
+const { hiddenSet } = require('../lib/hidden');
 const { send, esc } = require('../lib/mail');
 const { upsertContact, addNote, addTask } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
@@ -46,13 +47,15 @@ const id = () => crypto.randomBytes(8).toString('hex');
 const whoami = (req) => authenticate(req);
 
 // prices for one account: its Unleashed tier, or the default sell price
-async function priceBook(account) {
+async function priceBook(account, admin) {
+  const hid = admin ? new Set() : await hiddenSet();
   const prod = await cached('portal/products.json', 10 * 60 * 1000);
   const stock = await cached('portal/stock.json', 10 * 60 * 1000);
   if (!prod) return null;
   const idx = account && account.tier ? (prod.tiers || []).findIndex((t) => String(t).toLowerCase() === String(account.tier).toLowerCase()) : -1;
   const out = {};
   for (const [code, p] of Object.entries(prod.items || {})) {
+    if (hid.has(code)) continue;
     let price = idx >= 0 ? p.t[idx] : null;
     if (!(price > 0)) price = p.d;
     if (!(price > 0)) price = null; // zero or missing price shows "Ask us" and cannot be ordered
@@ -64,7 +67,7 @@ async function priceBook(account) {
 function orderMail(o) {
   return `<p>Order <b>${esc(o.number)}</b>${o.po ? ` · PO ${esc(o.po)}` : ''}</p>
 <table width="100%" cellpadding="6" style="border-collapse:collapse;font-size:14px">${o.lines.map((l) =>
-    `<tr style="border-bottom:1px solid #eef0f2"><td>${esc(l.code)}<br><span style="color:#8a9097">${esc(l.name)}</span></td><td align="right" style="padding-left:16px;white-space:nowrap;vertical-align:top">${l.qty} × $${l.price.toFixed(2)}</td></tr>`).join('')}
+    `<tr style="border-bottom:1px solid #eef0f2"><td>${esc(l.code)}${l.backorder ? ' <b style="color:#c26a0a">BACKORDER</b>' : ''}<br><span style="color:#8a9097">${esc(l.name)}</span></td><td align="right" style="padding-left:16px;white-space:nowrap;vertical-align:top">${l.qty} × $${l.price.toFixed(2)}</td></tr>`).join('')}
 <tr><td><b>Total</b></td><td align="right"><b>$${o.total.toFixed(2)}</b></td></tr></table>`;
 }
 
@@ -74,7 +77,8 @@ const A = {};
 A.images = async (req, res) => {
   const prod = await cached('portal/products.json', 30 * 60 * 1000);
   const out = {};
-  for (const [code, p] of Object.entries((prod && prod.items) || {})) if (p.img && /^https:\/\//.test(p.img)) out[code] = p.img;
+  const hid = await hiddenSet();
+  for (const [code, p] of Object.entries((prod && prod.items) || {})) if (!hid.has(code) && p.img && /^https:\/\//.test(p.img)) out[code] = p.img;
   res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
   return res.json(out);
 };
@@ -201,7 +205,7 @@ A.prices = async (req, res) => {
   const w = await whoami(req);
   if (!w) return res.status(401).json({ error: 'login' });
   if (!w.admin && !(w.account && w.account.status === 'approved')) return res.status(403).json({ error: 'pending' });
-  const book = await priceBook(w.account);
+  const book = await priceBook(w.account, w.admin);
   if (!book) return res.status(503).json({ error: 'catalog syncing' });
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json(book);
@@ -264,7 +268,7 @@ A.order = async (req, res) => {
   if (!w || !w.account || w.account.status !== 'approved') return res.status(w ? 403 : 401).json({ error: 'login' });
   if (await limited(req, 'order', 10, 60 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
   const b = readBody(req);
-  const book = await priceBook(w.account);
+  const book = await priceBook(w.account, w.admin);
   const prod = await cached('portal/products.json', 10 * 60 * 1000);
   const names = {}; const cat = await cached('catalog/live.json', 30 * 60 * 1000);
   (cat || []).forEach((r) => { names[r[0]] = r[1]; });
@@ -277,7 +281,9 @@ A.order = async (req, res) => {
     const code = clean(l.code, 60), qty = Math.min(9999, Math.max(1, parseInt(l.qty, 10) || 0));
     const p = book && book.items[code];
     if (!p || p[0] == null) return res.status(400).json({ error: 'Part ' + code + ' has no online price. Remove it from the cart and add it to a quote request instead.', code });
-    lines.push({ code, name: names[code] || code, qty, price: p[0], total: money(p[0] * qty) });
+    // nothing is blocked by stock: lines above what is on hand go through as backorder and are flagged for the sales team
+    const onHand = p[1];
+    lines.push({ code, name: names[code] || code, qty, price: p[0], total: money(p[0] * qty), backorder: onHand != null && qty > onHand, stock: onHand });
   }
   if (!lines.length) return res.status(400).json({ error: 'empty' });
   const s = b.ship || {};
@@ -302,7 +308,7 @@ A.order = async (req, res) => {
     const guid = PS.on() ? o.id : crypto.randomUUID();
     const body = {
       Guid: guid, OrderStatus: 'Parked', OrderDate: t.toISOString(), Customer: { CustomerCode: w.account.customerCode },
-      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
+      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
       SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, LineTotal: l.total, LineTax: 0 })),

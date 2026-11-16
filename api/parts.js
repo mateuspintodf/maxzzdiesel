@@ -210,6 +210,17 @@ function hubPage(db) {
   return page({ title: 'Diesel Injection Parts Catalog by Part Number | Maxzz Diesel', desc: 'Diesel fuel injectors, pumps, nozzles, valves, repair kits and tools by part number, vehicle and engine. Wholesale from Coconut Creek, Florida, since 1992.', canon: '/parts', body, ld, crumbs: [['Home', '/'], ['Parts catalog', '/parts']] });
 }
 
+// a copy of the index without the products an admin hid
+function visible(d, hid) {
+  const keep = (arr) => arr.filter((p) => !hid.has(p.code));
+  const out = Object.assign({}, d, { bySlug: {}, byCode: {}, cats: {}, makes: {}, engs: {} });
+  Object.entries(d.bySlug).forEach(([k, p]) => { if (!hid.has(p.code)) out.bySlug[k] = p; });
+  Object.entries(d.byCode).forEach(([k, p]) => { if (!hid.has(p.code)) out.byCode[k] = p; });
+  Object.entries(d.cats).forEach(([k, a]) => { const v = keep(a); if (v.length) out.cats[k] = v; });
+  Object.entries(d.makes).forEach(([k, m]) => { const v = keep(m.items); if (v.length) out.makes[k] = Object.assign({}, m, { items: v }); });
+  Object.entries(d.engs).forEach(([k, e]) => { const v = keep(e.items); if (v.length) out.engs[k] = Object.assign({}, e, { items: v }); });
+  return out;
+}
 function sitemap(db) {
   const urls = ['/parts'];
   Object.entries(CATS).forEach(([k, c]) => { if (db.cats[k]) { const n = Math.ceil(db.cats[k].length / PER); for (let i = 1; i <= n; i++) urls.push('/parts/c/' + c.s + (i > 1 ? '?page=' + i : '')); } });
@@ -221,9 +232,10 @@ function sitemap(db) {
 
 function redirect(res, to) { res.statusCode = 301; res.setHeader('Location', to); res.setHeader('Cache-Control', 'public, s-maxage=86400'); res.end(); }
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   try {
-    const db = load();
+    const hid = await require('../lib/hidden').hiddenSet();
+    const db = hid.size ? visible(load(), hid) : load();
     const u = new URL(req.url, 'http://x');
     const kind = u.searchParams.get('k') || '';
     const raw = u.searchParams.get('id') || '';

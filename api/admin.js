@@ -158,6 +158,31 @@ A.addprospect = async (req, res) => {
   await PS.audit(w.email, 'prospect.add', 'company', co.id, null, { company: f.company });
   return res.json({ ok: true, id: co.id });
 };
+// ---- admin people and roles (superadmin only). PORTAL_ADMINS stays as a read-only bootstrap list of superadmins.
+const ROLES = ['superadmin', 'sales', 'marketing'];
+A.admins = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const rows = await db.select('admins', 'select=email,name,role,active,created_at,created_by&order=created_at');
+  const inTable = new Set(rows.map((r) => String(r.email).toLowerCase()));
+  const boot = envAdmins().filter((e) => !inTable.has(e)).map((e) => ({ email: e, name: '', role: 'superadmin', active: true, bootstrap: true }));
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot), roles: ROLES });
+};
+A['admin-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const b = readBody(req);
+  const email = clean(b.email, 160).toLowerCase(), role = clean(b.role, 20), name = clean(b.name, 120), active = b.active !== false;
+  if (!EMAIL.test(email)) return res.status(400).json({ error: 'That e-mail does not look right.' });
+  if (!ROLES.includes(role)) return res.status(400).json({ error: 'role' });
+  if (email === w.email && (!active || role !== 'superadmin')) return res.status(400).json({ error: 'You cannot remove your own superadmin access.' });
+  const before = (await db.select('admins', 'select=*&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0] || null;
+  await db.insert('admins', [{ email, role, name: name || null, active, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
+  if (!active || (before && before.role !== role)) await SDB.revokeEmail(email, w.email, 'admin').catch(() => {}); // new rights start at the next sign-in
+  await PS.audit(w.email, before ? 'admin.update' : 'admin.create', 'admin', email, before && { role: before.role, active: before.active }, { role, active });
+  return res.json({ ok: true });
+};
 A.audit = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });

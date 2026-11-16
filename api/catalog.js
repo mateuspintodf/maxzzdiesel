@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const { toRow } = require('../lib/catalog-map');
+const { hiddenSet } = require('../lib/hidden');
 
 const { head, get } = require('@vercel/blob');
 let memo = { at: 0, rows: null, src: 'snapshot' };
@@ -38,7 +39,8 @@ module.exports = async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('X-Catalog-Source', memo.src);
     res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
-    res.status(200).send(JSON.stringify(memo.rows));
+    const hid = await hiddenSet();
+    res.status(200).send(JSON.stringify(hid.size ? memo.rows.filter((r) => !hid.has(r[0])) : memo.rows));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'catalog unavailable' });
