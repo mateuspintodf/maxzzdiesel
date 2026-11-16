@@ -85,6 +85,16 @@ A.images = async (req, res) => {
   return res.json(out);
 };
 
+// read-only, admins only: the Unleashed product groups (names only) and the portal category each one maps to
+A.groups = async (req, res) => {
+  const w = await authenticate(req);
+  if (!w || !w.admin) return res.status(401).json({ error: 'admins only' });
+  const { category } = require('../lib/catalog-map');
+  const d = await ul('ProductGroups', '', { timeoutMs: 20000 });
+  const items = ((d && d.Items) || []).map((g) => { const c = category(g.GroupName); return { name: g.GroupName, parent: (g.ParentGroup && g.ParentGroup.GroupName) || null, modified: g.LastModifiedOn || null, portal: c ? c[1] : 'hidden' }; });
+  return res.json({ count: items.length, items });
+};
+
 // configuration check without revealing any value
 // "Bought together" map built daily from Unleashed sales history (product codes only).
 A.related = async (req, res) => {
