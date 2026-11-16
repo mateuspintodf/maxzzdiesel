@@ -1100,7 +1100,7 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 
 /* Sticky category bar and filter column while scrolling (offsets measured in JS) */
 @media (min-width:761px){.px-bar{position:sticky;top:var(--pxh,88px);z-index:90}}
-@media (min-width:961px){.px-side{position:sticky;top:calc(var(--pxh,88px) + var(--pxbar,62px) + 14px);max-height:calc(100vh - var(--pxh,88px) - var(--pxbar,62px) - 28px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}}
+@media (min-width:961px){.px-side{position:static;align-self:start;max-height:none;overflow:visible}}
 </style>
 
 <style>
