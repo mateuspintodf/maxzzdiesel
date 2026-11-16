@@ -359,7 +359,7 @@ select.qx-in{appearance:auto}
 .qx-more-d summary{cursor:pointer;font-size:15px;font-weight:600;list-style-position:inside}
 .qx-more-d summary span{font-weight:400;font-size:13px;color:#5f656c;margin-left:6px}
 .qx-p2 .qx-check{margin-top:18px;padding:12px 14px;font-size:13.5px}
-.qx-p2-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:space-between}
+.qx-known{display:flex;flex-wrap:wrap;gap:14px;justify-content:space-between;align-items:center;padding:18px 20px;border-radius:16px;background:#eef0f2;margin-top:18px}.qx-known>div{display:flex;flex-direction:column;gap:2px;min-width:0;font-size:14px;color:#5a5a60}.qx-known b{font-size:16px;color:#1d2126}.qx-p2-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:space-between}
 .qx-p2 .qx-in:focus{border-color:#1e1e87;box-shadow:0 0 0 3px rgba(30,30,135,.12)}
 .qx-p2 .qx-in:focus-visible{outline:none}
 @media (max-width:640px){.qx-g2,.qx-g3{grid-template-columns:1fr}.qx-p2-actions .qx-btn{flex:1}}
@@ -408,7 +408,7 @@ select.qx-in{appearance:auto}
 </div>
 <ol class="qx-steps" aria-label="Pasos de la cotización">
 <li :class="phase === 1 ? 'on' : 'done'"><b>1</b>Lista de repuestos</li>
-<li :class="phase === 2 ? 'on' : (phase > 2 ? 'done' : '')"><b>2</b>Envío y datos</li>
+<li :class="phase === 2 ? 'on' : (phase > 2 ? 'done' : '')"><b>2</b>Details and send</li>
 <li :class="phase === 3 ? 'on' : ''"><b>3</b>Cotización enviada</li>
 </ol>
 </div>
@@ -484,8 +484,10 @@ select.qx-in{appearance:auto}
 
 <!-- PHASE 2: details and shipping -->
 <div class="qx-card qx-p2" v-if="phase === 2 && !reviewing">
-<div class="qx-p2-head"><div><h2 class="qx-h2">¿A dónde enviamos la cotización?</h2><p class="qx-muted" style="margin:4px 0 0">Toma menos de un minuto. Cotizamos el flete a tu código postal.</p></div><span class="qx-p2-count"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><span v-text="lines.length + (lines.length === 1 ? ' pieza' : ' piezas') + ' para cotizar'"></span></span></div>
+<div class="qx-p2-head"><div><h2 class="qx-h2">¿A dónde enviamos la cotización?</h2><p class="qx-muted" style="margin:4px 0 0" v-text="compact ? 'Your details are saved on this device. Check the list and send.' : 'Four fields. We confirm freight in the quote.'"></p></div><span class="qx-p2-count"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><span v-text="lines.length + (lines.length === 1 ? ' pieza' : ' piezas') + ' para cotizar'"></span></span></div>
 
+<div class="qx-known" v-if="compact"><div><span class="qx-sec-t">Sending as</span><b v-text="d.name + ' · ' + d.company"></b><span v-text="d.email + ' · ' + d.phone"></span><span v-text="[d.city, d.state, d.zip, d.country].filter(Boolean).join(', ')"></span></div><button type="button" class="qx-btn qx-out" @click="compact = false">Editar datos</button></div>
+<div v-if="!compact">
 <div class="qx-sec"><span class="qx-sec-t">Contacto</span>
 <div class="qx-g2">
 <label class="qx-f" :class="bad.indexOf('name') >= 0 ? 'bad' : ''">Nombre completo <i>*</i><input class="qx-in" v-model="d.name" data-k="name" autocomplete="name"><span class="qx-ferr">Obligatorio</span></label>
@@ -497,7 +499,7 @@ select.qx-in{appearance:auto}
 <div class="qx-sec"><span class="qx-sec-t">Enviar a</span>
 <div class="qx-g4">
 <label class="qx-f" :class="bad.indexOf('country') >= 0 ? 'bad' : ''">País <i>*</i><select class="qx-in" v-model="d.country" data-k="country" @change="lookupZip"><option value="">Elegir</option><option value="United States">Estados Unidos</option><option value="Canada">Canadá</option><option value="Mexico">México</option><option value="Puerto Rico">Puerto Rico</option><option value="Brazil">Brasil</option><option value="Colombia">Colombia</option><option value="Chile">Chile</option><option value="Peru">Perú</option><option value="Other Latin America">Otro país de Latinoamérica</option><option value="Other">Otro</option></select><span class="qx-ferr">Obligatorio</span></label>
-<label class="qx-f qx-zipf" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">Código postal <i v-if="zipRequired">*</i><input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code" inputmode="text" @input="lookupZip"><span class="qx-ferr">Obligatorio para EE. UU. y Canadá</span><small class="qx-zipok" v-if="zipMsg" :title="zipMsg" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></small><span class="qx-sr" role="status" v-text="zipMsg"></span></label>
+<label class="qx-f qx-zipf" :class="bad.indexOf('zip') >= 0 ? 'bad' : ''">Código postal<input class="qx-in" v-model="d.zip" data-k="zip" autocomplete="postal-code" inputmode="text" @input="lookupZip"><span class="qx-ferr">Obligatorio para EE. UU. y Canadá</span><small class="qx-zipok" v-if="zipMsg" :title="zipMsg" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></small><span class="qx-sr" role="status" v-text="zipMsg"></span></label>
 <label class="qx-f">Ciudad<input class="qx-in" v-model="d.city" autocomplete="address-level2"></label>
 <label class="qx-f">Estado<input class="qx-in" v-model="d.state" autocomplete="address-level1"></label>
 </div>
@@ -523,11 +525,12 @@ select.qx-in{appearance:auto}
 <label class="qx-f" style="margin-top:10px">Notas para nuestro equipo<textarea class="qx-in" v-model="d.notes" placeholder="Serie del motor, devolución de cascos, envíos parciales"></textarea></label>
 </details>
 
+</div>
 <label class="qx-check"><input type="checkbox" v-model="d.b2b"><span><b>Acceso anticipado a la compra directa B2B.</b> Tus precios, inventario y pedidos en línea en un solo lugar. Te invitaremos primero.</span></label>
 <p class="qx-muted" v-if="err" style="color:#c2410c;margin:12px 0 0" v-text="err"></p>
 <div class="qx-p2-actions">
-<button type="button" class="qx-btn qx-out" @click="phase = 1">Volver a los repuestos</button>
-<button type="button" class="qx-btn qx-red" @click="toReview">Revisar y enviar</button>
+<button type="button" class="qx-btn qx-out" @click="phase = 1">Add more parts</button>
+<button type="button" class="qx-btn qx-red" :disabled="sending" @click="toReview" v-text="sending ? 'Enviando...' : 'Enviar solicitud de cotización'"></button>
 </div>
 </div>
 
@@ -588,7 +591,7 @@ select.qx-in{appearance:auto}
 <div class="qx-xs-row" v-for="s in xsShown"><div><span v-text="s.name"></span><small v-text="s.code + ' · ' + s.why"></small></div><button type="button" @click="add(s.code)">+ Agregar</button></div>
 </div>
 <button type="button" class="qx-btn qx-red" v-if="phase === 1 && !lines.length" disabled style="background:#3d444d;color:#b9b9be;cursor:default">Agrega una pieza para continuar</button>
-<button type="button" class="qx-btn qx-red qx-go" v-if="phase === 1 && lines.length" @click="toDetails">Continuar: envío y datos</button>
+<button type="button" class="qx-btn qx-red qx-go" v-if="phase === 1 && lines.length" @click="toDetails">Continue to send</button>
 <div class="qx-tools" v-if="lines.length"><button type="button" class="qx-tool" :class="copied ? 'ok' : ''" @click="copyLink"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg><span v-text="copied ? 'Enlace copiado' : 'Compartir lista'"></span></button><button type="button" class="qx-tool" @click="clearAll"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>Vaciar lista</button></div>
 <p style="margin:14px 0 0;color:#8a9099;font-size:12px;line-height:1.5">Aquí no se paga nada. Las cuentas mayoristas también pueden pedir por el <a href="https://maxzzdiesel.store.unleashedsoftware.com/" target="_blank" rel="noopener" style="color:#fc771d">portal B2B</a>.</p>
 </aside>
@@ -700,7 +703,7 @@ select.qx-in{appearance:auto}
 <script src="/js/petite-vue.iife.js"></script>
 <script>if (window.matchMedia && window.matchMedia('(max-width: 640px)').matches) window.hsConversationsSettings = { loadImmediately: false };</script>
 <script>/* HubSpot (chat + tracking) loads on first interaction or 3 s after the page loads, off the critical path */(function(){var done=0,ev=['pointerdown','keydown','touchstart','scroll'];function go(){if(done)return;done=1;ev.forEach(function(e){removeEventListener(e,go,{passive:true})});var s=document.createElement('script');s.id='hs-script-loader';s.async=true;s.src='https://js.hs-scripts.com/14488732.js';document.body.appendChild(s);}ev.forEach(function(e){addEventListener(e,go,{passive:true,once:true})});addEventListener('load',function(){setTimeout(go,3000)});})();</script>
-<script src="/js/quote-app.es.js?v=22"></script>
+<script src="/js/quote-app.es.js?v=23"></script>
 <script src="/js/motion.es.js?v=8" defer></script>
 <script src="/js/track.js?v=1" defer></script>
 </body>
