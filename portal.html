@@ -13,7 +13,8 @@
 <meta property="og:type" content="website">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}</style>
+<style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}.px-sh-r{display:flex;align-items:center;gap:14px}.px-sh-r .px-sort{height:38px}@media(max-width:560px){.px-sh{flex-wrap:wrap;gap:8px}.px-sh-r{width:100%;justify-content:space-between}}
+</style>
 <style>[v-cloak]{opacity:0}html,body{margin:0;background:#eef0f2}a{color:inherit;text-decoration:none}</style>
 
 <style>@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Light.woff2') format('woff2');font-weight:300;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Regular.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Medium.woff2') format('woff2');font-weight:500;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-DemiBold.woff2') format('woff2');font-weight:600;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-Bold.woff2') format('woff2');font-weight:700;font-style:normal;font-display:swap}@font-face{font-family:'BDO Grotesk';src:url('/assets/fonts/BDOGrotesk-ExtraBold.woff2') format('woff2');font-weight:800;font-style:normal;font-display:swap}
@@ -478,8 +479,8 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-gen{border:1px solid #dfe2e6;background:#fff;border-radius:50px;height:34px;padding:0 14px;font:inherit;font-size:13px;cursor:pointer}
 .px-gen:hover{border-color:#1d2126}
 .px-grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
-.sc{position:relative;background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .25s}
-.sc:hover{box-shadow:0 12px 28px rgba(29,33,38,.08)}
+.sc{position:relative;background:#fff;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .25s;box-shadow:0 0 0 1px #dcdfe3}.sc .sc-img{border-bottom:1px solid #e6e8eb}
+.sc:hover{box-shadow:0 0 0 1px #c9cdd2,0 12px 28px rgba(29,33,38,.08)}
 .sc-img{position:relative;aspect-ratio:4/3;background:#f4f5f6;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .sc-pnb{position:absolute;top:10px;left:10px;z-index:2;background:#d32a37;color:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;font-weight:600;letter-spacing:.01em;line-height:1;padding:4px 6px;border-radius:4px;box-shadow:none;max-width:calc(100% - 64px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc-img img{width:100%;height:100%;object-fit:contain;padding:12px;mix-blend-mode:multiply}
@@ -520,7 +521,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-fits{display:flex;flex-wrap:wrap;gap:6px}.px-fits a{border:1px solid #dfe2e6;border-radius:50px;padding:6px 12px;font-size:13px;background:#fff}.px-fits a:hover{border-color:#1d2126}
 .px-cartg{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
 .px-cl{display:grid;grid-template-columns:72px minmax(0,1fr) auto auto;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid #eef0f2}
-.px-cl .sc-img{width:72px;border-radius:7px;aspect-ratio:1/1}
+.px-cl .sc-img{width:72px;border-radius:7px;aspect-ratio:1/1;border-bottom:0}
 .px-sumbox{background:#1d2126;color:#fff;border-radius:12px;padding:24px;position:sticky;top:90px}
 .px-sumbox .px-btn{width:100%}
 @media (max-width:1100px){.px-ctiles{grid-template-columns:repeat(4,minmax(0,1fr))}.px-grid4{grid-template-columns:repeat(3,minmax(0,1fr))}.px-makes{grid-template-columns:repeat(3,1fr)}.px-cartg{grid-template-columns:1fr}.px-sumbox{position:static}}
@@ -827,7 +828,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px .px-fab-b{transition:transform .3s cubic-bezier(.2,.9,.25,1),box-shadow .3s}.px .px-fab-b:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(14,15,17,.34)}
 .px-fab-b{animation:pxPop .45s cubic-bezier(.3,1.4,.5,1) both}
 .sc{transition:box-shadow .4s,transform .4s cubic-bezier(.2,.9,.25,1)}
-.sc:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(29,33,38,.12)}
+.sc:hover{transform:translateY(-4px);box-shadow:0 0 0 1px #c9cdd2,0 20px 40px rgba(29,33,38,.12)}
 .sc-img img{transition:transform .7s cubic-bezier(.2,.9,.25,1)}
 .sc:hover .sc-img img{transform:scale(1.06)}
 .sc-pnb{transition:transform .35s cubic-bezier(.2,.9,.25,1)}.sc:hover .sc-pnb{transform:translateY(-1px)}
@@ -965,7 +966,7 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
 }
 .px-clr-top{display:none;justify-content:flex-end;margin:-6px 0 4px}@media (max-width:760px){.px-clr-top{display:flex}}
 .px-ltab .px-code2,.px .px-ltab td .px-code2{overflow-wrap:normal;word-break:keep-all}
-.px-trust{margin:14px 0 0;font-size:14px;color:#c9ced3;display:flex;flex-wrap:wrap;gap:4px 14px}.px-trust span{white-space:nowrap}.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}
+.px-hero .px-trust{margin:16px 0 0;display:flex;flex-wrap:wrap;gap:8px;max-width:none}@media (min-width:900px){.px-hero .px-trust{flex-wrap:nowrap}}.px-trust span{display:inline-flex;align-items:center;gap:8px;border:1px solid #3d444d;border-radius:50px;padding:5px 12px;font-size:12.5px;line-height:18px;color:#e6e7e9;white-space:nowrap}.px-trust svg{color:#fc771d;flex:none}
 .px-nf{margin-top:18px;background:#fff;border-radius:12px;padding:18px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.px-nf b{font-weight:500;color:#1d2126}.px-nf p{margin:2px 0 0;font-size:14px;color:#5f656c}
 @media (max-width:760px){.px-hero:not(.compact) .px-kpis{display:grid!important;grid-template-columns:1fr 1fr;width:100%}.px-kpis>a{min-width:0}.px-kpis .px-rw span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.px-eng{display:grid;grid-template-columns:72px 1fr;gap:8px}.px-eng b{min-width:0}.px-eng .px-gen{grid-column:2}}
 @media (min-width:761px){.px-pd-info{padding-bottom:72px}}
@@ -984,9 +985,9 @@ html.px-lb-open #hubspot-messages-iframe-container,html.px-lb-open .px-fab{visib
   .px .px-ltab .px-code2{white-space:nowrap}
 }
 /* r3 visual */
-@media (min-width:761px){.px-trust,.px-acc-line{flex-wrap:nowrap;white-space:nowrap;max-width:none}.px-hero-in>div{flex-basis:min(880px,100%)}}
-@media (min-width:761px) and (max-width:1199px){.px-trust,.px-acc-line{flex-wrap:wrap;white-space:normal}}
-@media (max-width:760px){.px-trust{flex-direction:column;gap:4px}.px-trust span::before,.px-trust span+span::before{content:'';display:inline-block;width:4px;height:4px;border-radius:50%;background:#fc771d;margin:0 10px 3px 0;vertical-align:middle}}
+@media (min-width:761px){.px-acc-line{flex-wrap:nowrap;white-space:nowrap;max-width:none}.px-hero-in>div{flex-basis:min(880px,100%)}}
+@media (min-width:761px) and (max-width:1199px){.px-acc-line{flex-wrap:wrap;white-space:normal}}
+
 .px-ordw{flex-wrap:wrap;border:1px solid #eef0f2;border-radius:9px;padding:6px;background:#fff}.px-ordw .px-ord{border:0}.px-ordw:hover{border-color:#c9ced3}
 @media (max-width:760px){.px-ordw{gap:6px}.px-ordw .px-reo{margin:0 10px 10px}}
 .px-nf .px-btns{gap:8px;flex-wrap:wrap}
@@ -1079,17 +1080,18 @@ html{scroll-padding-top:112px}.px-main :is(input,select,textarea){scroll-margin-
 .px .px-lvl.cur{box-shadow:0 0 0 2px var(--lc) inset,0 12px 28px rgba(29,33,38,.08)}
 /* part number as plain mono text, no chip */
 .px article.sc .sc-pn{background:none;padding:0;border-radius:0;color:#5f656c;font-size:12.5px}
-/* sign-in / request access: split layout, injector photo on the left half, text and form on the right (photo never behind the form) */
+.is-lp .px-wrap{padding-bottom:0!important}
+/* sign-in / request access: photo across the whole stage, text and benefits on the left on a dark translucent panel, form on the right */
 @media (min-width:1001px){
-  .px-stage .px-stage-bg{inset:0 auto auto 0!important;width:46%;height:100vh!important;max-height:100%;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 44% 62% / cover!important}
-  .px-stage .px-stage-bg:after{background:linear-gradient(90deg,rgba(18,20,23,0) 70%,#16191d 100%),linear-gradient(180deg,rgba(18,20,23,.55) 0%,rgba(18,20,23,0) 22%)!important}
-  .is-lp .px-stage-in,.px-stage .px-stage-in{display:flex!important;flex-direction:column;gap:20px;max-width:none;margin:0;padding:130px 56px 64px calc(46% + 56px)!important}
-  .px-stage .px-stage-l{display:contents}
-  .px-stage .px-stage-l>*{order:0;max-width:600px}
-  .px-stage .px-stage-in>.px-scard,.px-stage .px-stage-in>form,.px-stage .px-stage-in>div:not(.px-stage-l){order:1;max-width:600px;width:100%}
-  .px-stage .px-ben{order:2;grid-template-columns:repeat(3,1fr)!important;margin-top:8px}
-  .is-lp .px-stage-l h1,.px-stage .px-stage-l h1{font-size:40px;line-height:1.08;margin:0}
-  .px-stage .px-stage-l>p{margin:0}
+  .px-stage .px-stage-bg{inset:0!important;width:auto;height:auto!important;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 30% 60% / cover!important}
+  .px-stage .px-stage-bg:after{background:linear-gradient(180deg,rgba(18,20,23,.6) 0%,rgba(18,20,23,.15) 30%,rgba(18,20,23,.25) 100%)!important}
+  .is-lp .px-stage-in,.px-stage .px-stage-in{display:grid!important;grid-template-columns:minmax(0,1fr) 480px;gap:40px;align-items:start;max-width:1360px;margin:0 auto;padding:130px 56px 64px!important}
+  .px-stage .px-stage-l{display:block;background:rgba(14,16,19,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:36px 36px 40px}
+  .px-stage .px-stage-l>*{max-width:640px}
+  .px-stage .px-stage-in>.px-scard,.px-stage .px-stage-in>form,.px-stage .px-stage-in>div:not(.px-stage-l){max-width:none;width:100%}
+  .px-stage .px-ben{grid-template-columns:repeat(2,1fr)!important;margin-top:28px}
+  .is-lp .px-stage-l h1,.px-stage .px-stage-l h1{font-size:40px;line-height:1.08;margin:10px 0 0}
+  .px-stage .px-stage-l>p{margin:12px 0 0}
 }
 @media (max-width:1000px){
   .px-stage .px-stage-bg{bottom:auto!important;height:300px;background:#121417 url(/assets/mg/common-rail-diesel-injectors-bosch-delphi-denso.jpg) no-repeat 44% 72% / cover!important}
@@ -1221,7 +1223,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span v-text="me.account ? 'Price list ' + ((book && book.tier) || '...') : 'Admin preview, default prices'"></span>
 <span v-text="'Stock updated ' + ago(book && book.stockAt)"></span>
 </div>
-<p v-if="!logged && route === 'home'" class="px-trust"><span>Since 1992</span><span>Warehouse in Coconut Creek, FL</span><span>Bosch, Denso, Delphi, Zexel, Robiel</span><span>Ships to the US and Latin America</span></p>
+<p v-if="!logged && route === 'home'" class="px-trust"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Since 1992</span><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>5,800+ parts in Florida</span><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>In-stock parts ship same day</span><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>US and Latin America</span></p>
 <div class="px-pend" v-if="me && !logged && me.account && me.account.status === 'pending'">Your wholesale access is under review. We will e-mail you as soon as it is approved; meanwhile you can browse and build a quote list.</div>
 <div class="px-hs">
 <form @submit.prevent="search" role="search" autocomplete="off"><input type="search" role="combobox" :aria-expanded="sugOn && sug.length ? 'true' : 'false'" :aria-activedescendant="sugI >= 0 ? 'px-sug-' + sugI : ''" v-model="qInput" @input="sugInput" @focus="sugOn = true" @blur="sugBlur" @keydown="sugKey" :placeholder="narrow ? 'Part number or engine' : 'Part number, cross reference or engine'" aria-label="Search parts" aria-autocomplete="list" aria-controls="px-sug"><button class="px-btn px-red">Search</button></form>
@@ -1324,9 +1326,34 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 
 <div class="px-sec">
-<div class="px-sh"><h2>Featured parts</h2><a href="#/all">All parts</a></div>
+<div class="px-sh"><h2>Featured parts</h2><span class="px-sh-r"><select class="px-sort" v-model="hsort" aria-label="Show"><option value="">Suggested</option><option value="pop">Popular</option><option value="stock">Most in stock</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><optgroup label="Brand"><option v-for="b in hBrands" :value="'b:' + b" v-text="b"></option></optgroup></select><a href="#/all">All parts</a></span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in featured" :key="r[0]">
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
+<div class="sc-body">
+<span class="sc-pn" v-html="pnw(r[0])"></span>
+<span class="sc-cat"><span v-text="catLabel(r[3])"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
+<a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="title(r)"></a>
+<span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
+</div>
+<div class="sc-buy" v-if="logged">
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
+<div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
+</div>
+<div class="sc-buy" v-else>
+<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
+</div>
+</article>
+</div>
+</div>
+
+<div class="px-sec" v-if="repairRow.length">
+<div class="px-sh"><h2>Repair parts</h2><a href="#/c/Repair%20part">All repair parts</a></div>
+<div class="px-grid4">
+<article class="sc" v-for="r in repairRow" :key="r[0]">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
@@ -1394,7 +1421,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <!-- LIST: category, search, vehicle -->
 <div v-if="route === 'c' || route === 's' || route === 'g' || route === 'all'">
 <div class="px-crumb"><a href="#/">Store</a> / <span v-text="listTitle"></span></div>
-<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span style="white-space:nowrap" v-text="cat.length ? results.length.toLocaleString('en-US') + (results.length === 1 ? ' part' : ' parts') : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="">Best match</option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
+<div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span style="white-space:nowrap" v-text="cat.length ? results.length.toLocaleString('en-US') + (results.length === 1 ? ' part' : ' parts') : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="" v-text="route === 's' ? 'Best match' : 'Suggested'"></option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
 <div class="px-hint" v-if="!logged"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><a href="#/login">Sign in</a> to see your prices, live stock and order online.</span></div>
 <div class="px-chips" v-if="chips.length"><button type="button" class="px-chip" v-for="c in chips" @click="toggle(c.g, c.k)"><span v-text="c.label"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
 <div class="px-empty" v-if="cat.length && !results.length">
@@ -2041,7 +2068,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=73"></script>
+<script src="/js/portal-app.js?v=79"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
