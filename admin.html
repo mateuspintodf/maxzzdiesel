@@ -429,7 +429,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function navF() { return NAV.map(function (g) { return [g[0], g[1], g[2].filter(function (t) { return okTab(t[0]); })]; }).filter(function (g) { return g[2].length; }); }
   var SCR_PRESETS = { all: null, sales: ['dash', 'dir', 'pipe', 'sa', 'crm', 'goals'], marketing: ['dash', 'dir', 'segments', 'clients', 'prospects', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'] };
   var PAGE = {}; NAV.forEach(function (g) { g[2].forEach(function (t) { PAGE[t[0]] = { g: g[0], gn: g[1], n: t[1] }; }); });
-  var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer'], ['products', 'Parts'], ['portal', 'Portal']];
+  var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer']];
   var HEAD = {
     dash: function () { var v = S.dview || 'overview'; return '<div class="seg">' + DVIEWS.map(function (x) { return '<button data-act="dview" data-v="' + x[0] + '" class="' + (v === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       // the period box stays in place on every view; the customer and parts views are always the last 12 months
@@ -583,7 +583,6 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     h += '<div class="g3">' + sec('Segments', tbl([h0('Segment'), hr('Customers'), hr('12 months'), hr('Change')], ['champions', 'loyal', 'promising', 'need_attention', 'at_risk', 'hibernating', 'lost'].filter(function (x) { return sg[x]; }).map(function (x) { return '<tr data-act="dview" data-v="customers" data-sg="' + x + '"><td>' + st(x) + '</td><td class="r">' + n0(sg[x].n) + '</td><td class="r">' + k$(sg[x].r12) + '</td><td class="r">' + delta(sg[x].r12, sg[x].p12) + '</td></tr>'; }), 'click')) +
       sec('By salesperson', barRows(s.reps, function (r) { return esc(r.k) + ' <small>' + r.cust + ' customers · ' + r.due + ' to call</small>'; }, 'r12', k$)) +
       sec('By delivery country', barRows(s.countries, function (r) { return esc(r.k) + ' <small>' + r.cust + ' customers</small>'; }, 'r12', k$)) + '</div>';
-    h += '<div class="g3">' + sec('Leads and deals', '<p class="muted">HubSpot leads, deals and sources by period. The panel asks for its own password, separate from this admin.</p><a class="btn ghost sm" href="/painel" target="_blank" rel="noopener">Open sales panel ' + ic('ext', 14) + '</a>') + sec('Google Analytics', '<p class="muted">Not connected yet. Site traffic by channel, landing pages and quote form steps will show here.</p>') + sec('Instagram', '<p class="muted">Not connected yet. Reach, followers and the posts that brought visits will show here.</p>') + '</div>';
     return h;
   }
   function drawDCust() {
