@@ -233,6 +233,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 .oc{display:inline-block;font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;margin-left:6px;background:var(--soft);color:var(--ink2);vertical-align:1px}.oc.ordered,.oc.reached,.oc.quote_sent{background:var(--oks);color:var(--ok)}.oc.lost{background:#fdecee;color:var(--red)}
 .age{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--soft);color:var(--ink2)}.age.amb{background:#fff1e0;color:#9a4b00}.age.red{background:#fdecee;color:var(--red)}
 .vrule{display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--ink2);background:var(--soft);border-radius:12px;padding:8px 10px;margin:10px 0 0}.vrule.bad{background:#fdecee;color:var(--red)}.vrule svg{flex:none;margin-top:1px}
+.ph .acts .sel{width:206px;min-height:38px;box-sizing:border-box}.per-fixed{display:inline-flex;align-items:center;justify-content:flex-start;color:var(--muted);cursor:default;background-image:none!important;padding-right:16px}.seg button:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
 </style>
 </head>
 <body>
@@ -275,7 +276,9 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer'], ['products', 'Parts'], ['portal', 'Portal']];
   var HEAD = {
     dash: function () { var v = S.dview || 'overview'; return '<div class="seg">' + DVIEWS.map(function (x) { return '<button data-act="dview" data-v="' + x[0] + '" class="' + (v === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
-      (v === 'portal' || v === 'overview' ? '<select class="sel" data-act-change="days">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + d + ' days</option>'; }).join('') + '</select>' : ''); },
+      // the period box stays in place on every view; the customer and parts views are always the last 12 months
+      ((v === 'portal' || v === 'overview') ? '<select class="sel" data-act-change="days" aria-label="Period">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + (d === 365 ? '12 months' : d + ' days') + '</option>'; }).join('') + '</select>'
+        : '<span class="sel per-fixed" data-tip="This view always uses the last 12 months, compared with the 12 before">Period: last 12 months</span>'); },
     clients: function () { return '<label class="srch">' + ic('search', 16) + '<input type="search" data-m="q" value="' + esc(S.q) + '" placeholder="Company, code or e-mail"></label>'; },
     events: daysSel, bcomp: daysSel, stream: daysSel
   };
