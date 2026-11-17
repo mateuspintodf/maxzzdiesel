@@ -49,9 +49,11 @@ const id = () => crypto.randomBytes(8).toString('hex');
 
 const whoami = (req) => authenticate(req);
 
-// prices for one account: its Unleashed tier, or the default sell price
+const CAMP = require('../lib/campaigns');
+// prices for one account: its Unleashed tier, or the default sell price (lowered by a live campaign: [price, stock, img, unit, normal price, campaign])
 async function priceBook(account, admin) {
   const hid = admin ? new Set() : await hiddenSet();
+  const camps = await CAMP.live().catch(() => []);
   const prod = await cached('portal/products.json', 10 * 60 * 1000);
   const stock = await cached('portal/stock.json', 10 * 60 * 1000);
   if (!prod) return null;
@@ -62,7 +64,8 @@ async function priceBook(account, admin) {
     let price = idx >= 0 ? p.t[idx] : null;
     if (!(price > 0)) price = p.d;
     if (!(price > 0)) price = null; // zero or missing price shows "Ask us" and cannot be ordered
-    out[code] = [price == null ? null : money(price), stock && stock.qty ? (stock.qty[code] ?? 0) : null, p.img || null, p.u || null];
+    const deal = camps.length && price != null ? CAMP.bestFor(camps, code, money(price)) : null;
+    out[code] = [deal ? deal.price : price == null ? null : money(price), stock && stock.qty ? (stock.qty[code] ?? 0) : null, p.img || null, p.u || null, deal ? money(price) : null, deal ? deal.slug : null];
   }
   return { tier: idx >= 0 ? prod.tiers[idx] : 'Default', at: prod.at, stockAt: stock && stock.at, items: out };
 }
@@ -76,6 +79,11 @@ function orderMail(o) {
 
 const A = {};
 
+// public: live campaigns (name, badge, which parts), no prices
+A.campaigns = async (req, res) => {
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  return res.json({ campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []) });
+};
 // public: product image URLs only (no prices), for the open storefront
 A.images = async (req, res) => {
   const prod = await cached('portal/products.json', 30 * 60 * 1000);

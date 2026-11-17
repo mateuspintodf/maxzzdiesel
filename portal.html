@@ -1259,6 +1259,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-bar" v-if="!lp">
 <div class="px-bar-in">
 <nav class="px-catnav" aria-label="Categories">
+<a v-for="c in camps" :key="'cp' + c.slug" class="px-catcamp" :href="'#/promo/' + c.slug" :class="route === 'promo' && arg === c.slug ? 'on' : ''"><span class="ci" :style="{ background: c.color }"></span><span v-text="c.badge"></span></a>
 <a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" :class="route === 'c' && arg === c.k ? 'on' : ''"><span class="ci" v-html="icon(c.ic)"></span><span v-text="c.label"></span></a>
 <a href="#/all" :class="route === 'all' ? 'on' : ''"><span class="ci" v-html="icon('all')"></span>All parts</a>
 </nav>
@@ -1300,7 +1301,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Buy again</h2><a href="#/orders">Your orders</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in buyAgain" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1309,7 +1310,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1320,6 +1321,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </article>
 </div>
 </div>
+<div class="px-sec px-camps" v-if="camps.length"><a class="px-camp" v-for="c in camps" :key="c.slug" :href="'#/promo/' + c.slug" :style="{ background: c.color }"><span class="b" v-text="c.badge"></span><b v-text="c.name"></b><span class="d" v-text="c.description"></span><span class="m"><span v-text="c.codes.length + ' parts'"></span><span v-text="campEnds(c)"></span><span class="go">See all</span></span></a></div>
 <div class="px-sec">
 <div class="px-sh"><h2>Shop by vehicle</h2></div>
 <div class="px-makes">
@@ -1340,7 +1342,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Featured parts</h2><span class="px-sh-r"><select class="px-sort" v-model="hsort" aria-label="Show"><option value="">Suggested</option><option value="pop">Popular</option><option value="stock">Most in stock</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><optgroup label="Brand"><option v-for="b in hBrands" :value="'b:' + b" v-text="b"></option></optgroup></select><a href="#/all">All parts</a></span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in featured" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1349,7 +1351,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1365,7 +1367,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Repair parts</h2><a href="#/c/Repair%20part">All repair parts</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in repairRow" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1374,7 +1376,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1397,7 +1399,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>More from the catalog</h2><a href="#/all">All parts</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in moreRow" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1406,7 +1408,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1430,8 +1432,10 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 
 <!-- LIST: category, search, vehicle -->
-<div v-if="route === 'c' || route === 's' || route === 'g' || route === 'all'">
+<div v-if="route === 'c' || route === 's' || route === 'g' || route === 'all' || route === 'promo'">
 <div class="px-crumb"><a href="#/">Store</a> / <span v-text="listTitle"></span></div>
+<div class="px-promo-h" v-if="route === 'promo' && curCamp" :style="{ background: curCamp.color }"><span class="b" v-text="curCamp.badge"></span><h1 v-text="curCamp.name"></h1><p v-if="curCamp.description" v-text="curCamp.description"></p><div class="m"><span v-text="campEnds(curCamp)"></span><span v-text="curCamp.codes.length + (curCamp.codes.length === 1 ? ' part' : ' parts')"></span><span v-if="curCamp.pct" v-text="curCamp.pct + '% off your price'"></span><span v-if="!logged">Sign in to see your campaign price</span></div></div>
+<div class="px-empty" v-if="route === 'promo' && !curCamp && cat.length"><b>This campaign has ended.</b> See the parts on sale now or browse the full catalog.<div class="px-btns" style="justify-content:center;margin-top:12px"><a class="px-btn px-dark px-sm" href="#/all">All parts</a></div></div>
 <div class="px-list-h"><h1 v-text="listTitle"></h1><span style="display:flex;gap:12px;align-items:center"><span style="white-space:nowrap" v-text="cat.length ? results.length.toLocaleString('en-US') + (results.length === 1 ? ' part' : ' parts') : 'Loading parts'"></span><select class="px-sort" v-model="sortBy" aria-label="Sort"><option value="" v-text="route === 's' ? 'Best match' : 'Suggested'"></option><option value="photo">With photo first</option><option value="pn">Part number A to Z</option><option value="plo" v-if="logged">Price, low to high</option><option value="phi" v-if="logged">Price, high to low</option><option value="stock" v-if="logged">In stock first</option></select><button type="button" class="px-ib px-ftog" @click="showF = true">Filters<span class="px-n" v-if="fCount" v-text="fCount"></span></button></span></div>
 <div class="px-hint" v-if="!logged"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span><a href="#/login">Sign in</a> to see your prices, live stock and order online.</span></div>
 <div class="px-chips" v-if="chips.length"><button type="button" class="px-chip" v-for="c in chips" @click="toggle(c.g, c.k)"><span v-text="c.label"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
@@ -1442,7 +1446,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-grid4" v-if="!cat.length"><div class="px-sk" v-for="i in 8"></div></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in shown" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1451,7 +1455,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1483,7 +1487,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </dl>
 <div v-if="fits.length"><div class="px-muted" style="margin-bottom:8px">Shop this vehicle</div><div class="px-fits"><a v-for="g in fits" :href="'#/g/' + g.key" v-text="g.label + ' ' + (g.years || '')"></a></div></div>
 <div class="px-buybox" v-if="logged">
-<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="px-big" :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span><span class="px-big" :class="[price(pr[0]) == null ? 'px-por' : '', was(pr[0]) ? 'px-deal' : '']" v-text="fmt(price(pr[0]))"></span> <s class="sc-was" v-if="was(pr[0])" v-text="fmt(was(pr[0]))"></s> <a class="sc-cb rel" v-if="campOf[pr[0]]" :href="'#/promo/' + campOf[pr[0]].slug" :style="{ background: campOf[pr[0]].color }" v-text="campOf[pr[0]].badge"></a></span><span class="px-stock"><i class="px-dot" :class="stockClass(pr[0])"></i><span v-text="stockText(pr[0])"></span></span></div>
 <div class="px-prnote" v-if="canOrder && price(pr[0]) != null && !noBuy(pr[0])">Your wholesale price<span v-if="REWARDS.on && !REWARDS.demo" v-text="' · earns ' + pts(pr[0]).toLocaleString('en-US') + ' pts'"></span></div>
 <div class="px-qrow" v-if="canOrder && price(pr[0]) != null && !noBuy(pr[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(pr[0], cs(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(pr[0])" @change="csSet(pr[0], $event.target.value); $event.target.value = cs(pr[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(pr[0], cs(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red px-buy" :class="inCart(pr[0]) ? 'in' : ''" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? 'In cart · View cart' : 'Add to cart'"></button></div>
 <p class="px-por-note" v-if="canOrder && price(pr[0]) == null">No online price for this part. Add it to a quote and our team replies within one business day.</p>
@@ -1529,7 +1533,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Interchangeable part numbers</h2></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in interch" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1538,7 +1542,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1553,7 +1557,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Often bought together</h2><button type="button" class="px-link" @click="addAll(relShown)" v-text="!canOrder ? 'Add all to quote' : relShown.every(function (r) { return price(r[0]) != null; }) ? 'Add all to cart' : 'Add all'"></button></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in relShown" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1562,7 +1566,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1578,7 +1582,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Complete the job</h2><span class="px-muted">Other parts for the same application</span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in sameApp" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1587,7 +1591,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1602,7 +1606,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Similar parts</h2><span class="px-muted">Same category, close match on application</span></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in similar" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1611,7 +1615,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -1626,7 +1630,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Recently viewed</h2></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in recentList" :key="r[0]">
-<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
+<a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
 <button type="button" class="sc-qa" v-if="canOrder && price(r[0]) != null && !noBuy(r[0]) && !inQuote(r[0])" @click="addQuote(r[0])" title="Add to quote list" aria-label="Add to quote list"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h4M16 15v4M14 17h4"/></svg></button>
 <div class="sc-body">
 <span class="sc-pn" v-html="pnw(r[0])"></span>
@@ -1635,7 +1639,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
 </div>
 <div class="sc-buy" v-if="logged">
-<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="price(r[0]) == null ? 'px-por' : ''"></b></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
+<div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
 <div class="sc-act" v-if="canOrder && price(r[0]) != null && !noBuy(r[0])"><div class="px-qty"><button type="button" aria-label="Less" @click="csSet(r[0], cs(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="cs(r[0])" @change="csSet(r[0], $event.target.value); $event.target.value = cs(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="csSet(r[0], cs(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-sm" :class="inCart(r[0]) ? 'px-incart' : 'px-dark'" @click="inCart(r[0]) ? nav('cart') : add(r[0], cs(r[0]))" v-text="inCart(r[0]) ? 'In cart · View' : 'Add to cart'"></button></div>
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
@@ -2094,6 +2098,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-msh-in" v-else><p>Sign in to see your prices, live stock and order online.</p><div class="px-btns"><a class="px-btn px-red" href="#/login" @click="mOpen = false">Sign in</a><a class="px-btn px-ghost" href="#/request" @click="mOpen = false">Request access</a></div></div>
 <h3>Parts</h3>
 <div class="px-msh-g">
+<a v-for="c in camps" :key="'m' + c.slug" :href="'#/promo/' + c.slug" @click="mOpen = false"><span class="ci"><i class="px-mdot" :style="{ background: c.color }"></i></span><span v-text="c.name"></span><small v-text="c.codes.length"></small><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
 <a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" @click="mOpen = false"><span class="ci" v-html="icon(c.ic)"></span><span v-text="c.label"></span><small v-text="c.n.toLocaleString('en-US')"></small><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
 <a href="#/all" @click="mOpen = false"><span class="ci" v-html="icon('all')"></span><span>All parts</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
 </div>
@@ -2163,6 +2168,15 @@ html.px-lock,html.px-lock body{overflow:hidden}
 @media (max-width:900px) and (min-width:761px){.px-msh{padding:0 max(16px,calc(50vw - 300px)) 28px}.px-msh-h{margin:0 calc(-1 * max(16px,calc(50vw - 300px)));padding-left:max(16px,calc(50vw - 300px));padding-right:max(16px,calc(50vw - 300px))}}
 @media print{.px-tabs,.px-msh{display:none!important}}
 </style>
+<style>
+/* campaigns */
+.sc-cb{position:absolute;left:10px;top:10px;z-index:2;color:#fff;font-size:11px;font-weight:600;letter-spacing:.02em;border-radius:50px;padding:4px 10px;line-height:1.2;box-shadow:0 2px 8px rgba(0,0,0,.12);text-decoration:none}.px-cl .sc-cb{display:none}.sc-cb.rel{position:static;display:inline-block;vertical-align:middle;margin-left:6px}
+.sc-was{color:#8a9097;font-size:12.5px;margin-left:6px}.px-deal{color:#d32a37!important}
+.px-promo-h{color:#fff;border-radius:16px;padding:28px 30px;margin:0 0 22px;position:relative;overflow:hidden}.px-promo-h .b{display:inline-block;background:rgba(255,255,255,.18);border-radius:50px;padding:5px 12px;font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}.px-promo-h h1{margin:12px 0 8px;font-size:38px;line-height:1.05;letter-spacing:-.02em;color:#fff}.px-promo-h p{margin:0 0 14px;max-width:720px;font-size:16px;line-height:1.5;opacity:.92}.px-promo-h .m{display:flex;flex-wrap:wrap;gap:8px}.px-promo-h .m span{background:rgba(0,0,0,.18);border-radius:50px;padding:6px 12px;font-size:13px}
+.px-camps{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}.px-camp{display:flex;flex-direction:column;gap:6px;color:#fff;text-decoration:none;border-radius:16px;padding:22px 24px;min-height:150px;transition:transform .25s}.px-camp:hover{transform:translateY(-2px)}.px-camp .b{align-self:flex-start;background:rgba(255,255,255,.18);border-radius:50px;padding:4px 11px;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}.px-camp b{font-size:26px;line-height:1.1}.px-camp .d{opacity:.9;font-size:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.px-camp .m{display:flex;gap:10px;align-items:center;margin-top:auto;font-size:13px;opacity:.95}.px-camp .go{margin-left:auto;background:#fff;color:#1d2126;border-radius:50px;padding:6px 14px;font-weight:600}
+.px-catcamp .ci{width:10px!important;height:10px!important;border-radius:50%}.px-mdot{display:block;width:12px;height:12px;border-radius:50%}
+@media (max-width:760px){.px-promo-h{padding:22px 20px}.px-promo-h h1{font-size:28px}.px-camp b{font-size:22px}}
+</style>
 <!-- FOOTER -->
 <footer class="pxf">
 <div class="pxf-in">
@@ -2176,7 +2190,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=86"></script>
+<script src="/js/portal-app.js?v=87"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
