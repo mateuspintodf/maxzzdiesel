@@ -49,9 +49,11 @@ const id = () => crypto.randomBytes(8).toString('hex');
 
 const whoami = (req) => authenticate(req);
 
-// prices for one account: its Unleashed tier, or the default sell price
+const CAMP = require('../lib/campaigns');
+// prices for one account: its Unleashed tier, or the default sell price (lowered by a live campaign: [price, stock, img, unit, normal price, campaign])
 async function priceBook(account, admin) {
   const hid = admin ? new Set() : await hiddenSet();
+  const camps = await CAMP.live().catch(() => []);
   const prod = await cached('portal/products.json', 10 * 60 * 1000);
   const stock = await cached('portal/stock.json', 10 * 60 * 1000);
   if (!prod) return null;
@@ -62,7 +64,8 @@ async function priceBook(account, admin) {
     let price = idx >= 0 ? p.t[idx] : null;
     if (!(price > 0)) price = p.d;
     if (!(price > 0)) price = null; // zero or missing price shows "Ask us" and cannot be ordered
-    out[code] = [price == null ? null : money(price), stock && stock.qty ? (stock.qty[code] ?? 0) : null, p.img || null, p.u || null];
+    const deal = camps.length && price != null ? CAMP.bestFor(camps, code, money(price)) : null;
+    out[code] = [deal ? deal.price : price == null ? null : money(price), stock && stock.qty ? (stock.qty[code] ?? 0) : null, p.img || null, p.u || null, deal ? money(price) : null, deal ? deal.slug : null, deal ? (deal.stack ? 1 : 0) : 1];
   }
   return { tier: idx >= 0 ? prod.tiers[idx] : 'Default', at: prod.at, stockAt: stock && stock.at, items: out };
 }
@@ -76,6 +79,11 @@ function orderMail(o) {
 
 const A = {};
 
+// public: live campaigns (name, badge, which parts), no prices
+A.campaigns = async (req, res) => {
+  res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+  return res.json({ campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []) });
+};
 // public: product image URLs only (no prices), for the open storefront
 A.images = async (req, res) => {
   const prod = await cached('portal/products.json', 30 * 60 * 1000);
@@ -281,14 +289,17 @@ A.prices = async (req, res) => {
 
 // price a cart the way the order will, then check a voucher against it (the browser only says which code and which parts)
 async function cartSubtotal(w, rawLines) {
-  const book = await priceBook(w.account, w.admin); let sub = 0;
+  const book = await priceBook(w.account, w.admin); let sub = 0, ok = 0;
   if (!book) return null;
   for (const l of (Array.isArray(rawLines) ? rawLines : []).slice(0, 200)) {
     const p = l && book.items[clean(l.code, 60)]; if (!p || p[0] == null) continue;
-    sub += p[0] * Math.min(9999, Math.max(1, parseInt(l.qty, 10) || 0));
+    const v = p[0] * Math.min(9999, Math.max(1, parseInt(l.qty, 10) || 0));
+    sub += v; if (p[6] !== 0) ok += v;
   }
-  return money(sub);
+  return { sub: money(sub), eligible: money(ok) };
 }
+// a campaign that does not take vouchers keeps its parts out of the voucher base
+const NO_STACK = 'Vouchers do not apply to campaign prices.';
 // Max Rewards: balance, level, history and the reward list. Real numbers for approved customers once the program is on; admins always see them.
 A.rewards = async (req, res) => {
   if (!PS.on()) return res.json({ enabled: false, preview: true });
@@ -313,11 +324,13 @@ A['voucher-check'] = async (req, res) => {
   const w = await whoami(req);
   if (!w || !w.account || w.account.status !== 'approved') return res.status(w ? 403 : 401).json({ error: 'login' });
   if (await limited(req, 'voucher', 30, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
-  const b = readBody(req), sub = await cartSubtotal(w, b.lines);
-  if (sub == null) return res.status(503).json({ error: 'catalog syncing' });
-  const r = await vouchers.evaluate(clean(b.code, 40), w.account.id, sub);
+  const b = readBody(req), cs = await cartSubtotal(w, b.lines);
+  if (cs == null) return res.status(503).json({ error: 'catalog syncing' });
+  const sub = cs.sub;
+  if (!(cs.eligible > 0) && sub > 0) return res.status(200).json({ ok: false, error: NO_STACK });
+  const r = await vouchers.evaluate(clean(b.code, 40), w.account.id, cs.eligible);
   if (!r.ok) return res.status(200).json({ ok: false, error: r.error });
-  return res.json({ ok: true, code: r.voucher.code, discount: r.discount, subtotal: sub, total: money(sub - r.discount), description: r.voucher.description || '' });
+  return res.json({ ok: true, code: r.voucher.code, discount: r.discount, subtotal: sub, total: money(sub - r.discount), description: (r.voucher.description || '') + (cs.eligible < sub ? (r.voucher.description ? '. ' : '') + 'Campaign parts are not included.' : '') });
 };
 A.orders = async (req, res) => {
   const w = await whoami(req);
@@ -391,7 +404,7 @@ A.order = async (req, res) => {
     if (!p || p[0] == null) return res.status(400).json({ error: 'Part ' + code + ' has no online price. Remove it from the cart and add it to a quote request instead.', code });
     // nothing is blocked by stock: lines above what is on hand go through as backorder and are flagged for the sales team
     const onHand = p[1];
-    lines.push({ code, name: names[code] || code, qty, price: p[0], total: money(p[0] * qty), backorder: onHand != null && qty > onHand, stock: onHand });
+    lines.push({ code, name: names[code] || code, qty, price: p[0], total: money(p[0] * qty), backorder: onHand != null && qty > onHand, stock: onHand, vch: p[6] !== 0, camp: p[5] || null });
   }
   if (!lines.length) return res.status(400).json({ error: 'empty' });
   const s = b.ship || {};
@@ -403,7 +416,9 @@ A.order = async (req, res) => {
   const gross = subtotal;
   let vch = null, discount = 0;
   if (PS.on() && clean(b.voucher, 40)) {
-    const r = await vouchers.evaluate(clean(b.voucher, 40), w.account.id, gross);
+    const base = money(lines.filter((l) => l.vch).reduce((a, l) => a + l.total, 0));
+    if (!(base > 0)) return res.status(400).json({ error: NO_STACK, voucher: true });
+    const r = await vouchers.evaluate(clean(b.voucher, 40), w.account.id, base);
     if (!r.ok) return res.status(400).json({ error: r.error, voucher: true });
     vch = r.voucher; discount = r.discount; subtotal = money(gross - discount);
   }
@@ -425,7 +440,7 @@ A.order = async (req, res) => {
     const guid = PS.on() ? o.id : crypto.randomUUID();
     const body = {
       Guid: guid, OrderStatus: 'Parked', OrderDate: t.toISOString(), Customer: { CustomerCode: w.account.customerCode },
-      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, vch ? 'VOUCHER ' + vch.code + ' (-$' + discount.toFixed(2) + ')' : '', lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
+      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, vch ? 'VOUCHER ' + vch.code + ' (-$' + discount.toFixed(2) + ')' : '', lines.some((l) => l.camp) ? 'CAMPAIGN PRICE (' + [...new Set(lines.filter((l) => l.camp).map((l) => l.camp))].join(', ') + '): ' + lines.filter((l) => l.camp).map((l) => l.code).join(', ') : '', lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
       SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, DiscountRate: vch ? money(discount / gross * 1e4) / 1e4 : undefined, LineTotal: vch ? money(l.total * (1 - discount / gross)) : l.total, LineTax: 0 })),

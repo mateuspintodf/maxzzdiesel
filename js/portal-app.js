@@ -2420,11 +2420,11 @@
   // longest national number per country (digits after the country code), to tell a local number from a full one
   var NAT = { Brazil: 11, Mexico: 10, Colombia: 10, Chile: 9, Peru: 9, Ecuador: 9, Argentina: 11, Uruguay: 9, Paraguay: 9, Bolivia: 8, Venezuela: 10, Panama: 8, 'Costa Rica': 8, Guatemala: 8, Honduras: 8, 'El Salvador': 8, Nicaragua: 8 };
   var NANP = /United States|Puerto Rico|Canada|Dominican Republic/;
-  var ROUTES = ['home', 'c', 's', 'g', 'all', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
+  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', camps: [], mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -2503,16 +2503,22 @@
     },
     get repairRow() { return this.homePick(function (r) { return r[3] === 'Repair part'; }, 8, 'rep'); },
     get engs() { return ENG; },
-    get side() { return ['home', 'c', 's', 'g', 'all'].indexOf(this.route) >= 0; },
+    get side() { return ['home', 'c', 's', 'g', 'all', 'promo'].indexOf(this.route) >= 0; },
+    // live campaigns (Black Friday and the like): badge per part, and the campaign page #/promo/<slug>
+    get campOf() { var m = {}; (this.camps || []).forEach(function (c) { c.codes.forEach(function (k) { if (!m[k]) m[k] = c; }); }); return m; },
+    get curCamp() { var a = this.arg; return (this.camps || []).filter(function (c) { return c.slug === a; })[0] || null; },
+    campEnds: function (c) { var d = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5); return d <= 1 ? 'Ends today' : 'Ends in ' + d + ' days'; },
+    was: function (code) { var p = this.book && this.book.items[code]; return p && p[4] ? p[4] : null; },
     get listTitle() {
       var r = this.route, a = this.arg, f = this.f;
       if ((r === 'c' || r === 'all') && f.cat.length === 1) { var c = CATS.filter(function (x) { return x.k === f.cat[0]; })[0]; return c ? c.label : f.cat[0]; }
       if (r === 's') return 'Results for \u201c' + a + '\u201d';
+      if (r === 'promo') return this.curCamp ? this.curCamp.name : 'Campaign';
       if (r === 'g') { var g = this.genOf(a); return g ? g.label + ' ' + g.years : 'Vehicle'; }
       return 'All parts';
     },
     // base set for the route; the sidebar filters stack on top of it
-    get memoKey() { return [this.route, this.arg, this.cat.length, JSON.stringify(this.f), this.sortBy, this.book ? this.book.at : 0, Object.keys(this.imgs).length, this.rank ? 1 : 0, this.popRank ? 1 : 0, this.specs ? 1 : 0].join('|'); },
+    get memoKey() { return [this.route, this.arg, this.cat.length, (this.camps || []).length, JSON.stringify(this.f), this.sortBy, this.book ? this.book.at : 0, Object.keys(this.imgs).length, this.rank ? 1 : 0, this.popRank ? 1 : 0, this.specs ? 1 : 0].join('|'); },
     get base() {
       var k = this.route + '|' + this.arg + '|' + this.cat.length + '|' + (this.fit.tree.length) + '|' + (this.book ? this.book.at : 0) + '|' + this.hideOut;
       if (MEMO.baseK === k) return MEMO.base;
@@ -2522,6 +2528,7 @@
       var r = this.route, a = this.arg, self = this, list = this.hideOut ? this.cat.filter(function (x) { return !self.hid(x[0]); }) : this.cat;
       if (r === 'g') return list.filter(function (x) { var f = self.fit.items[x[0]]; return f && f[0].indexOf(a) >= 0; });
       if (r === 's') return matchSearch(list, a);
+      if (r === 'promo') { var cc = this.curCamp, set = {}; if (!cc) return []; cc.codes.forEach(function (k) { set[k] = 1; }); return list.filter(function (x) { return set[x[0]]; }); }
       return list;
     },
     pass: function (x, skip) {
@@ -2968,6 +2975,7 @@
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) self.buy = j.rel; }).catch(function () {}); }
+      fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; }).catch(function () {});
       fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
@@ -3007,7 +3015,7 @@
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
       track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
-      this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false;
+      this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false; this.mOpen = false; document.documentElement.classList.remove('px-lock');
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
@@ -3037,6 +3045,17 @@
       return false;
     },
     nav: function (r, a) { location.hash = '#/' + r + (a ? '/' + encodeURIComponent(a) : ''); },
+    // mobile: bottom tab bar and the full menu sheet
+    menu: function (on) { var self = this; this.mOpen = on; if (on) this.$nextTick(function () { var x = document.querySelector('.px-msh-x'); if (x) x.focus(); }); },
+    mGo: function (r, a) { this.mOpen = false; this.nav(r, a); },
+    mSearch: function () { var q = this.mQ.trim(); if (q.length < 2) return; var hit = this.cat.length ? exactHit(this.cat, q) : null; this.mQ = ''; this.mOpen = false; if (hit) this.nav('p', hit[0]); else this.nav('s', q); },
+    tabSearch: function () {
+      var el = document.querySelector('.px-hs input');
+      if (el && !this.mOpen) { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(function () { el.focus(); }, 250); return; }
+      this.menu(true); setTimeout(function () { var i = document.querySelector('.px-msh-s input'); if (i) i.focus(); }, 80);
+    },
+    get tab() { var r = this.route; return r === 'home' ? 'home' : ['all', 'c', 'g', 'p'].indexOf(r) >= 0 ? 'cat' : r === 's' ? 'search' : ['cart', 'quote', 'checkout'].indexOf(r) >= 0 ? 'cart' : ['orders', 'o', 'rewards', 'account', 'admin'].indexOf(r) >= 0 ? 'menu' : ''; },
+
     search: function () {
       if (this.sugOn && this.sugI >= 0 && this.sug[this.sugI]) { this.nav('p', this.sug[this.sugI][0]); return; }
       var q = this.qInput.trim(); if (q.length < 2) return;
