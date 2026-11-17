@@ -1331,6 +1331,66 @@ A.loyalty = async (req, res) => {
   const bal = {}; rows.forEach((r) => { bal[r.company_id] = (bal[r.company_id] || 0) + r.points; });
   return res.json({ settings: s, companies_with_points: Object.keys(bal).length, points_outstanding: Object.values(bal).reduce((a, b) => a + b, 0) });
 };
+// ---- Sales > Analytics. Superadmin sees everyone; the sales role sees only the salesperson mapped to it in Admin users.
+// Cost and profit come only from the cost at the time of the sale (never the current product cost) and stay inside the admin.
+const ISO10 = /^\d{4}-\d{2}-\d{2}$/;
+const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+const spanDays = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5) + 1;
+async function salesScope(w, req) {
+  if (w.role === 'superadmin') { const q = clean(req.query.sp, 120); return { sp: q && q !== 'all' ? q : null, all: true }; }
+  const a = (await db.select('admins', 'select=salesperson&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
+  return a.salesperson ? { sp: a.salesperson, all: false } : { sp: null, all: false, none: true };
+}
+const sumBy = (rows, f) => rows.reduce((t, r) => t + (Number(f(r)) || 0), 0);
+A['sales-data'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, req);
+  const today = new Date().toISOString().slice(0, 10);
+  let to = ISO10.test(req.query.to || '') ? req.query.to : today, from = ISO10.test(req.query.from || '') ? req.query.from : addDays(to, -29);
+  if (from > to) [from, to] = [to, from];
+  if (spanDays(from, to) > 3700) from = addDays(to, -3699);
+  const cmp = ['prev', 'year', 'none'].includes(req.query.cmp) ? req.query.cmp : 'prev';
+  const n = spanDays(from, to);
+  const pf = cmp === 'year' ? addDays(from, -365) : addDays(from, -n), pt = cmp === 'year' ? addDays(to, -365) : addDays(from, -1);
+  const empty = { orders: [], days: [], parts: [] };
+  const [cur, prv, comm, N] = await Promise.all([
+    sc.none ? empty : db.rpc('sales_agg', { p_from: from, p_to: to, p_sp: sc.sp }),
+    sc.none || cmp === 'none' ? empty : db.rpc('sales_agg', { p_from: pf, p_to: pt, p_sp: sc.sp }),
+    db.select('sales_commission', 'select=*').catch(() => []), names(),
+  ]);
+  const rule = {}; comm.forEach((r) => { rule[r.salesperson] = r; });
+  const prof = (r) => (Number(r.cov) || 0) - (Number(r.cost) || 0);
+  const comOf = (sp, sales, profit) => { const r = rule[sp]; return r ? (r.basis === 'sales' ? sales : profit) * Number(r.pct) / 100 : 0; };
+  const kpi = (d) => {
+    const sales = sumBy(d.orders, (r) => r.sales), cost = sumBy(d.orders, (r) => r.cost), cov = sumBy(d.orders, (r) => r.cov), orders = sumBy(d.orders, (r) => r.cnt);
+    const bySp = {}; d.orders.forEach((r) => { const b = bySp[r.sp] || (bySp[r.sp] = { sales: 0, profit: 0 }); b.sales += Number(r.sales) || 0; b.profit += prof(r); });
+    const commission = Object.keys(bySp).reduce((t, k) => t + comOf(k, bySp[k].sales, bySp[k].profit), 0);
+    return { sales, cost, cov, profit: cov - cost, margin: cov ? (cov - cost) / cov : null, coverage: sales ? cov / sales : null, orders, customers: new Set(d.orders.filter((r) => Number(r.sales) > 0).map((r) => r.c)).size, aov: orders ? sales / orders : null, commission };
+  };
+  const group = (d, key, extra) => { const m = {}; d.orders.forEach((r) => { const k = r[key]; const g = m[k] || (m[k] = Object.assign({ k, sales: 0, cost: 0, cov: 0, cnt: 0, months: {} }, extra ? extra(r) : {})); g.sales += Number(r.sales) || 0; g.cost += Number(r.cost) || 0; g.cov += Number(r.cov) || 0; g.cnt += Number(r.cnt) || 0; g.months[r.ym] = (g.months[r.ym] || 0) + (Number(r.sales) || 0); if (key === 'c') { g.sps = g.sps || {}; g.sps[r.sp] = (g.sps[r.sp] || 0) + (Number(r.sales) || 0); g.comm = (g.comm || 0) + comOf(r.sp, Number(r.sales) || 0, prof(r)); } }); return m; };
+  const cu = group(cur, 'c', (r) => ({ n: r.n })), pc = group(prv, 'c'), su = group(cur, 'sp'), sp0 = group(prv, 'sp');
+  const customers = Object.values(cu).sort((a, b) => b.sales - a.sales).slice(0, 600).map((g) => ({ c: g.k, n: g.n, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: g.comm || 0, sp: Object.keys(g.sps || {}).sort((a, b) => g.sps[b] - g.sps[a])[0] || '', months: g.months, prev: pc[g.k] ? pc[g.k].sales : 0 }));
+  const people = Object.values(su).sort((a, b) => b.sales - a.sales).map((g) => ({ sp: g.k, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: comOf(g.k, g.sales, g.cov - g.cost), prev: sp0[g.k] ? sp0[g.k].sales : 0, rule: rule[g.k] ? { basis: rule[g.k].basis, pct: Number(rule[g.k].pct) } : null }));
+  const pp = {}; (prv.parts || []).forEach((r) => { pp[r.code] = r; });
+  const parts = (cur.parts || []).slice(0, 120).map((r) => ({ code: r.code, name: (N[r.code] && N[r.code].t) || '', qty: r.qty, sales: r.sales, profit: (Number(r.cov) || 0) - (Number(r.cost) || 0), prev: pp[r.code] ? pp[r.code].sales : 0 }));
+  let everyone = [];
+  if (sc.all) everyone = [...new Set([...people.map((x) => x.sp), ...comm.map((x) => x.salesperson), ...(await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson)])].sort();
+  return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
+    days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
+    customers, people, parts, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
+};
+A['sales-commission'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (w.role !== 'superadmin') return res.status(403).json({ error: 'Only a superadmin sets commission.' });
+  const b = readBody(req), sp = clean(b.salesperson, 120), basis = b.basis === 'sales' ? 'sales' : 'profit', pct = Number(b.pct);
+  if (!sp) return res.status(400).json({ error: 'Pick a salesperson.' });
+  if (!Number.isFinite(pct) || pct < 0 || pct > 100) return res.status(400).json({ error: 'Percent must be between 0 and 100.' });
+  await db.insert('sales_commission', [{ salesperson: sp, basis, pct: Math.round(pct * 100) / 100, updated_by: w.email, updated_at: new Date().toISOString() }], { onConflict: 'salesperson' });
+  await PS.audit(w.email, 'commission.save', 'salesperson', sp, null, { basis, pct });
+  return res.json({ ok: true });
+};
 A['loyalty-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
