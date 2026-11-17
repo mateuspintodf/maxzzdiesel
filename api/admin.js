@@ -1352,13 +1352,17 @@ async function crmSync() {
   crmSyncAt = Date.now();
   const parked = await loadParked(false).catch(() => null); if (!parked) return;
   const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
-  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
+  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value,created_at,updated_at,stage_at&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
   const ctOf = {};
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
-  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
   if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
-  for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0, updated_at: new Date().toISOString() }).catch(() => {}); }
+  // a deal is as old as its order in Unleashed, not as the moment the CRM first saw it. Deals made by an earlier sync that nobody touched since get their order date back.
+  for (const r of parked) { const d = by[r.number]; if (!d || !r.at || d.stage === 'won' || d.stage === 'lost') continue; const cr = Date.parse(d.created_at), up = Date.parse(d.updated_at);
+    const sa = Date.parse(d.stage_at);
+    if (Number.isFinite(cr) && Math.abs(sa - cr) < 5 * 60e3 && cr - Date.parse(r.at) > 864e5 && Date.now() - cr < 3 * 864e5) await db.update('crm_deals', 'id=eq.' + d.id, Math.abs(up - cr) < 5 * 60e3 ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : { created_at: r.at, stage_at: r.at }).catch(() => {}); }
+  for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0 }).catch(() => {}); }
   await crmSyncAccess().catch(() => {});
   // deals whose order left the Parked list: lost if marked, won if invoiced
   const gone = deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
