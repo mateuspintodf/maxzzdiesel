@@ -784,6 +784,29 @@ A['campaign-floors'] = async (req, res) => {
   const st = (await db.select('sales_sync', 'select=costs_at&id=eq.1'))[0];
   return res.json({ pct: MIN_MARGIN(), floors: out, costsAt: st && st.costs_at });
 };
+// campaign banner: a wide image for the top of the campaign page (public photo store, same as product photos)
+const BANNER_URL = /^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\/campaigns\/[A-Za-z0-9._-]+$/;
+const BANNER_TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+const magicOk = (buf, type) => type === 'image/png' ? buf.slice(0, 4).toString('hex') === '89504e47' : type === 'image/jpeg' ? buf[0] === 0xff && buf[1] === 0xd8 : buf.slice(0, 4).toString() === 'RIFF' && buf.slice(8, 12).toString() === 'WEBP';
+A['campaign-banner'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (!process.env.FOTOS_READ_WRITE_TOKEN) return res.status(500).json({ error: 'The photo store is not set up.' });
+  const b = readBody(req), type = String(b.type || ''), ext = BANNER_TYPES[type];
+  if (!ext) return res.status(400).json({ error: 'Use a JPG, PNG or WebP image.' });
+  const buf = Buffer.from(String(b.data || '').replace(/^data:[^,]*,/, ''), 'base64');
+  if (!buf.length || buf.length > 1.5 * 1024 * 1024) return res.status(400).json({ error: 'The image must be 1.5 MB or less.' });
+  if (!magicOk(buf, type)) return res.status(400).json({ error: 'That file is not a valid ' + ext.toUpperCase() + ' image.' });
+  const name = 'campaigns/' + (String(b.slug || '').toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'campaign') + '-' + crypto.randomBytes(4).toString('hex') + '.' + ext;
+  try {
+    const { put } = require('@vercel/blob');
+    const r = await put(name, buf, { access: 'public', token: process.env.FOTOS_READ_WRITE_TOKEN, contentType: type, addRandomSuffix: false, cacheControlMaxAge: 31536000 });
+    await PS.audit(w.email, 'campaign.banner', 'campaign', clean(b.id, 60) || null, null, { url: r.url, bytes: buf.length });
+    return res.status(200).json({ ok: true, url: r.url });
+  } catch (e) { console.error('banner', e.message); return res.status(502).json({ error: 'Could not save the image. Try again.' }); }
+};
+
 A['campaign-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
@@ -807,7 +830,7 @@ A['campaign-save'] = async (req, res) => {
   if (below.list.length && w.role === 'superadmin' && b.force && !clean(b.force_reason, 300)) return res.status(400).json({ error: 'Say why this campaign goes under the margin floor.' });
   if (below.list.length && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.list.length + ' part' + (below.list.length === 1 ? '' : 's') + ' would sell under cost + ' + below.pct + '% on the lowest price tier' + (below.stacked ? ' with a ' + below.stacked + '% voucher on top (vouchers are allowed on this campaign)' : '') + ': ' + below.list.slice(0, 8).map((x) => x.code + ' (min $' + x.floor + ')').join(', ') + (below.list.length > 8 ? '...' : '') + '. Lower the discount on those parts or remove them' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), below: below.list.slice(0, 200), canForce: w.role === 'superadmin' });
   const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: kind === 'price' ? 0 : value || 0,
-    color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
+    color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', banner_url: BANNER_URL.test(String(b.banner_url || '')) ? String(b.banner_url) : null, starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
   let cid = id;
   try {
     if (cid) await db.update('campaigns', 'id=eq.' + cid, rec);
