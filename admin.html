@@ -9,7 +9,7 @@
 <style>
 @font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-DemiBold.woff2) format('woff2');font-weight:600;font-display:swap}
-:root{--ground:#dedede;--card:#fff;--soft:#f1f1f2;--ink:#1d2126;--ink2:#5a5a60;--muted:#67676e;--line:#e4e4e6;--line2:#efeff0;--red:#d32a37;--orange:#fc771d;--acc:#fc771d;--accs:#ffeadb;--ok:#1f8a4c;--oks:#e3f4e9;--warn:#b86a0b;--warns:#fdf0dc;--blue:#1e1e87;--blues:#e6e6f4;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--r:24px}
+:root{--mo-open:250ms;--mo-close:150ms;--mo-ease:cubic-bezier(.22,1,.36,1);--mo-scale:.96;--ground:#dedede;--card:#fff;--soft:#f1f1f2;--ink:#1d2126;--ink2:#5a5a60;--muted:#67676e;--line:#e4e4e6;--line2:#efeff0;--red:#d32a37;--orange:#fc771d;--acc:#fc771d;--accs:#ffeadb;--ok:#1f8a4c;--oks:#e3f4e9;--warn:#b86a0b;--warns:#fdf0dc;--blue:#1e1e87;--blues:#e6e6f4;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--r:24px}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -149,8 +149,8 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
 .ai1{border-top:1px solid var(--line2);padding:10px 0}.ai1 p{margin:4px 0;color:var(--ink2)}.ai1 small{color:var(--muted)}.ai .ch2{margin-right:6px}.msg{margin-top:8px;padding:12px 14px;border-radius:14px;background:var(--soft);font-size:12.5px;white-space:pre-wrap;color:var(--ink2)}
 .fun>div{display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:center;padding:10px 0}.fun i{grid-column:1 / -1;height:10px;border-radius:999px;background:var(--ink);display:block}.fun>div:last-child i{background:var(--acc)}.fun small{color:var(--muted);text-align:right}
 /* drawer */
-.dscrim{position:fixed;inset:0;background:rgba(16,18,22,.32);z-index:60;animation:fd .2s ease}
-.drawer{position:fixed;top:10px;right:10px;bottom:10px;width:min(660px,calc(100% - 20px));background:#fff;border-radius:26px;z-index:61;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:sl .25s cubic-bezier(.2,.9,.25,1);overflow:hidden}
+.dscrim{position:fixed;inset:0;background:rgba(16,18,22,.32);z-index:60;animation:fd var(--mo-open) var(--mo-ease)}
+.drawer{position:fixed;top:10px;right:10px;bottom:10px;width:min(660px,calc(100% - 20px));background:#fff;border-radius:26px;z-index:61;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:mdr var(--mo-open) var(--mo-ease);transform-origin:right center;overflow:hidden}
 .drawer.wide{width:min(1100px,calc(100% - 20px))}
 @keyframes sl{from{transform:translateX(30px);opacity:0}}@keyframes fd{from{opacity:0}}
 .dh{display:flex;justify-content:space-between;gap:12px;padding:22px 24px 16px}.dh small{color:var(--muted);font-family:var(--mono);font-size:12px}.dh h2{font-size:22px;margin:2px 0 10px}.tags{display:flex;gap:6px;flex-wrap:wrap}
@@ -214,17 +214,17 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 /* change pills on dark tiles: solid, readable */
 .kpi.dark .dl,.mk>div:first-child .dl{background:#3a4048;color:#fff}.kpi.dark .dl.up,.mk>div:first-child .dl.up{background:#1f8a4c;color:#fff}.kpi.dark .dl.dn,.mk>div:first-child .dl.dn{background:#d32a37;color:#fff}
 /* dialogs */
-.mscrim{position:fixed;inset:0;background:rgba(16,18,22,.38);z-index:90;animation:fd .18s ease}
-.mdl{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:91;width:min(440px,calc(100% - 32px));background:#fff;border-radius:22px;padding:22px 22px 18px;box-shadow:0 24px 70px rgba(0,0,0,.28);animation:mdin .22s cubic-bezier(.2,.9,.25,1.15)}
+.mscrim{position:fixed;inset:0;background:rgba(16,18,22,.38);z-index:90;animation:fd var(--mo-open) var(--mo-ease)}
+.mdl{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:91;width:min(440px,calc(100% - 32px));background:#fff;border-radius:22px;padding:22px 22px 18px;box-shadow:0 24px 70px rgba(0,0,0,.28);animation:mdin var(--mo-open) var(--mo-ease)}
 .mdl h2{font-size:18px;margin:0 0 8px}.mdl p{margin:0 0 14px;color:var(--ink2);font-size:14px;line-height:1.5}.mdl input[type=text]{width:100%;box-sizing:border-box;border:1px solid var(--line);border-radius:12px;padding:10px 12px;font:inherit;margin:0 0 12px}
 .mck{display:flex;gap:8px;align-items:center;font-size:13.5px;margin:0 0 12px}.mact{display:flex;justify-content:flex-end;gap:8px}
 .mdl.shake{animation:shk .42s cubic-bezier(.36,.07,.19,.97)}
-@keyframes mdin{from{opacity:0;transform:translate(-50%,-46%) scale(.96)}}
+@keyframes mdin{from{opacity:0;transform:translate(-50%,-50%) scale(var(--mo-scale))}}@keyframes mdr{from{opacity:0;transform:scale(var(--mo-scale))}}
 @keyframes shk{10%,90%{transform:translate(calc(-50% - 1px),-50%)}20%,80%{transform:translate(calc(-50% + 2px),-50%)}30%,50%,70%{transform:translate(calc(-50% - 4px),-50%)}40%,60%{transform:translate(calc(-50% + 4px),-50%)}}
 /* toast rises with a soft blur */
 .toast{animation:tin .28s cubic-bezier(.2,.9,.25,1)}@keyframes tin{from{opacity:0;transform:translate(-50%,12px) scale(.96);filter:blur(4px)}}
 /* drawer panel */
-.drawer{animation:sl .28s cubic-bezier(.2,.9,.25,1)}
+.drawer{animation:mdr var(--mo-open) var(--mo-ease)}
 /* cards and rows that appear */
 .card,.kpi{animation:cin .26s ease both}@keyframes cin{from{opacity:0;transform:translateY(6px)}}
 .tl2>li,.fdr,.fur{animation:cin .22s ease both}
@@ -233,19 +233,11 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 .sw span,.sw span:before{transition:background .2s ease,transform .32s cubic-bezier(.34,1.56,.64,1)}
 .btn{transition:background .15s ease,box-shadow .15s ease,transform .1s ease}.btn:active:not(:disabled){transform:scale(.97)}
 
-/* truck loader: white box with generous margin, truck in the page gray, thin line that fills */
-.tl{display:grid;justify-items:center;gap:14px;padding:56px 20px}
-.tl.sm{padding:18px 20px}
-.tl-road{position:relative;width:260px;height:92px;border-radius:24px;background:#fff;color:var(--ground,#dedede)}
-.tl-road:before{content:"";position:absolute;left:36px;right:36px;bottom:30px;height:3px;border-radius:3px;background:var(--soft,#f1f1f2)}
-.tl .tl-fill{display:block;position:absolute;left:36px;bottom:30px;height:3px;width:0;border-radius:3px;background:currentColor;animation:tlfill 2.4s cubic-bezier(.45,0,.25,1) infinite}
-.tl-truck{position:absolute;left:36px;bottom:36px;width:34px;transform:translateX(-100%);animation:tldrive 2.4s cubic-bezier(.45,0,.25,1) infinite}
-.tl-truck svg{display:block;width:100%;height:auto;animation:tlbob .34s ease-in-out infinite alternate}
-.tl-t{font-size:12px;color:var(--muted,#67676e);letter-spacing:.02em}
-@keyframes tlfill{0%{width:0;opacity:1}82%{width:188px;opacity:1}100%{width:188px;opacity:0}}
-@keyframes tldrive{0%{left:36px;opacity:1}82%{left:224px;opacity:1}100%{left:224px;opacity:0}}
-@keyframes tlbob{from{transform:translateY(0)}to{transform:translateY(-1px)}}
-@media(prefers-reduced-motion:reduce){.tl .tl-fill{animation:none;width:110px}.tl-truck{animation:none;left:146px}.tl-truck svg{animation:none}}
+/* reveal: content fades and rises in when a skeleton gives way to the real page */
+@keyframes rvl{from{opacity:0;transform:translateY(8px)}}
+.app.rvl>*:not(header){animation:rvl .45s cubic-bezier(.2,.7,.2,1) both}
+.app.rvl>*:nth-child(3){animation-delay:.04s}.app.rvl>*:nth-child(4){animation-delay:.08s}.app.rvl>*:nth-child(5){animation-delay:.12s}.app.rvl>*:nth-child(n+6){animation-delay:.16s}
+@media(prefers-reduced-motion:reduce){.app.rvl>*{animation:none!important}}
 /* skeleton while a page loads */
 .skel{display:grid;gap:14px}.skel i{display:block;height:92px;border-radius:var(--r);background:linear-gradient(90deg,#fff 0,#f3f3f4 40%,#fff 80%);background-size:300% 100%;animation:shm 1.2s ease-in-out infinite}.skel i:nth-child(2){height:220px}.skel i:nth-child(3){height:160px}
 @keyframes shm{from{background-position:100% 0}to{background-position:0 0}}
@@ -260,8 +252,10 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 /* notification badge: diagonal slide with a spring pop */
 .cb i{animation:bdg .55s cubic-bezier(.34,1.7,.5,1) both}@keyframes bdg{from{transform:translate(-7px,7px) scale(0);opacity:0}}
 /* panel reveal and close */
-.drawer.out{animation:slo .2s ease forwards}.dscrim.out,.mscrim.out{animation:fdo .2s ease forwards}.mdl.out{animation:mdo .16s ease forwards}
-@keyframes slo{to{transform:translateX(40px);opacity:0}}@keyframes fdo{to{opacity:0}}@keyframes mdo{to{opacity:0;transform:translate(-50%,-48%) scale(.97)}}
+.drawer.out{animation:slo var(--mo-close) var(--mo-ease) forwards}.dscrim.out,.mscrim.out{animation:fdo var(--mo-close) var(--mo-ease) forwards}.mdl.out{animation:mdo var(--mo-close) var(--mo-ease) forwards}
+/* menu dropdown (transitions.dev): 250ms in, 150ms out, scale .97 from the trigger corner */
+.menu{transform-origin:top right;animation:mnin var(--mo-open) var(--mo-ease)}.menu.out{animation:mnout var(--mo-close) var(--mo-ease) forwards;pointer-events:none}@keyframes mnin{from{opacity:0;transform:scale(.97)}}@keyframes mnout{to{opacity:0;transform:scale(.99)}}
+@keyframes slo{to{transform:scale(var(--mo-scale));opacity:0}}@keyframes fdo{to{opacity:0}}@keyframes mdo{to{opacity:0;transform:translate(-50%,-50%) scale(var(--mo-scale))}}
 /* page side by side: forward and back between a list and its detail */
 html[data-dir=fwd]::view-transition-old(root){animation:pgOutL .24s cubic-bezier(.4,0,.2,1) both}html[data-dir=fwd]::view-transition-new(root){animation:pgInR .24s cubic-bezier(.4,0,.2,1) both}
 html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezier(.4,0,.2,1) both}html[data-dir=back]::view-transition-new(root){animation:pgInL .24s cubic-bezier(.4,0,.2,1) both}
@@ -405,10 +399,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .mbact{width:auto!important;left:0;right:0;opacity:.8;z-index:1}.mfill{z-index:0}.mgoal{position:absolute;left:0;right:0;height:0;border-top:3px solid #f08a24;z-index:2;pointer-events:none;transition:bottom .6s cubic-bezier(.25,.8,.25,1)}.mlast{z-index:3}.mval{z-index:4}
 @media(prefers-reduced-motion:reduce){.rfill,.rcar,.pbar i,.mfill,.mbact{animation:none}.pbar i,.rfill,.rcar,.mfill,.mbact{transition:none}}
 .nfp .brief .btn{display:inline-flex;width:auto;border:1px solid var(--line);border-radius:999px;padding:7px 14px;justify-content:center}.nfp .brief{box-shadow:none;border:0;margin:0;border-radius:0;padding:14px 16px}.brief-b table{border-collapse:separate}.brief-b h3{font-size:14px}.brief-b ul{margin:0}
+.who .av{width:38px;height:38px;margin:0;font-size:13px}
 </style>
 </head>
 <body>
-<div id="app"><div class="tl" role="status" aria-busy="true" style="min-height:70vh;align-content:center"><div class="tl-road"><span class="tl-fill"></span><span class="tl-truck"><svg viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="currentColor" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="currentColor" cx="91.62" cy="180.66" r="28.06"/><path fill="currentColor" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="currentColor" cx="271.95" cy="179.07" r="26.87"/></svg></span></div><span class="tl-t">Loading</span></div></div>
+<div id="app"><div class="app"><div class="skel" role="status" aria-busy="true" aria-label="Loading"><i style="height:52px;border-radius:999px"></i><i style="height:44px;width:min(260px,60%)"></i><i style="height:120px"></i><i style="height:220px"></i></div></div></div>
 <script src="/js/admin-subs.js?v=1"></script>
 <script src="/js/morphdom.min.js?v=1"></script>
 <script>
@@ -484,6 +479,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     h += (VIEWS[S.tab] || drawClients)();
     paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
+    var sk = !!app.querySelector('.skel'), ap = app.querySelector('.app'); if (S._sk && !sk && ap) { ap.classList.add('rvl'); setTimeout(function () { ap.classList.remove('rvl'); }, 800); } S._sk = sk;
   }
   var VIEWS = { profile: drawProfile, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
@@ -501,7 +497,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if ((t === 'vouchers' || t === 'dir') && !S.data) load();
     if (t === 'campaigns' && !S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
   }
-  function tload(msg, sm) { return '<div class="tl' + (sm ? ' sm' : '') + '" role="status" aria-busy="true" aria-live="polite"><div class="tl-road"><span class="tl-fill"></span><span class="tl-truck"><svg viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="currentColor" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="currentColor" cx="91.62" cy="180.66" r="28.06"/><path fill="currentColor" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="currentColor" cx="271.95" cy="179.07" r="26.87"/></svg></span></div><span class="tl-t">' + (msg || 'Loading') + '</span></div>'; }
+  function tload(msg, sm) { return '<div class="skel" role="status" aria-busy="true" aria-label="' + (msg || 'Loading') + '">' + (sm ? '<i style="height:120px"></i>' : '<i></i><i></i><i></i>') + '</div>'; }
   function ld() { if (S.tabErr && S.tabErr === S.tab) return '<div class="card"><h2>Could not load this page</h2><p class="muted">The server did not answer. Check your connection and try again.</p><button class="btn sm" data-act="retry">Try again</button></div>'; return tload('Loading this page'); }
   function photoData(file, cb) { var im = new Image(), u = URL.createObjectURL(file); im.onload = function () { var z = 192, c = document.createElement('canvas'), m = Math.min(im.width, im.height); c.width = c.height = z; c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, z, z); URL.revokeObjectURL(u); cb(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = function () { URL.revokeObjectURL(u); toast('Could not read that image.'); }; im.src = u; }
   function adPhoto(file) { var im = new Image(), u = URL.createObjectURL(file); im.onload = function () { var z = 192, c = document.createElement('canvas'), m = Math.min(im.width, im.height); c.width = c.height = z; c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, z, z); URL.revokeObjectURL(u); S.adPhoto = c.toDataURL('image/jpeg', 0.82); S.ex.ad = Object.assign({}, grp('ad'), { photo: S.adPhoto }); draw(); }; im.onerror = function () { URL.revokeObjectURL(u); toast('Could not read that image.'); }; im.src = u; }
@@ -714,7 +710,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function crmStage(k) { return ((S.crm && S.crm.stages) || []).filter(function (x) { return x.key === k; })[0]; }
   function crmLate(d) { var td = new Date().toISOString().slice(0, 10), st = crmStage(d.stage); if (!st || st.kind !== 'open') return false; return !!(d.next && d.next.due <= td) || (d.stage === 'new' && Date.now() - Date.parse(d.stage_at) > 864e5 * 2) || (Date.now() - Date.parse(d.updated_at) > 864e5 * 7); }
   function crmHue(t) { var h = 0; String(t || '').split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 360; }); return h; }
-  function crmAv(name, cls, tip) { var h = crmHue(name), ph = S.crm && S.crm.photos && S.crm.photos[name]; return '<span class="av ' + (cls || 'xs') + '" style="background:hsl(' + h + ',55%,86%);color:hsl(' + h + ',50%,26%)"' + (tip ? ' data-tip="' + esc(tip) + '"' : '') + '>' + (ph ? '<img alt="" src="' + esc(ph) + '">' : esc(initials(name || '?'))) + '</span>'; }
+  function crmPhoto(name) { var P = S.crm && S.crm.photos; if (!P || !name) return ''; if (P[name]) return P[name]; var w = String(name).split(/\s+/), i; for (i = 0; i < w.length; i++) if (P[w[i]]) return P[w[i]]; return ''; }
+  function crmAv(name, cls, tip) { var h = crmHue(name), ph = crmPhoto(name); return '<span class="av ' + (cls || 'xs') + '" style="background:hsl(' + h + ',55%,86%);color:hsl(' + h + ',50%,26%)"' + (tip ? ' data-tip="' + esc(tip) + '"' : '') + '>' + (ph ? '<img alt="" src="' + esc(ph) + '">' : esc(initials(name || '?'))) + '</span>'; }
   function crmMin(d) { var m = Math.floor((Date.now() - Date.parse(d)) / 6e4); if (!(m >= 0)) return ''; if (m < 60) return Math.max(1, m) + 'm'; var h = Math.floor(m / 60); if (h < 24) return h + 'h'; var n = Math.floor(h / 24); return n < 60 ? n + 'd' : Math.round(n / 30) + 'mo'; }
   function crmNames(d) { var ord = /^(site_quote|portal_quote|portal_order|parked)$/.test(d.source); return { main: ord ? (d.customer_name || d.title) : d.title, sub: (ord ? [d.ref, d.place] : [d.customer_name, d.place]).filter(Boolean).join(' · ') }; }
   function crmCard(d) {
@@ -794,7 +791,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       crmRow('Stage', esc(st ? st.label : d.stage) + ' · ' + crmAge(d.stage_at)) + crmRow('Source', esc(CRMSRC[d.source] || d.source)) + (d.ref ? crmRow('Order', '<span class="mono">' + esc(d.ref) + '</span>') : '') + crmRow('Created', esc(fmtAt(String(d.created_at).slice(0, 10)))) + crmRow('Last activity', esc(crmAgo(d.updated_at))) +
       '<details class="ed"><summary>Edit deal</summary><div class="fgrid">' + crmField('Title', d.title, 'crm-title') + crmField('Value ($)', d.value || 0, 'crm-value', 'number') + crmField('Expected close', d.expected_close, 'crm-close', 'date') +
       (C.isSuper ? '<div><label class="l">Owner</label><select class="sel" id="crm-owner">' + C.owners.map(function (o) { return opt(o, o, d.owner || ''); }).join('') + '</select></div>' : '') + '<div><label class="l">Note</label><textarea id="crm-note" rows="3">' + esc(d.note || '') + '</textarea></div></div><div class="mact"><button class="btn sm" data-act="crm-edit" data-id="' + esc(d.id) + '" data-sec="deal">Save deal</button></div></details>');
-    h += crmPane('Owner', '<div class="who2"><span class="av sm">' + esc(initials(d.owner || '?')) + '</span><b>' + esc(d.owner || 'No owner') + '</b></div>');
+    h += crmPane('Owner', '<div class="who2">' + crmAv(d.owner || '?', 'sm') + '<b>' + esc(d.owner || 'No owner') + '</b></div>');
     h += crmPane('Contact', (d.contact_name ? '<div class="who2"><span class="av sm">' + esc(initials(d.contact_name)) + '</span><b>' + esc(d.contact_name) + '</b></div>' : '<p class="muted" style="margin:0 0 8px">No contact yet.</p>') +
       (d.contact_email ? '<div class="kv"><small>Email</small><span><a href="mailto:' + esc(d.contact_email) + '" data-stop="1">' + esc(d.contact_email) + '</a></span></div>' : '') + (d.contact_phone ? '<div class="kv"><small>Phone</small><span><a href="tel:' + esc(d.contact_phone) + '" data-stop="1">' + esc(d.contact_phone) + '</a></span></div>' : '') +
       '<details class="ed"><summary>Edit contact</summary><div class="fgrid">' + crmField('Name', d.contact_name, 'crm-contact') + crmField('Email', d.contact_email, 'crm-email', 'email') + crmField('Phone', d.contact_phone, 'crm-phone') + '</div><div class="mact"><button class="btn sm" data-act="crm-edit" data-id="' + esc(d.id) + '" data-sec="contact">Save contact</button></div></details>');
@@ -1821,7 +1818,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       b.innerHTML = '<span class="drum">' + tx.split('').map(function (ch, i) { return '<span class="dg" style="animation-delay:' + (i * 28) + 'ms">' + esc(ch) + '</span>'; }).join('') + '</span>'; });
   }
   // close a panel or dialog with its exit animation, then change the state
-  function closeL(sel, fn) { var els = document.querySelectorAll(sel); if (!els.length || matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return draw(); } [].forEach.call(els, function (x) { x.classList.add('out'); }); setTimeout(function () { fn(); draw(); }, 190); }
+  function closeL(sel, fn) { var els = document.querySelectorAll(sel); if (!els.length || matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return draw(); } [].forEach.call(els, function (x) { x.classList.add('out'); }); setTimeout(function () { fn(); draw(); }, 150); }
   // tooltips: title attributes become a small dark label (delayed in, travels between buttons, instant out)
   (function () { var tip = document.createElement('div'), tmr = null, last = 0; tip.id = 'tip'; document.body.appendChild(tip);
     document.addEventListener('mouseover', function (e) { var el = e.target.closest && e.target.closest('[title],[data-tip]'); if (!el || !app.contains(el)) return; if (el.title) { el.setAttribute('data-tip', el.title); el.removeAttribute('title'); } var txt = el.getAttribute('data-tip'); if (!txt) return;
@@ -1866,7 +1863,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     S.err = ''; S.okMsg = '';
     if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; S.cd = null; S.cs = null; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw, ''); }
     var act = t.dataset.act, id = t.dataset.id;
-    if (act === 'me') { S.meOpen = !S.meOpen; S.bfOpen = false; return draw(); }
+    if (act === 'me') { if (S.meOpen) return closeL('.menu', function () { S.meOpen = false; }); S.meOpen = !S.meOpen; S.bfOpen = false; return draw(); }
     if (act === 'nf-kind') { S.nf = S.nf || {}; S.nf.kind = t.dataset.k; return draw(); }
     if (act === 'nf-out') { S.nf = S.nf || {}; S.nf.out = t.dataset.v; var dd2 = +t.dataset.d; if (!S.nf.fuTouched) S.nf.fu = dd2 ? new Date(Date.now() + dd2 * 864e5).toISOString().slice(0, 10) : ''; return draw(); }
     if (act === 'nf-fu') { S.nf = S.nf || {}; S.nf.fuTouched = true; S.nf.fu = new Date(Date.now() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
@@ -1878,7 +1875,9 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'funv') { S.funv = t.dataset.v; return draw(); }
     if (act === 'pf-kind') { S.pf = S.pf || {}; S.pf.kind = t.dataset.v; return draw(); }
     if (act === 'pf-fresh') { S.pipe = null; draw(); api('pipeline', null, '&fresh=1').then(function (r) { if (r._status === 200) { S.pipe = r; draw(); } else fail(r); }); return; }
+    if (act === 'brief' && S.bfOpen) return closeL('.menu', function () { S.bfOpen = false; });
     if (act === 'brief') { S.bfOpen = !S.bfOpen; S.nfOpen = false; S.meOpen = false; if (S.bfOpen && !S.bf) api('digest', null, S.bfw ? '&when=' + S.bfw : '').then(function (r) { if (r._status === 200) { S.bf = r; draw(); } }); return draw(); }
+    if (act === 'bell' && S.nfOpen) return closeL('.menu', function () { S.nfOpen = false; });
     if (act === 'bell') { S.nfOpen = !S.nfOpen; S.bfOpen = false; S.meOpen = false; if (S.nfOpen) nfLoad(); return draw(); }
     if (act === 'nf-all') { api('notifs-read', {}).then(function () { if (S.nf) { S.nf.items.forEach(function (n) { n.read_at = n.read_at || 'x'; }); S.nf.unread = 0; } draw(); }); return; }
     if (act === 'nf-open') { var nid = t.dataset.id, nd = t.dataset.deal; S.nfOpen = false; api('notifs-read', { ids: [nid] }).then(nfLoad); if (nd) { S.tab = 'crm'; loadTab('crm'); S.cd = { id: nd, loading: true, k: 'note' }; draw(); crmDeal(); } else draw(); return; }

@@ -1428,7 +1428,8 @@ A.crm = async (req, res) => {
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,city,state&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { pl[x.code] = [x.city, x.state].filter(Boolean).join(', '); });
   all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
-  const photos = {}; (await db.select('admins', 'select=email,salesperson,photo&salesperson=not.is.null&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (ph) photos[r.salesperson] = ph; });
+  // a photo is found by the mapped salesperson, or else by the admin's name (full name, then first name), so it shows before the mapping is done
+  const photos = {}; (await db.select('admins', 'select=email,name,first_name,salesperson,photo&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (!ph) return; [r.salesperson, r.name, r.first_name].forEach((k) => { k = String(k || '').trim(); if (k && !photos[k]) photos[k] = ph; }); });
   return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
 A['crm-deal'] = async (req, res) => {
