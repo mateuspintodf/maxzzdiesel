@@ -196,7 +196,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 .apvh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.apvh small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;max-width:520px}.btn.dang{color:var(--red);border-color:#f2c4c8}.btn.dang:hover{background:#fdecee}
 .tgc{padding-right:4px;background:#eef0ff;color:var(--blue)}.tgc button{border:0;background:none;color:inherit;cursor:pointer;padding:0 2px;display:inline-flex;opacity:.6}.tgc button:hover{opacity:1}
 .toast{bottom:84px}@media(min-width:901px){.toast{bottom:22px}}.drawer~.toast{bottom:96px}
-@media(max-width:900px){.g12[style]{grid-template-columns:1fr!important}.dt{min-width:0}table{max-width:100%}}
+@media(max-width:900px){.g12[style]{grid-template-columns:minmax(0,1fr)!important}.dt{min-width:0}table{max-width:100%}}
 </style>
 </head>
 <body>
@@ -315,7 +315,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
   function h0(x) { return '<th>' + x + '</th>'; }
   function hr(x) { return '<th class="r">' + x + '</th>'; }
   function pname(p) { return '<b class="mono">' + esc(p.code || p.k) + '</b>' + (p.t ? '<small>' + esc(p.t) + '</small>' : ''); }
-  function csv(name, rows) { var txt = rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = name + '.csv'; document.body.appendChild(a); a.click(); a.remove(); }
+  function csv(name, rows) { var txt = rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); if (/^[=+\-@\t\r]/.test(v) && !/^-?\d+(\.\d+)?$/.test(v)) v = "'" + v; return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = name + '.csv'; document.body.appendChild(a); a.click(); a.remove(); }
   function sortRows(rows, sk) { var s = S[sk]; if (!s || !s.k) return rows; return rows.slice().sort(function (a, b) { var x = a[s.k], y = b[s.k]; if (x == null) return 1; if (y == null) return -1; if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y)) * s.d; return (x - y) * s.d; }); }
   function opt(v, label, cur) { return '<option value="' + esc(v) + '"' + (cur === v ? ' selected' : '') + '>' + esc(label) + '</option>'; }
   function uniq(rows, k) { var m = {}; rows.forEach(function (r) { if (r[k]) m[r[k]] = (m[r[k]] || 0) + 1; }); return Object.keys(m).sort(function (a, b) { return m[b] - m[a]; }); }
@@ -542,7 +542,8 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (keep && S.dr && S.dr.data) S.dr.code = code || S.dr.code; else { S.dr = { code: code || '', acc: acc || null, loading: true, data: null }; S.lookQ = null; S.tloff = {}; S.tln = 40; S.nf = {}; draw(); }
     var qs = code ? '&code=' + encodeURIComponent(code) : acc ? '&id=' + encodeURIComponent(acc) : '';
     if (!qs) { S.dr.loading = false; return draw(); }
-    api('customer', null, qs).then(function (r) { if (!S.dr) return; S.dr.loading = false; if (r._status === 200) { S.dr.data = r; if (!S.dr.code && r.code) S.dr.code = r.code; } draw(); });
+    var rq = S.drReq = (S.drReq || 0) + 1;
+    api('customer', null, qs).then(function (r) { if (!S.dr || rq !== S.drReq) return; S.dr.loading = false; if (r._status === 200) { S.dr.data = r; if (!S.dr.code && r.code) S.dr.code = r.code; } draw(); });
   }
   // ---------------------------------------------------------------- shared bits for the new screens
   var HATCH = '<defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#1d2126"/><line x1="0" y1="0" x2="0" y2="7" stroke="#2f343b" stroke-width="3"/></pattern><pattern id="hatch2" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#fc771d"/><line x1="0" y1="0" x2="0" y2="7" stroke="#fd9550" stroke-width="3"/></pattern></defs>';
@@ -944,7 +945,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
   function modalOk() { var M = S.modal; if (!M) return; if (M.o.must != null && String(M.val).trim() !== String(M.o.must)) { M.shake = true; draw(); setTimeout(function () { if (S.modal) { S.modal.shake = false; draw(); } }, 450); return; }
     S.modal = null; S.okKey = M.key; S.okVal = M.val; S.okChk = M.chk; draw(); var R = M.replay; if (!R) { S.okKey = null; return; }
     var el = document.querySelector(R.sel); if (!el) { S.okKey = null; return; }
-    if (R.type === 'change') { if (R.checked != null) el.checked = R.checked; if (R.value != null) el.value = R.value; el.dispatchEvent(new Event('change', { bubbles: true })); } else el.click(); }
+    S.replaying = true; try { if (R.type === 'change') { if (R.checked != null) el.checked = R.checked; if (R.value != null) el.value = R.value; el.dispatchEvent(new Event('change', { bubbles: true })); } else el.click(); } finally { S.replaying = false; } }
   // only what changed is touched on the page (morphdom), so scroll, focus and open elements stay put and the
   // enter animations run only on things that really appear
   function paint(html) {
@@ -957,12 +958,12 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Could not save. Check your connection and try again.'); if (r._status === 401) S.me = null; S.busy = false; draw(); }
   function setM(path, v) { var k = path.split('.'), o = S; for (var i = 0; i < k.length - 1; i++) { if (!o[k[i]] || typeof o[k[i]] !== 'object') o[k[i]] = {}; o = o[k[i]]; } o[k[k.length - 1]] = v; if (k[0] === 'cf') S.cn = 60; if (k[0] === 'df') S.dn = 80; if (k[0] === 'pf2') S.pn = 100; }
   app.addEventListener('input', function (e) { var m = e.target.dataset && e.target.dataset.m; if (!m) return; setM(m, e.target.value); var p = e.target.selectionStart; draw(); var n = app.querySelector('[data-m="' + m + '"]'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} } });
-  document.addEventListener('keydown', function (e) { if (S.modal) return; if (e.key === 'Escape' && (S.dr || S.vd || S.pop || S.meOpen)) { if (S.pop || S.meOpen) { S.pop = null; S.meOpen = false; } else { S.dr = null; S.vd = false; } draw(); } });
+  document.addEventListener('keydown', function (e) { if (S.modal) return; if (e.key === 'Escape' && (S.dr || S.vd || S.pop || S.meOpen)) { e.preventDefault(); if (S.pop || S.meOpen) { S.pop = null; S.meOpen = false; } else { S.dr = null; S.vd = false; } draw(); } });
   function openSeg(id, keepRun) { S.segOpen = id; S.tab = 'segments'; if (!keepRun) { S.sendRun = null; S.pvHtml = ''; S.tpl = {}; } api('segment', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (r._status === 200) { S.seg = r; if (!keepRun) { S.pick = {}; r.members.forEach(function (m) { if (m.c && m.email && m.status !== 'active' && !m.invited_at) S.pick[m.id] = 1; }); } draw(); } else fail(r); }); draw(); }
   function tplNow() { var g = (S.seg || {}).segment || {}, T = S.tpl || {}; return { subject: T.subject != null ? T.subject : g.subject, title: T.title != null ? T.title : g.title, body: T.body != null ? T.body : g.body, cta: T.cta != null ? T.cta : g.cta }; }
   function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
   app.addEventListener('click', function (e) {
-    var t0 = e.target.closest('[data-act],[data-tab]'); if (t0) S.curEv = { type: 'click', sel: selOf(t0) };
+    if (!S.replaying) S.okKey = null; var t0 = e.target.closest('[data-act],[data-tab]'); if (t0 && !/^m-/.test(t0.dataset.act || '')) S.curEv = { type: 'click', sel: selOf(t0) };
     var inPop = e.target.closest('.ms, .menu, .who');
     if (!inPop && (S.pop || S.meOpen)) { S.pop = null; S.meOpen = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
     if (e.target.closest('[data-stop]') && !e.target.closest('[data-stop] [data-act]')) return;
@@ -1033,15 +1034,15 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'psel-all') { var pr = prodFilter().slice(0, S.pn || 100), on3 = pr.every(function (r) { return (S.psel || {})[r[0]]; }); S.psel = S.psel || {}; pr.forEach(function (r) { if (on3) delete S.psel[r[0]]; else S.psel[r[0]] = 1; }); return draw(); }
     if (act === 'psel-clear') { S.psel = {}; return draw(); }
     if (act === 'psel-every') { S.psel = {}; prodFilter().forEach(function (r) { S.psel[r[0]] = 1; }); return draw(); }
-    if (act === 'pundo') { var LB = S.lastBulk; if (!LB) return; S.busy = true; draw(); api('hidden-set', { hide: !LB.hide, codes: LB.codes, reason: '' }).then(function (r) { S.busy = false; if (r.ok) { S.lastBulk = null; toast('Undone: ' + n0(LB.codes.length) + ' products back as they were.'); S.cat = null; loadTab('products'); } else fail(r); }); return; }
+    if (act === 'pundo') { var LB = S.lastBulk; if (!LB) return; S.busy = true; draw(); var grpR = {}; LB.codes.forEach(function (c) { var k = (LB.reasons || {})[c] || ''; (grpR[k] = grpR[k] || []).push(c); }); Object.keys(grpR).reduce(function (pr, k) { return pr.then(function (r0) { return r0 && r0.ok === false ? r0 : api('hidden-set', { hide: !LB.hide, codes: grpR[k], reason: k }); }); }, Promise.resolve(null)).then(function (r) { S.busy = false; if (r.ok) { S.lastBulk = null; toast('Undone: ' + n0(LB.codes.length) + ' products back as they were.'); S.cat = null; loadTab('products'); } else fail(r); }); return; }
     if (act === 'pstd') { var op = t.dataset.op, SDn = (S.cat.standard || {}).n || 0, hn = S.cat.rows.filter(function (x) { return x[8]; }).length;
       if (!ok(op === 'save' ? 'Save the ' + hn + ' parts hidden now as the standard list? It replaces the saved one (' + SDn + ').' : 'Go back to the standard list? ' + SDn + ' parts will be hidden and every other part shown.')) return; S.busy = true; draw();
       api('hidden-standard', { op: op }).then(function (r) { S.busy = false; if (r.ok) { S.lastBulk = null; S.okMsg = op === 'save' ? 'Standard list saved (' + r.n + ' parts).' : 'Standard list restored: ' + r.n + ' parts hidden. Customers see it within a minute.'; S.cat = null; loadTab('products'); } else fail(r); }); return; }
     if (act === 'pn-more') { S.pn = (S.pn || 100) + 200; return draw(); }
-    if (act === 'pbulk') { var hide = t.dataset.h === '1', codes = Object.keys(S.psel || {}); if (!codes.length) return; if (hide && codes.length >= S.cat.rows.length * 0.9) { S.err = 'You cannot hide the whole catalog at once. Filter by brand or category first.'; return draw(); }
+    if (act === 'pbulk') { var hide = t.dataset.h === '1', HM = {}; S.cat.rows.forEach(function (x) { HM[x[0]] = x[8]; }); var codes = Object.keys(S.psel || {}).filter(function (c) { return hide ? !HM[c] : !!HM[c]; }); if (!codes.length) { S.err = hide ? 'Those parts are already hidden.' : 'Those parts are already visible.'; return draw(); } var prevR = {}; codes.forEach(function (c) { if (HM[c]) prevR[c] = HM[c][0] || ''; }); if (hide && codes.length >= S.cat.rows.length * 0.9) { S.err = 'You cannot hide the whole catalog at once. Filter by brand or category first.'; return draw(); }
       if (hide && codes.length > 300) { var ty = ask('Customers stop seeing ' + codes.length + ' products right away. Type ' + codes.length + ' to confirm.', { title: 'Hide ' + codes.length + ' products?', must: codes.length, placeholder: String(codes.length), ok: 'Hide them', danger: true }); if (ty === null) return; }
       else if (!ok((hide ? 'Hide ' : 'Show ') + codes.length + ' products ' + (hide ? 'from' : 'to') + ' every customer?')) return; S.busy = true;
-      api('hidden-set', { hide: hide, codes: codes, reason: S.hreason || '' }).then(function (r) { S.busy = false; if (r.ok) { var set = {}; codes.forEach(function (c) { set[c] = 1; }); S.cat.rows.forEach(function (x) { if (set[x[0]]) x[8] = hide ? [S.hreason || '', S.me.email, new Date().toISOString()] : null; }); S.psel = {}; S.lastBulk = { hide: hide, codes: codes }; toast(n0(codes.length) + (hide ? ' products hidden.' : ' products visible again.') + ' Customers see it within a minute.'); } else fail(r); }); return; }
+      api('hidden-set', { hide: hide, codes: codes, reason: S.hreason || '' }).then(function (r) { S.busy = false; if (r.ok) { var set = {}; codes.forEach(function (c) { set[c] = 1; }); S.cat.rows.forEach(function (x) { if (set[x[0]]) x[8] = hide ? [S.hreason || '', S.me.email, new Date().toISOString()] : null; }); S.psel = {}; S.lastBulk = { hide: hide, codes: codes, reasons: prevR }; toast(n0(codes.length) + (hide ? ' products hidden.' : ' products visible again.') + ' Customers see it within a minute.'); } else fail(r); }); return; }
     // campaigns
     if (act === 'cp-new') return openCampaign(null);
     if (act === 'cp-open') return openCampaign(id);
@@ -1056,7 +1057,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'cp-rmall') { var rr = prodFilter('cpf').filter(function (r) { return r[0] in S.cp.items; }); if (rr.length > 20 && !ok('Remove ' + rr.length + ' parts from the campaign?')) return; rr.forEach(function (r) { delete S.cp.items[r[0]]; }); return draw(); }
     if (act === 'cp-del') { if (!ok('Delete the campaign "' + S.cp.name + '"? The parts go back to their normal price.')) return; api('campaign-toggle', { id: S.cp.id, remove: true }).then(function (r) { if (r.ok) { S.cp = null; S.okMsg = 'Campaign deleted.'; loadTab('campaigns'); } else fail(r); }); return; }
     if (act === 'cp-save') { var c = S.cp; S.busy = true; draw();
-      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.value, color: c.color, active: c.active !== false, stack_vouchers: !!c.stack_vouchers,
+      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.kind === 'price' ? 0 : c.value, color: c.color, active: c.active !== false, stack_vouchers: !!c.stack_vouchers,
         starts_at: c.starts_at ? new Date(c.starts_at.slice(0, 10) + 'T00:00:00').toISOString() : '', ends_at: c.ends_at ? new Date(c.ends_at.slice(0, 10) + 'T23:59:59').toISOString() : '',
         items: Object.keys(c.items).map(function (k) { return { code: k, value: c.items[k] }; }), rules: S.cpf || {}, force: !!S.cpForce }).then(function (r) { S.busy = false; S.cpForce = false; if (r._status === 409 && r.canForce) { S.curEv = { type: 'click', sel: 'button[data-act="cp-save"]' }; draw(); } if (r._status === 409 && r.canForce && ok(r.error, { title: 'Save under the margin floor?', ok: 'Save anyway', danger: true })) { S.cpForce = true; draw(); var sb = app.querySelector('[data-act=cp-save]'); if (sb) sb.click(); return; } if (r.ok) { S.okMsg = 'Campaign saved. Customers see it in the portal within a minute.'; S.cp.id = r.id; S.cp.slug = r.slug; draw(); } else fail(r); }); return; }
     // vouchers
@@ -1135,7 +1136,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'ad-edit') { S.ex.ad = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; return draw(); }
     if (act === 'ad-tog') { var ax = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; api('admin-save', { email: ax.email, name: ax.name, role: ax.role, active: !ax.active }).then(function (r) { done(r, function () { loadTab('admins'); }); }); }
   });
-  app.addEventListener('change', function (e) { var d = e.target.dataset || {}; S.curEv = { type: 'change', sel: selOf(e.target), checked: e.target.type === 'checkbox' ? e.target.checked : null, value: e.target.type === 'checkbox' ? null : e.target.value };
+  app.addEventListener('change', function (e) { var d = e.target.dataset || {}; if (!S.replaying) S.okKey = null; S.curEv = { type: 'change', sel: selOf(e.target), checked: e.target.type === 'checkbox' ? e.target.checked : null, value: e.target.type === 'checkbox' ? null : e.target.value };
     if (d.mchk) { S.modal.chk = e.target.checked; return; }
     if (e.target.id === 'csvf') { var fl = e.target.files && e.target.files[0]; if (!fl) return; var rd = new FileReader(); rd.onload = function () { var rows = parseCsv(rd.result); S.csv.file = fl.name; S.csv.rows = rows; S.csv.map = csvGuess(rows[0] || []); S.csv.result = null; draw(); }; rd.readAsText(fl); return; }
     if (d.tlk) { S.tloff = S.tloff || {}; S.tloff[d.tlk] = !e.target.checked; S.tln = 40; return draw(); }
@@ -1158,7 +1159,8 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (d.chg) { setM(d.chg, e.target.value); return draw(); } if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });
   (function () {
   })();
-  document.addEventListener('keydown', function (e) { if (!S.modal) { if (e.key === 'Escape' && S.fd && !S.dr) { S.fd = null; draw(); } return; } if (e.key === 'Escape') { S.modal = null; draw(); } if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') { e.preventDefault(); modalOk(); } });
+  document.addEventListener('keydown', function (e) { if (!S.modal) { if (e.key === 'Escape' && !e.defaultPrevented && S.fd && !S.dr) { S.fd = null; draw(); } return; } if (e.key === 'Escape') { S.modal = null; draw(); } if (e.key === 'Enter' && (e.target.matches('.mdl input[type=text]') || e.target.classList.contains('mok') || !e.target.closest('.mdl'))) { e.preventDefault(); modalOk(); }
+    if (e.key === 'Tab') { var fs = [].slice.call(document.querySelectorAll('.mdl input,.mdl button')); if (fs.length) { var i = fs.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && i === fs.length - 1) { e.preventDefault(); fs[0].focus(); } else if (i < 0) { e.preventDefault(); fs[0].focus(); } } } });
   function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; draw(); } }); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();

@@ -7,7 +7,7 @@ const SDB = require('../lib/sessions-db');
 const { ul, configured } = require('../lib/unleashed');
 const { send, esc, layout, customerMailOn, internalTo, pilotTo } = require('../lib/mail');
 const mailMode = () => (customerMailOn() ? true : String(process.env.CUSTOMER_MAIL || '').toLowerCase() === 'pilot' ? 'pilot' : false);
-const MAIL_OFF = 'Customer e-mails are turned off (safety switch). Nothing was sent.';
+const MAIL_OFF = 'Customer e-mails are off or in pilot mode and this address is not in the pilot list. Nothing was sent.';
 const { EMAIL, clean, readBody } = require('../lib/validate');
 
 const ALLOWED = [/^https:\/\/(www\.)?maxzzdiesel\.com$/, /^https:\/\/(admin\.)?maxzzdiesel\.com$/, /^https:\/\/maxzzdiesel(-[a-z0-9-]+)?\.vercel\.app$/];
@@ -42,7 +42,7 @@ A.login = async (req, res) => {
     const nonce = await SDB.newLink(email, 'admin');
     await send(email, 'Maxzz admin sign-in link', 'Sign in to Maxzz admin',
       '<p>Use the button below. The link works once and expires in 20 minutes. The admin session ends after 1 hour without activity.</p>',
-      { url: base(req) + '/admin?lt=' + encodeURIComponent(nonce), label: 'Sign in' }, { greet: true });
+      { url: base(req) + '/admin?lt=' + encodeURIComponent(nonce), label: 'Sign in' }, { greet: true, team: true });
   }
   return res.json({ ok: true }); // same answer for everyone
 };
@@ -156,10 +156,10 @@ A['company-remove'] = async (req, res) => {
   const ids = (Array.isArray(readBody(req).ids) ? readBody(req).ids : []).filter((x) => /^[0-9a-f-]{36}$/i.test(String(x))).slice(0, 500);
   if (!ids.length) return res.status(400).json({ error: 'ids' });
   const cos = await db.select('companies', 'select=id,name,status&id=in.(' + ids.join(',') + ')');
-  const [us, ord, qts] = await Promise.all([db.select('users', 'select=company_id,last_login_at&company_id=in.(' + ids.join(',') + ')'), db.select('orders', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('quotes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000')]);
+  const [us, ord, qts, vch] = await Promise.all([db.select('users', 'select=company_id,last_login_at&company_id=in.(' + ids.join(',') + ')'), db.select('orders', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('quotes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('vouchers', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000').catch(() => [])]);
   const removed = [], kept = [];
   for (const c of cos) {
-    const busy = !['prospect', 'invited', 'ready', 'rejected'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id);
+    const busy = !['prospect', 'invited', 'ready', 'rejected'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id) || vch.some((v) => v.company_id === c.id);
     if (busy) { kept.push(c.name); continue; }
     try {
       await db.remove('company_segments', 'company_id=eq.' + c.id);
@@ -452,6 +452,7 @@ async function inviteOne(req, w, co, email, name, segId) {
   const nonce = await SDB.newLink(email, 'invite', 14 * 864e5);
   const m = inviteHtml(await segTemplate(co.id, segId), tokenVals(co, name), base(req) + '/portal?iv=' + encodeURIComponent(nonce));
   const r = await send(email, m.subject, m.title, m.body, m.cta, { name, greet: true });
+  if (!r || !r.sent) return { error: r && r.blocked ? MAIL_OFF : 'The e-mail service did not accept it. Nothing was sent; try again later.' };
   await db.update('companies', 'id=eq.' + co.id, { status: 'invited' });
   await PS.audit(w.email, 'invite.send', 'company', co.id, null, { email, segment: segId || null });
   return { ok: true, email, sent: !!(r && r.sent) };
@@ -614,7 +615,7 @@ A['voucher-save'] = async (req, res) => {
     starts_at: starts.toISOString(), expires_at: expires.toISOString(),
     max_uses: num(b.max_uses) > 0 ? Math.floor(num(b.max_uses)) : null,
     max_uses_per_company: num(b.max_uses_per_company) > 0 ? Math.floor(num(b.max_uses_per_company)) : null,
-    active: b.active !== false,
+    ...(b.active === undefined && id ? {} : { active: b.active !== false }),
   };
   try {
     if (id) { await db.update('vouchers', 'id=eq.' + id, rec); await PS.audit(w.email, 'voucher.update', 'voucher', id, null, { code }); }
@@ -671,15 +672,19 @@ A['hidden-standard'] = async (req, res) => {
   const b = readBody(req);
   if (b.op === 'save') {
     const cur = await db.selectAll('hidden_products', 'select=code,reason');
+    if (!cur.length) return res.status(409).json({ error: 'Nothing is hidden now, so there is no list to save.' });
     await db.remove('hidden_standard', 'code=not.is.null');
     for (let i = 0; i < cur.length; i += 500) await db.insert('hidden_standard', cur.slice(i, i + 500).map((r) => ({ code: r.code, reason: r.reason, saved_by: w.email })));
     await PS.audit(w.email, 'product.standard.save', 'product', String(cur.length));
     return res.json({ ok: true, n: cur.length });
   }
   if (b.op === 'restore') {
+    // safe order: hide the standard parts first, then show the ones that are not in it (never a moment with the wrong parts visible)
     const std = await db.selectAll('hidden_standard', 'select=code,reason');
-    await db.remove('hidden_products', 'code=not.is.null');
+    if (!std.length) return res.status(409).json({ error: 'The standard list is empty. Save one first.' });
     for (let i = 0; i < std.length; i += 500) await db.insert('hidden_products', std.slice(i, i + 500).map((r) => ({ code: r.code, reason: r.reason, hidden_by: w.email })), { onConflict: 'code' });
+    const keep = new Set(std.map((r) => r.code)), extra = (await db.selectAll('hidden_products', 'select=code')).map((r) => r.code).filter((c) => !keep.has(c));
+    for (let i = 0; i < extra.length; i += 150) await db.remove('hidden_products', 'code=' + inList(extra.slice(i, i + 150)));
     await PS.audit(w.email, 'product.standard.restore', 'product', String(std.length));
     return res.json({ ok: true, n: std.length });
   }
@@ -781,11 +786,11 @@ A['campaign-save'] = async (req, res) => {
   if (!ends || isNaN(ends) || isNaN(starts) || ends <= starts) return res.status(400).json({ error: 'Set when the campaign ends (after it starts).' });
   const codes = [...new Map((Array.isArray(b.items) ? b.items : []).map((i) => [clean(i && i.code, 60), i && num(i.value) > 0 ? num(i.value) : null]).filter((x) => x[0])).entries()].slice(0, 6000);
   if (!codes.length) return res.status(400).json({ error: 'Add at least one product to the campaign.' });
-  if (kind === 'price' && codes.some((x) => !(x[1] > 0)) && !(value > 0)) return res.status(400).json({ error: 'Fixed price campaigns need a price on every product.' });
+  if (kind === 'price' && codes.some((x) => !(x[1] > 0))) return res.status(400).json({ error: 'Fixed price campaigns need a price on every part (' + codes.filter((x) => !(x[1] > 0)).length + ' without one).' });
   // margin floor: the campaign price on the lowest tier must stay at or above cost + CAMPAIGN_MIN_MARGIN (10% by default)
   const below = await belowFloor(codes, kind, value);
   if (below.list.length && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.list.length + ' part' + (below.list.length === 1 ? '' : 's') + ' would sell under cost + ' + below.pct + '% on the lowest price tier: ' + below.list.slice(0, 8).map((x) => x.code + ' (min $' + x.floor + ')').join(', ') + (below.list.length > 8 ? '...' : '') + '. Lower the discount on those parts or remove them' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), below: below.list.slice(0, 200), canForce: w.role === 'superadmin' });
-  const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: value || 0,
+  const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: kind === 'price' ? 0 : value || 0,
     color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
   let cid = id;
   try {
@@ -976,7 +981,7 @@ A.customer = async (req, res) => {
     c ? db.select('sales_orders', 'select=guid,number,order_date,completed_date,subtotal,salesperson&customer_code=eq.' + encodeURIComponent(c) + '&order=completed_date.desc.nullslast&limit=60') : [],
     co ? db.select('audit_log', 'select=at,admin_email,action,after&entity=eq.company&entity_id=eq.' + co.id + '&order=at.desc&limit=60') : [],
     co ? db.select('company_segments', 'select=segment_id,added_by,at&company_id=eq.' + co.id) : [],
-    (c || co) ? db.select('customer_notes', 'select=*&' + (c ? 'customer_code=eq.' + encodeURIComponent(c) : 'company_id=eq.' + co.id) + '&order=created_at.desc&limit=200').catch(() => []) : [],
+    (c || co) ? db.select('customer_notes', 'select=*&' + (c && co ? 'or=(customer_code.eq.' + encodeURIComponent('"' + c.replace(/["\\]/g, '') + '"') + ',company_id.eq.' + co.id + ')' : c ? 'customer_code=eq.' + encodeURIComponent(c) : 'company_id=eq.' + co.id) + '&order=created_at.desc&limit=200').catch(() => []) : [],
   ]);
   if (sales) (sales.parts || []).forEach((p) => { p.t = N[p.code] ? N[p.code].t : ''; });
   (ev || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; });
