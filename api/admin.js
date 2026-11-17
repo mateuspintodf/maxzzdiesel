@@ -77,7 +77,10 @@ A.lookup = async (req, res) => {
   const code = clean(req.query.code, 40);
   if (!code) return res.status(400).json({ error: 'code' });
   const q = /^[A-Za-z0-9._ -]+$/.test(code) ? 'customerCode=' + encodeURIComponent(code) : 'customer=' + encodeURIComponent(code);
-  const data = await ul('Customers', q + '&pageSize=10', { timeoutMs: 30000 });
+  // Unleashed signs the decoded query: a name with spaces, & or @ gets 403 when the encoded form is signed
+  const qq = q + '&pageSize=10'; let data;
+  try { data = await ul('Customers', qq, { timeoutMs: 30000, sign: decodeURIComponent(qq) }); }
+  catch (e) { try { data = await ul('Customers', qq, { timeoutMs: 30000 }); } catch (e2) { console.error('admin lookup', e2.message); return res.status(502).json({ error: 'Unleashed did not answer the search. Try the customer code instead of the name.' }); } }
   return res.json({ customers: (data.Items || []).slice(0, 10).map((c) => ({ code: c.CustomerCode, name: c.CustomerName, tier: c.SellPriceTier || '', guid: c.Guid, stopCredit: !!c.StopCredit, terms: c.PaymentTerm || '' })) });
 };
 A.approve = async (req, res) => {
@@ -216,10 +219,11 @@ A['admin-save'] = async (req, res) => {
 // ---------------------------------------------------------------- Unleashed import into segments
 const addrOf = (c) => { const a = (c.Addresses || []).find((x) => /physical|street/i.test(x.AddressType || '')) || (c.Addresses || [])[0] || {}; return { city: a.City || '', state: a.Region || '', country: a.Country || '' }; };
 async function allCustomers() {
-  const out = [];
+  const out = [], seen = new Set();
   for (let page = 1; page <= 20; page++) {
-    const d = await ul('Customers', 'pageSize=500&pageNumber=' + page, { timeoutMs: 40000 });
-    (d.Items || []).forEach((c) => out.push(c));
+    // Unleashed pages by path (Customers/2); a pageNumber in the query is ignored and returns page 1 again
+    const d = await ul('Customers/' + page, 'pageSize=500', { timeoutMs: 40000 });
+    (d.Items || []).forEach((c) => { if (!seen.has(c.Guid)) { seen.add(c.Guid); out.push(c); } });
     if (!d.Pagination || page >= (d.Pagination.NumberOfPages || 1)) break;
   }
   return out;
@@ -228,7 +232,7 @@ async function allCustomers() {
 async function buyersSince(months) {
   const since = new Date(Date.now() - months * 30.44 * 864e5).toISOString().slice(0, 10), codes = new Set();
   for (let page = 1; page <= 40; page++) {
-    const d = await ul('SalesOrders', 'orderStatus=Completed,Placed,Parked,Backordered&startDate=' + since + '&pageSize=200&pageNumber=' + page, { timeoutMs: 40000 });
+    const d = await ul('SalesOrders/' + page, 'orderStatus=Completed,Placed,Parked,Backordered&startDate=' + since + '&pageSize=200', { timeoutMs: 40000 });
     (d.Items || []).forEach((o) => { if (o.Customer && o.Customer.CustomerCode) codes.add(o.Customer.CustomerCode); });
     if (!d.Pagination || page >= (d.Pagination.NumberOfPages || 1)) break;
   }
@@ -504,7 +508,7 @@ A['segment-create'] = async (req, res) => {
   if (!name) return res.status(400).json({ error: 'Give the segment a name.' });
   if (!codes.length) return res.status(400).json({ error: 'Select at least one customer.' });
   const seg = await segmentByName(name, w.email);
-  await db.update('segments', 'id=eq.' + seg.id, { description: clean(b.description, 300) || null, rules: b.rules && typeof b.rules === 'object' ? b.rules : null });
+  await db.update('segments', 'id=eq.' + seg.id, { description: clean(b.description, 300) || null, rules: b.rules && typeof b.rules === 'object' ? b.rules : {} });
   const existing = {}; (await db.selectAll('companies', 'select=id,unleashed_code&unleashed_code=not.is.null')).forEach((r) => { existing[r.unleashed_code] = r.id; });
   const missing = codes.filter((c) => !existing[c]);
   for (let i = 0; i < missing.length; i += 150) {
@@ -982,7 +986,7 @@ A['dash-ai'] = async (req, res) => {
     const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + AI_KEY(req), 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', max_tokens: 6000, messages: [{ role: 'user', content: prompt }] }) });
     const j = await r.json().catch(() => null);
-    if (!r.ok) { console.error('dash-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: r.status === 401 || r.status === 403 ? 'The AI service refused the key. Check AI Gateway in Vercel.' : r.status === 402 ? 'AI Gateway has no credit left this month.' : 'The AI service did not answer. Try again in a minute.' }); }
+    if (!r.ok) { console.error('dash-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: /customer_verification|credit card/i.test(JSON.stringify(j)) ? 'AI Gateway in Vercel needs a credit card on file before it answers (Vercel > AI Gateway). The free credits start after that.' : r.status === 401 || r.status === 403 ? 'The AI service refused the key. Check AI Gateway in Vercel.' : r.status === 402 ? 'AI Gateway has no credit left this month.' : 'The AI service did not answer. Try again in a minute.' }); }
     const text = String(j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || '');
     let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
     if (!out) return res.status(502).json({ error: 'The AI answer could not be read. Try again.' });

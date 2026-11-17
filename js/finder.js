@@ -64,12 +64,18 @@
     var raw = term.trim();
     if (raw.length < 2) { out.innerHTML = ''; return; }
     var toks = raw.toLowerCase().split(/[\s,]+/).map(norm).filter(Boolean);
-    var hits = [];
-    for (var i = 0; i < cat.length && hits.length < 8; i++) {
+    // part numbers match with or without dots, dashes, spaces or the brand prefix; the part itself comes first
+    var hits = [], nq = norm(raw), sc = [];
+    for (var i = 0; i < cat.length; i++) {
       var ok = true;
       for (var t = 0; t < toks.length; t++) { if (hay[i].indexOf(toks[t]) < 0) { ok = false; break; } }
-      if (ok && (!stock || stock[cat[i][0]])) hits.push(cat[i]);
+      if (!ok || (stock && !stock[cat[i][0]])) continue;
+      var c = norm(cat[i][0]), c2 = norm(String(cat[i][0]).replace(/^[A-Za-z]{2,4}[.\s]+/, ''));
+      sc.push([nq.length >= 4 && (c === nq || c2 === nq) ? 0 : nq.length >= 4 && c.indexOf(nq) >= 0 ? 1 : 2, i]);
+      if (sc.length > 600) break;
     }
+    sc.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
+    hits = sc.slice(0, 8).map(function (x) { return cat[x[1]]; });
     var h = '';
     var sh = sysHits(toks);
     if (sh.length) {
@@ -77,7 +83,7 @@
         sh.map(function (x) { return '<a href="' + x[1] + '" style="border:1px solid #d3d7dc;border-radius:50px;padding:4px 14px;color:#1d2126">' + esc(x[0]) + '</a>'; }).join('') + '</div>';
     }
     hits.forEach(function (r) {
-      h += '<div class="pf-r"><b>' + esc(oem(r[0], r[1])) + '</b><span>' + esc(r[1]) + '</span>' +
+      h += '<div class="pf-r"><b>' + esc(r[0].indexOf('.') > -1 ? r[0].split('.').slice(1).join('.') : r[0]) + '</b><span>' + esc(r[1]) + '</span>' +
         '<button type="button" data-id="' + esc(r[0]) + '">Add to quote list</button></div>';
     });
     if (!hits.length) h += '<div style="padding:8px 4px;font-size:14px;color:#5a5a60">No in-stock match for this search. Add the part number below and our team will confirm availability.</div>';

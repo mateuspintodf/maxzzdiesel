@@ -512,7 +512,8 @@ A['admin-lookup'] = async (req, res) => {
   const code = clean(req.query.code, 40);
   if (!code) return res.status(400).json({ error: 'code' });
   const q = /^[A-Za-z0-9._ -]+$/.test(code) ? 'customerCode=' + encodeURIComponent(code) : 'customer=' + encodeURIComponent(code);
-  const data = await ul('Customers', q + '&pageSize=10', { timeoutMs: 30000 });
+  const qq = q + '&pageSize=10'; let data;
+  try { data = await ul('Customers', qq, { timeoutMs: 30000, sign: decodeURIComponent(qq) }); } catch (e) { data = await ul('Customers', qq, { timeoutMs: 30000 }); }
   return res.json({ customers: (data.Items || []).slice(0, 10).map((c) => ({ code: c.CustomerCode, name: c.CustomerName, tier: c.SellPriceTier || '', guid: c.Guid, stopCredit: !!c.StopCredit, terms: c.PaymentTerm || '' })) });
 };
 A['admin-approve'] = async (req, res) => {
