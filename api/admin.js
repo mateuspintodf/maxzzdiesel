@@ -5,7 +5,8 @@ const db = require('../lib/db');
 const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
 const { ul, configured } = require('../lib/unleashed');
-const { send, esc, layout } = require('../lib/mail');
+const { send, esc, layout, customerMailOn, internalTo } = require('../lib/mail');
+const MAIL_OFF = 'Customer e-mails are turned off (safety switch). Nothing was sent.';
 const { EMAIL, clean, readBody } = require('../lib/validate');
 
 const ALLOWED = [/^https:\/\/(www\.)?maxzzdiesel\.com$/, /^https:\/\/(admin\.)?maxzzdiesel\.com$/, /^https:\/\/maxzzdiesel(-[a-z0-9-]+)?\.vercel\.app$/];
@@ -28,6 +29,8 @@ async function who(req, res) {
 const can = (w, ...roles) => w.role === 'superadmin' || roles.includes(w.role);
 
 const A = {};
+// a PostgREST in() list of text values, quoted and URL-encoded (part codes can carry #, +, &, spaces, commas)
+const inList = (vals) => 'in.(' + vals.map((v) => encodeURIComponent('"' + String(v).replace(/["\\]/g, '') + '"')).join(',') + ')';
 
 A.login = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -52,7 +55,7 @@ A.confirm = async (req, res) => {
   return res.json({ ok: true });
 };
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; return res.json(w); };
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; return res.json(Object.assign({}, w, { mailOn: customerMailOn() })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -289,11 +292,65 @@ A['segment-members'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const b = readBody(req), ids = (Array.isArray(b.companies) ? b.companies : []).map((x) => clean(x, 60)).filter((x) => /^[0-9a-f-]{36}$/i.test(x)).slice(0, 500);
-  const seg = (await db.select('segments', 'select=id&id=eq.' + clean(b.segment, 60) + '&limit=1'))[0];
+  const seg = (await db.select('segments', 'select=id,name&id=eq.' + clean(b.segment, 60) + '&limit=1'))[0];
+  if (seg && b.remove && b.all) { await db.remove('company_segments', 'segment_id=eq.' + seg.id); await PS.audit(w.email, 'segment.clear', 'segment', seg.id, null, { name: seg.name }); return res.json({ ok: true }); }
   if (!seg || !ids.length) return res.status(400).json({ error: 'segment' });
   if (b.remove) await db.remove('company_segments', 'segment_id=eq.' + seg.id + '&company_id=in.(' + ids.join(',') + ')');
   else await db.insert('company_segments', ids.map((c) => ({ company_id: c, segment_id: seg.id, added_by: w.email })), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
   return res.json({ ok: true });
+};
+
+// delete a segment: the companies stay (as prospects or customers), only the grouping and its invite text go
+A['segment-delete'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const id = clean(readBody(req).id, 60);
+  const seg = (await db.select('segments', 'select=id,name&id=eq.' + id + '&limit=1'))[0];
+  if (!seg) return res.status(404).json({ error: 'segment' });
+  await db.remove('company_segments', 'segment_id=eq.' + seg.id);
+  await db.remove('segments', 'id=eq.' + seg.id);
+  await PS.audit(w.email, 'segment.delete', 'segment', seg.id, null, { name: seg.name });
+  return res.json({ ok: true });
+};
+// CSV into a segment: each row is matched by Unleashed customer code, then by e-mail (Unleashed, portal people, companies).
+// A row that matches nothing but has a company name becomes a prospect added by hand. Rows are parsed in the page.
+A['segment-import'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), name = clean(b.name, 80), segId = clean(b.segment, 60);
+  const rows = (Array.isArray(b.rows) ? b.rows : []).slice(0, 3000).map((r) => ({ code: clean(r.code, 60).toUpperCase(), email: clean(r.email, 160).toLowerCase(), company: clean(r.company, 120), contact: clean(r.contact, 120), phone: clean(r.phone, 40), city: clean(r.city, 80), state: clean(r.state, 40) })).filter((r) => r.code || r.email || r.company);
+  if (!rows.length) return res.status(400).json({ error: 'No usable rows. The file needs a column with the customer code, the e-mail or the company name.' });
+  let seg = segId ? (await db.select('segments', 'select=id,name&id=eq.' + segId + '&limit=1'))[0] : null;
+  if (!seg && !name) return res.status(400).json({ error: 'Give the segment a name.' });
+  if (!seg) seg = await segmentByName(name, w.email);
+  const [ul, cos, us] = await Promise.all([db.selectAll('ul_customers', 'select=*'), db.selectAll('companies', 'select=id,unleashed_code,contact_email,name'), db.selectAll('users', 'select=company_id,email')]);
+  const ulByCode = {}, ulByMail = {}, coByCode = {}, coByMail = {}, coByName = {};
+  ul.forEach((c) => { ulByCode[String(c.code).toUpperCase()] = c; if (c.email) String(c.email).split(/[;,\s]+/).forEach((e) => { if (e) ulByMail[e.toLowerCase()] = c; }); });
+  cos.forEach((c) => { if (c.unleashed_code) coByCode[String(c.unleashed_code).toUpperCase()] = c.id; if (c.contact_email) coByMail[c.contact_email.toLowerCase()] = c.id; coByName[String(c.name || '').toLowerCase()] = c.id; });
+  us.forEach((u) => { if (u.email) coByMail[u.email.toLowerCase()] = u.company_id; });
+  const ids = new Set(), out = { matched: 0, created: 0, unmatched: [] };
+  for (const r of rows) {
+    let id = (r.code && coByCode[r.code]) || (r.email && coByMail[r.email]) || null;
+    let u = !id ? ((r.code && ulByCode[r.code]) || (r.email && ulByMail[r.email]) || null) : null;
+    if (!id && u && coByCode[String(u.code).toUpperCase()]) id = coByCode[String(u.code).toUpperCase()];
+    if (!id && u) {
+      id = (await db.insert('companies', [{ name: u.name || u.code, unleashed_code: u.code, unleashed_guid: u.guid, tier: u.tier, payment_terms: u.payment_terms, stop_credit: !!u.stop_credit, customer_type: u.type,
+        city: u.city, state: u.state, country: u.country, salesperson: u.salesperson, status: 'prospect', source: 'csv_import', contact_email: r.email || u.email, contact_name: r.contact || u.contact_name, contact_phone: r.phone || u.phone, tier_synced_at: new Date().toISOString() }]))[0].id;
+      coByCode[String(u.code).toUpperCase()] = id; out.created++;
+    }
+    if (!id && r.company && coByName[r.company.toLowerCase()]) id = coByName[r.company.toLowerCase()];
+    if (!id && r.company && (!r.email || EMAIL.test(r.email))) {
+      id = (await db.insert('companies', [{ name: r.company, status: 'prospect', source: 'csv_import', contact_email: r.email || null, contact_name: r.contact || null, contact_phone: r.phone || null, city: r.city || null, state: r.state || null }]))[0].id;
+      coByName[r.company.toLowerCase()] = id; if (r.email) coByMail[r.email] = id; out.created++;
+    }
+    if (id) { ids.add(id); out.matched++; } else if (out.unmatched.length < 50) out.unmatched.push(r.code || r.email || r.company);
+  }
+  const links = [...ids].map((c) => ({ company_id: c, segment_id: seg.id, added_by: w.email }));
+  for (let i = 0; i < links.length; i += 200) await db.insert('company_segments', links.slice(i, i + 200), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
+  await PS.audit(w.email, 'segment.import', 'segment', seg.id, null, { name: seg.name, rows: rows.length, members: ids.size, created: out.created });
+  return res.json({ ok: true, id: seg.id, rows: rows.length, members: ids.size, created: out.created, unmatched: out.unmatched, unmatchedCount: rows.length - out.matched });
 };
 
 // ---------------------------------------------------------------- terms (draft until a superadmin publishes)
@@ -328,13 +385,22 @@ A['terms-publish'] = async (req, res) => {
 
 // ---------------------------------------------------------------- proactive invite: one click per company, always by an admin
 // tokens in the invite text, filled per company
-function fillTokens(t, v) { return String(t || '').replace(/\{\{\s*([a-z_]+)\s*\}\}/g, (m, k) => (v[k] != null && v[k] !== '' ? String(v[k]) : '')); }
+// {{token}} or {{token|fallback}}: the fallback is used when the customer has no value for it. {{link}} is left for inviteHtml.
+function fillTokens(t, v) { return String(t || '').replace(/\{\{\s*([a-z_]+)\s*(?:\|([^}]*))?\}\}/g, (m, k, fb) => (k === 'link' ? m : v[k] != null && v[k] !== '' ? String(v[k]) : (fb || '').trim())); }
 function tokenVals(co, name) {
   const nm = String(name || co.contact_name || '').trim();
-  return { first_name: nm.split(/\s+/)[0] || 'there', contact_name: nm, company: co.name || '', customer_code: co.unleashed_code || '', tier: co.tier || '', salesperson: co.salesperson || '', city: co.city || '', state: co.state || '', country: co.country || '' };
+  return { first_name: nm.split(/\s+/)[0] || '', contact_name: nm, company: co.name || '', customer_code: co.unleashed_code || '', tier: co.tier || '', salesperson: co.salesperson || '', city: co.city || '', state: co.state || '', country: co.country || '' };
 }
-const DEF_TPL = { subject: 'You are invited to the Maxzz Diesel B2B portal', title: 'You are invited',
-  body: 'We opened a wholesale account for {{company}} in the Maxzz Diesel B2B portal. You will see your own prices and live stock, request quotes and track your orders.\n\nYour account {{customer_code}} keeps your current price list and payment terms.', cta: 'Open my account' };
+// ready texts the team can start from (English: the portal is in English for now)
+const STARTERS = [
+  { k: 'standard', name: 'Invite to the portal', subject: '{{company}}, your Maxzz Diesel B2B account is ready', title: 'Your wholesale account is ready', cta: 'Open my account',
+    body: 'We opened the Maxzz Diesel B2B portal for {{company}}. It is the same account you already have with us ({{customer_code}}), with your prices and payment terms, now online.\n\nIn the portal you can:\n• see your own price on the injectors, pumps and nozzles we stock\n• check live stock before you call\n• send a quote request in a few clicks\n• follow your portal orders and quotes in one place\n\nOrdering by phone or e-mail still works. {{salesperson|Our team}} is your contact for anything you need, just reply to this e-mail.' },
+  { k: 'winback', name: 'We miss you (customers who stopped buying)', subject: '{{first_name|Hello}}, it has been a while', title: 'It has been a while', cta: 'See my prices',
+    body: 'We have not seen an order from {{company}} in some time and wanted to make it easier to come back.\n\nYour account {{customer_code}} is now in the Maxzz Diesel B2B portal, with your prices, live stock and quote requests online. You can check availability for your next job in a minute, without waiting for a call back.\n\nIf something went wrong on your last order, tell us. {{salesperson|Our team}} will take care of it personally.' },
+  { k: 'new', name: 'First contact (never bought)', subject: 'Wholesale diesel injection parts for {{company}}', title: 'Welcome to Maxzz Diesel', cta: 'Create my access',
+    body: 'Maxzz Diesel supplies new and remanufactured diesel injectors, pumps and nozzles to repair shops and rebuilders across the US and Latin America.\n\nWe opened a wholesale account for {{company}} in our B2B portal so you can see trade prices, stock and lead times before you buy.\n\nAny question, reply to this e-mail and {{salesperson|our team}} will get back to you the same day.' },
+];
+const DEF_TPL = { subject: STARTERS[0].subject, title: STARTERS[0].title, body: STARTERS[0].body, cta: STARTERS[0].cta };
 function inviteHtml(tpl, vals, url) {
   const body = fillTokens(tpl.body || DEF_TPL.body, vals).split(/\n{2,}/).map((p) => '<p>' + esc(p).replace(/\n/g, '<br>').replace(/\{\{\s*link\s*\}\}/g, '<a href="' + esc(url) + '" style="color:#d32a37">' + esc(url) + '</a>') + '</p>').join('');
   return { subject: fillTokens(tpl.subject || DEF_TPL.subject, vals), title: fillTokens(tpl.title || DEF_TPL.title, vals), body: body + '<p style="color:#8a9097;font-size:13px">The link is yours and works for 14 days.</p>', cta: { url, label: fillTokens(tpl.cta || DEF_TPL.cta, vals) } };
@@ -351,6 +417,7 @@ async function inviteOne(req, w, co, email, name, segId) {
   if (co.status === 'active') return { error: 'Already active.' };
   email = clean(email || co.contact_email, 160).toLowerCase(); name = clean(name || co.contact_name, 120);
   if (!EMAIL.test(email)) return { error: 'No e-mail to invite.' };
+  if (!customerMailOn() && !internalTo(email)) return { error: MAIL_OFF };
   const owner = (await db.select('users', 'select=id,company_id&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0];
   if (owner && owner.company_id !== co.id) return { error: 'That e-mail belongs to another company.' };
   let uid = owner && owner.id;
@@ -404,7 +471,7 @@ A['segment-create'] = async (req, res) => {
   const existing = {}; (await db.selectAll('companies', 'select=id,unleashed_code&unleashed_code=not.is.null')).forEach((r) => { existing[r.unleashed_code] = r.id; });
   const missing = codes.filter((c) => !existing[c]);
   for (let i = 0; i < missing.length; i += 150) {
-    const ul = await db.select('ul_customers', 'select=*&code=in.(' + missing.slice(i, i + 150).map((c) => '"' + c.replace(/"/g, '') + '"').join(',') + ')');
+    const ul = await db.select('ul_customers', 'select=*&code=' + inList(missing.slice(i, i + 150)));
     if (!ul.length) continue;
     const made = await db.insert('companies', ul.map((c) => ({ name: c.name || c.code, unleashed_code: c.code, unleashed_guid: c.guid, tier: c.tier, payment_terms: c.payment_terms, stop_credit: !!c.stop_credit, customer_type: c.type,
       city: c.city, state: c.state, country: c.country, salesperson: c.salesperson, status: 'prospect', source: 'unleashed_import', contact_email: c.email, contact_name: c.contact_name, contact_phone: c.phone, tier_synced_at: new Date().toISOString() })));
@@ -430,7 +497,7 @@ A.segment = async (req, res) => {
     users.push(...(await db.select('users', 'select=company_id,email,name,status,invited_at,last_login_at&company_id=in.(' + part + ')')));
   }
   const terms = (await db.select('terms_versions', 'select=version&status=eq.published&limit=1'))[0];
-  return res.json({ segment: { id: g.id, name: g.name, description: g.description || '', rules: g.rules || null, subject: g.invite_subject || '', title: g.invite_title || '', body: g.invite_body || '', cta: g.invite_cta || '' }, defaults: DEF_TPL, termsPublished: !!terms,
+  return res.json({ segment: { id: g.id, name: g.name, description: g.description || '', rules: g.rules || null, subject: g.invite_subject || '', title: g.invite_title || '', body: g.invite_body || '', cta: g.invite_cta || '' }, defaults: DEF_TPL, starters: STARTERS, termsPublished: !!terms, mailOn: customerMailOn(),
     members: cos.map((c) => { const u = users.filter((x) => x.company_id === c.id); const inv = u.map((x) => x.invited_at).filter(Boolean).sort().pop() || null;
       return { id: c.id, n: c.name, c: c.unleashed_code, status: c.status, tier: c.tier, city: c.city, state: c.state, country: c.country, email: (u[0] && u[0].email) || c.contact_email || '', contact: (u[0] && u[0].name) || c.contact_name || '', sp: c.salesperson, invited_at: inv, people: u.length, last_login: u.map((x) => x.last_login_at).filter(Boolean).sort().pop() || null }; }) });
 };
@@ -534,23 +601,54 @@ A['hidden-set'] = async (req, res) => {
   for (let i = 0; i < codes.length; i += 200) {
     const part = codes.slice(i, i + 200);
     if (b.hide) await db.insert('hidden_products', part.map((code) => ({ code, reason: clean(b.reason, 200) || null, hidden_by: w.email })), { onConflict: 'code' });
-    else await db.remove('hidden_products', 'code=in.(' + part.map((c) => '"' + c.replace(/"/g, '') + '"').join(',') + ')');
+    else await db.remove('hidden_products', 'code=' + inList(part));
   }
   await PS.audit(w.email, b.hide ? 'product.hide' : 'product.show', 'product', codes.join(',').slice(0, 200));
   return res.json({ ok: true, n: codes.length });
 };
 
+// real parts for the campaign preview: photo, default list price and stock
+A['campaign-sample'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  const codes = String(req.query.codes || '').split('|').map((c) => clean(c, 60)).filter(Boolean).slice(0, 4);
+  const [prod, stock] = await Promise.all([cached('portal/products.json', 10 * 60 * 1000), cached('portal/stock.json', 10 * 60 * 1000)]);
+  const out = {};
+  codes.forEach((c) => { const p = prod && prod.items && prod.items[c]; out[c] = { img: p && p.img && /^https:\/\//.test(p.img) ? p.img : null, price: p && p.d > 0 ? Math.round(p.d * 100) / 100 : null, stock: stock && stock.qty ? (stock.qty[c] ?? 0) : null }; });
+  return res.json({ items: out });
+};
+// the standard hidden list: a saved snapshot the team can go back to after a bulk change
+A['hidden-standard'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req);
+  if (b.op === 'save') {
+    const cur = await db.selectAll('hidden_products', 'select=code,reason');
+    await db.remove('hidden_standard', 'code=not.is.null');
+    for (let i = 0; i < cur.length; i += 500) await db.insert('hidden_standard', cur.slice(i, i + 500).map((r) => ({ code: r.code, reason: r.reason, saved_by: w.email })));
+    await PS.audit(w.email, 'product.standard.save', 'product', String(cur.length));
+    return res.json({ ok: true, n: cur.length });
+  }
+  if (b.op === 'restore') {
+    const std = await db.selectAll('hidden_standard', 'select=code,reason');
+    await db.remove('hidden_products', 'code=not.is.null');
+    for (let i = 0; i < std.length; i += 500) await db.insert('hidden_products', std.slice(i, i + 500).map((r) => ({ code: r.code, reason: r.reason, hidden_by: w.email })), { onConflict: 'code' });
+    await PS.audit(w.email, 'product.standard.restore', 'product', String(std.length));
+    return res.json({ ok: true, n: std.length });
+  }
+  return res.status(400).json({ error: 'op' });
+};
 // the whole catalog for the visibility screen: every product with its classification, hidden flag, stock and 12-month sales
 A['catalog-all'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   const { readJson } = require('../lib/store');
-  const [live, hid, stock, sales] = await Promise.all([readJson('catalog/live.json').catch(() => null), db.selectAll('hidden_products', 'select=code,reason,hidden_by,created_at'), readJson('portal/stock.json').catch(() => null), db.rpc('product_sales_12m').catch(() => ({}))]);
+  const [live, hid, stock, sales, std] = await Promise.all([readJson('catalog/live.json').catch(() => null), db.selectAll('hidden_products', 'select=code,reason,hidden_by,created_at'), readJson('portal/stock.json').catch(() => null), db.rpc('product_sales_12m').catch(() => ({})), db.selectAll('hidden_standard', 'select=code,saved_by,saved_at').catch(() => [])]);
   let rows = Array.isArray(live) && live.length ? live : JSON.parse(require('fs').readFileSync(require('path').join(process.cwd(), 'data', 'catalog.json'), 'utf8'));
   const H = {}; hid.forEach((h) => { H[h.code] = [h.reason || '', h.hidden_by || '', h.created_at]; });
   const Q = (stock && stock.qty) || {};
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ rows: rows.map((r) => [r[0], r[1], r[3], r[4] || '', r[5] || '', r[6] || '', Q[r[0]] != null ? Number(Q[r[0]]) : null, (sales || {})[r[0]] || null, H[r[0]] || null]),
-    hiddenNotInCatalog: hid.filter((h) => !rows.some((r) => r[0] === h.code)).map((h) => h.code), stockAt: stock && stock.at });
+    standard: { n: std.length, by: std[0] ? std[0].saved_by : null, at: std[0] ? std[0].saved_at : null }, hiddenNotInCatalog: hid.filter((h) => !rows.some((r) => r[0] === h.code)).map((h) => h.code), stockAt: stock && stock.at });
 };
 A['behavior-companies'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -712,6 +810,7 @@ A.dash = async (req, res) => {
     db.select('quotes', 'select=created_at&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
     db.rpc('dash_period', { p_days: days }).catch(() => null),
   ]);
+  const FUN = await db.rpc('dash_funnel', { p_days: days }).catch(() => null);
   const portal = {}; (cos || []).forEach((c) => { portal[c.unleashed_code] = c.status; });
   const title = (c) => (N[c] ? N[c].t : '');
   ['products', 'rising', 'falling'].forEach((k) => (S[k] || []).forEach((p) => { p.t = title(p.code); p.k = N[p.code] ? N[p.code].k : ''; }));
@@ -720,7 +819,7 @@ A.dash = async (req, res) => {
   ['viewed', 'carted'].forEach((k) => (B[k] || []).forEach((p) => { p.t = title(p.k); }));
   const P = { orders: ord.length, order_value: Math.round(ord.reduce((a, o) => a + Number(o.total || 0), 0)), quotes: qts.length,
     companies: Object.values(portal).filter((s) => s === 'approved' || s === 'active').length, invited: Object.values(portal).filter((s) => s === 'invited').length };
-  return res.json({ days, period: PER, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(req), at: Date.now() });
+  return res.json({ days, period: PER, funnel: FUN, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(req), at: Date.now() });
 };
 // AI read of the same numbers: campaigns for groups and one-to-one actions. Off until DASH_AI=1 (it has a cost per run).
 // Only business data goes out (company names, codes, totals, parts); no e-mails or phone numbers.
@@ -781,6 +880,9 @@ A['dash-customers'] = async (req, res) => {
   return res.json({ rows: rows || [] });
 };
 // one customer, everything we know: sales rhythm and history from Unleashed, portal people, behavior, portal orders and quotes
+// one customer: sales, contacts and one activity timeline (like a CRM lead page) built from everything we keep
+const EVN = { product: 'viewed', search: 'searched', cart_add: 'added to cart', cart_remove: 'removed from cart', cart_view: 'opened the cart', checkout: 'started checkout', voucher: 'tried a voucher', filter: 'filtered' };
+const AUD = { 'invite.send': ['invite', 'Invite e-mail sent'], 'invite.accept': ['account', 'Invite accepted'], 'company.approve': ['account', 'Account approved'], 'company.reject': ['account', 'Access request rejected'], 'prospect.add': ['account', 'Added by hand'] };
 A.customer = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
@@ -788,17 +890,51 @@ A.customer = async (req, res) => {
   if (!code && !id) return res.status(400).json({ error: 'code' });
   const co = (await db.select('companies', 'select=*&' + (id ? 'id=eq.' + encodeURIComponent(id) : 'unleashed_code=eq.' + encodeURIComponent(code)) + '&limit=1'))[0] || null;
   const c = code || (co && co.unleashed_code) || '';
-  const [sales, N, users, ev, ord, qts] = await Promise.all([
+  const [sales, N, users, ev, ord, qts, ulc, inv, aud, segl] = await Promise.all([
     c ? db.rpc('dash_customer', { p_code: c }) : null, names(),
-    co ? db.select('users', 'select=email,name,phone,status,last_login_at&company_id=eq.' + co.id) : [],
-    co ? db.select('events', 'select=at,type,code,query,path,device,city&company_id=eq.' + co.id + '&type=neq.page&order=at.desc&limit=60') : [],
-    co ? db.select('orders', 'select=number,status,total,created_at&company_id=eq.' + co.id + '&order=created_at.desc&limit=10') : [],
-    co ? db.select('quotes', 'select=number,status,created_at&company_id=eq.' + co.id + '&order=created_at.desc&limit=10') : [],
+    co ? db.select('users', 'select=email,name,phone,status,role,last_login_at,invited_at,invited_by,terms_accepted_at,created_at&company_id=eq.' + co.id) : [],
+    co ? db.select('events', 'select=at,type,code,qty,value,query,path,device,city,region,session_id,referrer,utm&company_id=eq.' + co.id + '&order=at.desc&limit=600') : [],
+    co ? db.select('orders', 'select=number,status,total,subtotal,discount,voucher_code,po,unleashed_number,created_at&company_id=eq.' + co.id + '&order=created_at.desc&limit=40') : [],
+    co ? db.select('quotes', 'select=number,status,unleashed_number,notes,created_at&company_id=eq.' + co.id + '&order=created_at.desc&limit=40') : [],
+    c ? db.select('ul_customers', 'select=*&code=eq.' + encodeURIComponent(c) + '&limit=1') : [],
+    c ? db.select('sales_orders', 'select=guid,number,order_date,completed_date,subtotal,salesperson&customer_code=eq.' + encodeURIComponent(c) + '&order=completed_date.desc.nullslast&limit=60') : [],
+    co ? db.select('audit_log', 'select=at,admin_email,action,after&entity=eq.company&entity_id=eq.' + co.id + '&order=at.desc&limit=60') : [],
+    co ? db.select('company_segments', 'select=segment_id,added_by,at&company_id=eq.' + co.id) : [],
   ]);
   if (sales) (sales.parts || []).forEach((p) => { p.t = N[p.code] ? N[p.code].t : ''; });
   (ev || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; });
-  return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at },
-    sales, users, events: ev, orders: ord, quotes: qts });
+  const lines = inv.length ? await db.select('sales_lines', 'select=order_guid,code,qty,total&order_guid=in.(' + inv.map((o) => o.guid).join(',') + ')') : [];
+  const segN = {}; if (segl.length) (await db.select('segments', 'select=id,name&id=in.(' + segl.map((x) => x.segment_id).join(',') + ')')).forEach((g) => { segN[g.id] = g.name; });
+  const T = [];
+  const push = (at, kind, title, desc, det) => { if (at) T.push({ at, kind, title, desc: desc || '', det: det || null }); };
+  inv.forEach((o) => { const ls = lines.filter((l) => l.order_guid === o.guid);
+    push(o.completed_date || o.order_date, 'order', 'Invoiced order ' + (o.number || ''), usd(o.subtotal) + ' · ' + pl(ls.length, 'line') + (o.salesperson ? ' · ' + o.salesperson : ''), ls.map((l) => [l.code, (N[l.code] && N[l.code].t) || '', l.qty, l.total])); });
+  (ord || []).forEach((o) => push(o.created_at, 'order', 'Portal order ' + o.number, usd(o.total) + ' · ' + o.status + (o.voucher_code ? ' · voucher ' + o.voucher_code : '') + (o.po ? ' · PO ' + o.po : ''), null));
+  (qts || []).forEach((q) => push(q.created_at, 'quote', 'Quote request ' + q.number, q.status + (q.unleashed_number ? ' · ' + q.unleashed_number : ''), q.notes ? [[q.notes]] : null));
+  // portal visits: one entry per session, with what happened in it
+  const ses = {}; (ev || []).forEach((e) => { const k = e.session_id || (e.at || '').slice(0, 13); (ses[k] = ses[k] || []).push(e); });
+  Object.values(ses).forEach((L) => {
+    L.sort((a, b) => (a.at < b.at ? -1 : 1));
+    const n = (t) => L.filter((e) => e.type === t).length, pages = n('page'), views = n('product'), srch = n('search'), cart = n('cart_add'), f = L[0];
+    if (L.every((e) => e.type === 'login')) return;
+    const bits = [views && pl(views, 'part') + ' viewed', srch && pl(srch, 'search'), cart && pl(cart, 'cart add'), pages && pl(pages, 'page')].filter(Boolean);
+    push(f.at, 'visit', 'Visited the portal', bits.join(' · ') + (f.device ? ' · ' + f.device : '') + (f.city ? ' · ' + f.city + (f.region ? ', ' + f.region : '') : ''),
+      L.filter((e) => e.type !== 'page' && e.type !== 'login').slice(0, 40).map((e) => [new Date(e.at).toISOString().slice(11, 16), EVN[e.type] || e.type, e.code || e.query || '', (e.code && N[e.code] && N[e.code].t) || '']));
+  });
+  (ev || []).filter((e) => e.type === 'login').forEach((e) => push(e.at, 'account', 'Signed in', [e.device, e.city].filter(Boolean).join(' · ')));
+  (aud || []).forEach((a) => { const m = AUD[a.action]; if (!m) return; push(a.at, m[0], m[1], [a.after && a.after.email, 'by ' + a.admin_email].filter(Boolean).join(' · ')); });
+  users.forEach((u) => { if (u.terms_accepted_at) push(u.terms_accepted_at, 'account', 'Accepted the terms of use', u.email); if (u.created_at && !(aud || []).length) push(u.created_at, 'account', 'Person added: ' + (u.name || u.email), u.invited_by ? 'invited by ' + u.invited_by : ''); });
+  segl.forEach((x) => push(x.at, 'segment', 'Added to segment ' + (segN[x.segment_id] || ''), x.added_by ? 'by ' + x.added_by : ''));
+  const u = ulc[0] || null;
+  if (u && u.created_on) push(u.created_on, 'account', 'Customer created in Unleashed', u.code);
+  if (co && co.created_at) push(co.created_at, 'account', 'Added to the admin', co.source ? String(co.source).replace(/_/g, ' ') : '');
+  T.sort((a, b) => (String(a.at) < String(b.at) ? 1 : -1));
+  const contact = { name: (u && u.contact_name) || (co && co.contact_name) || (users[0] && users[0].name) || '', email: (u && u.email) || (co && co.contact_email) || '', phone: (u && u.phone) || (co && co.contact_phone) || '',
+    type: (u && u.type) || (co && co.customer_type) || '', tier: (u && u.tier) || (co && co.tier) || '', terms: (u && u.payment_terms) || (co && co.payment_terms) || '', sp: (u && u.salesperson) || (co && co.salesperson) || '',
+    city: (u && u.city) || (co && co.city) || '', state: (u && u.state) || (co && co.state) || '', country: (u && u.country) || (co && co.country) || '', since: (u && u.created_on) || '', stop: !!((u && u.stop_credit) || (co && co.stop_credit)), obsolete: !!(u && u.obsolete),
+    segments: segl.map((x) => segN[x.segment_id]).filter(Boolean) };
+  return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
+    contact, sales, users, events: ev.slice(0, 60), orders: ord, quotes: qts, timeline: T.slice(0, 300) });
 };
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
