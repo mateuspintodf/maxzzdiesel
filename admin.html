@@ -1451,7 +1451,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (!L.length) return mnClose();
     var p = document.getElementById('mn-pop') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'mn-pop' })), r = ta.getBoundingClientRect();
     p.style.cssText = 'position:fixed;z-index:9999;left:' + r.left + 'px;top:' + (r.bottom + 4) + 'px;width:' + Math.min(280, r.width) + 'px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.14);padding:4px';
-    p.innerHTML = L.map(function (t) { return '<button type="button" data-mn="' + esc(t.handle) + '" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px"><span class="av" style="width:24px;height:24px;font-size:10px">' + avIn({ name: t.name, photo: t.photo }) + '</span><b style="font-size:13px">' + esc(t.name) + '</b><small class="muted">@' + esc(t.handle) + '</small></button>'; }).join('');
+    p.innerHTML = L.map(function (t) { return '<button type="button" data-mn="' + esc(t.handle) + '" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px"><span class="av" style="width:24px;height:24px;font-size:10px;margin:0">' + avIn({ name: t.name, photo: t.photo }) + '</span><b style="font-size:13px;margin:0">' + esc(t.name) + '</b><small class="muted">@' + esc(t.handle) + '</small></button>'; }).join('');
     MN.ta = ta; MN.start = c - m[2].length - 1;
   }
   document.addEventListener('input', function (e) { if (e.target && e.target.id === 'crm-body') mnCheck(e.target); });
