@@ -25,7 +25,8 @@ const DB = 'portal/db.json';
 const USED = 'portal/used-links.json';
 const hits = new Map();
 
-const admins = () => String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
+// PORTAL_ADMINS plus the team superadmins (Leise, Michael, marketing@), who see the portal as admins
+const admins = () => (String(process.env.PORTAL_ADMINS || '') + ',' + String(process.env.TEAM_SUPERADMINS || 'admin@maxzzdiesel.com,michael@maxzzdiesel.com,marketing@maxzzdiesel.com')).toLowerCase().split(/[,\s]+/).filter(Boolean);
 const isAdmin = (email) => !!email && admins().includes(email);
 const liveOrders = () => process.env.PORTAL_ORDERS_LIVE === '1';
 const base = (req) => process.env.SITE_URL || (process.env.VERCEL_ENV === 'production' ? 'https://www.maxzzdiesel.com' : 'https://' + (req.headers['x-forwarded-host'] || req.headers.host));
