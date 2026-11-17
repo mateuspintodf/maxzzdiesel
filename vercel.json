@@ -1128,10 +1128,6 @@
     {
       "path": "/api/cron-related",
       "schedule": "50 * * * *"
-    },
-    {
-      "path": "/api/migrate?apply=1",
-      "schedule": "*/10 * * * *"
     }
   ],
   "rewrites": [
