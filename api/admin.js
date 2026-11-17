@@ -1334,6 +1334,7 @@ async function crmSync() {
   const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
   if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
   for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0, updated_at: new Date().toISOString() }).catch(() => {}); }
+  await crmSyncAccess().catch(() => {});
   // deals whose order left the Parked list: lost if marked, won if invoiced
   const gone = deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
   if (gone.length) {
@@ -1344,6 +1345,47 @@ async function crmSync() {
       await db.update('crm_deals', 'id=eq.' + d.id, { stage: to, stage_at: now, closed_at: now, updated_at: now, lost_reason: to === 'lost' ? (m && m.reason) || null : null }).catch(() => {});
       await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: to === 'won' ? 'Won: order left the Parked list' + (inv.has(d.ref) ? ' and is invoiced' : '') : 'Lost' + (m && m.reason ? ': ' + m.reason : ''), created_by: 'auto' }]).catch(() => {}); }
   }
+}
+// portal access requests become deals too: a new company asking for access is a lead nobody should miss
+async function crmSyncAccess() {
+  const pend = await db.select('companies', 'select=id,name,city,state,country,created_at&status=eq.pending&order=created_at.desc&limit=200').catch(() => []);
+  const have = await db.selectAll('crm_deals', 'select=id,ref,stage&source=eq.access_request').catch(() => []), by = {}; have.forEach((d) => { by[d.ref] = d; });
+  const fresh = pend.filter((c) => !by['access:' + c.id]);
+  if (fresh.length) {
+    const us = await db.select('users', 'select=company_id,name,email,phone&company_id=in.(' + fresh.map((c) => c.id).join(',') + ')').catch(() => []), U = {}; us.forEach((u) => { if (!U[u.company_id]) U[u.company_id] = u; });
+    const ins = await db.insert('crm_deals', fresh.map((c) => { const u = U[c.id] || {}; return { title: 'Portal access · ' + c.name, stage: 'new', owner: CRM_OWNER, customer_name: c.name, contact_name: u.name || null, contact_email: u.email || null, contact_phone: u.phone || null, value: 0, source: 'access_request', ref: 'access:' + c.id, note: [c.city, c.state, c.country].filter(Boolean).join(', ') || null, created_by: 'auto' }; }), { onConflict: 'ref' }).catch(() => null);
+    if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from a portal access request', created_by: 'auto' }))).catch(() => {});
+  }
+  const live = new Set(pend.map((c) => 'access:' + c.id)), gone = have.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
+  if (gone.length) {
+    const cs = await db.select('companies', 'select=id,status&id=in.(' + gone.map((d) => d.ref.slice(7)).join(',') + ')').catch(() => []), st = {}; cs.forEach((c) => { st[c.id] = c.status; });
+    for (const d of gone) { const cs1 = st[d.ref.slice(7)]; if (!cs1) continue; const to = cs1 === 'rejected' ? 'lost' : 'won', now = new Date().toISOString();
+      await db.update('crm_deals', 'id=eq.' + d.id, { stage: to, stage_at: now, closed_at: now, updated_at: now, lost_reason: to === 'lost' ? 'Access request rejected' : null }).catch(() => {});
+      await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: to === 'won' ? 'Access approved' : 'Access rejected', created_by: 'auto' }]).catch(() => {}); }
+  }
+}
+// rules that flag what matters today; the AI pass (crm-ai) ranks and words them when it is switched on
+function crmRules(deals, stages, isSuper) {
+  const SK = {}; stages.forEach((x) => { SK[x.key] = x; });
+  const td = new Date().toISOString().slice(0, 10), now = Date.now(), D = 864e5, open = deals.filter((d) => SK[d.stage] && SK[d.stage].kind === 'open'), out = [];
+  const nm = (L) => L.slice(0, 3).map((d) => d.customer_name || d.title).join(', ') + (L.length > 3 ? ' and ' + (L.length - 3) + ' more' : '');
+  const add = (id, sev, title, tip, L) => { if (L.length) out.push({ id, sev, title, tip, ids: L.map((d) => d.id) }); };
+  const late = open.filter((d) => d.next && d.next.due < td);
+  add('late', 3, late.length + (late.length === 1 ? ' follow-up is overdue' : ' follow-ups are overdue'), 'Overdue: ' + nm(late) + '. Open the deal, make the call and log it.', late);
+  const nw = open.filter((d) => d.stage === 'new' && now - Date.parse(d.stage_at) > 2 * D);
+  add('new', 3, nw.length + (nw.length === 1 ? ' new deal has waited' : ' new deals have waited') + ' over 2 days', 'Nobody has touched: ' + nm(nw) + '. A first reply in the first day wins more quotes.', nw);
+  const q = open.filter((d) => d.stage === 'quote' && now - Date.parse(d.updated_at) > 5 * D);
+  add('quote', 2, q.length + (q.length === 1 ? ' quote is' : ' quotes are') + ' quiet for 5 days', 'Quote sent, no reply: ' + nm(q) + '. A short call now beats waiting.', q);
+  const big = open.filter((d) => Number(d.value) >= 5000 && !d.next).sort((x, y) => y.value - x.value);
+  add('big', 2, big.length + (big.length === 1 ? ' large deal has' : ' large deals have') + ' no next step', 'Biggest first: ' + nm(big) + '. Add a dated task so it does not go cold.', big);
+  const na = open.filter((d) => !Number(d.value));
+  add('amt', 1, na.length + (na.length === 1 ? ' open deal has' : ' open deals have') + ' no amount', 'Without an amount the forecast ignores: ' + nm(na) + '.', na);
+  const wk = deals.filter((d) => d.stage === 'won' && d.closed_at && now - Date.parse(d.closed_at) < 7 * D);
+  if (wk.length) out.push({ id: 'won', sev: 0, title: wk.length + (wk.length === 1 ? ' deal' : ' deals') + ' won this week', tip: nm(wk) + ' closed in the last 7 days, ' + Math.round(wk.reduce((t, d) => t + (Number(d.value) || 0), 0)).toLocaleString('en-US') + ' dollars.', ids: wk.map((d) => d.id) });
+  if (isSuper) { const by = {}; open.filter((d) => (d.next && d.next.due < td) || now - Date.parse(d.updated_at) > 7 * D).forEach((d) => { const o = d.owner || 'No owner'; (by[o] = by[o] || []).push(d); });
+    const top = Object.entries(by).sort((x, y) => y[1].length - x[1].length)[0];
+    if (top && top[1].length >= 3) add('team', 2, top[0] + ' has ' + top[1].length + ' deals needing attention', 'Late or idle for 7 days: ' + nm(top[1]) + '. Worth a word with ' + top[0] + '.', top[1]); }
+  return out.sort((x, y) => y.sev - x.sev).slice(0, 6);
 }
 A.crm = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1356,8 +1398,13 @@ A.crm = async (req, res) => {
   const ids = all.map((d) => d.id), next = {};
   for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,body,due&done_at=is.null&due=not.is.null&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')&order=due.asc')).forEach((a) => { if (!next[a.deal_id]) next[a.deal_id] = a; });
   all.forEach((d) => { d.next = next[d.id] || null; });
+  const cnt = {};
+  for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,kind,done_at&kind=in.(note,call,email,task)&limit=5000&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')').catch(() => [])).forEach((a) => { const c = cnt[a.deal_id] || (cnt[a.deal_id] = { n: 0, c: 0, e: 0, t: 0 }); if (a.kind === 'note') c.n++; else if (a.kind === 'call') c.c++; else if (a.kind === 'email') c.e++; else if (!a.done_at) c.t++; });
+  const codes = [...new Set(all.map((d) => d.customer_code).filter(Boolean))], pl = {};
+  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,city,state&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { pl[x.code] = [x.city, x.state].filter(Boolean).join(', '); });
+  all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
-  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners });
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
 A['crm-deal'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1372,8 +1419,55 @@ A['crm-deal'] = async (req, res) => {
     enc ? db.select('sales_orders', 'select=number,order_date,completed_date,subtotal,status&is_return=eq.false&customer_code=eq.' + enc + '&order=order_date.desc&limit=6').catch(() => []) : [],
     enc ? db.select('sales_orders', 'select=subtotal,order_date&is_return=eq.false&customer_code=eq.' + enc + '&limit=5000').catch(() => []) : [],
     enc ? db.select('crm_deals', 'select=id,title,stage,value&customer_code=eq.' + enc + '&id=neq.' + d.id + '&order=updated_at.desc&limit=8').catch(() => []) : [] ]);
+  let lines = null;
+  if (d.ref && /^[A-Za-z0-9-]+$/.test(d.ref) && d.source !== 'access_request' && configured()) { // what is in the order, at sell price only (never cost)
+    try { const o = ((await ul('SalesOrders', 'orderNumber=' + encodeURIComponent(d.ref), { timeoutMs: 9000 })).Items || [])[0];
+      if (o) lines = (o.SalesOrderLines || []).filter((l) => l.Product).map((l) => ({ code: l.Product.ProductCode, desc: String(l.Product.ProductDescription || '').slice(0, 90), qty: Number(l.OrderQuantity) || 0, price: Number(l.UnitPrice) || 0, total: Number(l.LineTotal) || 0 })); } catch (e) { lines = null; } }
   const tot = life.reduce((t, x) => t + (Number(x.subtotal) || 0), 0), last = life.reduce((m, x) => (x.order_date > m ? x.order_date : m), '');
-  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others });
+  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others, lines });
+};
+A['crm-cust'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const code = clean(req.query.code, 60); if (!code) return res.json({ deals: [] });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  if (!isSuper && sc.none) return res.json({ deals: [] });
+  const deals = await db.select('crm_deals', 'select=id,title,stage,value,owner,updated_at,expected_close&customer_code=eq.' + encodeURIComponent(code) + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)) + '&order=updated_at.desc&limit=20').catch(() => []);
+  return res.json({ deals, stages: await db.select('crm_stages', 'select=key,label,kind,color&order=pos.asc').catch(() => []) });
+};
+const crmAiMemo = {};
+A['crm-ai'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin', key = isSuper ? 'all' : sc.sp || 'none';
+  if (req.method !== 'POST') return res.json({ on: aiOn(req), last: crmAiMemo[key] || null });
+  if (!originOk(req)) return res.status(405).json({ error: 'method' });
+  if (!aiOn(req)) return res.status(409).json({ error: 'AI insights are not switched on yet. Turn on DASH_AI and add the AI Gateway key in Vercel.' });
+  if (crmAiMemo[key] && Date.now() - crmAiMemo[key].at < 10 * 60e3) return res.json(crmAiMemo[key]);
+  if (!isSuper && sc.none) return res.json({ at: Date.now(), out: { summary: 'Your login is not linked to a salesperson yet.', items: [] } });
+  const stages = await db.select('crm_stages', 'select=*&order=pos.asc'), SK = {}; stages.forEach((x) => { SK[x.key] = x; });
+  const rows = await db.select('crm_deals', 'select=id,title,stage,owner,customer_code,customer_name,value,source,created_at,stage_at,updated_at,expected_close&closed_at=is.null&order=value.desc&limit=60' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)));
+  const dn = {}; rows.forEach((d) => { dn[d.id] = d; });
+  const acts = rows.length ? await db.select('crm_activities', 'select=deal_id,kind,body,due,done_at,created_at&deal_id=in.(' + rows.map((d) => d.id).join(',') + ')&order=created_at.desc&limit=600').catch(() => []) : [];
+  const A1 = {}; acts.forEach((a) => { (A1[a.deal_id] = A1[a.deal_id] || []).push(a); });
+  const days = (t) => Math.floor((Date.now() - Date.parse(t)) / 864e5), td = new Date().toISOString().slice(0, 10);
+  const facts = { today: td, deals: rows.map((d) => ({ id: d.id, title: d.title, company: d.customer_name, stage: SK[d.stage] && SK[d.stage].label, chance: SK[d.stage] && SK[d.stage].prob, value: Number(d.value) || 0, owner: d.owner, source: d.source, age_days: days(d.created_at), days_in_stage: days(d.stage_at), idle_days: days(d.updated_at), expected_close: d.expected_close,
+    open_tasks: (A1[d.id] || []).filter((a) => a.kind === 'task' && !a.done_at).map((a) => ({ what: String(a.body || '').slice(0, 80), due: a.due })).slice(0, 3), last_notes: (A1[d.id] || []).filter((a) => a.kind !== 'stage').slice(0, 3).map((a) => a.kind + ': ' + String(a.body || '').slice(0, 100)) })) };
+  const prompt = 'You are the sales coach of Maxzz Diesel, a diesel fuel injection parts distributor selling B2B. Below are the open deals in the CRM' + (isSuper ? ' for the whole team' : ' of one salesperson') + '. Tell what matters today. Rank by expected money at risk or to win. Be specific: name the company, the number and the next action. Never invent facts. Plain direct English, no hype, no em dashes. ' +
+    'Answer only with JSON: {"summary": "2 to 3 sentences on the state of the pipeline today", "items": [{"deal_id": "id from the data or empty for a team point", "headline": "under 70 characters", "why": "one or two sentences with the evidence", "action": "the next step to take", "channel": "call|email|whatsapp|visit|none", "priority": 1}]}. Up to 7 items.\n\nDATA:\n' + JSON.stringify(facts);
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 45000);
+  try {
+    const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + AI_KEY(req), 'Content-Type': 'application/json' }, body: JSON.stringify({ model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', max_tokens: 3000, messages: [{ role: 'user', content: prompt }] }) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) { console.error('crm-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: /customer_verification|credit card/i.test(JSON.stringify(j)) ? 'AI Gateway in Vercel needs a credit card on file before it answers.' : r.status === 402 ? 'AI Gateway has no credit left this month.' : r.status === 401 || r.status === 403 ? 'The AI service refused the key. Check AI Gateway in Vercel.' : 'The AI service did not answer. Try again in a minute.' }); }
+    const text = String(j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || '');
+    let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
+    if (!out || !Array.isArray(out.items)) return res.status(502).json({ error: 'The AI answer could not be read. Try again.' });
+    out.items = out.items.filter((i) => i && (!i.deal_id || dn[i.deal_id])).slice(0, 7).map((i) => ({ deal_id: i.deal_id || '', headline: String(i.headline || '').slice(0, 90), why: String(i.why || '').slice(0, 320), action: String(i.action || '').slice(0, 220), channel: String(i.channel || ''), priority: Number(i.priority) || 3, title: i.deal_id ? dn[i.deal_id].customer_name || dn[i.deal_id].title : '' }));
+    const doc = { at: Date.now(), model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', out: { summary: String(out.summary || '').slice(0, 500), items: out.items } };
+    crmAiMemo[key] = doc; await PS.audit(w.email, 'crm.ai', 'crm', key).catch(() => {});
+    return res.json(doc);
+  } catch (e) { return res.status(504).json({ error: 'The AI service took too long. Try again.' }); } finally { clearTimeout(t); }
 };
 A['crm-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1383,10 +1477,39 @@ A['crm-save'] = async (req, res) => {
   const st = await db.select('crm_stages', 'select=key,kind,label'), SK = {}; st.forEach((s) => { SK[s.key] = s; });
   const log = (id, kind, body, due) => db.insert('crm_activities', [{ deal_id: id, kind, body: clean(body, 1000) || null, due: due || null, created_by: w.email }]);
   const mine = async (id) => { const d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(clean(id, 60)) + '&limit=1'))[0]; if (!d) return null; return isSuper || d.owner === sc.sp ? d : false; };
+  if (/^stage_/.test(b.kind || '')) {
+    if (!isSuper) return res.status(403).json({ error: 'role' });
+    const all = await db.select('crm_stages', 'select=*&order=pos.asc'), byK = {}; all.forEach((x) => { byK[x.key] = x; });
+    const renum = async (open) => { const ord = open.concat(all.filter((x) => x.kind === 'won'), all.filter((x) => x.kind === 'lost')); for (let i = 0; i < ord.length; i++) if (ord[i].pos !== (i + 1) * 10) await db.update('crm_stages', 'key=eq.' + encodeURIComponent(ord[i].key), { pos: (i + 1) * 10 }); };
+    const open = all.filter((x) => x.kind === 'open');
+    if (b.kind === 'stage_add') {
+      const label = clean(b.label, 40); if (!label) return res.status(400).json({ error: 'label' });
+      let key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 24) || 'stage'; while (byK[key]) key += '2';
+      await db.insert('crm_stages', [{ key, label, pos: 9999, kind: 'open', color: '#8b7cf6', prob: 20 }]); all.push({ key, label, pos: 9999, kind: 'open' }); open.push({ key, pos: 9999, kind: 'open' }); await renum(open);
+      await PS.audit(w.email, 'crm.stage_add', 'crm', key).catch(() => {}); return res.json({ ok: true });
+    }
+    const x = byK[clean(b.key, 40)]; if (!x) return res.status(404).json({ error: 'stage' });
+    if (b.kind === 'stage_edit') {
+      const p = {}; if (b.label != null) p.label = clean(b.label, 40) || x.label;
+      if (b.prob != null && x.kind === 'open') p.prob = Math.min(95, Math.max(1, Math.round(Number(b.prob) || x.prob)));
+      if (b.color != null && /^#[0-9a-fA-F]{6}$/.test(b.color)) p.color = b.color;
+      await db.update('crm_stages', 'key=eq.' + encodeURIComponent(x.key), p); await PS.audit(w.email, 'crm.stage_edit', 'crm', x.key, null, p).catch(() => {}); return res.json({ ok: true });
+    }
+    if (b.kind === 'stage_move') {
+      if (x.kind !== 'open') return res.status(400).json({ error: 'stage' }); const i = open.findIndex((y) => y.key === x.key), j = i + (Number(b.dir) < 0 ? -1 : 1); if (j < 0 || j >= open.length) return res.json({ ok: true });
+      [open[i], open[j]] = [open[j], open[i]]; await renum(open); return res.json({ ok: true });
+    }
+    if (b.kind === 'stage_del') {
+      if (x.kind !== 'open') return res.status(400).json({ error: 'stage' }); if (open.length <= 2) return res.status(400).json({ error: 'Keep at least two open stages.' });
+      const n = (await db.select('crm_deals', 'select=id&stage=eq.' + encodeURIComponent(x.key) + '&limit=1')).length; if (n) return res.status(400).json({ error: 'Move the deals out of this stage first.' });
+      await db.remove('crm_stages', 'key=eq.' + encodeURIComponent(x.key)); await PS.audit(w.email, 'crm.stage_del', 'crm', x.key).catch(() => {}); return res.json({ ok: true });
+    }
+    return res.status(400).json({ error: 'kind' });
+  }
   if (b.kind === 'create') {
     const title = clean(b.title, 160); if (!title) return res.status(400).json({ error: 'title' });
     const owner = isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp; if (!owner) return res.status(403).json({ error: 'scope' });
-    const row = (await db.insert('crm_deals', [{ title, stage: 'new', owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, contact_name: clean(b.contact_name, 120) || null, contact_email: clean(b.contact_email, 160) || null, contact_phone: clean(b.contact_phone, 60) || null, expected_close: ISO10.test(b.expected_close || '') ? b.expected_close : null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
+    const row = (await db.insert('crm_deals', [{ title, stage: (SK[b.stage] && SK[b.stage].kind === 'open' ? b.stage : 'new'), owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, contact_name: clean(b.contact_name, 120) || null, contact_email: clean(b.contact_email, 160) || null, contact_phone: clean(b.contact_phone, 60) || null, expected_close: ISO10.test(b.expected_close || '') ? b.expected_close : null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
     if (row) await log(row.id, 'stage', 'Created by ' + w.email);
     return res.json({ ok: true, id: row && row.id });
   }
