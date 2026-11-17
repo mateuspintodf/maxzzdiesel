@@ -2506,10 +2506,13 @@
     get side() { return ['home', 'c', 's', 'g', 'all', 'promo'].indexOf(this.route) >= 0; },
     // live campaigns (Black Friday and the like): badge per part, and the campaign page #/promo/<slug>
     get campOf() { var m = {}; (this.camps || []).forEach(function (c) { c.codes.forEach(function (k) { if (!m[k]) m[k] = c; }); }); return m; },
+    // parts of a campaign that this customer can actually see (in the catalog, and in stock when out-of-stock parts are hidden)
+    campN: function (c) { if (!c || !c.codes) return 0; var self = this, inCat = this._catSet && this._catSetN === this.cat.length ? this._catSet : (this._catSet = {}, this._catSetN = this.cat.length, this.cat.forEach(function (r) { self._catSet[r[0]] = 1; }), this._catSet); return c.codes.filter(function (k) { return inCat[k] && !(self.hideOut && self.hid(k)); }).length; },
+    NOC: { codes: [], badge: '', name: '', description: '', color: '#d32a37', ends_at: '' },
     get curCamp() { var a = this.arg; return (this.camps || []).filter(function (c) { return c.slug === a; })[0] || null; },
     // campaign background: the uploaded banner (darkened on the left so the text reads) or the campaign color
     campBg: function (c) { var u = c && c.banner; if (!u || !/^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//.test(u)) return { background: c.color }; return { background: 'linear-gradient(90deg, rgba(10,12,14,.78) 0%, rgba(10,12,14,.5) 42%, rgba(10,12,14,.05) 72%), url("' + u.replace(/["\\]/g, '') + '") center / cover no-repeat, ' + c.color }; },
-    campEnds: function (c) { var d = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5); return d <= 1 ? 'Ends today' : 'Ends in ' + d + ' days'; },
+    campEnds: function (c) { if (!c || !c.ends_at) return ''; var d = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5); return d <= 1 ? 'Ends today' : 'Ends in ' + d + ' days'; },
     was: function (code) { var p = this.book && this.book.items[code]; return p && p[4] ? p[4] : null; },
     get listTitle() {
       var r = this.route, a = this.arg, f = this.f;
@@ -3027,7 +3030,7 @@
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
-      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
+      if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if (r === 'orders' && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
