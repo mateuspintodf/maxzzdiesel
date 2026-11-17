@@ -1006,6 +1006,17 @@ A.followups = async (req, res) => {
   const rows = await db.select('customer_notes', 'select=id,customer_code,company_id,customer_name,kind,body,follow_up,created_by,created_at&done_at=is.null&follow_up=lte.' + until + '&order=follow_up.asc&limit=200');
   return res.json({ rows, me: w.email });
 };
+// who is behind one funnel step: visitors (with what they did) or companies, newest first
+const FSTEPS = ['visitors', 'browsed', 'carted', 'requests', 'approved', 'bought', 'inv_invited', 'inv_accepted', 'inv_used', 'inv_bought'];
+A['funnel-step'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30)), step = String(req.query.step || '');
+  if (!FSTEPS.includes(step)) return res.status(400).json({ error: 'step' });
+  const [rows, N] = await Promise.all([db.rpc('dash_funnel_step', { p_days: days, p_step: step }), names()]);
+  (rows || []).forEach((r) => (r.trail || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; }));
+  return res.json({ step, days, rows: rows || [] });
+};
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
