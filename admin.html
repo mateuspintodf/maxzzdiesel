@@ -381,6 +381,15 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .kc{display:flex;flex-direction:column;min-height:0;height:100%}.kl{flex:1 1 auto;min-height:0;max-height:none}
 @media(max-width:760px){.kb{height:auto!important}.kc{height:auto}.kl{max-height:60vh}}
 .kb ~ .kfoot{display:none}.app:has(.kb){padding-bottom:20px}
+
+/* entry and period-change motion: the truck drives and the bar fills on open, bars grow or shrink when the period changes */
+@keyframes rgrow{from{width:0}}@keyframes rdrive{from{left:0}}@keyframes rrise{from{height:0}}
+.rfill{animation:rgrow 1.4s cubic-bezier(.25,.8,.25,1) backwards}.rcar{animation:rdrive 1.4s cubic-bezier(.25,.8,.25,1) backwards}
+.pbar i{transition:width .7s cubic-bezier(.25,.8,.25,1);animation:rgrow 1s cubic-bezier(.25,.8,.25,1) backwards}
+.ym i{transition:width .6s ease,height .6s ease}
+.mfill,.mbact{transition:height .6s cubic-bezier(.25,.8,.25,1),background .15s}.mfill{animation:rrise .9s cubic-bezier(.25,.8,.25,1) backwards}.mbact{animation:rrise 1.1s cubic-bezier(.25,.8,.25,1) .15s backwards}
+.mbact{width:auto!important;left:0;right:0;opacity:.8;z-index:1}.mfill{z-index:0}.mgoal{position:absolute;left:0;right:0;height:0;border-top:3px solid #f08a24;z-index:2;pointer-events:none;transition:bottom .6s cubic-bezier(.25,.8,.25,1)}.mlast{z-index:3}.mval{z-index:4}
+@media(prefers-reduced-motion:reduce){.rfill,.rcar,.pbar i,.mfill,.mbact{animation:none}.pbar i,.rfill,.rcar,.mfill,.mbact{transition:none}}
 </style>
 </head>
 <body>
@@ -1541,7 +1550,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var h = '<section class="card gcard" data-pgcard="' + esc(r.sp) + '"><div class="gh"><h3 style="margin:0">' + esc(name) + '</h3><span class="muted" style="font-size:13px">' + (r.lastYear ? 'Last year ' + m0(r.lastYear) : 'No sales last year') + (r.ytd ? ' · this year so far ' + m0(r.ytd) : '') + '</span></div>';
     h += '<div class="annr"><div class="annv"><small>Yearly goal</small><b data-pgav>' + (ann > 0 ? m0(ann) : 'Not set') + '</b><span class="muted" data-pgag>' + pgGrow(ann, r.lastYear) + '</span></div>' +
       '<input class="rng" type="range" min="0" max="' + rw.max.ann + '" step="5000" value="' + ann + '" data-pgann="' + esc(r.sp) + '" aria-label="Yearly goal for ' + esc(name) + '"></div>';
-    h += '<div class="mbars">' + r.months.map(function (m, i) { var mv = rw.months[i]; return '<div class="mc"><div class="mbar' + (mv.manual ? ' man' : '') + '" tabindex="0" role="slider" aria-label="' + MON3[i] + ' goal" aria-valuenow="' + mv.v + '" data-pgm="' + esc(r.sp) + '" data-i="' + i + '" data-tip="' + MON3[i] + ' ' + r.months[i].ym.slice(0, 4) + ': ' + (m.last ? 'last year ' + m0(m.last) : 'no sales last year') + (m.sales ? ', this year ' + m0(m.sales) : '') + '. Drag to change."><i class="mfill" style="height:' + Math.min(100, mv.v / rw.max.mon * 100) + '%"></i>' + (m.last ? '<s class="mlast" style="bottom:' + Math.min(100, m.last / rw.max.mon * 100) + '%"></s>' : '') + (m.sales ? '<em class="mbact" style="height:' + Math.min(100, m.sales / rw.max.mon * 100) + '%"></em>' : '') + '<span class="mval">' + kf(mv.v) + '</span></div><label>' + MON3[i] + '</label></div>'; }).join('') + '</div>';
+    h += '<div class="mbars">' + r.months.map(function (m, i) { var mv = rw.months[i]; return '<div class="mc"><div class="mbar' + (mv.manual ? ' man' : '') + '" tabindex="0" role="slider" aria-label="' + MON3[i] + ' goal" aria-valuenow="' + mv.v + '" data-pgm="' + esc(r.sp) + '" data-i="' + i + '" data-tip="' + MON3[i] + ' ' + r.months[i].ym.slice(0, 4) + ': ' + (m.last ? 'last year ' + m0(m.last) : 'no sales last year') + (m.sales ? ', this year ' + m0(m.sales) : '') + '. Drag to change."><i class="mfill" style="height:' + Math.min(100, mv.v / rw.max.mon * 100) + '%"></i>' + '<s class="mgoal" style="bottom:' + Math.min(100, mv.v / rw.max.mon * 100) + '%"></s>' + (m.last ? '<s class="mlast" style="bottom:' + Math.min(100, m.last / rw.max.mon * 100) + '%"></s>' : '') + (m.sales ? '<em class="mbact" style="height:' + Math.min(100, m.sales / rw.max.mon * 100) + '%"></em>' : '') + '<span class="mval">' + kf(mv.v) + '</span></div><label>' + MON3[i] + '</label></div>'; }).join('') + '</div>';
     h += '<div class="gleg"><span><i class="lg a"></i>Goal</span><span><i class="lg b"></i>Sold</span><span><i class="lg c"></i>Last year</span></div>';
     h += '<div class="gf"><div class="muted" style="font-size:13px" data-pgsum>' + pgSumTxt(rw, sum) + '</div><div class="gb"><button class="btn ghost sm" data-act="pg-greset" data-sp="' + esc(r.sp) + '">Reset months to the yearly split</button><button class="btn sm" data-act="pg-gsave" data-sp="' + esc(r.sp) + '">Save ' + (r.sp === '*' ? 'company' : esc(name)) + '</button></div></div></section>';
     return h;
@@ -1552,7 +1561,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var rw = S.pgd.rows[sp], card = [].slice.call(app.querySelectorAll('[data-pgcard]')).filter(function (x) { return x.dataset.pgcard === sp; })[0]; if (!card) return;
     var av = card.querySelector('[data-pgav]'); if (av) av.textContent = rw.annual > 0 ? m0(rw.annual) : 'Not set';
     var gr = S.pg.goals.rows.filter(function (x) { return x.sp === sp; })[0], ag = card.querySelector('[data-pgag]'); if (ag) ag.textContent = pgGrow(rw.annual, gr.lastYear);
-    [].slice.call(card.querySelectorAll('.mbar')).forEach(function (b) { var i = +b.dataset.i, mv = rw.months[i]; b.classList.toggle('man', mv.manual); b.setAttribute('aria-valuenow', mv.v); b.querySelector('.mfill').style.height = Math.min(100, mv.v / rw.max.mon * 100) + '%'; b.querySelector('.mval').textContent = kf(mv.v); });
+    [].slice.call(card.querySelectorAll('.mbar')).forEach(function (b) { var i = +b.dataset.i, mv = rw.months[i]; b.classList.toggle('man', mv.manual); b.setAttribute('aria-valuenow', mv.v); b.querySelector('.mfill').style.height = Math.min(100, mv.v / rw.max.mon * 100) + '%'; var gl = b.querySelector('.mgoal'); if (gl) gl.style.bottom = Math.min(100, mv.v / rw.max.mon * 100) + '%'; b.querySelector('.mval').textContent = kf(mv.v); });
     var sm = card.querySelector('[data-pgsum]'); if (sm) sm.innerHTML = pgSumTxt(rw, pgSum(rw));
   }
   function pgSetMonth(sp, i, frac) { var rw = S.pgd.rows[sp], v = Math.round(Math.max(0, Math.min(1, frac)) * rw.max.mon / 500) * 500; rw.months[i].v = v; rw.months[i].manual = true; rw.dirty = true; pgPaint(sp); }
