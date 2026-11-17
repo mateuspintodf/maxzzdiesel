@@ -611,6 +611,7 @@ A['voucher-save'] = async (req, res) => {
     if (kind === 'fixed' && !(num(b.min_subtotal) > 0 && value <= num(b.min_subtotal) * CAP / 100)) return res.status(403).json({ error: 'A fixed voucher needs a minimum order, and the amount can be at most ' + CAP + '% of it (e.g. $' + Math.ceil(value * 100 / CAP) + ' minimum for $' + value + ' off). Above that, ask a superadmin.' });
   }
   let companyId = clean(b.company_id, 60) || null;
+  if (w.role !== 'superadmin' && !clean(b.company_id, 60) && !clean(b.company_code, 40) && !(num(b.max_uses) > 0)) return res.status(400).json({ error: 'A voucher for every customer needs a total use limit (for example 50). Or pick one company.' });
   if (clean(b.company_code, 40)) {
     const co = (await db.select('companies', 'select=id&unleashed_code=eq.' + encodeURIComponent(clean(b.company_code, 40)) + '&limit=1'))[0];
     if (!co) return res.status(400).json({ error: 'No portal company with that Unleashed code. Import or approve it first.' });
@@ -803,6 +804,7 @@ A['campaign-save'] = async (req, res) => {
   const cst = (await db.select('sales_sync', 'select=costs_at&id=eq.1'))[0];
   if (!(cst && cst.costs_at) && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: 'Costs from Unleashed have not loaded yet (first run takes up to an hour), so the margin cannot be checked. Try again later' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), canForce: w.role === 'superadmin' });
   const below = await belowFloor(codes, kind, value, !!b.stack_vouchers);
+  if (below.list.length && w.role === 'superadmin' && b.force && !clean(b.force_reason, 300)) return res.status(400).json({ error: 'Say why this campaign goes under the margin floor.' });
   if (below.list.length && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.list.length + ' part' + (below.list.length === 1 ? '' : 's') + ' would sell under cost + ' + below.pct + '% on the lowest price tier' + (below.stacked ? ' with a ' + below.stacked + '% voucher on top (vouchers are allowed on this campaign)' : '') + ': ' + below.list.slice(0, 8).map((x) => x.code + ' (min $' + x.floor + ')').join(', ') + (below.list.length > 8 ? '...' : '') + '. Lower the discount on those parts or remove them' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), below: below.list.slice(0, 200), canForce: w.role === 'superadmin' });
   const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: kind === 'price' ? 0 : value || 0,
     color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
@@ -814,7 +816,7 @@ A['campaign-save'] = async (req, res) => {
   await db.remove('campaign_products', 'campaign_id=eq.' + cid);
   for (let i = 0; i < codes.length; i += 500) await db.insert('campaign_products', codes.slice(i, i + 500).map((x) => ({ campaign_id: cid, code: x[0], value: x[1] })));
   require('../lib/campaigns').reset();
-  await PS.audit(w.email, id ? 'campaign.update' : 'campaign.create', 'campaign', cid, null, { name, products: codes.length });
+  await PS.audit(w.email, id ? 'campaign.update' : 'campaign.create', 'campaign', cid, null, { name, products: codes.length, ...(b.force ? { force: true, reason: clean(b.force_reason, 300) || null } : {}) });
   return res.json({ ok: true, id: cid, slug: rec.slug });
 };
 A['campaign-toggle'] = async (req, res) => {
