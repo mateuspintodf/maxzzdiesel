@@ -25,7 +25,8 @@ const DB = 'portal/db.json';
 const USED = 'portal/used-links.json';
 const hits = new Map();
 
-const admins = () => String(process.env.PORTAL_ADMINS || '').toLowerCase().split(/[,\s]+/).filter(Boolean);
+// PORTAL_ADMINS plus the team superadmins (Leise, Michael, marketing@), who see the portal as admins
+const admins = () => (String(process.env.PORTAL_ADMINS || '') + ',' + String(process.env.TEAM_SUPERADMINS || 'admin@maxzzdiesel.com,michael@maxzzdiesel.com,marketing@maxzzdiesel.com')).toLowerCase().split(/[,\s]+/).filter(Boolean);
 const isAdmin = (email) => !!email && admins().includes(email);
 const liveOrders = () => process.env.PORTAL_ORDERS_LIVE === '1';
 const base = (req) => process.env.SITE_URL || (process.env.VERCEL_ENV === 'production' ? 'https://www.maxzzdiesel.com' : 'https://' + (req.headers['x-forwarded-host'] || req.headers.host));
@@ -83,6 +84,16 @@ A.images = async (req, res) => {
   for (const [code, p] of Object.entries((prod && prod.items) || {})) if (!hid.has(code) && p.img && /^https:\/\//.test(p.img)) out[code] = p.img;
   res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
   return res.json(out);
+};
+
+// read-only, admins only: the Unleashed product groups (names only) and the portal category each one maps to
+A.groups = async (req, res) => {
+  const w = await authenticate(req);
+  if (!w || !w.admin) return res.status(401).json({ error: 'admins only' });
+  const { category } = require('../lib/catalog-map');
+  const d = await ul('ProductGroups', '', { timeoutMs: 20000 });
+  const items = ((d && d.Items) || []).map((g) => { const c = category(g.GroupName); return { name: g.GroupName, parent: (g.ParentGroup && g.ParentGroup.GroupName) || null, modified: g.LastModifiedOn || null, portal: c ? c[1] : 'hidden' }; });
+  return res.json({ count: items.length, items });
 };
 
 // configuration check without revealing any value
