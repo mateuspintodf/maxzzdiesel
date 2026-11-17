@@ -1272,7 +1272,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-side-h" v-if="fCount || showF"><button type="button" v-if="fCount" @click="clearF" v-text="'Clear filters (' + fCount + ')'"></button><button type="button" class="px-side-close px-btn px-dark px-sm" @click="showF = false" v-text="'Show ' + results.length + ' parts'"></button></div>
 <div class="px-fg">
 <h3>Category</h3>
-<label class="px-fo" v-for="o in fCats" :class="[on('cat', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('cat', o.k)" @change="toggle('cat', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+<div class="px-fow" v-for="o in fCats"><label class="px-fo" :class="[on('cat', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('cat', o.k)" @change="toggle('cat', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+<div class="px-fsub" v-if="on('cat', o.k) && fSubs(o.k).length > 1"><div class="px-fsub-e"><span class="px-fsub-g"><button type="button" v-for="g in fSubs(o.k)" class="px-fy" :class="on('sub', g.key) ? 'on' : ''" :aria-pressed="on('sub', g.key) ? 'true' : 'false'" @click="toggle('sub', g.key)"><span v-text="g.label"></span><small v-text="g.n"></small></button></span></div></div></div>
 </div>
 <div class="px-fg">
 <h3>Vehicle</h3>
@@ -2078,7 +2079,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=81"></script>
+<script src="/js/portal-app.js?v=82"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

@@ -103,6 +103,63 @@
   ];
   var ENG = [{ k: 'f', label: 'Ford · Power Stroke' }, { k: 'c', label: 'Ram / Dodge · Cummins' }, { k: 'd', label: 'Chevy / GMC · Duramax' }, { k: 'h', label: 'Heavy duty trucks' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
+  // sub-categories under a ticked category in the side filter, by part code and description (names follow the Unleashed store tree)
+  var SUBS = {
+    'Injector': [
+      ['reman', 'Reman injectors', function (c, d) { return /REMAN/.test(d) || /^BO\.0\.986\.435/.test(c); }],
+      ['parts', 'Injector parts', function (c, d) { return /SOLENOID|SHIM|\bCORE\b|NOZZLE|VALVE|SEAL|KIT\b/.test(d) && !/FUEL INJECTOR|COMPLETE/.test(d); }],
+      ['unit', 'Unit injectors (EUI / HEUI)', function (c, d) { return /\bEUI\b|\bHEUI\b|UNIT INJ/.test(d); }],
+      ['new', 'New injectors', function () { return true; }]
+    ],
+    'Pump': [
+      ['reman', 'Reman pumps', function (c, d) { return /REMAN/.test(d) || /^BO\.0\.986\.437/.test(c); }],
+      ['parts', 'Pump components & kits', function (c, d) { return !/HIGH PRESSURE PUMP|HIGH-PRESSURE PUMP|FUEL PUMP|INJECTION PUMP/.test(d) || /\bKIT\b|REPAIR/.test(d); }],
+      ['new', 'New pumps', function () { return true; }]
+    ],
+    'Nozzle': [
+      ['fb', 'Fratelli Bosio', function (c) { return /^FB\./.test(c); }],
+      ['bosch', 'Bosch', function (c) { return /^BO\.|^BR\./.test(c); }],
+      ['denso', 'Denso', function (c) { return /^DN\./.test(c); }],
+      ['zexel', 'Zexel', function (c) { return /^ZX\./.test(c); }],
+      ['delphi', 'Delphi', function (c) { return /^DE\./.test(c); }],
+      ['lead', 'Lead', function (c) { return /^LD\./.test(c); }],
+      ['kingstar', 'Kingstar', function (c) { return /^KS\./.test(c); }],
+      ['parts', 'Holders, nuts & caps', function (c, d) { return /HOLDER|\bNUT\b|\bCAP\b/.test(d); }],
+      ['other', 'Other nozzles', function () { return true; }]
+    ],
+    'Repair part': [
+      ['lines', 'Lines & connector tubes', function (c, d) { return /\bLINE\b|TUBE|CONNECTOR|\bPIPE\b/.test(d); }],
+      ['sensors', 'Sensors', function (c, d) { return /SENSOR/.test(d); }],
+      ['sol', 'Solenoids & armatures', function (c, d) { return /SOLENOID|ARMATURE|\bCOIL\b|MAGNET/.test(d); }],
+      ['shims', 'Shims', function (c, d) { return /SHIM|ADJUSTING|ADJUSTMENT/.test(d); }],
+      ['valves', 'Valve sets', function (c, d) { return /VALVE|VALVULA/.test(d); }],
+      ['seals', 'Seals, O-rings & gaskets', function (c, d) { return /SEAL|O-?\W?RING|GASKET|WASHER|RETEN|COPPER/.test(d); }],
+      ['kits', 'Repair kits', function (c, d) { return /\bKIT\b|REPAIR SET|REPAIR PARTS/.test(d); }],
+      ['pump', 'Pump parts', function (c, d) { return /PLUNGER|PUMP|\bELEMENT\b|SHAFT|\bCAM\b|ROTOR|\bHEAD\b|CABEZAL|HYDRAULIC|\bSCV\b|METERING|DISTRIBUTOR|ROLLER|LEVER|HOUSING/.test(d); }],
+      ['nozzles', 'Nozzles & needles', function (c, d) { return /NOZZLE|TOBERA|NEEDLE/.test(d); }],
+      ['small', 'Pins, springs & small parts', function (c, d) { return /\bPIN\b|SPRING|MUELLE|PLATE|\bNUT\b|SCREW|\bBALL\b|\bSEAT\b|SPACER|PISTON|PLUG|BOLT|NIPPLE|ADAPTER|COVER|BUFFER|SLEEVE|\bROD\b/.test(d); }],
+      ['other', 'Other repair parts', function () { return true; }]
+    ],
+    'Tool': [
+      ['test', 'Testers & measuring', function (c, d) { return /TEST|MEASUR|GAUGE|COMPARATOR/.test(d); }],
+      ['sets', 'Tool sets', function (c, d) { return /\bSET\b|\bKIT\b|EVO/.test(d); }],
+      ['single', 'Single tools', function () { return true; }]
+    ],
+    'Engine parts': [
+      ['gaskets', 'Gaskets & seals', function (c, d) { return /GASKET|SEAL|O-?RING|\bRING\b|WASHER/.test(d); }],
+      ['bearings', 'Bearings & bushings', function (c, d) { return /BEARING|BUSH/.test(d); }],
+      ['cyl', 'Cylinder, piston & liner', function (c, d) { return /CYLINDER|PISTON|LINER|\bROD\b/.test(d); }],
+      ['valves', 'Valves', function (c, d) { return /VALVE/.test(d); }],
+      ['filters', 'Filters & hoses', function (c, d) { return /FILTER|HOSE/.test(d); }],
+      ['sensors', 'Sensors', function (c, d) { return /SENSOR/.test(d); }],
+      ['other', 'Other engine parts', function () { return true; }]
+    ],
+    'Rail': [
+      ['parts', 'Rail sensors & valves', function (c, d) { return /SENSOR|VALVE/.test(d); }],
+      ['rails', 'Fuel rails', function () { return true; }]
+    ]
+  };
+  var SUBC = {};
   var HPC = {}, POP = { src: null, v: null };
   // hand-picked for the Suggested order on the portal home
   var PICKS = { 'BO.0.986.435.433': 1, 'BO.0.986.435.410': 1, 'BO.0.445.117.023': 1, 'BO.0.445.020.146': 1 };
@@ -2382,7 +2439,7 @@
       { c: 'Experiences', i: 'bench', n: 'Bench day at Maxzz Florida', d: 'A day at our Coconut Creek bench with our technicians.', p: 35000 },
       { c: 'Experiences', i: 'mic', n: 'Private technical session', d: 'One hour online with our senior instructor on your toughest case.', p: 30000 },
       { c: 'Experiences', i: 'people', n: 'Trade show meetup', d: 'Lunch with the Maxzz team at ADS or AAPEX.', p: 20000 }], sortBy: '', hsort: '', rank: null, specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
-    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], gen: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
+    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
 
@@ -2463,6 +2520,7 @@
       if (skip !== 'cat' && f.cat.length && f.cat.indexOf(x[3]) < 0) return false;
       if (skip !== 'brand' && f.brand.length && f.brand.indexOf(x[4] || 'Other') < 0) return false;
       if (skip !== 'eng' && f.eng.length && !f.eng.some(function (e) { return (x[6] || '').indexOf(e) >= 0; })) return false;
+      if (skip !== 'sub' && f.sub && f.sub.length) { var pre = x[3] + '|'; if (f.sub.some(function (k) { return k.indexOf(pre) === 0; }) && f.sub.indexOf(this.subOf(x)) < 0) return false; }
       if (skip !== 'gen' && f.gen && f.gen.length) { var fi = this.fit.items[x[0]]; if (!fi || !f.gen.some(function (g) { return fi[0].indexOf(g) >= 0; })) return false; }
       if (skip !== 'photo' && f.photo && !this.img(x[0])) return false;
       if (skip !== 'stock' && f.stock && !(this.qty(x[0]) > 0)) return false;
@@ -2561,6 +2619,7 @@
         if (g === 'cat') n[x[3]] = (n[x[3]] || 0) + 1;
         else if (g === 'brand') { var b = x[4] || 'Other'; n[b] = (n[b] || 0) + 1; }
         else if (g === 'eng') (x[6] || '').split('').forEach(function (e) { n[e] = (n[e] || 0) + 1; });
+        else if (g === 'sub') { var sk = self.subOf(x); if (sk) n[sk] = (n[sk] || 0) + 1; }
         else if (g === 'gen') { var fi = self.fit.items[x[0]]; if (fi) fi[0].forEach(function (k) { n[k] = (n[k] || 0) + 1; }); }
         else if (g === 'photo') { if (self.img(x[0])) n.y = (n.y || 0) + 1; }
         else if (g === 'stock') { if (self.qty(x[0]) > 0) n.y = (n.y || 0) + 1; }
@@ -2574,6 +2633,18 @@
       var list = all.map(function (b) { return { k: b, label: b, n: n[b] || 0 }; });
       return { more: list.length > 8, items: this.allBrands ? list : list.slice(0, 8) };
     },
+    subOf: function (r) {
+      var c = r[0]; if (SUBC[c] !== undefined) return SUBC[c];
+      var L = SUBS[r[3]]; if (!L) return (SUBC[c] = '');
+      var sp = this.specs && this.specs[c], d = (String(r[1] || '') + ' ' + (sp && sp.title ? sp.title : '')).toUpperCase();
+      for (var i = 0; i < L.length; i++) if (L[i][2](c, d)) return (SUBC[c] = r[3] + '|' + L[i][0]);
+      return (SUBC[c] = '');
+    },
+    fSubs: function (k) {
+      var L = SUBS[k]; if (!L) return [];
+      var n = this.facet('sub');
+      return L.map(function (x) { return { key: k + '|' + x[0], label: x[1], n: n[k + '|' + x[0]] || 0 }; }).filter(function (x) { return x.n > 0; });
+    },
     // engines and years under a ticked vehicle in the side filter (same tree as Shop by vehicle)
     fGens: function (k) {
       var mk = { f: 'ford', c: 'ram', d: 'gm', h: 'hd' }[k], m = this.fit.tree.filter(function (t) { return t.key === mk; })[0];
@@ -2582,12 +2653,13 @@
       return m.engines.map(function (e) { return { label: e.label, gens: e.gens.map(function (g) { return { key: g.key, years: g.years || g.label, label: g.label, n: n[g.key] || 0 }; }) }; });
     },
     get fEngs() { var n = this.facet('eng'); return ENG.map(function (e) { return { k: e.k, label: e.label, n: n[e.k] || 0 }; }); },
-    get fCount() { var f = this.f; return f.cat.length + f.brand.length + f.eng.length + (f.gen ? f.gen.length : 0) + (f.photo ? 1 : 0) + (f.stock ? 1 : 0) + (f.out ? 1 : 0); },
+    get fCount() { var f = this.f; return f.cat.length + f.brand.length + f.eng.length + (f.gen ? f.gen.length : 0) + (f.sub ? f.sub.length : 0) + (f.photo ? 1 : 0) + (f.stock ? 1 : 0) + (f.out ? 1 : 0); },
     get chips() {
       var f = this.f, out = [];
       f.cat.forEach(function (k) { var c = CATS.filter(function (x) { return x.k === k; })[0]; out.push({ g: 'cat', k: k, label: c ? c.label : k }); });
       f.brand.forEach(function (k) { out.push({ g: 'brand', k: k, label: k }); });
       f.eng.forEach(function (k) { out.push({ g: 'eng', k: k, label: ENG.filter(function (e) { return e.k === k; })[0].label }); });
+      (f.sub || []).forEach(function (k) { var c = k.split('|'), L = SUBS[c[0]] || [], it = L.filter(function (x) { return x[0] === c[1]; })[0]; out.push({ g: 'sub', k: k, label: it ? it[1] : c[1] }); });
       var self = this; (f.gen || []).forEach(function (k) { var g = self.genOf(k); out.push({ g: 'gen', k: k, label: g ? g.label + ' ' + (g.years || '') : k }); });
       if (this.route === 'g') { var gg = this.genOf(this.arg); out.unshift({ g: 'veh', label: gg ? gg.label + ' ' + (gg.years || '') : 'Vehicle' }); }
       if (f.photo) out.push({ g: 'photo', label: 'With photo' });
@@ -2928,8 +3000,8 @@
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
-      if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], photo: false, stock: false, out: false };
-      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], photo: false, stock: false, out: false };
+      if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
+      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if (r === 'orders' && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
@@ -2974,12 +3046,13 @@
       var f = this.f;
       if (g === 'photo' || g === 'stock' || g === 'out') f[g] = !f[g];
       else { var i = f[g].indexOf(k); if (i < 0) f[g].push(k); else f[g].splice(i, 1); }
+      if (g === 'cat' && i >= 0 && f.sub && f.sub.length) f.sub = f.sub.filter(function (x) { return x.indexOf(k + '|') !== 0; });
       if (g === 'eng' && i >= 0 && f.gen && f.gen.length) { var drop = []; this.fGens(k).forEach(function (e) { e.gens.forEach(function (x) { drop.push(x.key); }); }); f.gen = f.gen.filter(function (x) { return drop.indexOf(x) < 0; }); }
       this.limit = 24;
       if (this.route === 'home' || (this.route === 'c' && !(f.cat.length === 1 && f.cat[0] === this.arg))) { history.pushState(null, '', '#/all'); this.route = 'all'; this.arg = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }
     },
     on: function (g, k) { return g === 'photo' || g === 'stock' || g === 'out' ? this.f[g] : this.f[g].indexOf(k) >= 0; },
-    clearF: function () { this.f = { cat: [], brand: [], eng: [], gen: [], photo: false, stock: false, out: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
+    clearF: function () { this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
     genOf: function (key) { var out = null; this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (g) { if (g.key === key) out = g; }); }); }); return out; },
     logos: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
     pickMake: function (k) {
