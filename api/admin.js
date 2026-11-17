@@ -1421,7 +1421,7 @@ A['sales-commission'] = async (req, res) => {
 // (names, % of goal, points, level, badges) but dollar amounts only for itself.
 const PROG_DEFAULT = {
   pts: { per100: 1, goal: 200, margin: 100, newc: 50, back: 75 }, marginTarget: 0.15, autoGoalPct: 5,
-  levels: [['Rookie', 0], ['Rising', 1000], ['Pro', 5000], ['Expert', 15000], ['Legend', 40000]],
+  levels: [['Skates', 0], ['Scooter', 1000], ['Bicycle', 3000], ['Motorbike', 8000], ['Pickup', 20000], ['Big Rig', 50000]],
   awards: [
     { id: 'week_top', cycle: 'week', rule: 'top', text: 'Top of the week: lunch on the team' },
     { id: 'week_goal', cycle: 'week', rule: 'goal', text: 'Weekly goal reached: leave early on Friday' },
