@@ -403,7 +403,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .mfill,.mbact{transition:height .6s cubic-bezier(.25,.8,.25,1),background .15s}.mfill{animation:rrise .9s cubic-bezier(.25,.8,.25,1) backwards}.mbact{animation:rrise 1.1s cubic-bezier(.25,.8,.25,1) .15s backwards}
 .mbact{width:auto!important;left:0;right:0;opacity:.8;z-index:1}.mfill{z-index:0}.mgoal{position:absolute;left:0;right:0;height:0;border-top:3px solid #f08a24;z-index:2;pointer-events:none;transition:bottom .6s cubic-bezier(.25,.8,.25,1)}.mlast{z-index:3}.mval{z-index:4}
 @media(prefers-reduced-motion:reduce){.rfill,.rcar,.pbar i,.mfill,.mbact{animation:none}.pbar i,.rfill,.rcar,.mfill,.mbact{transition:none}}
-.brief-b table{border-collapse:separate}.brief-b h3{font-size:14px}.brief-b ul{margin:0}
+.nfp .brief .btn{display:inline-flex;width:auto;border:1px solid var(--line);border-radius:999px;padding:7px 14px;justify-content:center}.nfp .brief{box-shadow:none;border:0;margin:0;border-radius:0;padding:14px 16px}.brief-b table{border-collapse:separate}.brief-b h3{font-size:14px}.brief-b ul{margin:0}
 </style>
 </head>
 <body>
@@ -472,7 +472,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0, P = PAGE[S.tab] || PAGE.dash, grp = navF().filter(function (g) { return g[0] === P.g; })[0];
     var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="dash"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
     navF().forEach(function (g) { h += '<button data-tab="' + g[2][0][0] + '" class="' + (P.g === g[0] ? 'on' : '') + '">' + g[1] + '</button>'; });
-    h += '</nav><div class="tools"><div style="position:relative"><button class="cb" data-act="bell" title="Notifications" aria-label="Notifications">' + ic('bell') + (pend || nfUn() ? '<i></i>' : '') + '</button>' + (S.nfOpen ? nfPanel(pend) : '') + '</div><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
+    h += '</nav><div class="tools">' + (S.me.role === 'superadmin' ? '<div style="position:relative"><button class="cb" data-act="brief" title="Daily briefing" aria-label="Daily briefing">' + ic('spark') + '</button>' + (S.bfOpen ? '<div class="menu nfp" style="right:0;left:auto;width:440px;max-width:92vw;padding:0;max-height:78vh;overflow:auto">' + drawBrief() + '</div>' : '') + '</div>' : '') + '<div style="position:relative"><button class="cb" data-act="bell" title="Notifications" aria-label="Notifications">' + ic('bell') + (pend || nfUn() ? '<i></i>' : '') + '</button>' + (S.nfOpen ? nfPanel(pend) : '') + '</div><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
       (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="profile">' + ic('user', 16) + 'My profile</button><button data-tab="admins">' + ic('shield', 16) + 'Admin users</button><button data-tab="audit">' + ic('clock', 16) + 'Activity log</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></header>';
     var title = S.tab === 'dash' ? hello() : P.n, sub = S.tab === 'dash' ? 'Maxzz Diesel · ' + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : P.gn;
     h += '<div class="ph"><div class="t"><small>' + esc(sub) + '</small><h1>' + esc(title) + '</h1></div><div class="acts">' + (HEAD[S.tab] ? HEAD[S.tab]() : '') + (grp && grp[2].length > 1 ? '<div class="seg">' + grp[2].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + (t[0] === 'clients' && pend ? ' (' + pend + ')' : '') + '</button>'; }).join('') + '</div>' : '') + '</div></div>';
@@ -487,7 +487,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var VIEWS = { profile: drawProfile, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
-    if (t === 'dash') { if (S.me && S.me.role === 'superadmin') api('digest', null, S.bfw ? '&when=' + S.bfw : '').then(function (r) { if (r._status === 200) { S.bf = r; draw(); } }); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
+    if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
     if (t === 'sa') return slLoad();
     if (t === 'goals') return pgLoad();
     if (t === 'crm') return crmLoad();
@@ -596,7 +596,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var s = D.sales || {}, k = s.kpi || {}, mo = s.months || [], rv = mo.map(function (x) { return +x.rev || 0; }).slice(-12), on = mo.map(function (x) { return +x.n || 0; }).slice(-12), cu = mo.map(function (x) { return +x.cust || 0; }).slice(-12);
     var due = (s.status || {}).due || {}, ov = (s.status || {}).overdue || {};
     var pe = D.period || { days: 30, r: k.r30, pr: k.p30, o: k.o30, po: k.po30, c: 0, pc: 0 }, pd = pe.days || 30, pl = pd === 365 ? '12 months' : pd + ' days';
-    var h = drawBrief() + syncNote(s) + '<div class="kpis">' + tile('Revenue, last ' + pl, k$(pe.r), delta(pe.r, pe.pr) + ' vs the ' + pl + ' before', '', 'dark') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
+    var h = syncNote(s) + '<div class="kpis">' + tile('Revenue, last ' + pl, k$(pe.r), delta(pe.r, pe.pr) + ' vs the ' + pl + ' before', '', 'dark') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
       tile('Orders, last ' + pl, n0(pe.o), delta(pe.o, pe.po), sparkPath(on, 120, 34)) + tile('Average order, last ' + pl, k$(pe.o ? pe.r / pe.o : 0), delta(pe.o ? pe.r / pe.o : 0, pe.po ? pe.pr / pe.po : 0)) + tile('Buying customers, last ' + pl, n0(pe.c), delta(pe.c, pe.pc), sparkPath(cu, 120, 34)) +
       tile('To reorder now', n0((due.n || 0) + (ov.n || 0)), '<a data-act="dview" data-v="customers" data-st="due">' + k$((due.r12 || 0) + (ov.r12 || 0)) + ' a year, see list</a>', '', 'acc') + tile('Portal, last ' + pl, n0(D.portal.orders + D.portal.quotes), n0(D.portal.orders) + ' orders · ' + n0(D.portal.quotes) + ' quotes') + '</div>';
     h += '<div class="g21">' + sec('Revenue by month', months(mo) + '<p class="muted">Invoiced subtotals. Orange: last 12 months, grey: the 12 before.' + (k.last ? ' Latest invoice ' + esc(k.last) + '.' : '') + '</p>') +
@@ -1858,14 +1858,14 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   app.addEventListener('click', function (e) {
     if (!S.replaying) S.okKey = null; var t0 = e.target.closest('[data-act],[data-tab]'); if (t0 && !/^m-/.test(t0.dataset.act || '')) S.curEv = { type: 'click', sel: selOf(t0) };
     var inPop = e.target.closest('.ms, .menu, .who, .cb');
-    if (!inPop && (S.pop || S.meOpen || S.nfOpen)) { S.pop = null; S.meOpen = false; S.nfOpen = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
+    if (!inPop && (S.pop || S.meOpen || S.nfOpen || S.bfOpen)) { S.pop = null; S.meOpen = false; S.nfOpen = false; S.bfOpen = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
     if (e.target.closest('[data-stop]') && !e.target.closest('[data-stop] [data-act]')) return;
     if (e.target.matches('input[type=checkbox]') && !e.target.dataset.act) return;
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = ''; S.okMsg = '';
     if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; S.cd = null; S.cs = null; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw, ''); }
     var act = t.dataset.act, id = t.dataset.id;
-    if (act === 'me') { S.meOpen = !S.meOpen; return draw(); }
+    if (act === 'me') { S.meOpen = !S.meOpen; S.bfOpen = false; return draw(); }
     if (act === 'nf-kind') { S.nf = S.nf || {}; S.nf.kind = t.dataset.k; return draw(); }
     if (act === 'nf-out') { S.nf = S.nf || {}; S.nf.out = t.dataset.v; var dd2 = +t.dataset.d; if (!S.nf.fuTouched) S.nf.fu = dd2 ? new Date(Date.now() + dd2 * 864e5).toISOString().slice(0, 10) : ''; return draw(); }
     if (act === 'nf-fu') { S.nf = S.nf || {}; S.nf.fuTouched = true; S.nf.fu = new Date(Date.now() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
@@ -1877,7 +1877,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'funv') { S.funv = t.dataset.v; return draw(); }
     if (act === 'pf-kind') { S.pf = S.pf || {}; S.pf.kind = t.dataset.v; return draw(); }
     if (act === 'pf-fresh') { S.pipe = null; draw(); api('pipeline', null, '&fresh=1').then(function (r) { if (r._status === 200) { S.pipe = r; draw(); } else fail(r); }); return; }
-    if (act === 'bell') { S.nfOpen = !S.nfOpen; S.meOpen = false; if (S.nfOpen) nfLoad(); return draw(); }
+    if (act === 'brief') { S.bfOpen = !S.bfOpen; S.nfOpen = false; S.meOpen = false; if (S.bfOpen && !S.bf) api('digest', null, S.bfw ? '&when=' + S.bfw : '').then(function (r) { if (r._status === 200) { S.bf = r; draw(); } }); return draw(); }
+    if (act === 'bell') { S.nfOpen = !S.nfOpen; S.bfOpen = false; S.meOpen = false; if (S.nfOpen) nfLoad(); return draw(); }
     if (act === 'nf-all') { api('notifs-read', {}).then(function () { if (S.nf) { S.nf.items.forEach(function (n) { n.read_at = n.read_at || 'x'; }); S.nf.unread = 0; } draw(); }); return; }
     if (act === 'nf-open') { var nid = t.dataset.id, nd = t.dataset.deal; S.nfOpen = false; api('notifs-read', { ids: [nid] }).then(nfLoad); if (nd) { S.tab = 'crm'; loadTab('crm'); S.cd = { id: nd, loading: true, k: 'note' }; draw(); crmDeal(); } else draw(); return; }
     if (act === 'ct-new') { S.ctf = { name: '', email: '', phone: '', role: '', company_name: '', customer_code: '' }; return draw(); }
