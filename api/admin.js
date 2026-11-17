@@ -159,7 +159,7 @@ A['company-remove'] = async (req, res) => {
   const [us, ord, qts, vch, nts] = await Promise.all([db.select('users', 'select=company_id,last_login_at&company_id=in.(' + ids.join(',') + ')'), db.select('orders', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('quotes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('vouchers', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000').catch(() => []), db.select('customer_notes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000').catch(() => [])]);
   const removed = [], kept = [];
   for (const c of cos) {
-    const busy = !['prospect', 'invited', 'ready', 'rejected'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id) || vch.some((v) => v.company_id === c.id) || nts.some((n) => n.company_id === c.id);
+    const busy = !['prospect', 'invited', 'ready', 'rejected', 'pending'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id) || vch.some((v) => v.company_id === c.id) || nts.some((n) => n.company_id === c.id);
     if (busy) { kept.push(c.name); continue; }
     try {
       await db.remove('company_segments', 'company_id=eq.' + c.id);
