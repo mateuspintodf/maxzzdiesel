@@ -203,7 +203,7 @@ A['mfa-reset'] = async (req, res) => {
 };
 
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null })); };
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,photo&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, photo: a.photo || null })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -342,7 +342,7 @@ const ROLES = ['superadmin', 'sales', 'marketing'];
 A.admins = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
-  const rows = await db.select('admins', 'select=email,name,role,active,salesperson,created_at,created_by&order=created_at');
+  const rows = await db.select('admins', 'select=email,name,first_name,last_name,phone,photo,role,active,salesperson,created_at,created_by&order=created_at');
   const inTable = new Set(rows.map((r) => String(r.email).toLowerCase()));
   const boot = envAdmins().filter((e) => !inTable.has(e)).map((e) => ({ email: e, name: '', role: 'superadmin', active: true, bootstrap: true }));
   const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
@@ -355,12 +355,15 @@ A['admin-save'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
   const b = readBody(req);
-  const email = clean(b.email, 160).toLowerCase(), role = clean(b.role, 20), name = clean(b.name, 120), active = b.active !== false;
+  const email = clean(b.email, 160).toLowerCase(), role = clean(b.role, 20), active = b.active !== false;
+  const fn = clean(b.first_name, 60), ln = clean(b.last_name, 60), ph = clean(b.phone, 40), name = clean(b.name, 120) || [fn, ln].filter(Boolean).join(' ');
+  const photo = typeof b.photo === 'string' ? (b.photo === '' ? '' : /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(b.photo) && b.photo.length <= 90000 ? b.photo : null) : undefined;
+  if (photo === null) return res.status(400).json({ error: 'The photo is too big or not a JPG, PNG or WebP image.' });
   if (!EMAIL.test(email)) return res.status(400).json({ error: 'That e-mail does not look right.' });
   if (!ROLES.includes(role)) return res.status(400).json({ error: 'role' });
   if (email === w.email && (!active || role !== 'superadmin')) return res.status(400).json({ error: 'You cannot remove your own superadmin access.' });
   const before = (await db.select('admins', 'select=*&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0] || null;
-  await db.insert('admins', [{ email, role, name: name || null, active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
+  await db.insert('admins', [{ email, role, name: name || null, first_name: fn || null, last_name: ln || null, phone: ph || null, ...(photo === undefined ? {} : { photo: photo || null }), active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
   if (!active || (before && before.role !== role)) await SDB.revokeEmail(email, w.email, 'admin').catch(() => {}); // new rights start at the next sign-in
   await PS.audit(w.email, before ? 'admin.update' : 'admin.create', 'admin', email, before && { role: before.role, active: before.active }, { role, active });
   return res.json({ ok: true });
