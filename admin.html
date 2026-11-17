@@ -192,6 +192,38 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 .skel{display:grid;gap:14px}.skel i{display:block;height:92px;border-radius:var(--r);background:linear-gradient(90deg,#fff 0,#f3f3f4 40%,#fff 80%);background-size:300% 100%;animation:shm 1.2s ease-in-out infinite}.skel i:nth-child(2){height:220px}.skel i:nth-child(3){height:160px}
 @keyframes shm{from{background-position:100% 0}to{background-position:0 0}}
 ::view-transition-old(root),::view-transition-new(root){animation-duration:.16s}
+
+/* ---------- motion (inspired by transitions.dev patterns, built for this admin) ---------- */
+/* tabs sliding: the active pill glides to the clicked tab */
+.seg{position:relative}.seg.ind button.on{background:transparent}.seg.ind:before{content:'';position:absolute;top:4px;bottom:4px;left:0;width:var(--iw,0);transform:translateX(var(--ix,0));background:var(--acc);border-radius:999px;transition:transform .32s cubic-bezier(.3,1.25,.5,1),width .32s cubic-bezier(.3,1.25,.5,1)}.seg.ind.nofx:before{transition:none}.seg button{position:relative;z-index:1}
+/* number pop-in on a 3D drum */
+.drum{display:inline-block;perspective:400px}.drum .dg{display:inline-block;animation:drum .55s cubic-bezier(.34,1.56,.64,1) both;transform-origin:50% 50% -.4em}
+@keyframes drum{from{transform:rotateX(-90deg);opacity:0}60%{opacity:1}}
+/* notification badge: diagonal slide with a spring pop */
+.cb i{animation:bdg .55s cubic-bezier(.34,1.7,.5,1) both}@keyframes bdg{from{transform:translate(-7px,7px) scale(0);opacity:0}}
+/* panel reveal and close */
+.drawer.out{animation:slo .2s ease forwards}.dscrim.out,.mscrim.out{animation:fdo .2s ease forwards}.mdl.out{animation:mdo .16s ease forwards}
+@keyframes slo{to{transform:translateX(40px);opacity:0}}@keyframes fdo{to{opacity:0}}@keyframes mdo{to{opacity:0;transform:translate(-50%,-48%) scale(.97)}}
+/* page side by side: forward and back between a list and its detail */
+html[data-dir=fwd]::view-transition-old(root){animation:pgOutL .24s cubic-bezier(.4,0,.2,1) both}html[data-dir=fwd]::view-transition-new(root){animation:pgInR .24s cubic-bezier(.4,0,.2,1) both}
+html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezier(.4,0,.2,1) both}html[data-dir=back]::view-transition-new(root){animation:pgInL .24s cubic-bezier(.4,0,.2,1) both}
+@keyframes pgOutL{to{transform:translateX(-24px);opacity:0}}@keyframes pgInR{from{transform:translateX(24px);opacity:0}}@keyframes pgOutR{to{transform:translateX(24px);opacity:0}}@keyframes pgInL{from{transform:translateX(-24px);opacity:0}}
+/* success check in the toast: blur and rotate in, then the stroke draws */
+.tck{width:22px;height:22px;border-radius:50%;background:var(--ok);display:inline-flex;align-items:center;justify-content:center;flex:none;animation:tck .45s cubic-bezier(.34,1.56,.64,1) both}.tck svg{stroke-dasharray:24;stroke-dashoffset:24;animation:drw .35s .18s ease forwards}
+@keyframes tck{from{transform:rotate(-90deg) scale(.4);filter:blur(4px);opacity:0}}@keyframes drw{to{stroke-dashoffset:0}}
+/* spinner inside busy buttons */
+.spn{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}
+/* accordion: details open with height and the chevron turns */
+.tld{animation:acc .28s cubic-bezier(.2,.9,.25,1) both;overflow:hidden}@keyframes acc{from{max-height:0;opacity:0;padding-top:0;padding-bottom:0}to{max-height:900px;opacity:1}}
+.chev{display:inline-flex;transition:transform .25s cubic-bezier(.3,1.3,.5,1);vertical-align:-2px;margin-left:3px}.chev.up{transform:rotate(180deg)}
+/* checkbox: the check draws on */
+.ck:checked:after{animation:ckd .22s ease both}@keyframes ckd{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}.ck:checked{animation:ckp .25s cubic-bezier(.34,1.56,.64,1)}@keyframes ckp{50%{transform:scale(.88)}}
+/* toggle: thumb slides with a double bounce */
+.sw input:checked+span:before{animation:tgOn .5s cubic-bezier(.3,1.5,.5,1)}.sw input:not(:checked)+span:before{animation:tgOff .5s cubic-bezier(.3,1.5,.5,1)}
+@keyframes tgOn{0%{transform:translateX(0)}55%{transform:translateX(19px) scaleX(1.12)}75%{transform:translateX(14px)}90%{transform:translateX(17px)}100%{transform:translateX(16px)}}
+@keyframes tgOff{0%{transform:translateX(16px)}55%{transform:translateX(-3px) scaleX(1.12)}75%{transform:translateX(2px)}90%{transform:translateX(-1px)}100%{transform:translateX(0)}}
+/* tooltip: delayed in, travels between targets, instant out */
+#tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;font-weight:500;padding:6px 10px;border-radius:8px;white-space:nowrap;opacity:0;transform:translate(-50%,-4px);transition:opacity .12s ease,transform .12s ease,left .18s cubic-bezier(.3,1.2,.5,1),top .18s cubic-bezier(.3,1.2,.5,1)}#tip.on{opacity:1;transform:translate(-50%,-8px)}#tip.jump{transition:opacity .12s ease,transform .12s ease}
 @media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 .apvh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.apvh small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;max-width:520px}.btn.dang{color:var(--red);border-color:#f2c4c8}.btn.dang:hover{background:#fdecee}
 .tgc{padding-right:4px;background:#eef0ff;color:var(--blue)}.tgc button{border:0;background:none;color:inherit;cursor:pointer;padding:0 2px;display:inline-flex;opacity:.6}.tgc button:hover{opacity:1}
@@ -231,8 +263,8 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
   var NAV = [
     ['dash', 'Dashboard', [['dash', 'Overview']]],
     ['cust', 'Customers', [['dir', 'Unleashed customers'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
-    ['cat', 'Catalog', [['campaigns', 'Campaigns'], ['products', 'Product visibility'], ['loyalty', 'Max Rewards']]],
-    ['vou', 'Vouchers', [['vouchers', 'Vouchers']]],
+    ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
+    ['cat', 'Catalog', [['products', 'Product visibility']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
     ['set', 'Settings', [['terms', 'Terms of use'], ['admins', 'Admin users'], ['audit', 'Activity log']]]];
   var PAGE = {}; NAV.forEach(function (g) { g[2].forEach(function (t) { PAGE[t[0]] = { g: g[0], gn: g[1], n: t[1] }; }); });
@@ -259,7 +291,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (S.err) h += '<div class="alert">' + esc(S.err) + '</div>';
     if (S.okMsg) h += '<div class="ok">' + esc(S.okMsg) + '</div>';
     h += (VIEWS[S.tab] || drawClients)();
-    paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status"><span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
+    paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
   var VIEWS = { dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream };
@@ -322,7 +354,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
   function sec(title, body, right, cls) { return '<section class="card ' + (cls || '') + '"><div class="ch"><h2>' + title + '</h2>' + (right ? '<div class="cr">' + right + '</div>' : '') + '</div>' + body + '</section>'; }
   function drawAi() {
     var A = S.ai || {}, L = A.last, h = '<section class="card ai"><div class="ch"><h2>' + ic('spark') + ' AI plan</h2><div class="cr">';
-    if (A.on) h += '<button class="btn ' + (L ? 'ghost ' : 'red ') + 'sm" data-act="ai-run"' + (S.aiBusy ? ' disabled' : '') + '>' + (S.aiBusy ? 'Thinking...' : L ? 'Run again' : 'Generate plan') + '</button>';
+    if (A.on) h += '<button class="btn ' + (L ? 'ghost ' : 'red ') + 'sm" data-act="ai-run"' + (S.aiBusy ? ' disabled' : '') + '>' + (S.aiBusy ? '<i class="spn"></i>Thinking' : L ? 'Run again' : 'Generate plan') + '</button>';
     h += '</div></div>';
     if (!A.on) return '';
     else if (!L) h += '<p class="muted" style="margin-top:0">Reads sales, each customer\'s buying rhythm and portal behavior, then writes a plan. About a minute.</p><ul class="aie"><li>' + ic('phone', 16) + '<span><b>Who to call</b> and why, with a draft message</span></li><li>' + ic('send', 16) + '<span><b>Campaigns</b> for groups, with the audience and the offer</span></li><li>' + ic('box', 16) + '<span><b>Parts</b> to push or to watch</span></li></ul>';
@@ -451,7 +483,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
       if (open && x.det) det = '<div class="tld">' + (x.kind === 'order' ? tbl([h0('Part'), hr('Qty'), hr('Total')], x.det.map(function (d) { return '<tr><td><span class="mono">' + esc(d[0]) + '</span>' + (d[1] ? '<small>' + esc(d[1]) + '</small>' : '') + '</td><td class="r">' + n0(d[2]) + '</td><td class="r">' + k$(d[3]) + '</td></tr>'; }))
         : x.kind === 'visit' ? x.det.map(function (d) { return '<div class="tlr"><span class="mono">' + esc(d[0]) + '</span><span>' + esc(d[1]) + ' <b class="mono">' + esc(d[2]) + '</b>' + (d[3] ? ' <small>' + esc(d[3]) + '</small>' : '') + '</span></div>'; }).join('') || '<p class="muted">Only page views.</p>'
         : x.det.map(function (d) { return '<p>' + esc(d.join(' ')) + '</p>'; }).join('')) + '</div>';
-      return sep + '<li class="k-' + esc(x.kind) + '"><span class="tli">' + ic(k[1], 16) + '</span><div class="tlb"><div class="tlh"><b>' + esc(x.title) + '</b><time>' + esc(fmtAt(x.at)) + '</time></div>' + (x.desc ? '<p>' + esc(x.desc) + '</p>' : '') + (x.note && x.note.follow_up ? '<div class="fuc' + (x.note.done ? ' done' : '') + '">' + ic('cal', 14) + (x.note.done ? ' Follow-up done' + (x.note.done_by ? ' by ' + esc(String(x.note.done_by).split('@')[0]) : '') : ' Follow up ' + esc(fmtAt(x.note.follow_up)) + ' <button class="lnk" data-act="fu-done" data-id="' + esc(x.note.id) + '">Mark done</button>') + '</div>' : '') + (x.det && x.det.length ? '<button class="lnk" data-act="tl-det" data-k="' + esc(key) + '">' + (open ? 'Hide details' : 'Show details') + '</button>' : '') + det + '</div></li>'; }).join('') + '</ol>';
+      return sep + '<li class="k-' + esc(x.kind) + '"><span class="tli">' + ic(k[1], 16) + '</span><div class="tlb"><div class="tlh"><b>' + esc(x.title) + '</b><time>' + esc(fmtAt(x.at)) + '</time></div>' + (x.desc ? '<p>' + esc(x.desc) + '</p>' : '') + (x.note && x.note.follow_up ? '<div class="fuc' + (x.note.done ? ' done' : '') + '">' + ic('cal', 14) + (x.note.done ? ' Follow-up done' + (x.note.done_by ? ' by ' + esc(String(x.note.done_by).split('@')[0]) : '') : ' Follow up ' + esc(fmtAt(x.note.follow_up)) + ' <button class="lnk" data-act="fu-done" data-id="' + esc(x.note.id) + '">Mark done</button>') + '</div>' : '') + (x.det && x.det.length ? '<button class="lnk" data-act="tl-det" data-k="' + esc(key) + '">' + (open ? 'Hide details' : 'Show details') + '<span class="chev' + (open ? ' up' : '') + '">' + ic('dn', 12) + '</span></button>' : '') + det + '</div></li>'; }).join('') + '</ol>';
     if (L.length > N) h += '<button class="btn ghost sm" data-act="tl-more">Show ' + Math.min(40, L.length - N) + ' more of ' + L.length + '</button>';
     return h;
   }
@@ -471,7 +503,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
       var trail = (r.trail || []);
       return '<div class="fdr"><span class="av sm' + (r.cid ? '' : ' anon') + '">' + (r.cid || r.person ? esc(initials(who)) : ic('user', 14)) + '</span><div class="fdb">' + (r.cid ? '<a data-act="cust" data-code="' + esc(r.code || '') + '" data-cid="' + esc(r.cid) + '"><b>' + esc(who) + '</b></a>' : '<b>' + esc(who) + '</b>') + (r.person && r.company ? '<small>' + esc(r.person) + '</small>' : '') +
         '<small>' + esc([r.place, r.device, r.src ? 'from ' + r.src : '', r.sessions > 1 ? r.sessions + ' visits' : ''].filter(Boolean).join(' · ')) + '</small><div class="tags" style="margin-top:6px">' + chips + '</div>' +
-        (trail.length ? '<button class="lnk fdt" data-act="fd-open" data-i="' + i + '">' + (open ? 'Hide' : 'What they did') + ' (' + trail.length + ')</button>' : '') +
+        (trail.length ? '<button class="lnk fdt" data-act="fd-open" data-i="' + i + '">' + (open ? 'Hide' : 'What they did') + ' (' + trail.length + ')<span class="chev' + (open ? ' up' : '') + '">' + ic('dn', 12) + '</span></button>' : '') +
         (open ? '<div class="tld">' + trail.map(function (e) { return '<div class="tlr"><span class="mono">' + esc(new Date(e.at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })) + '</span><span>' + esc(FEV[e.type] || e.type) + ' ' + (e.code ? '<b class="mono">' + esc(e.code) + '</b>' + (e.t ? ' <small>' + esc(e.t) + '</small>' : '') : e.q ? '<b>' + esc(e.q) + '</b>' : e.path ? '<span class="muted">' + esc(e.path) + '</span>' : '') + '</span></div>'; }).join('') + '</div>' : '') +
         '</div><div class="fdm"><time>' + esc(fmtAt(r.last)) + '</time></div></div>'; }).join('');
     return h + '</div></aside>';
@@ -489,7 +521,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
       if (acc.status !== 'approved') {
         var FD = S.found[acc.id], lk = S.looking === acc.id;
         h += '<div class="apv"><div class="apvh"><div><b>Approve access</b><small>Find their customer in Unleashed. Approving links the portal account to it, so they see that customer\'s prices, terms and orders.</small></div>' + (acc.status === 'pending' ? '<button class="btn ghost sm dang" data-act="reject" data-id="' + esc(acc.id) + '">' + ic('x', 14) + ' Reject</button>' : '') + '</div>' +
-          '<div class="row"><label class="srch" style="flex:1">' + ic('search', 16) + '<input type="search" data-look="' + esc(acc.id) + '" placeholder="Unleashed customer code or name" data-m="lookQ" value="' + esc(S.lookQ != null ? S.lookQ : (acc.customerNumber || acc.company)) + '" aria-label="Search Unleashed"></label><button class="btn ghost" data-act="look" data-id="' + esc(acc.id) + '"' + (lk ? ' disabled' : '') + '>' + (lk ? 'Searching...' : 'Search') + '</button></div>';
+          '<div class="row"><label class="srch" style="flex:1">' + ic('search', 16) + '<input type="search" data-look="' + esc(acc.id) + '" placeholder="Unleashed customer code or name" data-m="lookQ" value="' + esc(S.lookQ != null ? S.lookQ : (acc.customerNumber || acc.company)) + '" aria-label="Search Unleashed"></label><button class="btn ghost" data-act="look" data-id="' + esc(acc.id) + '"' + (lk ? ' disabled' : '') + '>' + (lk ? '<i class="spn"></i>Searching' : 'Search') + '</button></div>';
         if (FD && !FD.length) h += '<p class="muted" style="margin:10px 0 0">No customer in Unleashed matches. Try the customer code or another spelling. If they are new, create the customer in Unleashed first, then search again.</p>';
         (FD || []).forEach(function (c, i) { h += '<div class="hit"><span><b class="mono">' + esc(c.code) + '</b> ' + esc(c.name) + '<small>' + esc(c.tier || 'no tier') + (c.terms ? ' · ' + esc(c.terms) : '') + (c.stopCredit ? ' · <span class="hidx">STOP CREDIT</span>' : '') + '</small></span><button class="btn red sm" data-act="approve" data-id="' + esc(acc.id) + '" data-i="' + i + '">Approve with ' + esc(c.code) + '</button></div>'; });
         h += '</div>';
@@ -669,7 +701,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (!D.termsPublished) h += '<div class="alert">Publish the terms of use (Settings) before sending invites.</div>';
     h += drawCsv();
     if (S.sendRun) { var R = S.sendRun, done = R.results.length, okn = R.results.filter(function (x) { return x.ok; }).length;
-      h += '<section class="card"><div class="ch"><h2>' + (R.running ? 'Sending invites...' : 'Invites sent') + '</h2><span class="muted">' + done + ' of ' + R.total + '</span></div><div class="prog"><i style="width:' + Math.round(done / Math.max(1, R.total) * 100) + '%"></i></div><p class="muted">' + okn + ' sent' + (done - okn ? ', ' + (done - okn) + ' skipped' : '') + '.</p>' +
+      h += '<section class="card"><div class="ch"><h2>' + (R.running ? '<i class="spn"></i>Sending invites' : 'Invites sent') + '</h2><span class="muted">' + done + ' of ' + R.total + '</span></div><div class="prog"><i style="width:' + Math.round(done / Math.max(1, R.total) * 100) + '%"></i></div><p class="muted">' + okn + ' sent' + (done - okn ? ', ' + (done - okn) + ' skipped' : '') + '.</p>' +
         (R.results.filter(function (x) { return !x.ok; }).length ? tbl([h0('Company'), h0('Why it was skipped')], R.results.filter(function (x) { return !x.ok; }).map(function (x) { return '<tr><td>' + esc(x.n) + '</td><td>' + esc(x.error) + '</td></tr>'; })) : '') + (R.running ? '' : '<button class="btn ghost sm" data-act="send-x">Close</button>') + '</section>'; }
     var noMail = ms.filter(function (m) { return !m.email && m.status !== 'active'; }).length;
     h += '<div class="g12"><section class="card flush"><div class="fbar"><h2>Who gets it</h2><span class="sp"></span><span class="muted">' + Object.keys(pick).length + ' selected' + (noMail ? ' · ' + noMail + ' without e-mail' : '') + '</span></div>';
@@ -949,12 +981,29 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
   // only what changed is touched on the page (morphdom), so scroll, focus and open elements stay put and the
   // enter animations run only on things that really appear
   function paint(html) {
-    if (!window.morphdom) { app.innerHTML = html; return; }
-    window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onBeforeElUpdated: function (from, to) { if (from.isEqualNode(to)) return false; if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
+    if (!window.morphdom) { app.innerHTML = html; return enhance(); }
+    window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onBeforeElUpdated: function (from, to) { if (from.classList && from.classList.contains('ind') && to.classList.contains('seg')) { to.classList.add('ind'); to.style.setProperty('--ix', from.style.getPropertyValue('--ix')); to.style.setProperty('--iw', from.style.getPropertyValue('--iw')); } if (from.isEqualNode(to)) return false; if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
+    enhance();
   }
+  var NUMSEL = '.kpi>b,.mk b,.fst b,.segn b,.stat b';
+  function enhance() {
+    [].forEach.call(app.querySelectorAll('.seg'), function (g) { var on = g.querySelector('button.on'); if (!on) { g.classList.remove('ind'); return; } var first = !g.classList.contains('ind'); if (first) g.classList.add('nofx'); g.style.setProperty('--ix', (on.offsetLeft - 0) + 'px'); g.style.setProperty('--iw', on.offsetWidth + 'px'); g.classList.add('ind'); if (first) requestAnimationFrame(function () { g.classList.remove('nofx'); }); });
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    [].forEach.call(app.querySelectorAll(NUMSEL), function (b) { var tx = b.textContent; if (b.__t === tx || b.querySelector('.drum')) { b.__t = tx; return; } var was = b.__t; b.__t = tx; if (b.children.length || !/\d/.test(tx) || tx.length > 14) return;
+      b.innerHTML = '<span class="drum">' + tx.split('').map(function (ch, i) { return '<span class="dg" style="animation-delay:' + (i * 28) + 'ms">' + esc(ch) + '</span>'; }).join('') + '</span>'; });
+  }
+  // close a panel or dialog with its exit animation, then change the state
+  function closeL(sel, fn) { var els = document.querySelectorAll(sel); if (!els.length || matchMedia('(prefers-reduced-motion: reduce)').matches) { fn(); return draw(); } [].forEach.call(els, function (x) { x.classList.add('out'); }); setTimeout(function () { fn(); draw(); }, 190); }
+  // tooltips: title attributes become a small dark label (delayed in, travels between buttons, instant out)
+  (function () { var tip = document.createElement('div'), tmr = null, last = 0; tip.id = 'tip'; document.body.appendChild(tip);
+    document.addEventListener('mouseover', function (e) { var el = e.target.closest && e.target.closest('[title],[data-tip]'); if (!el || !app.contains(el)) return; if (el.title) { el.setAttribute('data-tip', el.title); el.removeAttribute('title'); } var txt = el.getAttribute('data-tip'); if (!txt) return;
+      var show = function () { var r = el.getBoundingClientRect(); tip.textContent = txt; var moving = tip.classList.contains('on'); tip.classList.toggle('jump', !moving); tip.style.left = Math.max(60, Math.min(innerWidth - 60, r.left + r.width / 2)) + 'px'; tip.style.top = (r.top - 4) + 'px'; tip.classList.add('on'); };
+      clearTimeout(tmr); if (Date.now() - last < 400 || tip.classList.contains('on')) show(); else tmr = setTimeout(show, 380); });
+    document.addEventListener('mouseout', function (e) { var el = e.target.closest && e.target.closest('[data-tip]'); if (!el || (e.relatedTarget && el.contains(e.relatedTarget))) return; clearTimeout(tmr); if (tip.classList.contains('on')) last = Date.now(); tip.classList.remove('on'); });
+    document.addEventListener('mousedown', function () { clearTimeout(tmr); tip.classList.remove('on'); }); })();
   // a soft cross-fade when moving between pages (browsers without view transitions just switch)
-  function go(fn) { if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(fn); else fn(); }
-  function toast(msg) { S.toastMsg = msg; clearTimeout(S.toastT); S.toastT = setTimeout(function () { S.toastMsg = ''; draw(); }, 30000); draw(); }
+  function go(fn, dir) { document.documentElement.dataset.dir = dir || ''; if (document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.startViewTransition(fn); else fn(); }
+  function toast(msg, good) { S.toastOk = !!good; S.toastMsg = msg; clearTimeout(S.toastT); S.toastT = setTimeout(function () { S.toastMsg = ''; draw(); }, 30000); draw(); }
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Could not save. Check your connection and try again.'); if (r._status === 401) S.me = null; S.busy = false; draw(); }
   function setM(path, v) { var k = path.split('.'), o = S; for (var i = 0; i < k.length - 1; i++) { if (!o[k[i]] || typeof o[k[i]] !== 'object') o[k[i]] = {}; o = o[k[i]]; } o[k[k.length - 1]] = v; if (k[0] === 'cf') S.cn = 60; if (k[0] === 'df') S.dn = 80; if (k[0] === 'pf2') S.pn = 100; }
   app.addEventListener('input', function (e) { var m = e.target.dataset && e.target.dataset.m; if (!m) return; setM(m, e.target.value); var p = e.target.selectionStart; draw(); var n = app.querySelector('[data-m="' + m + '"]'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} } });
@@ -970,19 +1019,19 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (e.target.matches('input[type=checkbox]') && !e.target.dataset.act) return;
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = ''; S.okMsg = '';
-    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw); }
+    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw, ''); }
     var act = t.dataset.act, id = t.dataset.id;
     if (act === 'me') { S.meOpen = !S.meOpen; return draw(); }
     if (act === 'nf-kind') { S.nf = S.nf || {}; S.nf.kind = t.dataset.k; return draw(); }
     if (act === 'nf-fu') { S.nf = S.nf || {}; S.nf.fu = new Date(Date.now() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
     if (act === 'nf-save') { var NF2 = S.nf || {}, DR = S.dr; if (!DR || !String(NF2.body || '').trim()) return; S.busy = true; draw();
       var dd = DR.data || {}, nm = (dd.sales && dd.sales.summary && dd.sales.summary.n) || (dd.company && dd.company.name) || DR.code;
-      api('note-add', { code: DR.code || '', company: (dd.company && dd.company.id) || '', name: nm, kind: NF2.kind || 'call', body: NF2.body, follow_up: NF2.fu || '' }).then(function (r) { S.busy = false; if (r.ok) { S.nf = {}; toast('Saved on ' + nm + (NF2.fu ? ', follow up ' + fmtAt(NF2.fu) : '') + '.'); openCust(DR.code, DR.acc, true); api('followups').then(function (q) { if (q._status === 200) { S.fus = q; draw(); } }); } else fail(r); }); return; }
+      api('note-add', { code: DR.code || '', company: (dd.company && dd.company.id) || '', name: nm, kind: NF2.kind || 'call', body: NF2.body, follow_up: NF2.fu || '' }).then(function (r) { S.busy = false; if (r.ok) { S.nf = {}; toast('Saved on ' + nm + (NF2.fu ? ', follow up ' + fmtAt(NF2.fu) : '') + '.', true); openCust(DR.code, DR.acc, true); api('followups').then(function (q) { if (q._status === 200) { S.fus = q; draw(); } }); } else fail(r); }); return; }
     if (act === 'fu-done' || act === 'fu-snooze') { var body2 = { id: id }; if (act === 'fu-snooze') body2.snooze = new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10);
-      api('note-done', body2).then(function (r) { if (r.ok) { toast(act === 'fu-done' ? 'Follow-up marked done.' : 'Moved 3 days ahead.'); S.lastBulk = null; api('followups').then(function (q) { if (q._status === 200) { S.fus = q; draw(); } }); if (S.dr) openCust(S.dr.code, S.dr.acc, true); } else fail(r); }); return; }
+      api('note-done', body2).then(function (r) { if (r.ok) { toast(act === 'fu-done' ? 'Follow-up marked done.' : 'Moved 3 days ahead.', act === 'fu-done'); S.lastBulk = null; api('followups').then(function (q) { if (q._status === 200) { S.fus = q; draw(); } }); if (S.dr) openCust(S.dr.code, S.dr.acc, true); } else fail(r); }); return; }
     if (act === 'funv') { S.funv = t.dataset.v; return draw(); }
     if (act === 'fu-mine') { S.fuMine = !!t.dataset.v; return draw(); }
-    if (act === 'm-no') { S.modal = null; return draw(); }
+    if (act === 'm-no') return closeL('.mdl,.mscrim', function () { S.modal = null; });
     if (act === 'm-ok') return modalOk();
     if (act === 'toast-x') { S.toastMsg = ''; return draw(); }
     if (act === 'retry') { S.tabErr = null; loadTab(S.tab); return draw(); }
@@ -1001,7 +1050,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'seg-make') { var nm = String(S.segName || '').trim(); if (!nm) { S.err = 'Give the segment a name.'; return draw(); } S.busy = true; draw();
       api('segment-create', { name: nm, codes: Object.keys(S.sel || {}), rules: S.df || {} }).then(function (r) { S.busy = false; if (r.ok) { S.sel = {}; S.mkSeg = false; S.segName = ''; S.tab = 'segments'; S.segs = null; loadTab('segments'); openSeg(r.id); S.okMsg = 'Segment created with ' + r.members + ' companies' + (r.created ? ' (' + r.created + ' new prospects)' : '') + '.'; } else fail(r); }); return; }
     // segments
-    if (act === 'seg-open') { S.csv = null; return openSeg(id); }
+    if (act === 'seg-open') { S.csv = null; return go(function () { openSeg(id); }, 'fwd'); }
     if (act === 'seg-del') { e.stopPropagation(); if (!ok('Delete the segment "' + t.dataset.n + '"? The companies stay in the admin and in Unleashed, only the group and its invite text are removed.')) return; api('segment-delete', { id: id }).then(function (r) { if (r.ok) { S.okMsg = 'Segment deleted.'; S.segOpen = null; S.seg = null; S.segs = null; loadTab('segments'); draw(); } else fail(r); }); return; }
     if (act === 'seg-clear') { if (!ok('Remove all ' + S.seg.members.length + ' companies from this segment? They stay in the admin and in Unleashed.')) return; api('segment-members', { segment: S.segOpen, remove: true, all: true }).then(function (r) { if (r.ok) { S.pick = {}; openSeg(S.segOpen); } else fail(r); }); return; }
     if (act === 'csv-open') { S.csv = { segment: t.dataset.seg ? S.segOpen : null, rows: [], map: {} }; return draw(); }
@@ -1012,7 +1061,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'tl-det') { S.tlopen = S.tlopen || {}; S.tlopen[t.dataset.k] = !S.tlopen[t.dataset.k]; return draw(); }
     if (act === 'tl-more') { S.tln = (S.tln || 40) + 40; return draw(); }
     if (act === 'dtab') { S.dtab = t.dataset.v; return draw(); }
-    if (act === 'seg-back') { S.segOpen = null; S.seg = null; S.pvHtml = ''; loadTab('segments'); return draw(); }
+    if (act === 'seg-back') { S.segOpen = null; S.seg = null; S.pvHtml = ''; loadTab('segments'); return go(draw, 'back'); }
     if (act === 'pick-all') { var okm = S.seg.members.filter(function (m) { return m.c && m.email && m.status !== 'active'; }), on2 = okm.every(function (m) { return S.pick[m.id]; }); S.pick = {}; if (!on2) okm.forEach(function (m) { S.pick[m.id] = 1; }); return draw(); }
     if (act === 'pick-none') { S.pick = {}; return draw(); }
     if (act === 'pick-new') { S.pick = {}; S.seg.members.forEach(function (m) { if (m.c && m.email && m.status !== 'active' && !m.invited_at) S.pick[m.id] = 1; }); return draw(); }
@@ -1045,8 +1094,8 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
       api('hidden-set', { hide: hide, codes: codes, reason: S.hreason || '' }).then(function (r) { S.busy = false; if (r.ok) { var set = {}; codes.forEach(function (c) { set[c] = 1; }); S.cat.rows.forEach(function (x) { if (set[x[0]]) x[8] = hide ? [S.hreason || '', S.me.email, new Date().toISOString()] : null; }); S.psel = {}; S.lastBulk = { hide: hide, codes: codes, reasons: prevR }; toast(n0(codes.length) + (hide ? ' products hidden.' : ' products visible again.') + ' Customers see it within a minute.'); } else fail(r); }); return; }
     // campaigns
     if (act === 'cp-new') return openCampaign(null);
-    if (act === 'cp-open') return openCampaign(id);
-    if (act === 'cp-back') { S.cp = null; loadTab('campaigns'); return draw(); }
+    if (act === 'cp-open') return go(function () { openCampaign(id); }, 'fwd');
+    if (act === 'cp-back') { S.cp = null; loadTab('campaigns'); return go(draw, 'back'); }
     if (act === 'cp-kind') { S.cp.kind = t.dataset.k; return draw(); }
     if (act === 'cp-color') { S.cp.color = t.dataset.c; return draw(); }
     if (act === 'cp-inc') { S.cpf = S.cpf || {}; S.cpf.inc = t.dataset.v; S.cpn = 100; return draw(); }
@@ -1059,12 +1108,12 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'cp-save') { var c = S.cp; S.busy = true; draw();
       api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.kind === 'price' ? 0 : c.value, color: c.color, active: c.active !== false, stack_vouchers: !!c.stack_vouchers,
         starts_at: c.starts_at ? new Date(c.starts_at.slice(0, 10) + 'T00:00:00').toISOString() : '', ends_at: c.ends_at ? new Date(c.ends_at.slice(0, 10) + 'T23:59:59').toISOString() : '',
-        items: Object.keys(c.items).map(function (k) { return { code: k, value: c.items[k] }; }), rules: S.cpf || {}, force: !!S.cpForce }).then(function (r) { S.busy = false; S.cpForce = false; if (r._status === 409 && r.canForce) { S.curEv = { type: 'click', sel: 'button[data-act="cp-save"]' }; draw(); } if (r._status === 409 && r.canForce && ok(r.error, { title: 'Save under the margin floor?', ok: 'Save anyway', danger: true })) { S.cpForce = true; draw(); var sb = app.querySelector('[data-act=cp-save]'); if (sb) sb.click(); return; } if (r.ok) { S.okMsg = 'Campaign saved. Customers see it in the portal within a minute.'; S.cp.id = r.id; S.cp.slug = r.slug; draw(); } else fail(r); }); return; }
+        items: Object.keys(c.items).map(function (k) { return { code: k, value: c.items[k] }; }), rules: S.cpf || {}, force: !!S.cpForce }).then(function (r) { S.busy = false; S.cpForce = false; if (r._status === 409 && r.canForce) { S.curEv = { type: 'click', sel: 'button[data-act="cp-save"]' }; draw(); } if (r._status === 409 && r.canForce && ok(r.error, { title: 'Save under the margin floor?', ok: 'Save anyway', danger: true })) { S.cpForce = true; draw(); var sb = app.querySelector('[data-act=cp-save]'); if (sb) sb.click(); return; } if (r.ok) { toast('Campaign saved. Customers see it within a minute.', true); S.cp.id = r.id; S.cp.slug = r.slug; } else fail(r); }); return; }
     // vouchers
     if (act === 'vt') { S.vt = t.dataset.s; return draw(); }
     if (act === 'v-new') { S.ex.v = { kind: 'percent', starts_at: new Date().toISOString().slice(0, 10) }; S.vd = true; S.vcq = ''; return draw(); }
     if (act === 'v-edit') { var vv = S.vouchers.filter(function (x) { return x.id === id; })[0]; S.ex.v = Object.assign({}, vv, { company_code: '' }); S.vd = true; S.vcq = ''; return draw(); }
-    if (act === 'vd-x') { S.vd = false; return draw(); }
+    if (act === 'vd-x') return closeL('.drawer,.dscrim', function () { S.vd = false; });
     if (act === 'v-gen') { S.ex.v.code = 'MX' + Math.random().toString(36).slice(2, 8).toUpperCase(); return draw(); }
     if (act === 'v-kind') { Object.assign(S.ex.v, grp('v')); S.ex.v.kind = t.dataset.k; return draw(); }
     if (act === 'v-dur') { Object.assign(S.ex.v, grp('v')); var st0 = S.ex.v.starts_at ? new Date(S.ex.v.starts_at.slice(0, 10) + 'T12:00:00') : new Date(); S.ex.v.starts_at = st0.toISOString().slice(0, 10); S.ex.v.expires_at = new Date(st0.getTime() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
@@ -1080,10 +1129,10 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'cn-more') { S.cn = (S.cn || 60) + 60; return draw(); }
     if (act === 'cust') { return openCust(t.dataset.code, t.dataset.cid || null); }
     if (act === 'acc') { var ac0 = (S.data ? S.data.accounts : []).filter(function (x) { return x.id === id; })[0]; return openCust(ac0 && ac0.customerCode, id); }
-    if (act === 'dr-x') { S.dr = null; return draw(); }
+    if (act === 'dr-x') return closeL('.drawer,.dscrim', function () { S.dr = null; });
     if (act === 'fstep') { var fdays = (S.dash && S.dash.days) || S.days || 30; S.fd = { step: t.dataset.k, label: t.dataset.l, days: fdays, loading: true }; draw();
       api('funnel-step', null, '&step=' + encodeURIComponent(t.dataset.k) + '&days=' + fdays).then(function (r) { if (!S.fd || S.fd.step !== r.step) return; S.fd.loading = false; S.fd.rows = r.rows || []; draw(); }); return; }
-    if (act === 'fd-x') { S.fd = null; return draw(); }
+    if (act === 'fd-x') return closeL('.drawer,.dscrim', function () { S.fd = null; });
     if (act === 'fd-known') { S.fd.known = !!t.dataset.v; return draw(); }
     if (act === 'fd-open') { S.fd.open = S.fd.open || {}; S.fd.open[t.dataset.i] = !S.fd.open[t.dataset.i]; return draw(); }
     if (act === 'dr-voucher') { var vc = S.dr.code || ''; S.dr = null; S.tab = 'vouchers'; S.ex.v = { company_code: vc }; loadTab('vouchers'); return draw(); }
@@ -1102,7 +1151,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'sel-tag') { var stg = ask('Every selected company gets this tag. Use it later as a filter.', { title: 'Tag ' + Object.keys(S.sel || {}).length + ' companies', placeholder: 'e.g. Trade show 2026', label: 'Tag', ok: 'Add tag' }); if (stg === null) return; stg = String(stg).trim(); if (!stg) return; var scodes = Object.keys(S.sel || {});
       api('tags-set', { codes: scodes, tag: stg }).then(function (r) { if (r.ok) { S.dir.rows.forEach(function (x) { if (scodes.indexOf(x.c) >= 0) { x.tags = x.tags || []; if (x.tags.indexOf(stg) < 0) x.tags.push(stg); } }); toast(scodes.length + ' companies tagged "' + stg + '".'); S.lastBulk = null; } else fail(r); }); return; }
     if (act === 'block') { if (!ok('Everyone at this company is signed out and can no longer use the portal. Their Unleashed customer is not changed. You can approve them again later.', { title: 'Remove portal access?', ok: 'Remove access', danger: true })) return; api('reject', { account: id, reason: 'access removed', notify: false }).then(function (r) { if (r.ok) { toast('Portal access removed.'); load(); } else fail(r); }); return; }
-    if (act === 'approve') { var c = S.found[id][+t.dataset.i]; if (!ok('The portal account is linked to ' + c.code + ' ' + c.name + (c.tier ? ' (' + c.tier + ')' : '') + '. They will see its prices, terms and orders.', { title: 'Approve access?', ok: 'Approve' })) return; api('approve', { account: id, customer: c }).then(function (r) { if (r.ok) { S.open = null; S.dr = null; load(); } else fail(r); }); }
+    if (act === 'approve') { var c = S.found[id][+t.dataset.i]; if (!ok('The portal account is linked to ' + c.code + ' ' + c.name + (c.tier ? ' (' + c.tier + ')' : '') + '. They will see its prices, terms and orders.', { title: 'Approve access?', ok: 'Approve' })) return; api('approve', { account: id, customer: c }).then(function (r) { if (r.ok) { S.open = null; S.dr = null; toast('Access approved. They can sign in now.', true); load(); } else fail(r); }); }
     if (act === 'reject') { var why = ask('They lose access to the portal. Add a reason if you want to tell them why.', { title: 'Reject this request?', placeholder: 'Reason (optional)', ok: 'Reject', danger: true }); if (why === null) return; api('reject', { account: id, reason: why, notify: false }).then(function (r) { if (r.ok) load(); else fail(r); }); }
     if (act === 'revoke') { if (!ok('End every open session of ' + t.dataset.email + '?')) return; api('revoke', { email: t.dataset.email }).then(function (r) { if (r.ok) load(); else fail(r); }); }
 
@@ -1111,7 +1160,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'dash-sync') { S.busy = true; draw(); api('dash-sync', {}).then(function (r) { S.busy = false; if (r._status === 200) { S.dash = null; loadTab('dash'); } else fail(r); }); return; }
     if (act === 'ai-run') { S.aiBusy = true; draw(); api('dash-ai', {}).then(function (r) { S.aiBusy = false; if (r._status === 200) { S.ai = { on: true, last: r }; draw(); } else fail(r); }); return; }
     var done = function (r, after) { S.busy = false; if (r.ok || r.vouchers || r.total != null) { if (after) after(r); } else fail(r); };
-    if (act === 'invite') { var em2 = ask('The person gets a personal sign-in link, valid for 14 days.', { title: 'Send the portal invite', value: t.dataset.email || '', placeholder: 'name@company.com', label: 'E-mail', ok: 'Send invite' }); if (!em2) return; api('invite', { company: id, email: em2 }).then(function (r) { done(r, function () { S.err = ''; toast('Invite sent to ' + em2 + '.'); loadProspects(); }); }); }
+    if (act === 'invite') { var em2 = ask('The person gets a personal sign-in link, valid for 14 days.', { title: 'Send the portal invite', value: t.dataset.email || '', placeholder: 'name@company.com', label: 'E-mail', ok: 'Send invite' }); if (!em2) return; api('invite', { company: id, email: em2 }).then(function (r) { done(r, function () { S.err = ''; toast('Invite sent to ' + em2 + '.', true); loadProspects(); }); }); }
     if (act === 'imp-prev' || act === 'imp-run') {
       var g = grp('imp'); S.ex.imp = g; var filters = { tiers: g.tiers, types: g.types, countries: g.countries, states: g.states, name: g.name, boughtWithinMonths: g.boughtWithinMonths, notBoughtWithinMonths: g.notBoughtWithinMonths, hasEmail: g.hasEmail };
       if (act === 'imp-run' && !g.segment) { S.err = 'Give the segment a name first.'; return draw(); }
@@ -1127,7 +1176,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'v-save') {
       var v = grp('v'); S.ex.v = Object.assign({}, S.ex.v || {}, v);
       var body = { id: (S.ex.v || {}).id, code: v.code, description: v.description, kind: v.kind, value: v.value, min_subtotal: v.min_subtotal, max_uses: v.max_uses, max_uses_per_company: v.max_uses_per_company, company_id: (S.ex.v || {}).company_id || '', company_code: v.company_code, starts_at: v.starts_at ? new Date(v.starts_at + 'T00:00:00').toISOString() : '', expires_at: v.expires_at ? new Date(v.expires_at + 'T23:59:59').toISOString() : '' };
-      api('voucher-save', body).then(function (r) { done(r, function () { S.ex.v = {}; S.vd = false; S.okMsg = 'Voucher saved.'; loadTab('vouchers'); }); });
+      api('voucher-save', body).then(function (r) { done(r, function () { S.ex.v = {}; S.vd = false; toast('Voucher saved.', true); loadTab('vouchers'); }); });
     }
     if (act === 'v-tog') { api('voucher-toggle', { id: id, active: !!t.dataset.on }).then(function (r) { done(r, function () { loadTab('vouchers'); }); }); }
     if (act === 'hd-hide' || act === 'hd-show') { var hd = grp('hd'); S.ex.hd = hd; if (act === 'hd-hide' && !ok('Hide these products from every customer?')) return; api('hidden-set', { hide: act === 'hd-hide', codes: hd.codes, reason: hd.reason }).then(function (r) { done(r, function () { S.ex.hd = {}; loadTab('products'); }); }); }
