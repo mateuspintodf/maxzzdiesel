@@ -438,5 +438,6 @@ try{localStorage.setItem(QK,JSON.stringify(ls))}catch(x){}
 try{window.dispatchEvent(new StorageEvent('storage',{key:QK}))}catch(x){}
 var t=b.getAttribute('data-l')||b.textContent;b.setAttribute('data-l',t);b.textContent='Added to your list';b.classList.add('ok');
 setTimeout(function(){b.textContent=t;b.classList.remove('ok')},1800)});})();</script>
+<script src="/js/attrib.js" defer></script>
 </body>
 </html>

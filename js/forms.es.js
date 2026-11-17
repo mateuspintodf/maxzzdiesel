@@ -30,7 +30,7 @@
       var label = btn.textContent; btn.disabled = true; btn.textContent = 'Enviando…'; say('');
       try {
         var r = await fetch('/api/account', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name.value, phone: phone.value, email: email.value, type: sel ? sel.value : '', hp: hp.value }) });
+          body: JSON.stringify({ name: name.value, phone: phone.value, email: email.value, type: sel ? sel.value : '', hp: hp.value, attribution: window.mzAttr ? window.mzAttr() : null }) });
         if (!r.ok) throw new Error(r.status);
         if (window.mxIdentify) window.mxIdentify(email.value.trim(), name.value);
         try { (window.dataLayer = window.dataLayer || []).push({ event: 'generate_lead', form: 'account', business_type: sel ? sel.value : '' }); } catch (e) {}

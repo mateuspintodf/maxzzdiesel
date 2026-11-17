@@ -3337,7 +3337,7 @@
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: String(self.title(self.map[l.id]) || l.name || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
-      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', t: Date.now() - T0,
+      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
         customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, me ? this.qShip : { country: d.country, city: d.city }), lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (res) {

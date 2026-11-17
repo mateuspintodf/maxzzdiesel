@@ -2209,5 +2209,6 @@ function open(src,alt){if(lb)return;last=document.activeElement;lb=document.crea
  lb.addEventListener('click',close);document.addEventListener('keydown',key);b.focus();}
 document.addEventListener('click',function(e){var t=e.target.closest&&e.target.closest('.px-pd-img img, .px-zoom');if(!t)return;var img=t.tagName==='IMG'?t:t.parentNode.querySelector('img');if(!img||!img.naturalWidth)return;e.preventDefault();open(img.currentSrc||img.src,img.alt);});
 addEventListener('hashchange',close);})();</script>
+<script src="/js/attrib.js" defer></script>
 </body>
 </html>

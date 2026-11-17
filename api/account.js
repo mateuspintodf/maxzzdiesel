@@ -4,6 +4,7 @@
 const { EMAIL, clean, readBody } = require('../lib/validate');
 const { guard } = require('../lib/guard');
 const portal = require('./portal');
+const attrib = require('../lib/attribution');
 
 const FREE = /^(gmail|googlemail|hotmail|outlook|live|yahoo|icloud|me|aol|msn|proton|protonmail|uol|bol|terra|ig)\./i;
 
@@ -17,6 +18,7 @@ module.exports = async (req, res) => {
   if (!name || !EMAIL.test(email) || clean(b.phone, 40).replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'missing fields' });
   const dom = email.split('@')[1] || '';
   const company = clean(b.company, 160) || (dom && !FREE.test(dom) ? dom.split('.')[0].replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : name + ' (company to confirm)');
+  await attrib.save('access', email, '', b.attribution, req);
   req.body = Object.assign({}, b, { name, email, company, hp: '' });
   req.query = Object.assign({}, req.query, { a: 'request' });
   return portal(req, res);

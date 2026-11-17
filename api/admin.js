@@ -1445,7 +1445,10 @@ A['crm-deal'] = async (req, res) => {
     try { const o = ((await ul('SalesOrders', 'orderNumber=' + encodeURIComponent(d.ref), { timeoutMs: 9000 })).Items || [])[0];
       if (o) lines = (o.SalesOrderLines || []).filter((l) => l.Product).map((l) => ({ code: l.Product.ProductCode, desc: String(l.Product.ProductDescription || '').slice(0, 90), qty: Number(l.OrderQuantity) || 0, price: Number(l.UnitPrice) || 0, total: Number(l.LineTotal) || 0 })); } catch (e) { lines = null; } }
   const tot = life.reduce((t, x) => t + (Number(x.subtotal) || 0), 0), last = life.reduce((m, x) => (x.order_date > m ? x.order_date : m), '');
-  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others, lines });
+  let attr = null; // where the lead came from (UTM, click ids, referrer), matched by contact e-mail
+  try { const em = String(d.contact_email || (cust[0] && cust[0].email) || '').trim().toLowerCase();
+    if (em && /^[^\s@]+@[^\s@]+$/.test(em)) attr = (await db.select('lead_attribution', 'select=kind,ref,first,last,device,country,created_at&email=eq.' + encodeURIComponent(em) + '&order=created_at.asc&limit=1'))[0] || null; } catch (e) { attr = null; }
+  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others, lines, attr });
 };
 A['crm-cust'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
