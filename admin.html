@@ -9,39 +9,120 @@
 <style>
 @font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-DemiBold.woff2) format('woff2');font-weight:600;font-display:swap}
-:root{--ground:#e7e8ea;--card:#fff;--ink:#1d2126;--muted:#7a7f87;--line:#eceef0;--red:#d32a37;--ok:#1f8a4c;--warn:#c26a0a;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif}
+:root{--ground:#f3f4f6;--card:#fff;--ink:#1a1e23;--ink2:#4b525b;--muted:#7c838c;--line:#e7e9ec;--line2:#f0f1f3;--red:#d32a37;--orange:#fc771d;--ok:#1f8a4c;--warn:#b86a0b;--blue:#2c5fb3;--side:#121519;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace}
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);-webkit-font-smoothing:antialiased}
-button,input{font:inherit;color:inherit}
-.top{background:#111;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:16px}
-.top b{font-weight:600}.top .sp{flex:1}.top button{background:none;border:1px solid #555;color:#fff;border-radius:999px;padding:6px 14px;cursor:pointer}
-.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
-.card{background:var(--card);border-radius:20px;padding:20px;margin:0 0 14px}
-.login{max-width:420px;margin:12vh auto}
-h1,h2,h3{margin:0 0 8px}h1{font-size:22px}h2{font-size:18px}h3{font-size:16px}
-.muted{color:var(--muted);font-size:14px}
-input[type=email],input[type=text],input[type=number],input[type=date],select,textarea{width:100%;padding:11px 14px;border:1px solid #d5d8dc;border-radius:12px;background:#fff}
-.btn{background:var(--red);color:#fff;border:0;border-radius:999px;padding:10px 18px;cursor:pointer;font-weight:600}
-.btn.ghost{background:#fff;color:var(--ink);border:1px solid #d5d8dc;font-weight:400}
-.btn:disabled{opacity:.5;cursor:default}
+html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:inherit}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}h1{font-size:22px}h2{font-size:16px}h3{font-size:14px}
+.muted{color:var(--muted);font-size:13px}
+.mono{font-family:var(--mono);font-size:12.5px;letter-spacing:-.01em}
+/* shell */
+.shell{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{position:sticky;top:0;height:100vh;background:var(--side);color:#c5cad1;display:flex;flex-direction:column;padding:18px 12px 12px;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 10px 20px}.brand img{height:22px}.brand span{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#8b929b;border:1px solid #2c3239;border-radius:6px;padding:3px 7px}
+.side nav{flex:1}
+.ng{font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6c737c;padding:16px 12px 6px}
+.ni{display:flex;align-items:center;gap:11px;width:100%;border:0;background:none;color:#c5cad1;padding:9px 12px;border-radius:9px;cursor:pointer;text-align:left;font-size:14px}
+.ni svg{color:#7d848d;flex:none}.ni span{flex:1}.ni em{font-style:normal;font-size:11px;font-weight:600;background:var(--red);color:#fff;border-radius:9px;padding:1px 7px}
+.ni:hover{background:#1c2026;color:#fff}.ni.on{background:#232830;color:#fff}.ni.on svg{color:var(--orange)}
+.me{display:flex;align-items:center;gap:10px;border-top:1px solid #23282f;padding:12px 6px 2px;margin-top:12px}
+.av{width:32px;height:32px;border-radius:50%;background:var(--orange);color:#14171b;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}.av.sm{width:28px;height:28px;font-size:11px}
+.mi{flex:1;min-width:0}.mi b{display:block;font-size:12.5px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mi small{color:#7d848d;font-size:11.5px}
+.me button{border:0;background:none;color:#8b929b;cursor:pointer;padding:6px;border-radius:8px}.me button:hover{color:#fff;background:#1c2026}
+.main{min-width:0}
+.bar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:14px 28px;background:rgba(243,244,246,.88);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.bar .ttl small{display:block;font-size:11.5px;color:var(--muted);font-weight:500}.bar h1{font-size:20px}
+.bar .sp{flex:1}.bar .bx{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.burger{display:none;border:1px solid var(--line);background:#fff;border-radius:10px;width:40px;height:40px;align-items:center;justify-content:center;cursor:pointer}
+.scrim{display:none}
+.page{padding:22px 28px 60px;max-width:1440px}
+/* controls */
+.btn{display:inline-flex;align-items:center;gap:6px;justify-content:center;background:var(--ink);color:#fff;border:1px solid var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;font-weight:600;font-size:13.5px;text-decoration:none;white-space:nowrap}
+.btn:hover{background:#000}.btn.ghost{background:#fff;color:var(--ink);border-color:#d9dce0;font-weight:500}.btn.ghost:hover{border-color:#a9aeb5}
+.btn.sm,.sm{padding:5px 10px;font-size:12.5px}.btn:disabled{opacity:.5;cursor:default}
+.lnk{border:0;background:none;color:var(--blue);cursor:pointer;padding:4px;font-size:13px}.lnk.red{color:var(--red);margin-top:10px}
+input[type=email],input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;padding:9px 12px;border:1px solid #d9dce0;border-radius:10px;background:#fff;outline:0}
+input:focus,select:focus,textarea:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(26,30,35,.08)}
+textarea{min-height:110px}
+.sel{width:auto;padding:7px 30px 7px 11px;font-size:13px;border-radius:9px;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237c838c' stroke-width='2.4'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center;-webkit-appearance:none;appearance:none;cursor:pointer}
+.srch{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #d9dce0;border-radius:9px;padding:0 10px;min-width:220px;color:var(--muted)}.srch input{border:0;padding:7px 0;box-shadow:none!important;font-size:13px;min-width:0}
+.seg{display:inline-flex;background:#e6e8eb;border-radius:10px;padding:3px}.seg button{border:0;background:none;padding:6px 14px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--ink2);font-weight:500}.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 11px;font-size:12px;cursor:pointer;text-transform:capitalize;color:var(--ink2)}.chips button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tabs2{display:flex;gap:2px;flex-wrap:wrap}.tabs2 button{border:0;background:none;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--ink2)}.tabs2 button em{font-style:normal;font-size:11px;color:var(--muted);background:var(--line2);border-radius:8px;padding:1px 6px;margin-left:3px}.tabs2 button.on{background:var(--ink);color:#fff}.tabs2 button.on em{background:#3a4048;color:#fff}
+/* cards and grids */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:0 0 16px;min-width:0}
+.card.flush{padding:0;overflow:hidden}
+.ch{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 14px;flex-wrap:wrap}.ch h2{display:flex;align-items:center;gap:8px}.cnt{font-size:12px;font-weight:500;color:var(--muted);background:var(--line2);border-radius:9px;padding:1px 8px}
+.g2,.g3,.g21{display:grid;gap:16px;margin:0 0 16px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g21{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.g2>.card,.g3>.card,.g21>.card{margin:0}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px}
+.kpi{position:relative;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px 14px;overflow:hidden;min-height:104px}
+.kpi small{font-size:12px;color:var(--muted);font-weight:500}.kpi b{display:block;font-size:26px;font-weight:600;letter-spacing:-.02em;margin:4px 0 4px}.kpi .ks{font-size:12px;color:var(--muted);position:relative;z-index:1}.kpi .ks a{color:var(--blue);cursor:pointer;text-decoration:none}
+.spk{position:absolute;right:12px;top:14px;width:110px;height:34px}.spk .l{fill:none;stroke:var(--ink);stroke-width:1.6}.spk .a{fill:rgba(26,30,35,.06)}
+.dl{display:inline-flex;align-items:center;gap:1px;font-weight:600;font-size:12px;color:var(--muted)}.dl.up{color:var(--ok)}.dl.dn{color:var(--red)}
+.note{display:flex;align-items:center;gap:12px;background:#fff8ec;border:1px solid #f4dfb8;color:#6b4a12;border-radius:12px;padding:11px 14px;margin:0 0 16px;font-size:13px}.note span{flex:1}
+.alert{background:#fdecee;border:1px solid #f5c6cb;color:var(--red);border-radius:12px;padding:11px 14px;margin:0 0 16px}
+.empty{color:var(--muted);font-size:13px;padding:14px 0}
+svg.chart{width:100%;height:auto;display:block}.chart .b1{fill:var(--ink)}.chart .b0{fill:#cfd3d8}.chart .gl{stroke:var(--line2);stroke-width:1}.chart .gt{font-size:12px;fill:#9aa0a8}
+.br{margin:0 0 10px}.bt{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin:0 0 4px}.bt small{color:var(--muted)}.bw{background:var(--line2);border-radius:4px;height:6px;overflow:hidden}.bw i{display:block;height:100%;background:var(--ink);border-radius:4px}
+.hb{display:flex;height:10px;border-radius:6px;overflow:hidden;gap:2px;margin:2px 0 14px}.hb i{display:block}
+.hb .active,.st.active,.st.champions,.st.loyal,.st.approved{--c:var(--ok)}.hb .due,.st.due,.st.pending,.st.need_attention{--c:var(--warn)}.hb .overdue,.st.overdue,.st.at_risk,.st.rejected{--c:var(--red)}.hb .new,.st.new,.st.promising,.st.invited{--c:var(--blue)}.hb .one_time,.st.one_time,.st.hibernating,.st.prospect{--c:#8a9098}.hb .lost,.st.lost{--c:#5a6069}
+.hb i{background:var(--c)}
+.hl{display:grid;grid-template-columns:1fr auto 70px;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line2);cursor:pointer;text-decoration:none}.hl:hover b{text-decoration:underline}.hl small{color:var(--muted);text-align:right}
+.st{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:500;border-radius:6px;padding:2px 7px;background:#f1f2f4;color:var(--ink2);white-space:nowrap;--c:#8a9098}
+.st:before{content:'';width:6px;height:6px;border-radius:50%;background:var(--c)}
+.st.portal{--c:var(--orange);background:#fff1e7;color:#a14a0c}.st.live{--c:var(--ok);background:#e5f4ea;color:var(--ok)}
+.pill{display:inline-block;border-radius:6px;padding:2px 8px;font-size:12px;background:#f1f2f4}.pill.pending{background:#fdf0dc;color:var(--warn)}.pill.approved{background:#e5f4ea;color:var(--ok)}.pill.rejected{background:#fdecee;color:var(--red)}
+/* tables */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:8px 10px;border-top:1px solid var(--line2);vertical-align:top}
+.dt{min-width:640px}.g2 .dt,.g3 .dt,.g21 .dt,.drawer .dt{min-width:0}
+.dt th{position:sticky;top:0;background:#fafbfc;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;border-top:0;border-bottom:1px solid var(--line);white-space:nowrap}
+.card.flush .dt td:first-child,.card.flush .dt th:first-child{padding-left:20px}.card.flush .dt td:last-child,.card.flush .dt th:last-child{padding-right:20px}
+.dt th button{border:0;background:none;padding:0;font:inherit;color:inherit;text-transform:inherit;letter-spacing:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:3px}.dt th button.on{color:var(--ink)}
+.dt td{vertical-align:middle}.dt td.nw,.dt td:has(>.st){white-space:nowrap}.dt td small{display:block;color:var(--muted);font-size:12px;margin-top:2px}.dt .r{text-align:right}.dt .b{font-weight:600}.dt th.r button{justify-content:flex-end}
+.dt.click tbody tr{cursor:pointer}.dt.click tbody tr:hover td{background:#f8f9fa}
+.fbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 20px;border-bottom:1px solid var(--line)}.fbar h2{margin-right:8px}.fbar .sp{flex:1}.fbar .srch{min-width:200px}
+.more{padding:14px;text-align:center;border-top:1px solid var(--line2)}
+/* actions */
+.act{display:grid;grid-template-columns:86px minmax(0,1fr) auto;gap:12px;padding:12px 0;border-top:1px solid var(--line2);align-items:start}.act:first-child{border-top:0;padding-top:0}
+.ab b{font-size:14px}.ab p{margin:3px 0 0;color:var(--ink2);font-size:13px}.ab p.todo{color:var(--ink)}.ab small{display:block;margin-top:4px;color:var(--muted);font-size:12px}.aa{display:flex;gap:6px}
+.ch2{display:inline-block;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;border-radius:6px;padding:3px 7px;background:#f1f2f4;color:var(--ink2);text-align:center}
+.ch2.call{background:#fdf0dc;color:var(--warn)}.ch2.campaign{background:#e8effb;color:var(--blue)}.ch2.content{background:#e5f4ea;color:var(--ok)}.ch2.review{background:#f1f2f4}
+.ai{background:linear-gradient(160deg,#171a1f,#22272e);color:#e8eaed;border-color:#2a3038}.ai h2,.ai h3{color:#fff}.ai h2 svg{color:var(--orange)}.ai .muted{color:#9aa1aa}.ai .lead{font-size:14px;line-height:1.5}.ai h3{margin:16px 0 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#9aa1aa}
+.aig{display:grid;grid-template-columns:1fr;gap:4px}.ai1{border-top:1px solid #30363e;padding:10px 0}.ai1 p{margin:4px 0;color:#d5d9de}.ai1 small{color:#9aa1aa}.ai .ch2{margin-right:6px}.msg{margin-top:8px;padding:10px 12px;border-radius:10px;background:#111418;font-size:12.5px;white-space:pre-wrap;color:#d5d9de}
+.fun>div{position:relative;display:grid;grid-template-columns:1fr auto 44px;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line2)}.fun>div:first-child{border-top:0}.fun i{grid-column:1 / -1;height:6px;border-radius:4px;background:var(--ink);display:block}.fun small{color:var(--muted);text-align:right}
+/* drawer */
+.dscrim{position:fixed;inset:0;background:rgba(18,21,25,.35);z-index:60;animation:fd .2s ease}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(640px,100%);background:#fff;z-index:61;display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(0,0,0,.18);animation:sl .25s cubic-bezier(.2,.9,.25,1)}
+@keyframes sl{from{transform:translateX(30px);opacity:0}}@keyframes fd{from{opacity:0}}
+.dh{display:flex;justify-content:space-between;gap:12px;padding:20px 22px 16px;border-bottom:1px solid var(--line)}.dh small{color:var(--muted);font-family:var(--mono);font-size:12px}.dh h2{font-size:20px;margin:2px 0 8px}.tags{display:flex;gap:6px;flex-wrap:wrap}
+.ib{border:1px solid var(--line);background:#fff;border-radius:10px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.dbody{flex:1;overflow-y:auto;padding:0 22px 22px}
+.dsec{padding:16px 0;border-bottom:1px solid var(--line2)}.dsec h3{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.mk{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:16px 0 0}.mk>div{background:#fff;padding:12px 14px}.mk small{display:block;font-size:11.5px;color:var(--muted)}.mk b{display:block;font-size:17px;margin:3px 0 2px}.mk span{font-size:12px;color:var(--muted)}
+.pp{display:flex;align-items:center;gap:10px;padding:8px 0}.pp>span:nth-child(2){flex:1;min-width:0}.pp b{display:block;font-size:13.5px}.pp small{color:var(--muted);font-size:12px}
+.apv{background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:10px}.apv .row{display:flex;gap:8px;margin-top:8px}.apv .row input{flex:1}
+.hit{display:flex;justify-content:space-between;align-items:center;gap:10px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;margin-top:8px}.hit small{display:block;color:var(--muted)}
+.tl{list-style:none;margin:0;padding:0}.tl li{display:flex;gap:10px;padding:6px 0}.tl i{width:8px;height:8px;border-radius:50%;background:var(--orange);margin-top:6px;flex:none}.tl small{display:block;color:var(--muted);font-size:11.5px}
+.dfoot{display:flex;gap:8px;flex-wrap:wrap;padding:16px 0 0}
+/* old views */
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.tabs{display:flex;gap:8px;margin:0 0 14px}.tabs button{border:0;background:#fff;border-radius:999px;padding:8px 16px;cursor:pointer}.tabs button.on{background:#111;color:#fff}
-.pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;background:#eef0f2}
-.pill.pending{background:#fde8c8;color:var(--warn)}.pill.approved{background:#d8f0e1;color:var(--ok)}.pill.rejected{background:#f7d9dc;color:var(--red)}
 .err{color:var(--red);margin-top:10px;font-size:14px}
-.person{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px;flex-wrap:wrap}
-.hit{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:8px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-textarea{min-height:110px;font:inherit}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:10px 0}label.l{font-size:12px;color:var(--muted);display:block;margin:0 0 3px}.stat{display:inline-block;margin:0 18px 8px 0}.stat b{font-size:22px;display:block}.sm{font-size:12px;padding:5px 12px}
-table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}
-.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.kp>div{background:#f6f7f8;border-radius:14px;padding:12px 14px}.kp b{display:block;font-size:22px;font-weight:600;margin:2px 0}.kp small{font-size:12px;color:var(--muted)}
-.up{color:var(--ok)}.dn{color:var(--red)}.sx{overflow-x:auto;-webkit-overflow-scrolling:touch}.sx table{min-width:560px}.cols .sx table{min-width:0}.barw{margin-top:3px}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}.cols>.card{margin:0}
-.act{border-top:1px solid var(--line);padding:12px 0;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start}.act:first-of-type{border-top:0}
-.ch{display:inline-block;font-size:11px;border-radius:999px;padding:2px 8px;background:#eef0f2;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}.ch.call{background:#fde8c8;color:var(--warn)}.ch.campaign{background:#e3ecfb;color:#2456a6}.ch.content{background:#d8f0e1;color:var(--ok)}
-.bar{height:8px;border-radius:4px;background:#111}.barw{background:#eef0f2;border-radius:4px;overflow:hidden}
-.st{display:inline-block;font-size:11px;border-radius:999px;padding:1px 8px;background:#eef0f2}.st.overdue,.st.lost,.st.at_risk{background:#f7d9dc;color:var(--red)}.st.due{background:#fde8c8;color:var(--warn)}.st.active,.st.champions,.st.loyal{background:#d8f0e1;color:var(--ok)}
-svg.chart{width:100%;height:auto;display:block}.ai{background:#111;color:#fff}.ai .muted{color:#aaa}.ai h3{color:#fff}.ai .act{border-color:#333}
-@media(max-width:820px){.kp{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.wrap{padding:12px 10px 50px}.card{padding:16px;border-radius:16px}.kp b{font-size:19px}.act{grid-template-columns:1fr}.act>.ch,.act>.btn{justify-self:start}.tabs{flex-wrap:nowrap!important;overflow-x:auto;-webkit-overflow-scrolling:touch}.tabs button{white-space:nowrap}.top{padding:12px 14px}.top .muted{display:none}}
+.person{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--line2);font-size:13.5px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0}label.l{font-size:12px;color:var(--muted);display:block;margin:0 0 4px}
+.stat{display:inline-block;margin:0 22px 8px 0}.stat b{font-size:22px;display:block}
+.card>h2,.card>h3{margin:0 0 8px}.card>p{margin:6px 0 10px}
+.login{max-width:420px;margin:14vh auto;padding:28px}.login h1{margin:0 0 6px}.login .btn{width:100%;margin-top:6px;padding:11px}
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:1fr 1fr}.g21{grid-template-columns:1fr}}
+@media(max-width:900px){
+.shell{grid-template-columns:1fr}.side{position:fixed;left:0;top:0;bottom:0;width:270px;z-index:50;transform:translateX(-100%);transition:transform .25s cubic-bezier(.2,.9,.25,1)}
+.nav-open .side{transform:none}.nav-open .scrim{display:block;position:fixed;inset:0;background:rgba(18,21,25,.4);z-index:49}
+.burger{display:inline-flex}.bar{padding:10px 14px;flex-wrap:wrap}.bar .bx{width:100%;justify-content:flex-start}.bar .bx .srch{flex:1}.page{padding:14px 12px 50px}
+.g2,.g3{grid-template-columns:1fr}.fbar{padding:10px 12px}.fbar .srch{flex:1 1 100%}.card{padding:16px}.card.flush .dt td:first-child,.card.flush .dt th:first-child{padding-left:12px}
+.act{grid-template-columns:1fr}.act .ch2{justify-self:start}.note{flex-wrap:wrap;font-size:12.5px}.note .btn{margin-left:28px}.mk{grid-template-columns:1fr 1fr}.seg{overflow-x:auto;max-width:100%}
+}
+@media(max-width:520px){.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi{padding:12px;min-height:92px}.kpi b{font-size:20px}.spk{display:none}.hl{grid-template-columns:1fr auto}.hl small{display:none}}
 </style>
 </head>
 <body>
@@ -55,15 +136,38 @@ svg.chart{width:100%;height:auto;display:block}.ai{background:#111;color:#fff}.a
       .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j._status = r.status; return j; }); });
   }
   function load() { api('list').then(function (d) { if (d._status === 401) { S.me = null; } else S.data = d; draw(); }); }
+  var ICO = {
+    chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>', users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/>',
+    send: '<path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/>', layers: '<path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/>', box: '<path d="m12 3 8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5 12 12l8-4.5M12 12v9"/>',
+    tag: '<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>', award: '<circle cx="12" cy="9" r="5.5"/><path d="m8.5 13.5-1.5 7.5 5-2.5 5 2.5-1.5-7.5"/>', activity: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+    file: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>', shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/>', clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    out: '<path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/>', menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+    down: '<path d="M12 4v12M6 11l6 6 6-6M4 20h16"/>', up: '<path d="m6 15 6-6 6 6"/>', dn: '<path d="m6 9 6 6 6-6"/>', ext: '<path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"/>', phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+    mail: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/>', spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>', refresh: '<path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5"/>'
+  };
+  function ic(k, s) { return '<svg width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || '') + '</svg>'; }
+  function initials(e) { var p = String(e || '').split('@')[0].split(/[._-]/); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : (p[0] || '?')[1] || '')).toUpperCase(); }
+  var NAV = [['Overview', [['dash', 'Dashboard', 'chart']]], ['Customers', [['clients', 'Accounts', 'users'], ['prospects', 'Invites', 'send'], ['import', 'Import & segments', 'layers']]],
+    ['Commerce', [['products', 'Product visibility', 'box'], ['vouchers', 'Vouchers', 'tag'], ['loyalty', 'Max Rewards', 'award']]], ['Insights', [['events', 'Behavior log', 'activity']]],
+    ['Settings', [['terms', 'Terms of use', 'file'], ['admins', 'Admin users', 'shield'], ['audit', 'Activity log', 'clock']]]];
+  var NAVI = {}; NAV.forEach(function (g) { g[1].forEach(function (t) { NAVI[t[0]] = { g: g[0], n: t[1] }; }); });
+  var DVIEWS = [['overview', 'Overview'], ['customers', 'Customers'], ['products', 'Parts'], ['portal', 'Portal']];
+  var HEADX = {
+    dash: function () { return '<div class="seg">' + DVIEWS.map(function (v) { return '<button data-act="dview" data-v="' + v[0] + '" class="' + ((S.dview || 'overview') === v[0] ? 'on' : '') + '">' + v[1] + '</button>'; }).join('') + '</div>' +
+      ((S.dview || 'overview') === 'portal' || (S.dview || 'overview') === 'overview' ? '<select class="sel" data-act-change="days">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Portal: ' + d + ' days</option>'; }).join('') + '</select>' : ''); },
+    clients: function () { return '<label class="srch">' + ic('search', 16) + '<input type="search" data-m="q" value="' + esc(S.q) + '" placeholder="Company, code or e-mail"></label>'; }
+  };
   function draw() {
     if (!S.me) return drawLogin();
-    var h = '<div class="top"><b>Maxzz Admin</b><span class="muted" style="color:#aaa">' + esc(S.me.email) + ' · ' + esc(S.me.role) + '</span><span class="sp"></span><button data-act="out">Sign out</button></div><div class="wrap">';
-    h += '<div class="tabs" style="flex-wrap:wrap">' + TABS.map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
-    if (S.err) h += '<div class="card err">' + esc(S.err) + '</div>';
+    var pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0, cur = NAVI[S.tab] || {};
+    var h = '<div class="shell' + (S.navOpen ? ' nav-open' : '') + '"><aside class="side"><div class="brand"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><span>Admin</span></div><nav>';
+    NAV.forEach(function (g) { h += '<div class="ng">' + g[0] + '</div>'; g[1].forEach(function (t) { h += '<button data-tab="' + t[0] + '" class="ni' + (S.tab === t[0] ? ' on' : '') + '">' + ic(t[2]) + '<span>' + t[1] + '</span>' + (t[0] === 'clients' && pend ? '<em>' + pend + '</em>' : '') + '</button>'; }); });
+    h += '</nav><div class="me"><span class="av">' + esc(initials(S.me.email)) + '</span><span class="mi"><b>' + esc(S.me.email) + '</b><small>' + esc(S.me.role) + '</small></span><button data-act="out" title="Sign out" aria-label="Sign out">' + ic('out') + '</button></div></aside><div class="scrim" data-act="nav-x"></div>';
+    h += '<main class="main"><header class="bar"><button class="burger" data-act="nav" aria-label="Menu">' + ic('menu', 20) + '</button><div class="ttl"><small>' + esc(cur.g || '') + '</small><h1>' + esc(cur.n || '') + '</h1></div><span class="sp"></span><div class="bx">' + (HEADX[S.tab] ? HEADX[S.tab]() : '') + '</div></header><div class="page">';
+    if (S.err) h += '<div class="alert">' + esc(S.err) + '</div>';
     h += (VIEWS[S.tab] || drawClients)();
-    app.innerHTML = h + '</div>';
+    app.innerHTML = h + '</div></main></div>' + drawDrawer();
   }
-  var TABS = [['dash', 'Dashboard'], ['clients', 'Customers'], ['prospects', 'Invites'], ['import', 'Import & segments'], ['terms', 'Terms'], ['vouchers', 'Vouchers'], ['products', 'Products'], ['events', 'Behavior'], ['loyalty', 'Loyalty'], ['admins', 'Admin users'], ['audit', 'Activity log']];
   var VIEWS = { dash: function () { return drawDash(); }, clients: function () { return drawClients(); }, prospects: function () { return drawProspects(); }, audit: function () { return drawAudit(); }, import: function () { return drawImport(); }, terms: function () { return drawTerms(); }, vouchers: function () { return drawVouchers(); }, products: function () { return drawProducts(); }, events: function () { return drawEvents(); }, loyalty: function () { return drawLoyalty(); }, admins: function () { return drawAdmins(); } };
   var LOAD = { dash: ['dash', 'dash'], prospects: ['prospects', 'prospects'], audit: ['audit', 'audit', 'rows'], terms: ['terms', 'terms', 'terms'], vouchers: ['vouchers', 'vouchers', 'vouchers'], products: ['hidden', 'hid', 'hidden'], events: ['events', 'ev'], loyalty: ['loyalty', 'loy'], admins: ['admins', 'adm'], import: ['segments', 'segs', 'segments'] };
   function loadTab(t) { var L = LOAD[t]; if (!L || t === 'prospects') return; var qs = t === 'events' || t === 'dash' ? '&days=' + (S.days || 30) : ''; if (t === 'dash') api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); api(L[0], null, qs).then(function (r) { if (r._status === 200) { S[L[1]] = L[2] ? r[L[2]] : r; draw(); } else fail(r); }); }
@@ -77,82 +181,168 @@ svg.chart{width:100%;height:auto;display:block}.ai{background:#111;color:#fff}.a
   // ---------------------------------------------------------------- dashboard
   function k$(n) { n = Number(n) || 0; var a = Math.abs(n); return (n < 0 ? '-' : '') + '$' + (a >= 1e6 ? (a / 1e6).toFixed(a >= 1e7 ? 1 : 2) + 'M' : a >= 1e4 ? Math.round(a / 1e3) + 'k' : a >= 1e3 ? (a / 1e3).toFixed(1) + 'k' : Math.round(a)); }
   function n0(n) { return Math.round(Number(n) || 0).toLocaleString('en-US'); }
-  function delta(a, b) { a = Number(a) || 0; b = Number(b) || 0; if (!b) return a ? '<small class="up">new</small>' : ''; var p = Math.round((a - b) / b * 100); return '<small class="' + (p >= 0 ? 'up' : 'dn') + '">' + (p >= 0 ? '+' : '') + p + '%</small>'; }
-  function tile(label, val, sub) { return '<div><small>' + label + '</small><b>' + val + '</b>' + (sub || '') + '</div>'; }
-  var STL = { active: 'active', due: 'due to reorder', overdue: 'overdue', lost: 'lost', new: 'new', one_time: 'one order only', champions: 'champions', loyal: 'loyal', at_risk: 'at risk', promising: 'promising', hibernating: 'hibernating', need_attention: 'needs attention' };
+  function pct(a, b) { a = Number(a) || 0; b = Number(b) || 0; return b ? Math.round((a - b) / b * 100) : null; }
+  function delta(a, b) { var p = pct(a, b); if (p === null) return (Number(a) || 0) ? '<span class="dl up">new</span>' : '<span class="dl">-</span>'; return '<span class="dl ' + (p >= 0 ? 'up' : 'dn') + '">' + ic(p >= 0 ? 'up' : 'dn', 12) + Math.abs(p) + '%</span>'; }
+  function sparkPath(vals, W, H) { if (!vals || vals.length < 2) return ''; var mx = Math.max.apply(null, vals) || 1, mn = Math.min.apply(null, vals), r = mx - mn || 1;
+    var pts = vals.map(function (v, i) { return [(i / (vals.length - 1)) * W, H - 3 - ((v - mn) / r) * (H - 6)]; });
+    return '<svg class="spk" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none"><path d="M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' L') + ' L' + W + ' ' + H + ' L0 ' + H + 'Z" class="a"/><path d="M' + pts.map(function (p) { return p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' L') + '" class="l"/></svg>'; }
+  function tile(label, val, sub, sp) { return '<div class="kpi"><small>' + label + '</small><b>' + val + '</b><div class="ks">' + (sub || '') + '</div>' + (sp || '') + '</div>'; }
+  var STL = { active: 'Active', due: 'Due to reorder', overdue: 'Overdue', lost: 'Lost', new: 'New', one_time: 'One order', champions: 'Champions', loyal: 'Loyal', at_risk: 'At risk', promising: 'Promising', hibernating: 'Hibernating', need_attention: 'Needs attention', pending: 'Waiting', approved: 'Approved', rejected: 'Rejected', prospect: 'Prospect', invited: 'Invited', active_portal: 'Active' };
   function st(k) { return k ? '<span class="st ' + esc(k) + '">' + esc(STL[k] || k) + '</span>' : ''; }
-  function pin(c) { return c.portal ? ' <span class="pill" title="In the portal">portal</span>' : ''; }
-  function months(m) {
-    m = (m || []).slice(-24); if (!m.length) return '<p class="muted">No sales synced yet.</p>';
-    var W = 720, H = 190, bw = W / m.length, max = Math.max.apply(null, m.map(function (x) { return +x.rev || 0; })) || 1, h = '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 24) + '" role="img" aria-label="Revenue by month">';
-    m.forEach(function (x, i) { var v = +x.rev || 0, bh = Math.max(1, v / max * H), last = i >= m.length - 12;
-      h += '<rect x="' + (i * bw + 2) + '" y="' + (H - bh) + '" width="' + (bw - 4) + '" height="' + bh + '" rx="3" fill="' + (last ? '#1d2126' : '#c9cdd2') + '"><title>' + x.mo + ': ' + k$(v) + ', ' + x.n + ' orders, ' + x.cust + ' customers</title></rect>';
-      if (i % 3 === m.length % 3 || m.length < 13) h += '<text x="' + (i * bw + bw / 2) + '" y="' + (H + 16) + '" font-size="14" text-anchor="middle" fill="#7a7f87">' + x.mo.slice(2).replace('-', '/') + '</text>'; });
-    return h + '</svg><p class="muted" style="margin:6px 0 0">Dark: last 12 months. Gray: the 12 before. Hover a bar for the numbers.</p>';
-  }
-  function spark(d, key) {
-    d = d || []; if (!d.length) return ''; var W = 720, H = 70, bw = W / d.length, max = Math.max.apply(null, d.map(function (x) { return +x[key] || 0; })) || 1, h = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '">';
-    d.forEach(function (x, i) { var bh = Math.max(1, (+x[key] || 0) / max * (H - 4)); h += '<rect x="' + (i * bw + 1) + '" y="' + (H - bh) + '" width="' + Math.max(1, bw - 2) + '" height="' + bh + '" rx="2" fill="#1d2126"><title>' + x.dy + ': ' + x.v + ' visitors, ' + x.s + ' sessions, ' + x.pv + ' part views, ' + x.cv + ' quotes/orders</title></rect>'; });
+  function pin(c) { return c.portal ? ' <span class="st portal" title="Has portal access">portal</span>' : ''; }
+  function months(m, H) {
+    m = (m || []).slice(-24); if (!m.length) return '<div class="empty">No sales synced yet.</div>'; H = H || 200;
+    var G = 46, W = 760, bw = (W - G) / m.length, max = Math.max.apply(null, m.map(function (x) { return +x.rev || 0; })) || 1, h = '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 26) + '" role="img" aria-label="Revenue by month">';
+    [0.25, 0.5, 0.75, 1].forEach(function (g) { var y = H - g * (H - 8); h += '<line x1="' + G + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" class="gl"/><text x="' + (G - 8) + '" y="' + (y + 4) + '" text-anchor="end" class="gt">' + k$(max * g) + '</text>'; });
+    m.forEach(function (x, i) { var v = +x.rev || 0, bh = Math.max(1, v / max * (H - 8)), last = i >= m.length - 12;
+      h += '<rect x="' + (G + i * bw + bw * 0.16) + '" y="' + (H - bh) + '" width="' + (bw * 0.68) + '" height="' + bh + '" rx="4" class="' + (last ? 'b1' : 'b0') + '"><title>' + x.mo + ': ' + k$(v) + (x.n != null ? ', ' + x.n + ' orders' : '') + (x.cust != null ? ', ' + x.cust + ' customers' : '') + '</title></rect>';
+      if (i % 3 === (m.length - 1) % 3) h += '<text x="' + (G + i * bw + bw / 2) + '" y="' + (H + 18) + '" text-anchor="middle" class="gt">' + x.mo.slice(2).replace('-', '/') + '</text>'; });
     return h + '</svg>';
   }
-  function barRows(rows, lab, val, fmt) { rows = rows || []; if (!rows.length) return '<p class="muted">No data yet.</p>'; var max = Math.max.apply(null, rows.map(function (r) { return +r[val] || 0; })) || 1;
-    return rows.map(function (r) { return '<div style="margin:0 0 8px"><div class="row" style="justify-content:space-between;font-size:13px"><span>' + lab(r) + '</span><b>' + (fmt ? fmt(r[val]) : n0(r[val])) + '</b></div><div class="barw"><div class="bar" style="width:' + Math.max(2, (+r[val] || 0) / max * 100) + '%"></div></div></div>'; }).join(''); }
-  function tbl(head, rows) { return '<div class="sx"><table><tr>' + head.map(function (x) { return '<th>' + x + '</th>'; }).join('') + '</tr>' + (rows.join('') || '<tr><td class="muted" colspan="' + head.length + '">Nothing here yet.</td></tr>') + '</table></div>'; }
-  function pname(p) { return '<b>' + esc(p.code || p.k) + '</b>' + (p.t ? '<br><span class="muted">' + esc(p.t) + '</span>' : ''); }
-  function csv(name, rows) { var txt = rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = name + '.csv'; document.body.appendChild(a); a.click(); a.remove(); }
-  function drawAi() {
-    var A = S.ai || {}, L = A.last, h = '<div class="card ai"><div class="row"><h2 style="margin:0;color:#fff">AI plan</h2><span class="sp" style="flex:1"></span>';
-    if (A.on) h += '<button class="btn" data-act="ai-run"' + (S.aiBusy ? ' disabled' : '') + '>' + (S.aiBusy ? 'Thinking...' : L ? 'Run again' : 'Generate plan') + '</button>';
-    h += '</div>';
-    if (!A.on) h += '<p class="muted">Switched off. When on, an AI reads these same numbers and writes campaigns for groups of customers and one-to-one actions, each with the reason and a draft message. Each run costs a few cents.</p>';
-    if (L && L.out) { var o = L.out;
-      h += '<p class="muted">' + esc(new Date(L.at).toLocaleString()) + ' · ' + esc(L.by || '') + '</p><p>' + esc(o.summary || '') + '</p>';
-      if ((o.one_to_one || []).length) h += '<h3 style="margin-top:14px">One to one</h3>' + o.one_to_one.map(function (x) { return '<div class="act"><span class="ch call">' + esc(x.channel || '') + '</span><div><b>' + esc(x.customer) + '</b> ' + esc(x.action) + '<br><span class="muted">' + esc(x.why) + '</span></div><span></span></div>'; }).join('');
-      if ((o.campaigns || []).length) h += '<h3 style="margin-top:14px">Campaigns</h3>' + o.campaigns.map(function (x) { return '<div class="act"><span class="ch campaign">' + esc(x.channel || '') + '</span><div><b>' + esc(x.name) + '</b><br>' + esc(x.audience) + (x.offer ? '<br>Offer: ' + esc(x.offer) : '') + '<br><span class="muted">' + esc(x.why) + (x.expected ? ' Success: ' + esc(x.expected) : '') + '</span>' + (x.message ? '<div style="margin-top:6px;padding:10px;border-radius:10px;background:#222;font-size:13px;white-space:pre-wrap">' + esc(x.message) + '</div>' : '') + '</div><span></span></div>'; }).join('');
-      if ((o.products || []).length) h += '<h3 style="margin-top:14px">Products</h3>' + o.products.map(function (x) { return '<div class="act"><span class="ch content">part</span><div><b>' + esc(x.code) + '</b> ' + esc(x.action) + '<br><span class="muted">' + esc(x.why) + '</span></div><span></span></div>'; }).join('');
-      if ((o.watch || []).length) h += '<h3 style="margin-top:14px">Watch</h3><ul>' + o.watch.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
-    }
-    return h + '</div>';
+  function bars(d, key) {
+    d = d || []; if (!d.length) return ''; var W = 760, H = 80, bw = W / d.length, max = Math.max.apply(null, d.map(function (x) { return +x[key] || 0; })) || 1, h = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '">';
+    d.forEach(function (x, i) { var bh = Math.max(1, (+x[key] || 0) / max * (H - 4)); h += '<rect x="' + (i * bw + 1) + '" y="' + (H - bh) + '" width="' + Math.max(1, bw - 2) + '" height="' + bh + '" rx="2" class="b1"><title>' + x.dy + ': ' + x.v + ' visitors, ' + x.s + ' sessions, ' + x.pv + ' part views, ' + x.cv + ' quotes/orders</title></rect>'; });
+    return h + '</svg>';
   }
+  function barRows(rows, lab, val, fmt) { rows = rows || []; if (!rows.length) return '<div class="empty">No data yet.</div>'; var max = Math.max.apply(null, rows.map(function (r) { return +r[val] || 0; })) || 1;
+    return rows.map(function (r) { return '<div class="br"><div class="bt"><span>' + lab(r) + '</span><b>' + (fmt ? fmt(r[val]) : n0(r[val])) + '</b></div><div class="bw"><i style="width:' + Math.max(2, (+r[val] || 0) / max * 100) + '%"></i></div></div>'; }).join(''); }
+  function th(key, label, sk, right) { var s = S[sk] || {}; return '<th' + (right ? ' class="r"' : '') + '>' + (key ? '<button data-act="sort" data-sk="' + sk + '" data-k="' + key + '" class="' + (s.k === key ? 'on' : '') + '">' + label + (s.k === key ? ic(s.d > 0 ? 'up' : 'dn', 12) : '') + '</button>' : label) + '</th>'; }
+  function tbl(head, rows, cls) { return '<div class="tw"><table class="dt ' + (cls || '') + '"><thead><tr>' + head.join('') + '</tr></thead><tbody>' + (rows.join('') || '<tr><td class="empty" colspan="' + head.length + '">Nothing here yet.</td></tr>') + '</tbody></table></div>'; }
+  function h0(x) { return '<th>' + x + '</th>'; }
+  function hr(x) { return '<th class="r">' + x + '</th>'; }
+  function pname(p) { return '<b class="mono">' + esc(p.code || p.k) + '</b>' + (p.t ? '<small>' + esc(p.t) + '</small>' : ''); }
+  function csv(name, rows) { var txt = rows.map(function (r) { return r.map(function (v) { v = String(v == null ? '' : v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; }).join(','); }).join('\n'); var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'text/csv' })); a.download = name + '.csv'; document.body.appendChild(a); a.click(); a.remove(); }
+  function sortRows(rows, sk) { var s = S[sk]; if (!s || !s.k) return rows; return rows.slice().sort(function (a, b) { var x = a[s.k], y = b[s.k]; if (x == null) return 1; if (y == null) return -1; if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y)) * s.d; return (x - y) * s.d; }); }
+  function opt(v, label, cur) { return '<option value="' + esc(v) + '"' + (cur === v ? ' selected' : '') + '>' + esc(label) + '</option>'; }
+  function uniq(rows, k) { var m = {}; rows.forEach(function (r) { if (r[k]) m[r[k]] = (m[r[k]] || 0) + 1; }); return Object.keys(m).sort(function (a, b) { return m[b] - m[a]; }); }
+  function sec(title, body, right, cls) { return '<section class="card ' + (cls || '') + '"><div class="ch"><h2>' + title + '</h2>' + (right ? '<div class="cr">' + right + '</div>' : '') + '</div>' + body + '</section>'; }
+  function drawAi() {
+    var A = S.ai || {}, L = A.last, h = '<section class="card ai"><div class="ch"><h2>' + ic('spark') + ' AI plan</h2><div class="cr">';
+    if (A.on) h += '<button class="btn" data-act="ai-run"' + (S.aiBusy ? ' disabled' : '') + '>' + (S.aiBusy ? 'Thinking...' : L ? 'Run again' : 'Generate plan') + '</button>';
+    h += '</div></div>';
+    if (!A.on) h += '<p class="muted">Switched off.</p>';
+    else if (!L) h += '<p class="muted">Reads the sales, customer rhythm and portal behavior and writes one-to-one actions and campaigns, each with the reason and a draft message. Best once the sales history has finished loading.</p>';
+    if (L && L.out) { var o = L.out;
+      h += '<p class="muted">' + esc(new Date(L.at).toLocaleString()) + ' · ' + esc(L.by || '') + '</p><p class="lead">' + esc(o.summary || '') + '</p><div class="aig">';
+      if ((o.one_to_one || []).length) h += '<div><h3>One to one</h3>' + o.one_to_one.map(function (x) { return '<div class="ai1"><span class="ch2 call">' + esc(x.channel || '') + '</span><b>' + esc(x.customer) + '</b><p>' + esc(x.action) + '</p><small>' + esc(x.why) + '</small></div>'; }).join('') + '</div>';
+      if ((o.campaigns || []).length) h += '<div><h3>Campaigns</h3>' + o.campaigns.map(function (x) { return '<div class="ai1"><span class="ch2 campaign">' + esc(x.channel || '') + '</span><b>' + esc(x.name) + '</b><p>' + esc(x.audience) + (x.offer ? '<br>Offer: ' + esc(x.offer) : '') + '</p><small>' + esc(x.why) + (x.expected ? ' Success: ' + esc(x.expected) : '') + '</small>' + (x.message ? '<div class="msg">' + esc(x.message) + '</div>' : '') + '</div>'; }).join('') + '</div>';
+      h += '</div>';
+      if ((o.products || []).length) h += '<h3>Parts</h3>' + o.products.map(function (x) { return '<div class="ai1"><b class="mono">' + esc(x.code) + '</b> ' + esc(x.action) + '<br><small>' + esc(x.why) + '</small></div>'; }).join('');
+      if ((o.watch || []).length) h += '<h3>Watch</h3><ul>' + o.watch.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+    }
+    return h + '</section>';
+  }
+  function syncNote(s) { var sy = s.sync;
+    if (sy && sy.done) return '';
+    return '<div class="note">' + ic('refresh', 16) + '<span><b>Sales history is still loading.</b> ' + (sy ? 'Page ' + (sy.page || 1) + ' of ' + (sy.pages || '?') + ', ' + n0(sy.orders) + ' orders so far. It copies 24 months from Unleashed a little every hour; the numbers below grow until it finishes.' : 'The first copy starts at the next hourly run.') + '</span>' + (S.me.role === 'superadmin' ? '<button class="btn ghost sm" data-act="dash-sync"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Copying...' : 'Copy a batch now') + '</button>' : '') + '</div>'; }
   function drawDash() {
-    var D = S.dash, h = '<div class="card"><div class="row"><h2 style="margin:0">Dashboard</h2><span class="muted">Sales from Unleashed (invoiced orders), portal behavior and what to do next.</span><span style="flex:1"></span><select data-act-change="days" style="max-width:170px">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Portal: last ' + d + ' days</option>'; }).join('') + '</select></div></div>';
-    if (!D) return h + ld();
-    var s = D.sales || {}, k = s.kpi || {}, sy = s.sync, b = D.behavior || {}, bt = b.totals || {}, f = b.funnel || {};
-    if (!sy || !sy.done) h += '<div class="card"><b>Sales history is still loading.</b> <span class="muted">' + (sy ? 'Page ' + (sy.page || 1) + ' of ' + (sy.pages || '?') + ', ' + n0(sy.orders) + ' orders so far. It copies 24 months from Unleashed a little every hour.' : 'The first copy starts at the next hourly run.') + '</span>' + (S.me.role === 'superadmin' ? ' <button class="btn ghost sm" data-act="dash-sync"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Copying...' : 'Copy a batch now') + '</button>' : '') + '</div>';
+    var D = S.dash; if (!D) return ld();
+    var v = S.dview || 'overview';
+    if (v === 'customers') return drawDCust();
+    if (v === 'products') return drawDParts();
+    if (v === 'portal') return drawDPortal();
+    var s = D.sales || {}, k = s.kpi || {}, mo = s.months || [], rv = mo.map(function (x) { return +x.rev || 0; }).slice(-12), on = mo.map(function (x) { return +x.n || 0; }).slice(-12), cu = mo.map(function (x) { return +x.cust || 0; }).slice(-12);
     var due = (s.status || {}).due || {}, ov = (s.status || {}).overdue || {};
-    h += '<div class="card"><div class="kp">' + tile('Revenue, last 30 days', k$(k.r30), delta(k.r30, k.p30) + ' <small>vs 30 before</small>') + tile('Last 90 days', k$(k.r90), delta(k.r90, k.p90) + ' <small>vs 90 before</small>') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' <small>vs year before</small>') + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' <small>vs same date last year</small>') +
-      tile('Orders, 12 months', n0(k.o365), delta(k.o365, k.po365)) + tile('Average order', k$(k.o365 ? k.r365 / k.o365 : 0), delta(k.o365 ? k.r365 / k.o365 : 0, k.po365 ? k.p365 / k.po365 : 0)) + tile('Buying customers, 90 days', n0(k.c90), delta(k.c90, k.pc90)) + tile('Due or overdue to reorder', n0((due.n || 0) + (ov.n || 0)), '<small>' + k$((due.r12 || 0) + (ov.r12 || 0)) + ' a year between them</small>') + '</div>' +
-      '<p class="muted" style="margin:10px 0 0">' + (k.last ? 'Latest invoice ' + esc(k.last) + '. ' : '') + (sy && sy.updated_at ? 'Synced ' + esc(new Date(sy.updated_at).toLocaleString()) + '. ' : '') + 'Subtotals before tax and freight lines as invoiced.</p></div>';
-    h += '<div class="card"><h3>Revenue by month</h3>' + months(s.months) + '</div>';
-    // actions
-    var acts = D.actions || [];
-    h += '<div class="card"><div class="row"><h2 style="margin:0">Next actions</h2><span class="muted">' + acts.length + ' ranked by money at stake. Built from the rules below; the AI plan adds its own read.</span></div>';
-    if (!acts.length) h += '<p class="muted">Actions appear once the sales history is in.</p>';
-    acts.forEach(function (a, i) { var many = a.who && a.who.length > 1;
-      h += '<div class="act"><span class="ch ' + esc(a.channel) + '">' + esc(a.channel) + '</span><div><b>' + esc(a.title) + '</b><br><span class="muted">' + esc(a.why) + '</span><br>' + esc(a.todo) + (many ? '<br><span class="muted">' + a.who.slice(0, 8).map(function (w) { return esc(w.n || w.c); }).join(', ') + (a.who.length > 8 ? ' and ' + (a.who.length - 8) + ' more' : '') + '</span>' : '') + '</div>' + (a.who && a.who.length ? '<button class="btn ghost sm" data-act="act-csv" data-i="' + i + '">List</button>' : '<span></span>') + '</div>'; });
-    h += '</div>' + drawAi();
-    // customers
-    var stt = s.status || {}, sg = s.segments || {};
-    h += '<div class="cols"><div class="card"><h3>Customer health</h3><p class="muted">From each customer\'s own rhythm: how often they usually buy and how long since the last order.</p>' + tbl(['Status', 'Customers', 'Last 12 months'], ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].filter(function (x) { return stt[x]; }).map(function (x) { return '<tr><td>' + st(x) + '</td><td>' + n0(stt[x].n) + '</td><td>' + k$(stt[x].r12) + '</td></tr>'; })) + '</div>' +
-      '<div class="card"><h3>Segments</h3><p class="muted">Recency, frequency and value against the other customers.</p>' + tbl(['Segment', 'Customers', '12 months', 'Year before'], ['champions', 'loyal', 'promising', 'need_attention', 'at_risk', 'hibernating', 'lost'].filter(function (x) { return sg[x]; }).map(function (x) { return '<tr><td>' + st(x) + '</td><td>' + n0(sg[x].n) + '</td><td>' + k$(sg[x].r12) + '</td><td>' + k$(sg[x].p12) + '</td></tr>'; })) + '</div></div>';
-    h += '<div class="card" style="margin-top:14px"><div class="row"><h3 style="margin:0">Due and overdue to reorder</h3><span class="muted">' + (s.due || []).length + ' customers</span><span style="flex:1"></span><button class="btn ghost sm" data-act="due-csv">Download list</button></div>' + tbl(['Customer', 'Buys every', 'Last order', 'Expected', '12 months', 'Usual parts'], (s.due || []).slice(0, 40).map(function (c) { return '<tr><td><b>' + esc(c.n) + '</b>' + pin(c) + '<br><span class="muted">' + esc(c.c) + (c.sp ? ' · ' + esc(c.sp) : '') + '</span> ' + st(c.status) + '</td><td>' + c.med + ' days</td><td>' + c.since + ' days ago</td><td>' + esc(c.next || '') + '</td><td>' + k$(c.r12) + '</td><td>' + (c.items || []).slice(0, 4).map(function (i) { return esc(i.code) + ' <span class="muted">×' + i.n + '</span>'; }).join('<br>') + '</td></tr>'; })) + '</div>';
-    h += '<div class="card"><h3>Top customers, last 12 months</h3>' + tbl(['Customer', '12 months', 'Change', 'Orders', 'Last order', 'Status'], (s.top_customers || []).slice(0, 25).map(function (c) { return '<tr><td><b>' + esc(c.n) + '</b>' + pin(c) + '<br><span class="muted">' + esc(c.c) + ' · ' + esc(c.country || '') + '</span></td><td>' + k$(c.r12) + '</td><td>' + delta(c.r12, c.p12) + '</td><td>' + c.orders + '</td><td>' + c.since + ' days ago</td><td>' + st(c.status) + ' ' + st(c.segment) + '</td></tr>'; })) + '</div>';
-    h += '<div class="cols"><div class="card"><h3>Buying less</h3>' + tbl(['Customer', '12 months', 'Year before'], (s.declining || []).slice(0, 12).map(function (c) { return '<tr><td>' + esc(c.n) + pin(c) + '</td><td>' + k$(c.r12) + '</td><td>' + k$(c.p12) + '</td></tr>'; })) + '</div>' +
-      '<div class="card"><h3>Lost or at risk</h3>' + tbl(['Customer', 'All time', 'Last order'], (s.lost || []).slice(0, 12).map(function (c) { return '<tr><td>' + esc(c.n) + pin(c) + '</td><td>' + k$(c.total) + '</td><td>' + c.since + ' days ago</td></tr>'; })) + '</div>' +
-      '<div class="card"><h3>New customers, 4 months</h3>' + tbl(['Customer', 'First order', 'Orders', 'Total'], (s.new_customers || []).slice(0, 12).map(function (c) { return '<tr><td>' + esc(c.n) + pin(c) + '</td><td>' + esc(c.first) + '</td><td>' + c.orders + '</td><td>' + k$(c.total) + '</td></tr>'; })) + '</div></div>';
-    // products
-    h += '<div class="card" style="margin-top:14px"><h3>Top parts, last 12 months</h3>' + tbl(['Part', 'Type', 'Revenue', 'Units', 'Customers', '90 days vs 90 before'], (s.products || []).slice(0, 25).map(function (p) { return '<tr><td>' + pname(p) + '</td><td>' + esc(p.k || '') + '</td><td>' + k$(p.r12) + '</td><td>' + n0(p.q12) + '</td><td>' + p.cust12 + '</td><td>' + n0(p.q90) + ' / ' + n0(p.pq90) + ' ' + delta(p.q90, p.pq90) + '</td></tr>'; })) + '</div>';
-    h += '<div class="cols"><div class="card"><h3>Selling more</h3>' + tbl(['Part', '90 days', 'Before'], (s.rising || []).map(function (p) { return '<tr><td>' + pname(p) + '</td><td>' + n0(p.q90) + '</td><td>' + n0(p.pq90) + '</td></tr>'; })) + '</div><div class="card"><h3>Selling less</h3>' + tbl(['Part', '90 days', 'Before'], (s.falling || []).map(function (p) { return '<tr><td>' + pname(p) + '</td><td>' + n0(p.q90) + '</td><td>' + n0(p.pq90) + '</td></tr>'; })) + '</div></div>';
-    h += '<div class="cols" style="margin-top:14px"><div class="card"><h3>Revenue by delivery country</h3>' + barRows(s.countries, function (r) { return esc(r.k) + ' <span class="muted">' + r.cust + ' customers ' + '</span>'; }, 'r12', k$) + '</div><div class="card"><h3>By salesperson</h3>' + barRows(s.reps, function (r) { return esc(r.k) + ' <span class="muted">' + r.cust + ' customers, ' + r.due + ' to call</span>'; }, 'r12', k$) + '</div></div>';
-    // behavior
-    h += '<div class="card" style="margin-top:14px"><h2>Portal and site, last ' + D.days + ' days</h2><div class="kp">' + tile('Visitors', n0(bt.visitors)) + tile('Sessions', n0(bt.sessions)) + tile('Signed-in customers', n0(bt.users), '<small>' + n0(bt.companies) + ' companies</small>') + tile('Part views', n0(bt.product_views)) + tile('Searches', n0(bt.searches)) + tile('Added to cart', n0(bt.cart_adds)) + tile('Portal orders', n0(D.portal.orders), '<small>' + k$(D.portal.order_value) + '</small>') + tile('Quote requests', n0(D.portal.quotes)) + '</div>' +
-      '<h3 style="margin-top:16px">Visitors per day</h3>' + spark(b.daily, 'v') +
-      '<h3 style="margin-top:16px">Funnel (sessions)</h3>' + barRows([{ k: 'All sessions', c: f.sessions }, { k: 'Viewed a part', c: f.product }, { k: 'Added to cart', c: f.cart }, { k: 'Sent a quote or order', c: f.converted }], function (r) { return esc(r.k); }, 'c') +
-      '<p class="muted">' + n0(b.anon_hot) + ' visitors who are not signed in looked at 5 or more parts or used the cart: likely buyers to invite. ' + n0(D.portal.companies) + ' companies active in the portal, ' + n0(D.portal.invited) + ' invited.</p></div>';
-    h += '<div class="cols"><div class="card"><h3>Where they came from</h3>' + barRows(b.sources, function (r) { return esc(r.k) + (r.cv ? ' <span class="muted">' + r.cv + ' converted</span>' : ''); }, 'c') + '</div><div class="card"><h3>Searches</h3>' + barRows((b.searches || []).slice(0, 12), function (r) { return esc(r.k); }, 'c') + '</div><div class="card"><h3>Most viewed parts</h3>' + barRows((b.viewed || []).slice(0, 12), function (r) { return esc(r.k) + (r.t ? ' <span class="muted">' + esc(r.t) + '</span>' : ''); }, 'c') + '</div><div class="card"><h3>Most added to cart</h3>' + barRows((b.carted || []).slice(0, 12), function (r) { return esc(r.k) + (r.t ? ' <span class="muted">' + esc(r.t) + '</span>' : ''); }, 'c') + '</div><div class="card"><h3>Devices</h3>' + barRows(b.devices, function (r) { return esc(r.k); }, 'c') + '</div><div class="card"><h3>Regions</h3>' + barRows(b.regions, function (r) { return esc(r.k); }, 'c') + '</div></div>';
-    h += '<div class="card" style="margin-top:14px"><h3>Customer by customer</h3><p class="muted">Each signed-in person in the period. "Shopping" means they looked or used the cart without sending a quote or order.</p>' + tbl(['Person', 'Last seen', 'Sessions', 'Views', 'Cart', 'Quotes / orders', 'Looked at'], (b.users || []).map(function (u) { return '<tr><td><b>' + esc(u.company || '') + '</b> ' + (u.hot ? '<span class="st due">shopping</span>' : '') + '<br><span class="muted">' + esc(u.name || '') + ' ' + esc(u.email || '') + '</span></td><td>' + esc(new Date(u.last).toLocaleDateString()) + '</td><td>' + u.sessions + '</td><td>' + u.pv + '</td><td>' + u.ca + '</td><td>' + u.qu + ' / ' + u.ord + '</td><td>' + esc((u.codes || []).slice(0, 4).join(', ')) + (u.queries && u.queries.length ? '<br><span class="muted">searched ' + esc(u.queries.join(', ')) + '</span>' : '') + '</td></tr>'; })) + '</div>';
-    h += '<div class="cols"><div class="card"><h3>Google Analytics</h3><p class="muted">Not connected yet. Once the GA4 property is linked, this shows site traffic by channel, landing pages, quote form starts and completions, and organic search terms next to the sales above.</p></div><div class="card"><h3>Instagram</h3><p class="muted">Not connected yet. Once the Maxzz account is linked, this shows reach, followers, the posts that brought visits and which parts they were about.</p></div><div class="card"><h3>Leads and deals</h3><p class="muted">HubSpot leads, deals and sources by period are on the sales panel.</p><a class="btn ghost sm" href="/painel" target="_blank" rel="noopener" style="text-decoration:none;display:inline-block">Open sales panel</a></div></div>';
+    var h = syncNote(s) + '<div class="kpis">' + tile('Revenue, 30 days', k$(k.r30), delta(k.r30, k.p30) + ' vs 30 before') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
+      tile('Orders, 12 months', n0(k.o365), delta(k.o365, k.po365), sparkPath(on, 120, 34)) + tile('Average order', k$(k.o365 ? k.r365 / k.o365 : 0), delta(k.o365 ? k.r365 / k.o365 : 0, k.po365 ? k.p365 / k.po365 : 0)) + tile('Buying customers, 90 days', n0(k.c90), delta(k.c90, k.pc90), sparkPath(cu, 120, 34)) +
+      tile('To reorder now', n0((due.n || 0) + (ov.n || 0)), '<a data-act="dview" data-v="customers" data-st="due">' + k$((due.r12 || 0) + (ov.r12 || 0)) + ' a year, see list</a>') + tile('Portal, ' + (D.days || 30) + ' days', n0(D.portal.orders + D.portal.quotes), n0(D.portal.orders) + ' orders · ' + n0(D.portal.quotes) + ' quotes') + '</div>';
+    h += '<div class="g21">' + sec('Revenue by month', months(mo) + '<p class="muted">Invoiced subtotals. Dark: last 12 months, light: the 12 before.' + (k.last ? ' Latest invoice ' + esc(k.last) + '.' : '') + '</p>') +
+      sec('Customer health', (function () { var stt = s.status || {}, tot = 0; ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].forEach(function (x) { tot += (stt[x] || {}).n || 0; });
+        return '<div class="hb">' + ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].filter(function (x) { return stt[x]; }).map(function (x) { return '<i class="' + x + '" style="flex:' + stt[x].n + '" title="' + STL[x] + ': ' + stt[x].n + '"></i>'; }).join('') + '</div>' +
+          ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].filter(function (x) { return stt[x]; }).map(function (x) { return '<a class="hl" data-act="dview" data-v="customers" data-st="' + x + '"><span>' + st(x) + '</span><b>' + n0(stt[x].n) + '</b><small>' + k$(stt[x].r12) + '</small></a>'; }).join('') || '<div class="empty">No customers yet.</div>'; })()) + '</div>';
+    var acts = D.actions || [], ch = S.ach || '', shown = acts.filter(function (a) { return !ch || a.channel === ch; });
+    var chans = ['', 'call', 'campaign', 'content', 'review'].filter(function (c) { return !c || acts.some(function (a) { return a.channel === c; }); });
+    h += '<div class="g21">' + sec('Next actions <span class="cnt">' + shown.length + '</span>', (shown.map(function (a) { var i = acts.indexOf(a), many = a.who && a.who.length > 1;
+      return '<div class="act"><span class="ch2 ' + esc(a.channel) + '">' + esc(a.channel) + '</span><div class="ab"><b>' + esc(a.title) + '</b><p>' + esc(a.why) + '</p><p class="todo">' + esc(a.todo) + '</p>' + (many ? '<small>' + a.who.slice(0, 6).map(function (w) { return esc(w.n || w.c); }).join(', ') + (a.who.length > 6 ? ' and ' + (a.who.length - 6) + ' more' : '') + '</small>' : '') + '</div><div class="aa">' + (a.who && a.who.length === 1 && a.who[0].c ? '<button class="btn ghost sm" data-act="cust" data-code="' + esc(a.who[0].c) + '">Open</button>' : '') + (a.who && a.who.length ? '<button class="btn ghost sm" data-act="act-csv" data-i="' + i + '" title="Download list">' + ic('down', 14) + '</button>' : '') + '</div></div>'; }).join('') || '<div class="empty">Actions appear once the sales history is in.</div>'),
+      '<div class="chips">' + chans.map(function (c) { return '<button data-act="ach" data-c="' + c + '" class="' + (ch === c ? 'on' : '') + '">' + (c || 'All') + '</button>'; }).join('') + '</div>') + drawAi() + '</div>';
+    var sg = s.segments || {};
+    h += '<div class="g3">' + sec('Segments', tbl([h0('Segment'), hr('Customers'), hr('12 months'), hr('Change')], ['champions', 'loyal', 'promising', 'need_attention', 'at_risk', 'hibernating', 'lost'].filter(function (x) { return sg[x]; }).map(function (x) { return '<tr data-act="dview" data-v="customers" data-sg="' + x + '"><td>' + st(x) + '</td><td class="r">' + n0(sg[x].n) + '</td><td class="r">' + k$(sg[x].r12) + '</td><td class="r">' + delta(sg[x].r12, sg[x].p12) + '</td></tr>'; }), 'click')) +
+      sec('By salesperson', barRows(s.reps, function (r) { return esc(r.k) + ' <small>' + r.cust + ' customers · ' + r.due + ' to call</small>'; }, 'r12', k$)) +
+      sec('By delivery country', barRows(s.countries, function (r) { return esc(r.k) + ' <small>' + r.cust + ' customers</small>'; }, 'r12', k$)) + '</div>';
+    h += '<div class="g3">' + sec('Leads and deals', '<p class="muted">HubSpot leads, deals and sources by period.</p><a class="btn ghost sm" href="/painel" target="_blank" rel="noopener">Open sales panel ' + ic('ext', 14) + '</a>') + sec('Google Analytics', '<p class="muted">Not connected yet. Site traffic by channel, landing pages and quote form steps will show here.</p>') + sec('Instagram', '<p class="muted">Not connected yet. Reach, followers and the posts that brought visits will show here.</p>') + '</div>';
     return h;
+  }
+  function drawDCust() {
+    if (!S.dc) return syncNote(S.dash.sales || {}) + ld();
+    var F = S.cf || {}, q = String(F.q || '').toLowerCase(), rows = S.dc.filter(function (r) {
+      if (q && (r.n + ' ' + r.c).toLowerCase().indexOf(q) < 0) return false;
+      if (F.st && !(F.st === 'due' ? r.status === 'due' || r.status === 'overdue' : r.status === F.st)) return false;
+      if (F.sg && r.segment !== F.sg) return false; if (F.sp && r.sp !== F.sp) return false; if (F.co && r.country !== F.co) return false;
+      if (F.pt === 'in' && !r.portal) return false; if (F.pt === 'out' && r.portal) return false; return true; });
+    rows = sortRows(rows, 'cs'); var tot = rows.reduce(function (a, r) { return a + (r.r12 || 0); }, 0), lim = S.cn || 60;
+    var fb = '<div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="cf.q" value="' + esc(F.q || '') + '" placeholder="Customer or code"></label>' +
+      '<select class="sel" data-chg="cf.st">' + opt('', 'Any status', F.st || '') + ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].map(function (x) { return opt(x, x === 'due' ? 'Due or overdue' : STL[x], F.st || ''); }).join('') + '</select>' +
+      '<select class="sel" data-chg="cf.sg">' + opt('', 'Any segment', F.sg || '') + ['champions', 'loyal', 'promising', 'need_attention', 'at_risk', 'hibernating', 'lost'].map(function (x) { return opt(x, STL[x], F.sg || ''); }).join('') + '</select>' +
+      '<select class="sel" data-chg="cf.sp">' + opt('', 'Any salesperson', F.sp || '') + uniq(S.dc, 'sp').map(function (x) { return opt(x, x, F.sp || ''); }).join('') + '</select>' +
+      '<select class="sel" data-chg="cf.co">' + opt('', 'Any country', F.co || '') + uniq(S.dc, 'country').map(function (x) { return opt(x, x, F.co || ''); }).join('') + '</select>' +
+      '<select class="sel" data-chg="cf.pt">' + opt('', 'Portal: any', F.pt || '') + opt('in', 'In the portal', F.pt || '') + opt('out', 'Not in the portal', F.pt || '') + '</select>' +
+      (Object.keys(F).some(function (x) { return F[x]; }) ? '<button class="lnk" data-act="cf-clear">Clear</button>' : '') + '<span class="sp"></span><span class="muted">' + n0(rows.length) + ' customers · ' + k$(tot) + ' in 12 months</span><button class="btn ghost sm" data-act="dc-csv">' + ic('down', 14) + ' CSV</button></div>';
+    var body = tbl([th('n', 'Customer', 'cs'), th('status', 'Status', 'cs'), th('segment', 'Segment', 'cs'), th('r12', '12 months', 'cs', 1), th('chg', 'Change', 'cs', 1), th('orders', 'Orders', 'cs', 1), th('since', 'Last order', 'cs', 1), th('med', 'Buys every', 'cs', 1), th('next', 'Expected', 'cs'), th('sp', 'Salesperson', 'cs')],
+      rows.slice(0, lim).map(function (c) { return '<tr data-act="cust" data-code="' + esc(c.c) + '"><td><b>' + esc(c.n) + '</b>' + pin(c) + '<small>' + esc(c.c) + ' · ' + esc(c.country || '') + '</small></td><td>' + st(c.status) + '</td><td>' + st(c.segment) + '</td><td class="r b">' + k$(c.r12) + '</td><td class="r">' + delta(c.r12, c.p12) + '</td><td class="r">' + c.orders + '</td><td class="r">' + c.since + 'd</td><td class="r">' + (c.med ? c.med + 'd' : '-') + '</td><td class="nw">' + esc(c.status === 'lost' ? '' : c.next || '') + '</td><td>' + esc(c.sp || '') + '</td></tr>'; }), 'click');
+    return syncNote(S.dash.sales || {}) + '<section class="card flush">' + fb + body + (rows.length > lim ? '<div class="more"><button class="btn ghost" data-act="cn-more">Show ' + Math.min(60, rows.length - lim) + ' more</button></div>' : '') + '</section>';
+  }
+  function drawDParts() {
+    var s = S.dash.sales || {}, F = S.pf || {}, q = String(F.q || '').toLowerCase();
+    var rows = sortRows((s.products || []).map(function (p) { p.chg = pct(p.q90, p.pq90); return p; }).filter(function (p) { return (!q || (p.code + ' ' + (p.t || '')).toLowerCase().indexOf(q) >= 0) && (!F.k || p.k === F.k); }), 'ps');
+    var fb = '<div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="pf.q" value="' + esc(F.q || '') + '" placeholder="Part number or name"></label><select class="sel" data-chg="pf.k">' + opt('', 'Any type', F.k || '') + uniq(s.products || [], 'k').map(function (x) { return opt(x, x, F.k || ''); }).join('') + '</select><span class="sp"></span><span class="muted">Top 40 parts by revenue, last 12 months</span></div>';
+    var h = '<section class="card flush">' + fb + tbl([th('code', 'Part', 'ps'), th('k', 'Type', 'ps'), th('r12', 'Revenue', 'ps', 1), th('q12', 'Units', 'ps', 1), th('cust12', 'Customers', 'ps', 1), th('q90', 'Units, 90 days', 'ps', 1), th('chg', 'vs 90 before', 'ps', 1)],
+      rows.map(function (p) { return '<tr><td>' + pname(p) + '</td><td>' + esc(p.k || '') + '</td><td class="r b">' + k$(p.r12) + '</td><td class="r">' + n0(p.q12) + '</td><td class="r">' + p.cust12 + '</td><td class="r">' + n0(p.q90) + '</td><td class="r">' + delta(p.q90, p.pq90) + '</td></tr>'; })) + '</section>';
+    var mini = function (list) { return tbl([h0('Part'), hr('90 days'), hr('90 before')], (list || []).map(function (p) { return '<tr><td>' + pname(p) + '</td><td class="r b">' + n0(p.q90) + '</td><td class="r">' + n0(p.pq90) + '</td></tr>'; })); };
+    return syncNote(s) + h + '<div class="g2">' + sec('Selling more', mini(s.rising)) + sec('Selling less', mini(s.falling)) + '</div>';
+  }
+  function drawDPortal() {
+    var D = S.dash, b = D.behavior || {}, bt = b.totals || {}, f = b.funnel || {}, F = S.uf || {}, q = String(F.q || '').toLowerCase();
+    var h = '<div class="kpis">' + tile('Visitors', n0(bt.visitors)) + tile('Sessions', n0(bt.sessions)) + tile('Signed-in people', n0(bt.users), n0(bt.companies) + ' companies') + tile('Part views', n0(bt.product_views)) + tile('Searches', n0(bt.searches)) + tile('Added to cart', n0(bt.cart_adds)) + tile('Portal orders', n0(D.portal.orders), k$(D.portal.order_value)) + tile('Likely buyers to invite', n0(b.anon_hot), 'not signed in, 5+ parts viewed') + '</div>';
+    var fn = [['All sessions', f.sessions], ['Viewed a part', f.product], ['Added to cart', f.cart], ['Sent a quote or order', f.converted]];
+    h += '<div class="g21">' + sec('Visitors per day', bars(b.daily, 'v')) + sec('Funnel', '<div class="fun">' + fn.map(function (x, i) { var p = f.sessions ? Math.round((x[1] || 0) / f.sessions * 100) : 0; return '<div><span>' + x[0] + '</span><b>' + n0(x[1]) + '</b><i style="width:' + Math.max(2, p) + '%"></i><small>' + (i ? p + '%' : '') + '</small></div>'; }).join('') + '</div>') + '</div>';
+    h += '<div class="g3">' + sec('Where they came from', barRows(b.sources, function (r) { return esc(r.k) + (r.cv ? ' <small>' + r.cv + ' converted</small>' : ''); }, 'c')) + sec('Searches', barRows((b.searches || []).slice(0, 12), function (r) { return esc(r.k); }, 'c')) + sec('Most viewed parts', barRows((b.viewed || []).slice(0, 12), function (r) { return '<span class="mono">' + esc(r.k) + '</span>' + (r.t ? ' <small>' + esc(r.t) + '</small>' : ''); }, 'c')) +
+      sec('Most added to cart', barRows((b.carted || []).slice(0, 12), function (r) { return '<span class="mono">' + esc(r.k) + '</span>' + (r.t ? ' <small>' + esc(r.t) + '</small>' : ''); }, 'c')) + sec('Devices', barRows(b.devices, function (r) { return esc(r.k); }, 'c')) + sec('Regions', barRows(b.regions, function (r) { return esc(r.k); }, 'c')) + '</div>';
+    var us = sortRows((b.users || []).filter(function (u) { return (!q || ((u.company || '') + ' ' + (u.name || '') + ' ' + (u.email || '')).toLowerCase().indexOf(q) >= 0) && (!F.hot || u.hot); }), 'us');
+    h += '<section class="card flush"><div class="fbar"><h2>Person by person</h2><label class="srch">' + ic('search', 16) + '<input type="search" data-m="uf.q" value="' + esc(F.q || '') + '" placeholder="Company, name or e-mail"></label><select class="sel" data-chg="uf.hot">' + opt('', 'Everyone', F.hot || '') + opt('1', 'Shopping without ordering', F.hot || '') + '</select><span class="sp"></span><span class="muted">' + us.length + ' people</span></div>' +
+      tbl([th('company', 'Person', 'us'), th('last', 'Last seen', 'us'), th('sessions', 'Sessions', 'us', 1), th('pv', 'Views', 'us', 1), th('ca', 'Cart', 'us', 1), th('qu', 'Quotes', 'us', 1), th('ord', 'Orders', 'us', 1), h0('Looked at')],
+        us.map(function (u) { return '<tr' + (u.code ? ' data-act="cust" data-code="' + esc(u.code) + '"' : '') + '><td><b>' + esc(u.company || '') + '</b> ' + (u.hot ? st('due').replace('Due to reorder', 'Shopping') : '') + '<small>' + esc(u.name || '') + ' · ' + esc(u.email || '') + '</small></td><td>' + esc(new Date(u.last).toLocaleDateString()) + '</td><td class="r">' + u.sessions + '</td><td class="r">' + u.pv + '</td><td class="r">' + u.ca + '</td><td class="r">' + u.qu + '</td><td class="r">' + u.ord + '</td><td><span class="mono">' + esc((u.codes || []).slice(0, 3).join(', ')) + '</span>' + (u.queries && u.queries.length ? '<small>searched ' + esc(u.queries.join(', ')) + '</small>' : '') + '</td></tr>'; }), 'click') + '</section>';
+    return h;
+  }
+  // ---------------------------------------------------------------- customer drawer (one place for everything about a customer)
+  function drawDrawer() {
+    var R = S.dr; if (!R) return '';
+    var h = '<div class="dscrim" data-act="dr-x"></div><aside class="drawer" role="dialog" aria-label="Customer"><div class="dh"><div>';
+    var acc = R.acc ? (S.data.accounts.filter(function (a) { return a.id === R.acc; })[0] || null) : null, d = R.data, sm = d && d.sales && d.sales.summary;
+    var name = (sm && sm.n) || (acc && acc.company) || (d && d.company && d.company.name) || R.code || 'Customer';
+    h += '<small>' + esc(R.code || (acc && acc.customerCode) || 'Not linked to Unleashed') + '</small><h2>' + esc(name) + '</h2><div class="tags">' + (sm ? st(sm.status) + st(sm.segment) : '') + (acc ? st(acc.status) : d && d.company ? st(d.company.status) : '') + (acc && acc.tier ? '<span class="st">' + esc(acc.tier) + '</span>' : '') + '</div></div><button class="ib" data-act="dr-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
+    if (acc) {
+      h += '<div class="dsec"><h3>Portal account</h3><p class="muted">' + esc([acc.type, acc.city, acc.state, acc.country].filter(Boolean).join(' · ')) + (acc.customerNumber ? ' · says Unleashed: ' + esc(acc.customerNumber) : '') + (acc.notes ? '<br>' + esc(acc.notes) : '') + '</p>';
+      acc.users.forEach(function (u) { var n = (S.data.openSessions || {})[u.email.toLowerCase()] || 0;
+        h += '<div class="pp"><span class="av sm">' + esc(initials(u.email)) + '</span><span><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + (u.phone ? ' · ' + esc(u.phone) : '') + '</small></span>' + st(u.status) + (n ? '<button class="btn ghost sm" data-act="revoke" data-email="' + esc(u.email) + '">End ' + n + ' session' + (n > 1 ? 's' : '') + '</button>' : '') + '</div>'; });
+      if (acc.status !== 'approved') {
+        h += '<div class="apv"><b>Link to Unleashed and approve</b><div class="row"><input type="text" data-look="' + esc(acc.id) + '" placeholder="Unleashed customer code or name" value="' + esc(acc.customerNumber || acc.company) + '"><button class="btn ghost" data-act="look" data-id="' + esc(acc.id) + '">Search</button></div>';
+        (S.found[acc.id] || []).forEach(function (c, i) { h += '<div class="hit"><span><b>' + esc(c.code) + '</b> ' + esc(c.name) + '<small>' + esc(c.tier || 'no tier') + (c.stopCredit ? ' · STOP CREDIT' : '') + '</small></span><button class="btn sm" data-act="approve" data-id="' + esc(acc.id) + '" data-i="' + i + '">Link and approve</button></div>'; });
+        if (acc.status === 'pending') h += '<button class="lnk red" data-act="reject" data-id="' + esc(acc.id) + '">Reject this request</button>';
+        h += '</div>';
+      }
+      h += '</div>';
+    }
+    if (R.loading) return h + ld() + '</div></aside>';
+    if (d && d.sales && sm) {
+      h += '<div class="mk">' + [['12 months', k$(sm.r12), delta(sm.r12, sm.p12)], ['All time', k$(sm.total), sm.orders + ' orders'], ['Average order', k$(sm.orders ? sm.total / sm.orders : 0), ''], ['Buys every', sm.med ? sm.med + ' days' : '-', ''], ['Last order', sm.since + ' days ago', esc(sm.last || '')], ['Expected next', sm.status === 'lost' ? '-' : esc(sm.next || '-'), sm.sp ? esc(sm.sp) : '']].map(function (x) { return '<div><small>' + x[0] + '</small><b>' + x[1] + '</b><span>' + x[2] + '</span></div>'; }).join('') + '</div>';
+      h += '<div class="dsec"><h3>Revenue by month</h3>' + months(d.sales.months, 120) + '</div>';
+      h += '<div class="dsec"><h3>Parts they buy</h3>' + tbl([h0('Part'), hr('Units'), hr('Orders'), hr('Revenue'), h0('Last')], (d.sales.parts || []).map(function (p) { return '<tr><td>' + pname(p) + '</td><td class="r">' + n0(p.q) + '</td><td class="r">' + p.n + '</td><td class="r b">' + k$(p.v) + '</td><td>' + esc(p.last) + '</td></tr>'; })) + '</div>';
+      h += '<div class="dsec"><h3>Latest invoices</h3>' + tbl([h0('Order'), h0('Date'), hr('Lines'), hr('Subtotal')], (d.sales.orders || []).map(function (o) { return '<tr><td class="mono">' + esc(o.number) + '</td><td>' + esc(o.d) + '</td><td class="r">' + o.lines + '</td><td class="r b">' + k$(o.v) + '</td></tr>'; })) + '</div>';
+    } else if (d && R.code) h += '<div class="dsec"><p class="muted">No invoiced orders for ' + esc(R.code) + ' in the synced history yet.</p></div>';
+    if (d && d.users && d.users.length && !acc) h += '<div class="dsec"><h3>People in the portal</h3>' + d.users.map(function (u) { return '<div class="pp"><span class="av sm">' + esc(initials(u.email)) + '</span><span><b>' + esc(u.name || u.email) + '</b><small>' + esc(u.email) + (u.last_login_at ? ' · last sign-in ' + esc(new Date(u.last_login_at).toLocaleDateString()) : '') + '</small></span>' + st(u.status) + '</div>'; }).join('') + '</div>';
+    if (d && ((d.orders || []).length || (d.quotes || []).length)) h += '<div class="dsec"><h3>Portal orders and quotes</h3>' + tbl([h0('Number'), h0('Kind'), h0('Status'), h0('Date'), hr('Total')], (d.orders || []).map(function (o) { return '<tr><td class="mono">' + esc(o.number) + '</td><td>Order</td><td>' + esc(o.status) + '</td><td>' + esc(dstr(o.created_at)) + '</td><td class="r">' + k$(o.total) + '</td></tr>'; }).concat((d.quotes || []).map(function (o) { return '<tr><td class="mono">' + esc(o.number) + '</td><td>Quote</td><td>' + esc(o.status) + '</td><td>' + esc(dstr(o.created_at)) + '</td><td class="r">-</td></tr>'; }))) + '</div>';
+    if (d && (d.events || []).length) { var EV = { product: 'Viewed', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed', cart_view: 'Opened cart', checkout: 'Checkout', order: 'Ordered', quote: 'Sent quote', login: 'Signed in', voucher: 'Voucher', filter: 'Filtered' };
+      h += '<div class="dsec"><h3>Recent activity</h3><ol class="tl">' + d.events.slice(0, 30).map(function (e) { return '<li><i></i><span><b>' + esc(EV[e.type] || e.type) + '</b> ' + (e.code ? '<span class="mono">' + esc(e.code) + '</span>' + (e.t ? ' ' + esc(e.t) : '') : esc(e.query || '')) + '<small>' + esc(new Date(e.at).toLocaleString()) + (e.device ? ' · ' + esc(e.device) : '') + (e.city ? ' · ' + esc(e.city) : '') + '</small></span></li>'; }).join('') + '</ol></div>'; }
+    var em = acc ? acc.users.map(function (u) { return u.email; }) : (d && d.users || []).map(function (u) { return u.email; });
+    h += '<div class="dfoot">' + (em.length ? '<a class="btn ghost sm" href="mailto:' + esc(em.join(',')) + '">' + ic('mail', 14) + ' E-mail</a>' : '') + ((R.code || (acc && acc.customerCode)) ? '<button class="btn ghost sm" data-act="dr-voucher">' + ic('tag', 14) + ' Voucher for them</button>' : '') + '<a class="btn ghost sm" href="https://go.unleashedsoftware.com/v2" target="_blank" rel="noopener">Unleashed ' + ic('ext', 14) + '</a></div>';
+    return h + '</div></aside>';
+  }
+  function openCust(code, acc) {
+    S.dr = { code: code || '', acc: acc || null, loading: true, data: null }; draw();
+    var a = acc ? S.data.accounts.filter(function (x) { return x.id === acc; })[0] : null;
+    var qs = code ? '&code=' + encodeURIComponent(code) : a && a.id ? '&id=' + encodeURIComponent(a.id) : '';
+    if (!qs) { S.dr.loading = false; return draw(); }
+    api('customer', null, qs).then(function (r) { if (!S.dr) return; S.dr.loading = false; if (r._status === 200) { S.dr.data = r; if (!S.dr.code && r.code) S.dr.code = r.code; } draw(); });
   }
   function drawLogin() {
     var h = '<div class="card login">';
@@ -162,28 +352,18 @@ svg.chart{width:100%;height:auto;display:block}.ai{background:#111;color:#fff}.a
     app.innerHTML = h + (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') + '</div>';
   }
   function drawClients() {
-    if (!S.data) return '<div class="card muted">Loading...</div>';
-    var q = S.q.toLowerCase(), list = S.data.accounts.filter(function (a) { return !q || (a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email; }).join(' ')).toLowerCase().indexOf(q) >= 0; });
-    var pend = S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length;
-    var h = '<div class="card"><div class="row"><h2 style="margin:0">Customers</h2><span class="muted">' + S.data.accounts.length + ' total · ' + pend + ' waiting</span><span style="flex:1"></span><input type="text" id="q" placeholder="Search company, code or e-mail" value="' + esc(S.q) + '" style="max-width:280px"></div></div>';
-    list.forEach(function (a) {
-      h += '<div class="card"><div class="row"><h3 style="margin:0">' + esc(a.company) + '</h3><span class="pill ' + esc(a.status) + '">' + esc(a.status) + '</span>' + (a.customerCode ? '<span class="muted">' + esc(a.customerCode) + (a.tier ? ' · ' + esc(a.tier) : '') + '</span>' : '') + '</div>';
-      h += '<p class="muted" style="margin:6px 0">' + esc([a.type, a.city, a.state, a.country].filter(Boolean).join(' · ')) + (a.customerNumber ? ' · says Unleashed: ' + esc(a.customerNumber) : '') + (a.notes ? '<br>' + esc(a.notes) : '') + '</p>';
-      a.users.forEach(function (u) {
-        var n = (S.data.openSessions || {})[u.email.toLowerCase()] || 0;
-        h += '<div class="person"><span>' + esc(u.name) + ' · ' + esc(u.email) + ' · ' + esc(u.phone) + ' <span class="pill ' + esc(u.status) + '">' + esc(u.status) + '</span> ' + (n ? '<span class="pill">' + n + ' open session' + (n > 1 ? 's' : '') + '</span>' : '') + '</span>' + (n ? '<button class="btn ghost" data-act="revoke" data-email="' + esc(u.email) + '">End sessions</button>' : '') + '</div>';
-      });
-      if (a.status !== 'approved') {
-        h += '<div class="row" style="margin-top:12px"><button class="btn" data-act="open" data-id="' + esc(a.id) + '">' + (S.open === a.id ? 'Close' : 'Approve...') + '</button>' + (a.status === 'pending' ? '<button class="btn ghost" data-act="reject" data-id="' + esc(a.id) + '">Reject</button>' : '') + '</div>';
-        if (S.open === a.id) {
-          h += '<div style="margin-top:12px"><div class="row"><input type="text" data-look="' + esc(a.id) + '" placeholder="Unleashed customer code or name" value="' + esc(a.customerNumber || a.company) + '" style="flex:1"><button class="btn ghost" data-act="look" data-id="' + esc(a.id) + '">Search Unleashed</button></div>';
-          (S.found[a.id] || []).forEach(function (c, i) { h += '<div class="hit"><span><b>' + esc(c.code) + '</b> ' + esc(c.name) + ' · ' + esc(c.tier || 'no tier') + (c.stopCredit ? ' · <b style="color:#d32a37">STOP CREDIT</b>' : '') + '</span><button class="btn" data-act="approve" data-id="' + esc(a.id) + '" data-i="' + i + '">Link and approve</button></div>'; });
-          h += '</div>';
-        }
-      }
-      h += '</div>';
-    });
-    return h;
+    if (!S.data) return ld();
+    var all = S.data.accounts, q = S.q.toLowerCase(), cst = S.cst || '';
+    var cnt = function (s) { return all.filter(function (a) { return !s || a.status === s; }).length; };
+    var list = all.filter(function (a) { return (!cst || a.status === cst) && (!q || (a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email + ' ' + (u.name || ''); }).join(' ')).toLowerCase().indexOf(q) >= 0); });
+    list = sortRows(list.map(function (a) { a.nUsers = a.users.length; a.loc = [a.city, a.state, a.country].filter(Boolean).join(', '); return a; }), 'as');
+    var tabs = [['', 'All'], ['pending', 'Waiting'], ['approved', 'Approved'], ['prospect', 'Prospects'], ['invited', 'Invited'], ['rejected', 'Rejected']].filter(function (x) { return !x[0] || cnt(x[0]); });
+    var h = '<div class="kpis k4">' + tile('Accounts', n0(all.length)) + tile('Waiting for approval', n0(cnt('pending')), cnt('pending') ? '<a data-act="cst" data-s="pending">Review now</a>' : 'nothing waiting') + tile('Approved', n0(cnt('approved'))) + tile('Open sessions', n0(Object.keys(S.data.openSessions || {}).length), 'people signed in now') + '</div>';
+    h += '<section class="card flush"><div class="fbar"><div class="tabs2">' + tabs.map(function (x) { return '<button data-act="cst" data-s="' + x[0] + '" class="' + (cst === x[0] ? 'on' : '') + '">' + x[1] + ' <em>' + cnt(x[0]) + '</em></button>'; }).join('') + '</div><span class="sp"></span><span class="muted">' + list.length + ' shown</span></div>';
+    h += tbl([th('company', 'Company', 'as'), th('status', 'Status', 'as'), th('customerCode', 'Unleashed', 'as'), th('tier', 'Price tier', 'as'), th('nUsers', 'People', 'as', 1), th('loc', 'Location', 'as'), th('created', 'Since', 'as')],
+      list.map(function (a) { var n = a.users.reduce(function (x, u) { return x + ((S.data.openSessions || {})[u.email.toLowerCase()] || 0); }, 0);
+        return '<tr data-act="acc" data-id="' + esc(a.id) + '"><td><b>' + esc(a.company) + '</b><small>' + esc(a.users.map(function (u) { return u.name || u.email; }).slice(0, 2).join(', ')) + '</small></td><td>' + st(a.status) + (n ? ' <span class="st live">online</span>' : '') + '</td><td class="mono">' + esc(a.customerCode || '') + '</td><td>' + esc(a.tier || '') + '</td><td class="r">' + a.users.length + '</td><td>' + esc(a.loc) + '</td><td>' + esc(dstr(a.created)) + '</td></tr>'; }), 'click');
+    return h + '</section>';
   }
   function drawProspects() {
     var f = S.form || {};
@@ -272,19 +452,35 @@ svg.chart{width:100%;height:auto;display:block}.ai{background:#111;color:#fff}.a
   }
   function loadProspects() { api('prospects').then(function (r) { if (r.prospects) { S.prospects = r.prospects; draw(); } else fail(r); }); }
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Something went wrong.'); if (r._status === 401) S.me = null; S.busy = false; draw(); }
-  app.addEventListener('input', function (e) { if (e.target.id === 'q') { S.q = e.target.value; var p = e.target.selectionStart; draw(); var n = document.getElementById('q'); if (n) { n.focus(); n.setSelectionRange(p, p); } } });
+  function setM(path, v) { var k = path.split('.'); if (k.length === 1) S[k[0]] = v; else { S[k[0]] = S[k[0]] || {}; S[k[0]][k[1]] = v; } if (k[0] === 'cf') S.cn = 60; }
+  app.addEventListener('input', function (e) { var m = e.target.dataset && e.target.dataset.m; if (!m) return; setM(m, e.target.value); var p = e.target.selectionStart; draw(); var n = app.querySelector('[data-m="' + m + '"]'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && (S.dr || S.navOpen)) { S.dr = null; S.navOpen = false; draw(); } });
+  function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
   app.addEventListener('click', function (e) {
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = '';
-    if (t.dataset.tab) { S.tab = t.dataset.tab; S.err = ''; if (S.tab === 'prospects') loadProspects(); else loadTab(S.tab); return draw(); }
+    if (t.dataset.tab) { S.tab = t.dataset.tab; S.err = ''; S.navOpen = false; S.dr = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return draw(); }
     var act = t.dataset.act, id = t.dataset.id;
+    if (act === 'nav') { S.navOpen = !S.navOpen; return draw(); }
+    if (act === 'nav-x') { S.navOpen = false; return draw(); }
+    if (act === 'dview') { S.dview = t.dataset.v; if (t.dataset.st || t.dataset.sg) { S.cf = { st: t.dataset.st || '', sg: t.dataset.sg || '' }; S.cn = 60; } if (S.dview === 'customers' && !S.dc) loadDc(); window.scrollTo(0, 0); return draw(); }
+    if (act === 'sort') { var sk = t.dataset.sk, kk = t.dataset.k, cur = S[sk] || {}; S[sk] = { k: kk, d: cur.k === kk ? -cur.d : (['n', 'company', 'code', 'k', 'sp', 'status', 'segment', 'customerCode', 'tier', 'loc', 'next', 'since'].indexOf(kk) >= 0 ? 1 : -1) }; return draw(); }
+    if (act === 'ach') { S.ach = t.dataset.c; return draw(); }
+    if (act === 'cst') { S.cst = t.dataset.s; if (S.tab !== 'clients') S.tab = 'clients'; return draw(); }
+    if (act === 'cf-clear') { S.cf = {}; S.cn = 60; return draw(); }
+    if (act === 'cn-more') { S.cn = (S.cn || 60) + 60; return draw(); }
+    if (act === 'cust') { return openCust(t.dataset.code); }
+    if (act === 'acc') { var ac0 = S.data.accounts.filter(function (x) { return x.id === id; })[0]; return openCust(ac0 && ac0.customerCode, id); }
+    if (act === 'dr-x') { S.dr = null; return draw(); }
+    if (act === 'dr-voucher') { var vc = S.dr.code || ''; S.dr = null; S.tab = 'vouchers'; S.ex.v = { company_code: vc }; loadTab('vouchers'); return draw(); }
+    if (act === 'dc-csv') { var F = S.cf || {}; return csv('maxzz-customers', [['Code', 'Customer', 'Status', 'Segment', 'Last 12 months', 'Year before', 'Orders', 'Days since last order', 'Buys every (days)', 'Expected next', 'Salesperson', 'Country', 'In portal']].concat(S.dc.filter(function (r) { var q = String(F.q || '').toLowerCase(); return (!q || (r.n + ' ' + r.c).toLowerCase().indexOf(q) >= 0) && (!F.st || (F.st === 'due' ? r.status === 'due' || r.status === 'overdue' : r.status === F.st)) && (!F.sg || r.segment === F.sg) && (!F.sp || r.sp === F.sp) && (!F.co || r.country === F.co) && (F.pt !== 'in' || r.portal) && (F.pt !== 'out' || !r.portal); }).map(function (r) { return [r.c, r.n, r.status, r.segment, r.r12, r.p12, r.orders, r.since, r.med || '', r.next || '', r.sp || '', r.country || '', r.portal ? 'yes' : '']; }))); }
     if (act === 'send') { var em = document.getElementById('em').value.trim(); if (!em) return; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
     if (act === 'confirm') { S.busy = true; draw(); api('confirm', { t: S.lt }).then(function (r) { S.busy = false; if (r._status === 200) { S.lt = ''; boot(); } else { S.lt = ''; S.err = 'That link expired or was already used. Ask for a new one.'; draw(); } }); }
     if (act === 'addp') { var f = {}; [].forEach.call(app.querySelectorAll('[data-f]'), function (i) { f[i.dataset.f] = i.value.trim(); }); S.form = f; S.busy = true; draw(); api('addprospect', f).then(function (r) { S.busy = false; if (r.ok) { S.form = {}; loadProspects(); } else fail(r); }); }
     if (act === 'out') api('logout', {}).then(function () { S.me = null; S.data = null; draw(); });
     if (act === 'open') { S.open = S.open === id ? null : id; draw(); }
     if (act === 'look') { var inp = app.querySelector('[data-look="' + id + '"]'); api('lookup', null, '&code=' + encodeURIComponent(inp.value)).then(function (r) { if (r.customers) { S.found[id] = r.customers; if (!r.customers.length) S.err = 'No Unleashed customer found.'; draw(); } else fail(r); }); }
-    if (act === 'approve') { var c = S.found[id][+t.dataset.i]; if (!confirm('Link this company to ' + c.code + ' ' + c.name + ' and approve access?')) return; api('approve', { account: id, customer: c }).then(function (r) { if (r.ok) { S.open = null; load(); } else fail(r); }); }
+    if (act === 'approve') { var c = S.found[id][+t.dataset.i]; if (!confirm('Link this company to ' + c.code + ' ' + c.name + ' and approve access?')) return; api('approve', { account: id, customer: c }).then(function (r) { if (r.ok) { S.open = null; S.dr = null; load(); } else fail(r); }); }
     if (act === 'reject') { var why = prompt('Reason (optional, shown if you notify them):'); if (why === null) return; api('reject', { account: id, reason: why, notify: confirm('Send them an e-mail about it?') }).then(function (r) { if (r.ok) load(); else fail(r); }); }
     if (act === 'revoke') { if (!confirm('End every open session of ' + t.dataset.email + '?')) return; api('revoke', { email: t.dataset.email }).then(function (r) { if (r.ok) load(); else fail(r); }); }
 
@@ -320,7 +516,7 @@ svg.chart{width:100%;height:auto;display:block}.ai{background:#111;color:#fff}.a
     if (act === 'ad-edit') { S.ex.ad = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; return draw(); }
     if (act === 'ad-tog') { var ax = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; api('admin-save', { email: ax.email, name: ax.name, role: ax.role, active: !ax.active }).then(function (r) { done(r, function () { loadTab('admins'); }); }); }
   });
-  app.addEventListener('change', function (e) { if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });
+  app.addEventListener('change', function (e) { if (e.target.dataset.chg) { setM(e.target.dataset.chg, e.target.value); return draw(); } if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });
   (function () {
   })();
   function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; draw(); } }); }
