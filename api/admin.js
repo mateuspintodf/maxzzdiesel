@@ -612,7 +612,7 @@ A['campaign-save'] = async (req, res) => {
   if (!codes.length) return res.status(400).json({ error: 'Add at least one product to the campaign.' });
   if (kind === 'price' && codes.some((x) => !(x[1] > 0)) && !(value > 0)) return res.status(400).json({ error: 'Fixed price campaigns need a price on every product.' });
   const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: value || 0,
-    color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
+    color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
   let cid = id;
   try {
     if (cid) await db.update('campaigns', 'id=eq.' + cid, rec);
