@@ -287,6 +287,18 @@ A.prices = async (req, res) => {
   return res.json(book);
 };
 
+// the customer's usual parts from their Unleashed invoices (last 2 years), only parts they can see and buy, and their rep
+A.usual = async (req, res) => {
+  const w = await whoami(req);
+  if (!w) return res.status(401).json({ error: 'login' });
+  if (!(w.account && w.account.status === 'approved' && w.account.customerCode)) return res.json({ parts: [], rep: null });
+  const [rows, book, ulc] = await Promise.all([dbm.rpc('portal_usual', { p_code: w.account.customerCode }).catch(() => []), priceBook(w.account, false), dbm.select('ul_customers', 'select=salesperson&code=eq.' + encodeURIComponent(w.account.customerCode) + '&limit=1').catch(() => [])]);
+  const items = (book && book.items) || {};
+  const parts = (rows || []).filter((r) => r && r.code && !/CORE$/i.test(r.code) && items[r.code]).slice(0, 12).map((r) => ({ code: r.code, n: r.n, q: Math.max(1, Math.min(999, Number(r.q) || 1)), last: r.last }));
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ parts, rep: (ulc[0] && ulc[0].salesperson) || null });
+};
+
 // price a cart the way the order will, then check a voucher against it (the browser only says which code and which parts)
 async function cartSubtotal(w, rawLines) {
   const book = await priceBook(w.account, w.admin); let sub = 0, ok = 0;
@@ -443,7 +455,13 @@ A.order = async (req, res) => {
       CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, vch ? 'VOUCHER ' + vch.code + ' (-$' + discount.toFixed(2) + ')' : '', lines.some((l) => l.camp) ? 'CAMPAIGN PRICE (' + [...new Set(lines.filter((l) => l.camp).map((l) => l.camp))].join(', ') + '): ' + lines.filter((l) => l.camp).map((l) => l.code).join(', ') : '', lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
-      SalesOrderLines: lines.map((l, i) => ({ LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, DiscountRate: vch ? money(discount / gross * 1e4) / 1e4 : undefined, LineTotal: vch ? money(l.total * (1 - discount / gross)) : l.total, LineTax: 0 })),
+      SalesOrderLines: (function () {
+        // the voucher only discounts the lines it applies to (not campaign lines that exclude vouchers); rounding goes on the last one
+        const elig = lines.filter((l) => !vch || l.vch !== false), base = elig.reduce((a, l) => a + l.total, 0), rate = vch && base > 0 ? discount / base : 0, lastI = lines.lastIndexOf(elig[elig.length - 1]);
+        let left = vch ? discount : 0;
+        return lines.map((l, i) => { let lt = l.total; if (rate && elig.indexOf(l) >= 0) { const d = i === lastI ? money(left) : money(l.total * rate); left = money(left - d); lt = money(l.total - d); }
+          return { LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, DiscountRate: rate && elig.indexOf(l) >= 0 ? money(rate * 1e4) / 1e4 : undefined, LineTotal: lt, LineTax: 0 }; });
+      })(),
       SubTotal: subtotal, TaxRate: 0, TaxTotal: 0, Total: subtotal
     };
     try {

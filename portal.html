@@ -23,6 +23,7 @@
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}.px-fsub{margin:2px 0 10px 9px;padding:2px 0 2px 17px;border-left:2px solid #e6e8eb;animation:pxfsub .2s ease}@keyframes pxfsub{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}.px-fsub-e{padding:5px 0}.px-fsub-l{display:block;font-size:12px;font-weight:600;color:#5b626b;margin:0 0 5px}.px-fsub-g{display:flex;flex-wrap:wrap;gap:5px}.px-fy{display:inline-flex;align-items:center;gap:5px;text-align:left;border:1px solid #d5d9de;background:#fff;border-radius:14px;padding:3px 10px;font:inherit;font-size:12px;line-height:18px;color:#2b3036;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}.px-fy small{font-size:11px;color:#8a919a}.px-fy:hover{border-color:#9aa1a9}.px-fy.on{background:#1d2126;border-color:#1d2126;color:#fff}.px-fy.on small{color:#c9cdd2}.px-fy.dis{opacity:.45;cursor:default}.px-sh-r{display:flex;align-items:center;gap:14px}.px-sh-r .px-sort{height:38px}@media(max-width:560px){.px-sh{flex-wrap:wrap;gap:8px}.px-sh-r{width:100%;justify-content:space-between}}
+.px-rep{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;margin:8px 0 0;font-size:14px;color:inherit;opacity:.9}.px-rep a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 </style>
 <style>[v-cloak]{opacity:0}html,body{margin:0;background:#eef0f2}a{color:inherit;text-decoration:none}</style>
 
@@ -1225,6 +1226,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div>
 <h1 v-if="!logged && route === 'home'">Wholesale diesel injection, <em>in stock</em></h1>
 <h1 v-if="logged && route === 'home'"><span v-text="greet + ', '"></span><em v-text="firstName"></em></h1>
+<p class="px-rep" v-if="logged && route === 'home' && rep"><span>Your rep: <b v-text="rep"></b></span><a href="tel:+19545864158">+1 (954) 586-4158</a><a href="https://wa.me/19543716996" target="_blank" rel="noopener">WhatsApp</a></p>
 <p v-if="!logged" class="px-lead">Injectors, pumps, nozzles, tools, fluids and kits shipped from Florida. <br>Sign in for your price list, live stock and online ordering.</p>
 <div class="px-acc-line" v-else>
 <span class="co" v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span>
@@ -1298,7 +1300,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <!-- HOME -->
 <div v-if="route === 'home'">
 <div class="px-sec" v-if="canOrder && buyAgain.length">
-<div class="px-sh"><h2>Buy again</h2><a href="#/orders">Your orders</a></div>
+<div class="px-sh"><h2 v-text="usual.length ? 'Your usual parts' : 'Buy again'"></h2><span class="px-muted" v-if="usual.length" style="font-size:13px">From your orders with Maxzz in the last 2 years</span><span style="flex:1"></span><button type="button" class="px-btn px-ghost" v-if="usual.length" @click="addAll(buyAgain)" style="padding:7px 14px;font-size:13px">Add all to cart</button><a href="#/orders">Your orders</a></div>
 <div class="px-grid4">
 <article class="sc" v-for="r in buyAgain" :key="r[0]">
 <a class="sc-img" :href="'#/p/' + encodeURIComponent(r[0])" :aria-label="info(r).title"><span class="sc-cb" v-if="campOf[r[0]]" :style="{ background: campOf[r[0]].color }" v-text="campOf[r[0]].badge"></span><img v-if="img(r[0])" :class="bench(r[0]) ? 'bench' : ''" :src="img(r[0])" @error="imgFail(r[0])" :alt="info(r).title" loading="lazy"><span v-else class="sc-ph" v-html="ph(r[3])"></span></a>
@@ -1308,6 +1310,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="sc-cat"><span v-text="catLabel(r[3])"></span><span class="sc-br" v-if="r[4]" v-text="r[4]"></span></span>
 <a class="sc-t" :href="'#/p/' + encodeURIComponent(r[0])" v-text="title(r)"></a>
 <span class="sc-app" v-if="info(r).app" v-text="info(r).app"></span>
+<span class="sc-app" v-if="usualInfo(r[0])" v-text="usualInfo(r[0])" style="color:#1e1e87"></span>
 </div>
 <div class="sc-buy" v-if="logged">
 <div class="sc-pr"><span class="sc-prc"><b v-text="fmt(price(r[0]))" :class="[price(r[0]) == null ? 'px-por' : '', was(r[0]) ? 'px-deal' : '']"></b><s class="sc-was" v-if="was(r[0])" v-text="fmt(was(r[0]))"></s></span><span class="px-stock"><i class="px-dot" :class="stockClass(r[0])"></i><span v-text="stockText(r[0])"></span></span></div>
@@ -2190,7 +2193,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=87"></script>
+<script src="/js/portal-app.js?v=88"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
