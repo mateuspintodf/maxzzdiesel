@@ -29,6 +29,8 @@ async function who(req, res) {
 const can = (w, ...roles) => w.role === 'superadmin' || roles.includes(w.role);
 
 const A = {};
+// a PostgREST in() list of text values, quoted and URL-encoded (part codes can carry #, +, &, spaces, commas)
+const inList = (vals) => 'in.(' + vals.map((v) => encodeURIComponent('"' + String(v).replace(/["\\]/g, '') + '"')).join(',') + ')';
 
 A.login = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -469,7 +471,7 @@ A['segment-create'] = async (req, res) => {
   const existing = {}; (await db.selectAll('companies', 'select=id,unleashed_code&unleashed_code=not.is.null')).forEach((r) => { existing[r.unleashed_code] = r.id; });
   const missing = codes.filter((c) => !existing[c]);
   for (let i = 0; i < missing.length; i += 150) {
-    const ul = await db.select('ul_customers', 'select=*&code=in.(' + missing.slice(i, i + 150).map((c) => '"' + c.replace(/"/g, '') + '"').join(',') + ')');
+    const ul = await db.select('ul_customers', 'select=*&code=' + inList(missing.slice(i, i + 150)));
     if (!ul.length) continue;
     const made = await db.insert('companies', ul.map((c) => ({ name: c.name || c.code, unleashed_code: c.code, unleashed_guid: c.guid, tier: c.tier, payment_terms: c.payment_terms, stop_credit: !!c.stop_credit, customer_type: c.type,
       city: c.city, state: c.state, country: c.country, salesperson: c.salesperson, status: 'prospect', source: 'unleashed_import', contact_email: c.email, contact_name: c.contact_name, contact_phone: c.phone, tier_synced_at: new Date().toISOString() })));
@@ -599,23 +601,54 @@ A['hidden-set'] = async (req, res) => {
   for (let i = 0; i < codes.length; i += 200) {
     const part = codes.slice(i, i + 200);
     if (b.hide) await db.insert('hidden_products', part.map((code) => ({ code, reason: clean(b.reason, 200) || null, hidden_by: w.email })), { onConflict: 'code' });
-    else await db.remove('hidden_products', 'code=in.(' + part.map((c) => '"' + c.replace(/"/g, '') + '"').join(',') + ')');
+    else await db.remove('hidden_products', 'code=' + inList(part));
   }
   await PS.audit(w.email, b.hide ? 'product.hide' : 'product.show', 'product', codes.join(',').slice(0, 200));
   return res.json({ ok: true, n: codes.length });
 };
 
+// real parts for the campaign preview: photo, default list price and stock
+A['campaign-sample'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  const codes = String(req.query.codes || '').split('|').map((c) => clean(c, 60)).filter(Boolean).slice(0, 4);
+  const [prod, stock] = await Promise.all([cached('portal/products.json', 10 * 60 * 1000), cached('portal/stock.json', 10 * 60 * 1000)]);
+  const out = {};
+  codes.forEach((c) => { const p = prod && prod.items && prod.items[c]; out[c] = { img: p && p.img && /^https:\/\//.test(p.img) ? p.img : null, price: p && p.d > 0 ? Math.round(p.d * 100) / 100 : null, stock: stock && stock.qty ? (stock.qty[c] ?? 0) : null }; });
+  return res.json({ items: out });
+};
+// the standard hidden list: a saved snapshot the team can go back to after a bulk change
+A['hidden-standard'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req);
+  if (b.op === 'save') {
+    const cur = await db.selectAll('hidden_products', 'select=code,reason');
+    await db.remove('hidden_standard', 'code=not.is.null');
+    for (let i = 0; i < cur.length; i += 500) await db.insert('hidden_standard', cur.slice(i, i + 500).map((r) => ({ code: r.code, reason: r.reason, saved_by: w.email })));
+    await PS.audit(w.email, 'product.standard.save', 'product', String(cur.length));
+    return res.json({ ok: true, n: cur.length });
+  }
+  if (b.op === 'restore') {
+    const std = await db.selectAll('hidden_standard', 'select=code,reason');
+    await db.remove('hidden_products', 'code=not.is.null');
+    for (let i = 0; i < std.length; i += 500) await db.insert('hidden_products', std.slice(i, i + 500).map((r) => ({ code: r.code, reason: r.reason, hidden_by: w.email })), { onConflict: 'code' });
+    await PS.audit(w.email, 'product.standard.restore', 'product', String(std.length));
+    return res.json({ ok: true, n: std.length });
+  }
+  return res.status(400).json({ error: 'op' });
+};
 // the whole catalog for the visibility screen: every product with its classification, hidden flag, stock and 12-month sales
 A['catalog-all'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   const { readJson } = require('../lib/store');
-  const [live, hid, stock, sales] = await Promise.all([readJson('catalog/live.json').catch(() => null), db.selectAll('hidden_products', 'select=code,reason,hidden_by,created_at'), readJson('portal/stock.json').catch(() => null), db.rpc('product_sales_12m').catch(() => ({}))]);
+  const [live, hid, stock, sales, std] = await Promise.all([readJson('catalog/live.json').catch(() => null), db.selectAll('hidden_products', 'select=code,reason,hidden_by,created_at'), readJson('portal/stock.json').catch(() => null), db.rpc('product_sales_12m').catch(() => ({})), db.selectAll('hidden_standard', 'select=code,saved_by,saved_at').catch(() => [])]);
   let rows = Array.isArray(live) && live.length ? live : JSON.parse(require('fs').readFileSync(require('path').join(process.cwd(), 'data', 'catalog.json'), 'utf8'));
   const H = {}; hid.forEach((h) => { H[h.code] = [h.reason || '', h.hidden_by || '', h.created_at]; });
   const Q = (stock && stock.qty) || {};
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ rows: rows.map((r) => [r[0], r[1], r[3], r[4] || '', r[5] || '', r[6] || '', Q[r[0]] != null ? Number(Q[r[0]]) : null, (sales || {})[r[0]] || null, H[r[0]] || null]),
-    hiddenNotInCatalog: hid.filter((h) => !rows.some((r) => r[0] === h.code)).map((h) => h.code), stockAt: stock && stock.at });
+    standard: { n: std.length, by: std[0] ? std[0].saved_by : null, at: std[0] ? std[0].saved_at : null }, hiddenNotInCatalog: hid.filter((h) => !rows.some((r) => r[0] === h.code)).map((h) => h.code), stockAt: stock && stock.at });
 };
 A['behavior-companies'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
