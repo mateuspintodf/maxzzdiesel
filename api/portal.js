@@ -287,6 +287,18 @@ A.prices = async (req, res) => {
   return res.json(book);
 };
 
+// the customer's usual parts from their Unleashed invoices (last 2 years), only parts they can see and buy, and their rep
+A.usual = async (req, res) => {
+  const w = await whoami(req);
+  if (!w) return res.status(401).json({ error: 'login' });
+  if (!(w.account && w.account.status === 'approved' && w.account.customerCode)) return res.json({ parts: [], rep: null });
+  const [rows, book, ulc] = await Promise.all([dbm.rpc('portal_usual', { p_code: w.account.customerCode }).catch(() => []), priceBook(w.account, false), dbm.select('ul_customers', 'select=salesperson&code=eq.' + encodeURIComponent(w.account.customerCode) + '&limit=1').catch(() => [])]);
+  const items = (book && book.items) || {};
+  const parts = (rows || []).filter((r) => r && r.code && !/CORE$/i.test(r.code) && items[r.code]).slice(0, 12).map((r) => ({ code: r.code, n: r.n, q: Math.max(1, Math.min(999, Number(r.q) || 1)), last: r.last }));
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ parts, rep: (ulc[0] && ulc[0].salesperson) || null });
+};
+
 // price a cart the way the order will, then check a voucher against it (the browser only says which code and which parts)
 async function cartSubtotal(w, rawLines) {
   const book = await priceBook(w.account, w.admin); let sub = 0, ok = 0;

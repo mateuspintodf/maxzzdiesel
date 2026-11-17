@@ -2428,7 +2428,7 @@
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
-    countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], REWARDS: { on: true, demo: true, points: 12480, rate: 1, levels: [
+    countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], usual: [], rep: '', REWARDS: { on: false, demo: true, points: 12480, rate: 1, levels: [
       { k: 'app', n: 'Apprentice', at: 0, c: '#8a9097', perk: 'Points on every order', perks: ['1 point per US$ 1 invoiced', 'Member pricing alerts', 'Order tracking in the store'] },
       { k: 'tech', n: 'Technician', at: 10000, c: '#c87533', perk: 'Free ground freight over US$ 1,500', perks: ['Everything in Apprentice', 'Free ground freight on orders over US$ 1,500', 'Early access to new part lines'] },
       { k: 'spec', n: 'Specialist', at: 25000, c: '#d32a37', perk: 'Priority review and a DTA seat a year', perks: ['Everything in Technician', 'Priority order review', '1 Diesel Tech Academy course seat a year'] },
@@ -2740,14 +2740,18 @@
     get relShown() { var r = this.related, n = r.length >= 8 ? 8 : r.length >= 4 ? 4 : r.length; return r.slice(0, n); },
     get buyAgain() {
       var seen = {}, out = [], self = this;
+      (this.usual || []).forEach(function (u) { if (!seen[u.code] && self.map[u.code]) { seen[u.code] = 1; out.push(self.map[u.code]); } });
+      if (out.length) return out.slice(0, 8);
       (this.orders || []).forEach(function (o) { (o.lines || []).forEach(function (l) { if (!seen[l.code] && self.map[l.code]) { seen[l.code] = 1; out.push(self.map[l.code]); } }); });
       return out.slice(0, 4);
     },
+    usualQty: function (c) { var u = (this.usual || []).filter(function (x) { return x.code === c; })[0]; return u ? u.q : 1; },
+    usualInfo: function (c) { var u = (this.usual || []).filter(function (x) { return x.code === c; })[0]; return u ? 'Ordered ' + u.n + ' time' + (u.n === 1 ? '' : 's') + ', usually ' + u.q : ''; },
     addAll: function (list) {
       var self = this, nq = 0, nc = 0;
       list.forEach(function (r) {
         var c = r[0];
-        if (self.canOrder && self.price(c) != null) { if (!self.inCart(c)) { self.cart.push({ code: c, qty: 1 }); nc++; } }
+        if (self.canOrder && self.price(c) != null) { if (!self.inCart(c)) { self.cart.push({ code: c, qty: self.usualQty(c) }); nc++; } }
         else if (!self.inQuote(c)) { self.quote.push({ id: c, name: r[1], pn: c, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: 1 }); nq++; }
       });
       this.save(); write(QK, this.quote); this.pop();
@@ -2991,6 +2995,7 @@
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
           self.loadRewards();
+          if (me.account) api('usual').then(function (u) { if (u._status === 200) { self.usual = u.parts || []; self.rep = u.rep || ''; } });
         } else if (me._status === 401) forget();
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
@@ -3132,6 +3137,8 @@
       api('rewards').then(function (d) {
         if (!d || d._status !== 200 || !d.catalog) return;
         self.RWITEMS = d.catalog;
+        // the program stays out of sight for customers while it is off; admins still see the preview
+        self.REWARDS.on = !d.preview || !!(self.me && self.me.admin);
         if (d.preview && !d.balance && !(self.me && self.me.admin)) return;
         self.REWARDS.demo = false; self.REWARDS.points = d.balance || 0; self.REWARDS.year = d.year || 0; self.REWARDS.rate = d.rate || 1;
         self.REWARDS.history = d.history || []; self.REWARDS.live = !d.preview;
