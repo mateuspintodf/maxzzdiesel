@@ -9,7 +9,7 @@
 <style>
 @font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
 @font-face{font-family:'BDO Grotesk';src:url(/assets/fonts/BDOGrotesk-DemiBold.woff2) format('woff2');font-weight:600;font-display:swap}
-:root{--ground:#eceef2;--card:#fff;--soft:#f4f5f7;--ink:#16191d;--ink2:#4b525b;--muted:#868c95;--line:#e8eaee;--line2:#f1f2f4;--red:#d32a37;--orange:#fc771d;--acc:#fc771d;--accs:#ffeadb;--ok:#1f8a4c;--oks:#e3f4e9;--warn:#b86a0b;--warns:#fdf0dc;--blue:#2c5fb3;--blues:#e7eefb;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--r:24px}
+:root{--ground:#dedede;--card:#fff;--soft:#f1f1f2;--ink:#1d2126;--ink2:#5a5a60;--muted:#85858b;--line:#e4e4e6;--line2:#efeff0;--red:#d32a37;--orange:#fc771d;--acc:#fc771d;--accs:#ffeadb;--ok:#1f8a4c;--oks:#e3f4e9;--warn:#b86a0b;--warns:#fdf0dc;--blue:#1e1e87;--blues:#e6e6f4;--font:'BDO Grotesk','Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;--r:24px}
 *{box-sizing:border-box}
 html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
@@ -123,7 +123,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
 .pv{border:0;width:100%;height:640px;border-radius:18px;background:#f2f3f5}
 .prog{height:10px;border-radius:999px;background:var(--soft);overflow:hidden;margin:10px 0}.prog i{display:block;height:100%;background:var(--acc);border-radius:999px;transition:width .3s}
 .tree{display:flex;flex-direction:column;gap:2px}.tree button{display:flex;align-items:center;gap:8px;width:100%;border:0;background:none;padding:8px 10px;border-radius:12px;cursor:pointer;text-align:left;font-size:13.5px;color:var(--ink2)}.tree button:hover{background:var(--soft)}.tree button.on{background:var(--ink);color:#fff}.tree button span{flex:1}.tree button small{color:var(--muted);font-size:12px}.tree button.on small{color:#b9bec5}.tree .sub{padding-left:16px}.tree .sub button{font-size:13px;padding:6px 10px}
-.hidx{color:var(--red)}.gtree{grid-template-columns:minmax(0,300px) minmax(0,1fr)}.kpi.acc .ks a{color:#16191d;text-decoration:underline}@media(max-width:1200px){.gtree{grid-template-columns:1fr}}
+.hidx{color:var(--red)}.cbadge{display:inline-block;color:#fff;font-size:11.5px;font-weight:600;letter-spacing:.02em;border-radius:999px;padding:4px 11px}.swc{width:34px;height:34px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer}.swc.on{box-shadow:0 0 0 2px var(--ink)}.cprev{background:var(--soft);border-radius:18px;padding:14px;max-width:240px}.cpimg{position:relative;background:#fff;border-radius:14px;height:130px;display:flex;align-items:center;justify-content:center;color:#c3c3c8;margin-bottom:10px}.cpimg .cbadge{position:absolute;left:10px;top:10px}.cprev small{display:block;color:var(--muted)}.cpp{display:flex;gap:8px;align-items:baseline;margin-top:6px}.cpp b{font-size:18px;color:var(--red)}.cpp s{color:var(--muted)}.gtree{grid-template-columns:minmax(0,300px) minmax(0,1fr)}.kpi.acc .ks a{color:#16191d;text-decoration:underline}@media(max-width:1200px){.gtree{grid-template-columns:1fr}}
 /* old views */
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .err{color:var(--red);margin-top:10px;font-size:14px}
@@ -170,7 +170,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
   var NAV = [
     ['dash', 'Dashboard', [['dash', 'Overview']]],
     ['cust', 'Customers', [['dir', 'Unleashed customers'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
-    ['cat', 'Catalog', [['products', 'Product visibility'], ['loyalty', 'Max Rewards']]],
+    ['cat', 'Catalog', [['campaigns', 'Campaigns'], ['products', 'Product visibility'], ['loyalty', 'Max Rewards']]],
     ['vou', 'Vouchers', [['vouchers', 'Vouchers']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
     ['set', 'Settings', [['terms', 'Terms of use'], ['admins', 'Admin users'], ['audit', 'Activity log']]]];
@@ -178,7 +178,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
   var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer'], ['products', 'Parts'], ['portal', 'Portal']];
   var HEAD = {
     dash: function () { var v = S.dview || 'overview'; return '<div class="seg">' + DVIEWS.map(function (x) { return '<button data-act="dview" data-v="' + x[0] + '" class="' + (v === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
-      (v === 'portal' || v === 'overview' ? '<select class="sel" data-act-change="days">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Portal: last ' + d + ' days</option>'; }).join('') + '</select>' : ''); },
+      (v === 'portal' || v === 'overview' ? '<select class="sel" data-act-change="days">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + d + ' days</option>'; }).join('') + '</select>' : ''); },
     clients: function () { return '<label class="srch">' + ic('search', 16) + '<input type="search" data-m="q" value="' + esc(S.q) + '" placeholder="Company, code or e-mail"></label>'; },
     events: daysSel, bcomp: daysSel, stream: daysSel
   };
@@ -199,17 +199,18 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
     app.innerHTML = h + '</div>' + drawDrawer();
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
-  var VIEWS = { dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, bcomp: drawBComp, stream: drawStream };
+  var VIEWS = { dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
     if (t === 'prospects') return loadProspects();
     if (t === 'clients') return load();
-    var M = { dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
+    var M = { campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
       stream: ['behavior-stream', 'bs', 'rows', bd + (sf.type ? '&type=' + encodeURIComponent(sf.type) : '') + (sf.signed ? '&signed=1' : '')], audit: ['audit', 'audit', 'rows'], terms: ['terms', 'terms', 'terms'], loyalty: ['loyalty', 'loy'], admins: ['admins', 'adm'] };
     var L = M[t]; if (!L) return;
     api(L[0], null, L[3] || '').then(function (r) { if (r._status === 200) { S[L[1]] = L[2] ? r[L[2]] : r; draw(); } else fail(r); });
     if ((t === 'vouchers' || t === 'dir') && !S.data) load();
+    if (t === 'campaigns' && !S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
   }
   function ld() { return '<div class="card muted">Loading...</div>'; }
   function fld(g, k, label, v, type, ph) { return '<div><label class="l">' + label + '</label><input type="' + (type || 'text') + '" data-g="' + g + '" data-k="' + k + '" value="' + esc(v == null ? '' : v) + '" placeholder="' + esc(ph || '') + '"></div>'; }
@@ -283,9 +284,10 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
     if (v === 'portal') return drawDPortal();
     var s = D.sales || {}, k = s.kpi || {}, mo = s.months || [], rv = mo.map(function (x) { return +x.rev || 0; }).slice(-12), on = mo.map(function (x) { return +x.n || 0; }).slice(-12), cu = mo.map(function (x) { return +x.cust || 0; }).slice(-12);
     var due = (s.status || {}).due || {}, ov = (s.status || {}).overdue || {};
-    var h = syncNote(s) + '<div class="kpis">' + tile('Revenue, 30 days', k$(k.r30), delta(k.r30, k.p30) + ' vs 30 before', '', 'dark') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
-      tile('Orders, 12 months', n0(k.o365), delta(k.o365, k.po365), sparkPath(on, 120, 34)) + tile('Average order', k$(k.o365 ? k.r365 / k.o365 : 0), delta(k.o365 ? k.r365 / k.o365 : 0, k.po365 ? k.p365 / k.po365 : 0)) + tile('Buying customers, 90 days', n0(k.c90), delta(k.c90, k.pc90), sparkPath(cu, 120, 34)) +
-      tile('To reorder now', n0((due.n || 0) + (ov.n || 0)), '<a data-act="dview" data-v="customers" data-st="due">' + k$((due.r12 || 0) + (ov.r12 || 0)) + ' a year, see list</a>', '', 'acc') + tile('Portal, ' + (D.days || 30) + ' days', n0(D.portal.orders + D.portal.quotes), n0(D.portal.orders) + ' orders · ' + n0(D.portal.quotes) + ' quotes') + '</div>';
+    var pe = D.period || { days: 30, r: k.r30, pr: k.p30, o: k.o30, po: k.po30, c: 0, pc: 0 }, pd = pe.days || 30, pl = pd === 365 ? '12 months' : pd + ' days';
+    var h = syncNote(s) + '<div class="kpis">' + tile('Revenue, last ' + pl, k$(pe.r), delta(pe.r, pe.pr) + ' vs the ' + pl + ' before', '', 'dark') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
+      tile('Orders, last ' + pl, n0(pe.o), delta(pe.o, pe.po), sparkPath(on, 120, 34)) + tile('Average order, last ' + pl, k$(pe.o ? pe.r / pe.o : 0), delta(pe.o ? pe.r / pe.o : 0, pe.po ? pe.pr / pe.po : 0)) + tile('Buying customers, last ' + pl, n0(pe.c), delta(pe.c, pe.pc), sparkPath(cu, 120, 34)) +
+      tile('To reorder now', n0((due.n || 0) + (ov.n || 0)), '<a data-act="dview" data-v="customers" data-st="due">' + k$((due.r12 || 0) + (ov.r12 || 0)) + ' a year, see list</a>', '', 'acc') + tile('Portal, last ' + pl, n0(D.portal.orders + D.portal.quotes), n0(D.portal.orders) + ' orders · ' + n0(D.portal.quotes) + ' quotes') + '</div>';
     h += '<div class="g21">' + sec('Revenue by month', months(mo) + '<p class="muted">Invoiced subtotals. Dark: last 12 months, light: the 12 before.' + (k.last ? ' Latest invoice ' + esc(k.last) + '.' : '') + '</p>') +
       sec('Customer health', (function () { var stt = s.status || {}, tot = 0; ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].forEach(function (x) { tot += (stt[x] || {}).n || 0; });
         return '<div class="hb">' + ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].filter(function (x) { return stt[x]; }).map(function (x) { return '<i class="' + x + '" style="flex:' + stt[x].n + '" title="' + STL[x] + ': ' + stt[x].n + '"></i>'; }).join('') + '</div>' +
@@ -385,7 +387,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
     api('customer', null, qs).then(function (r) { if (!S.dr) return; S.dr.loading = false; if (r._status === 200) { S.dr.data = r; if (!S.dr.code && r.code) S.dr.code = r.code; } draw(); });
   }
   // ---------------------------------------------------------------- shared bits for the new screens
-  var HATCH = '<defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#2a2f36"/><line x1="0" y1="0" x2="0" y2="7" stroke="#3a4048" stroke-width="3"/></pattern><pattern id="hatch2" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#fc771d"/><line x1="0" y1="0" x2="0" y2="7" stroke="#fd9550" stroke-width="3"/></pattern></defs>';
+  var HATCH = '<defs><pattern id="hatch" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#1d2126"/><line x1="0" y1="0" x2="0" y2="7" stroke="#2f343b" stroke-width="3"/></pattern><pattern id="hatch2" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="7" height="7" fill="#fc771d"/><line x1="0" y1="0" x2="0" y2="7" stroke="#fd9550" stroke-width="3"/></pattern></defs>';
   function months(m, H) {
     m = (m || []).slice(-24); if (!m.length) return '<div class="empty">No sales synced yet.</div>'; H = H || 220;
     var G = 48, W = 760, bw = (W - G) / m.length, max = Math.max.apply(null, m.map(function (x) { return +x.rev || 0; })) || 1, h = '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 26) + '" role="img" aria-label="Revenue by month">' + HATCH;
@@ -499,9 +501,10 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
   function subLabel(cat, k) { var L = (window.MX_SUBS || {})[cat] || []; for (var i = 0; i < L.length; i++) if (L[i][0] === k) return L[i][1]; return k || 'Other'; }
   function brandOf(r) { if (r[3]) return r[3]; var m = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); return m && window.MX_BRP && window.MX_BRP[m[1]] || ''; }
   function ptitle(d) { d = String(d || '').split(' / ')[0].replace(/\s*\(=.*$/, ''); return d.length > 80 ? d.slice(0, 78) + '...' : d; }
-  function prodFilter() {
-    var F = S.pf2 || {}, q = String(F.q || '').toLowerCase();
+  function prodFilter(g) {
+    var F = S[g || 'pf2'] || {}, q = String(F.q || '').toLowerCase(), inc = g === 'cpf' && S.cp ? S.cp.items : null;
     return (S.cat ? S.cat.rows : []).filter(function (r) {
+      if (inc && F.inc === 'in' && !(r[0] in inc)) return false; if (inc && F.inc === 'out' && (r[0] in inc)) return false;
       if (F.cat && r[2] !== F.cat) return false; if (F.sub && subOf(r) !== F.sub) return false;
       if (q && (r[0] + ' ' + r[1]).toLowerCase().indexOf(q) < 0) return false;
       if (!has(F.brand, brandOf(r)) || !has(F.market, r[4])) return false;
@@ -510,17 +513,68 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
       if (F.sold === 'yes' && !r[7]) return false; if (F.sold === 'no' && r[7]) return false;
       return true; });
   }
+  function treeHtml(g, extra) {
+    var all = S.cat.rows, F = S[g] || {};
+    var tree = '<section class="card"><div class="ch"><h2>Classification</h2></div><div class="tree"><button data-act="pcat" data-g="' + g + '" data-c="" class="' + (!F.cat ? 'on' : '') + '"><span>All products</span><small>' + n0(all.length) + '</small></button>';
+    Object.keys(CATL).forEach(function (c) { var inC = all.filter(function (r) { return r[2] === c; }); if (!inC.length) return;
+      tree += '<button data-act="pcat" data-g="' + g + '" data-c="' + esc(c) + '" class="' + (F.cat === c && !F.sub ? 'on' : '') + '"><span>' + esc(CATL[c]) + (extra ? extra(inC) : '') + '</span><small>' + n0(inC.length) + '</small></button>';
+      if (F.cat === c) { var subs = {}; inC.forEach(function (r) { var s = subOf(r); subs[s] = (subs[s] || 0) + 1; }); tree += '<div class="sub">' + ((window.MX_SUBS || {})[c] || []).filter(function (s) { return subs[s[0]]; }).map(function (s) { return '<button data-act="psub" data-g="' + g + '" data-s="' + esc(s[0]) + '" class="' + (F.sub === s[0] ? 'on' : '') + '"><span>' + esc(s[1]) + '</span><small>' + n0(subs[s[0]]) + '</small></button>'; }).join('') + '</div>'; } });
+    return tree + '</div></section>';
+  }
+  // ---------------------------------------------------------------- campaigns (Black Friday and the like)
+  var PAL = [['#d32a37', 'Red'], ['#fc771d', 'Pumpkin'], ['#1e1e87', 'Blue'], ['#1d2126', 'Black']];
+  function cpState(c) { var now = Date.now(); return !c.active ? 'off' : Date.parse(c.ends_at) <= now ? 'expired' : Date.parse(c.starts_at) > now ? 'scheduled' : 'on'; }
+  function cpRule(c) { return c.kind === 'price' ? 'Fixed price per part' : Number(c.value || 0) + '% off the customer’s own price'; }
+  function badgeHtml(c) { return '<span class="cbadge" style="background:' + esc(c.color || '#d32a37') + '">' + esc(c.badge || c.name || 'Badge') + '</span>'; }
+  function drawCampaigns() {
+    if (S.cp) return drawCampaign();
+    if (!S.cps) return ld();
+    var cs = S.cps.map(function (c) { c.state = cpState(c); return c; });
+    var h = '<div class="kpis">' + tile('Live campaigns', n0(cs.filter(function (c) { return c.state === 'on'; }).length), n0(cs.filter(function (c) { return c.state === 'scheduled'; }).length) + ' scheduled', '', 'dark') + tile('Parts on sale now', n0(cs.filter(function (c) { return c.state === 'on'; }).reduce(function (a, c) { return a + c.products; }, 0))) + tile('All campaigns', n0(cs.length)) +
+      '<div class="kpi acc" style="cursor:pointer" data-act="cp-new"><small>Create</small><b>New campaign</b><div class="ks">name, badge, discount and parts</div><span class="go">' + ic('plus', 16) + '</span></div></div>';
+    if (!cs.length) return h + '<section class="card"><div class="empty">No campaigns yet. Create the first one, for example Black Friday.</div></section>';
+    h += '<div class="g3">' + cs.map(function (c) { var days = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5);
+      return '<section class="card cpc" data-act="cp-open" data-id="' + esc(c.id) + '" style="cursor:pointer;border-top:6px solid ' + esc(c.color || '#d32a37') + '"><div class="ch"><div>' + badgeHtml(c) + '<h2 style="margin-top:10px">' + esc(c.name) + '</h2><small>' + esc(cpRule(c)) + '</small></div><span data-stop="1"><label class="sw" title="On or off"><input type="checkbox" data-cptog="' + esc(c.id) + '"' + (c.active ? ' checked' : '') + '><span></span></label></span></div>' +
+        '<div class="row" style="gap:6px">' + st(c.state) + '<span class="st">' + n0(c.products) + ' parts</span><span class="st">' + esc(dstr(c.starts_at)) + ' to ' + esc(dstr(c.ends_at)) + '</span>' + (c.state === 'on' && days > 0 ? '<span class="st due">ends in ' + days + ' day' + (days > 1 ? 's' : '') + '</span>' : '') + '</div>' +
+        (c.description ? '<p class="muted" style="margin:12px 0 0">' + esc(String(c.description).slice(0, 140)) + '</p>' : '') + '<p class="muted" style="margin:10px 0 0">Portal link: <span class="mono">/portal#/promo/' + esc(c.slug) + '</span></p></section>'; }).join('') + '</div>';
+    return h;
+  }
+  function drawCampaign() {
+    var c = S.cp; if (!S.cat) return ld();
+    var all = S.cat.rows, F = S.cpf || {}, rows = prodFilter('cpf'), n = Object.keys(c.items).length, lim = S.cpn || 100, inView = rows.filter(function (r) { return r[0] in c.items; }).length;
+    var h = '<div class="row" style="margin:0 0 14px"><button class="chip" data-act="cp-back">' + ic('dn', 14).replace('m6 9 6 6 6-6', 'm15 6-6 6 6 6') + ' All campaigns</button><h2 style="font-size:22px">' + esc(c.name || 'New campaign') + '</h2>' + badgeHtml(c) + '<span class="sp" style="flex:1"></span><button class="btn red" data-act="cp-save"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Saving...' : c.id ? 'Save campaign' : 'Create campaign') + '</button></div>';
+    h += '<div class="g12" style="grid-template-columns:minmax(0,380px) minmax(0,1fr)"><div><section class="card"><div class="ch"><h2>Campaign</h2>' + (c.id ? '<button class="lnk red" data-act="cp-del">Delete</button>' : '') + '</div><div class="fg"><div class="fl full"><label>Name *</label><input type="text" data-m="cp.name" value="' + esc(c.name || '') + '" placeholder="Black Friday 2026"></div>' +
+      '<div class="fl"><label>Badge on the parts</label><input type="text" data-m="cp.badge" value="' + esc(c.badge || '') + '" placeholder="Black Friday" maxlength="30"></div><div class="fl"><label>Link name</label><input type="text" data-m="cp.slug" value="' + esc(c.slug || '') + '" placeholder="black-friday"></div>' +
+      '<div class="fl full"><label>Base of the campaign (shown on the campaign page)</label><textarea data-m="cp.description" style="min-height:90px" placeholder="Our biggest sale of the year on Bosch common rail injectors and pumps. While stock lasts.">' + esc(c.description || '') + '</textarea></div></div></section>';
+    h += '<section class="card"><div class="ch"><h2>Discount</h2></div><div class="seg" style="background:var(--soft);margin-bottom:12px"><button data-act="cp-kind" data-k="percent" class="' + (c.kind !== 'price' ? 'on' : '') + '">% off their price</button><button data-act="cp-kind" data-k="price" class="' + (c.kind === 'price' ? 'on' : '') + '">Fixed price</button></div>' +
+      (c.kind !== 'price' ? '<div class="fl"><label>Discount on every part (%)</label><input type="number" data-m="cp.value" value="' + esc(c.value || '') + '" placeholder="15"><div class="hint">Taken off each customer’s own tier price. You can set a different % on single parts in the list.</div></div>' : '<div class="fl"><div class="hint" style="margin:0">Type the campaign price on each part in the list. Parts without a price are not discounted.</div></div>') + '</section>';
+    h += '<section class="card"><div class="ch"><h2>When and how it looks</h2></div><div class="fg"><div class="fl"><label>Starts</label><input type="date" data-m="cp.starts_at" value="' + esc((c.starts_at || '').slice(0, 10)) + '"></div><div class="fl"><label>Ends (end of day) *</label><input type="date" data-m="cp.ends_at" value="' + esc((c.ends_at || '').slice(0, 10)) + '"></div></div>' +
+      '<div class="chips" style="margin:10px 0 14px">' + [[3, '3 days'], [7, '1 week'], [14, '2 weeks'], [30, '30 days']].map(function (d) { return '<button data-act="cp-dur" data-d="' + d[0] + '">' + d[1] + '</button>'; }).join('') + '</div><label class="l">Badge color</label><div class="row" style="gap:8px">' + PAL.map(function (p) { return '<button class="swc' + ((c.color || '#d32a37') === p[0] ? ' on' : '') + '" data-act="cp-color" data-c="' + p[0] + '" title="' + p[1] + '" style="background:' + p[0] + '"></button>'; }).join('') + '</div>' +
+      '<div class="row" style="margin-top:14px;gap:10px"><label class="sw"><input type="checkbox" data-cpactive="1"' + (c.active !== false ? ' checked' : '') + '><span></span></label><span>' + (c.active !== false ? 'On: shows in the portal between the dates' : 'Off: saved but not shown') + '</span></div></section>';
+    h += '<section class="card"><div class="ch"><h2>Preview</h2></div><div class="cprev"><div class="cpimg"><span class="cbadge" style="background:' + esc(c.color || '#d32a37') + '">' + esc(c.badge || c.name || 'Badge') + '</span>' + ic('box', 40) + '</div><b class="mono">BO.0.445.120.231</b><small>Common Rail Injector</small><div class="cpp"><b>' + (c.kind === 'price' ? '$-' : '$' + (100 * (1 - (Number(c.value) || 0) / 100)).toFixed(2)) + '</b><s>$100.00</s></div></div><p class="muted">How a $100 part shows to a signed-in customer.</p></section></div>';
+    // product picker
+    var t = '<section class="card flush"><div class="fbar"><h2>Parts <span class="cnt">' + n0(n) + ' in the campaign</span></h2><span class="sp"></span><div class="seg" style="background:var(--soft)">' + [['', 'All parts'], ['in', 'In the campaign'], ['out', 'Not in it']].map(function (x) { return '<button data-act="cp-inc" data-v="' + x[0] + '" class="' + ((F.inc || '') === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div></div>' +
+      '<div class="fbar" style="padding-top:0"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="cpf.q" value="' + esc(F.q || '') + '" placeholder="Part number or description"></label>' + msel('cpf', 'brand', 'Brand', facetOpts(all.filter(function (r) { return !F.cat || r[2] === F.cat; }), brandOf)) + msel('cpf', 'market', 'Market', facetOpts(all, function (r) { return r[4]; }, { '(none)': 'Both' })) +
+      '<select class="sel" data-chg="cpf.stock">' + opt('', 'Any stock', F.stock || '') + opt('in', 'In stock', F.stock || '') + opt('out', 'Out of stock', F.stock || '') + '</select><select class="sel" data-chg="cpf.sold">' + opt('', 'Any sales', F.sold || '') + opt('yes', 'Sold in 12 months', F.sold || '') + opt('no', 'Not sold in 12 months', F.sold || '') + '</select></div>';
+    t += '<div class="selbar"><b>' + n0(rows.length) + ' in this view</b><span class="muted" style="color:#b9bec5">' + n0(inView) + ' already in</span><span class="sp"></span><button class="btn acc sm" data-act="cp-addall">' + ic('plus', 14) + ' Add all ' + n0(rows.length - inView) + '</button><button class="btn ghost sm" data-act="cp-rmall">Remove these ' + n0(inView) + '</button></div>';
+    t += tbl([h0(''), h0('Part'), h0('Class'), h0('Brand'), hr('Stock'), hr('12 months'), h0(c.kind === 'price' ? 'Campaign price' : 'Own % (optional)')], rows.slice(0, lim).map(function (r) { var on = r[0] in c.items;
+      return '<tr class="' + (on ? 'sel' : '') + '"><td class="w"><input type="checkbox" class="ck" data-cpitem="' + esc(r[0]) + '"' + (on ? ' checked' : '') + '></td><td><b class="mono">' + esc(r[0]) + '</b><small>' + esc(ptitle(r[1])) + (r[8] ? ' · <span class="hidx">hidden</span>' : '') + '</small></td><td>' + esc(CATL[r[2]] || r[2]) + '<small>' + esc(subLabel(r[2], subOf(r))) + '</small></td><td>' + esc(brandOf(r)) + '</td><td class="r">' + (r[6] == null ? '-' : n0(r[6])) + '</td><td class="r">' + (r[7] ? k$(r[7][0]) : '-') + '</td><td style="width:150px">' + (on ? '<input type="number" data-cpval="' + esc(r[0]) + '" value="' + esc(c.items[r[0]] == null ? '' : c.items[r[0]]) + '" placeholder="' + (c.kind === 'price' ? '$' : (c.value || '') + '%') + '" style="padding:6px 10px;border-radius:10px">' : '') + '</td></tr>'; }));
+    t += (rows.length > lim ? '<div class="more"><button class="btn ghost" data-act="cpn-more">Show more (' + n0(rows.length - lim) + ' left)</button></div>' : '') + '</section>';
+    return h + '<div>' + treeHtml('cpf') + t + '</div></div>';
+  }
+  function openCampaign(id) {
+    S.cpf = {}; S.cpn = 100; if (!S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
+    if (!id) { var d = new Date(); S.cp = { kind: 'percent', value: 10, color: '#d32a37', active: true, starts_at: d.toISOString().slice(0, 10), ends_at: new Date(d.getTime() + 7 * 864e5).toISOString().slice(0, 10), items: {} }; return draw(); }
+    S.cp = null; S.busy = true; draw();
+    api('campaign', null, '&id=' + encodeURIComponent(id)).then(function (r) { S.busy = false; if (r._status !== 200) return fail(r); var c = r.campaign, it = {}; r.items.forEach(function (i) { it[i.code] = i.value; }); S.cp = Object.assign({}, c, { items: it, sold: r.sold }); draw(); });
+  }
   function drawProducts() {
     if (!S.cat) return ld();
     var all = S.cat.rows, F = S.pf2 || {}, rows = prodFilter(), hidN = all.filter(function (r) { return r[8]; }).length, sel = S.psel || {}, nsel = Object.keys(sel).length, lim = S.pn || 100;
     var sk = S.pso || {}; if (sk.k) rows = rows.slice().sort(function (a, b) { var x = sk.k === 'sales' ? (a[7] ? a[7][0] : 0) : sk.k === 'stock' ? (a[6] || 0) : a[0], y = sk.k === 'sales' ? (b[7] ? b[7][0] : 0) : sk.k === 'stock' ? (b[6] || 0) : b[0]; return (typeof x === 'string' ? String(x).localeCompare(y) : x - y) * sk.d; });
     var h = '<div class="kpis">' + tile('Products in the catalog', n0(all.length), n0(all.filter(function (r) { return r[6] > 0; }).length) + ' in stock now') + tile('Visible to customers', n0(all.length - hidN), '', '', 'dark') + tile('Hidden', n0(hidN), hidN ? '<a data-act="pvis" data-v="hidden">see hidden only</a>' : 'nothing hidden', '', hidN ? 'acc' : '') + tile('Sold in 12 months', n0(all.filter(function (r) { return r[7]; }).length), 'parts with at least one invoice') + '</div>';
     // tree: category > sub-category
-    var tree = '<section class="card"><div class="ch"><h2>Classification</h2></div><div class="tree"><button data-act="pcat" data-c="" class="' + (!F.cat ? 'on' : '') + '"><span>All products</span><small>' + n0(all.length) + '</small></button>';
-    Object.keys(CATL).forEach(function (c) { var inC = all.filter(function (r) { return r[2] === c; }); if (!inC.length) return; var hc = inC.filter(function (r) { return r[8]; }).length;
-      tree += '<button data-act="pcat" data-c="' + esc(c) + '" class="' + (F.cat === c && !F.sub ? 'on' : '') + '"><span>' + esc(CATL[c]) + (hc ? ' <span class="hidx">(' + hc + ' hidden)</span>' : '') + '</span><small>' + n0(inC.length) + '</small></button>';
-      if (F.cat === c) { var subs = {}; inC.forEach(function (r) { var s = subOf(r); subs[s] = (subs[s] || 0) + 1; }); tree += '<div class="sub">' + ((window.MX_SUBS || {})[c] || []).filter(function (s) { return subs[s[0]]; }).map(function (s) { return '<button data-act="psub" data-s="' + esc(s[0]) + '" class="' + (F.sub === s[0] ? 'on' : '') + '"><span>' + esc(s[1]) + '</span><small>' + n0(subs[s[0]]) + '</small></button>'; }).join('') + '</div>'; } });
-    tree += '</div></section>';
+    var tree = treeHtml('pf2', function (inC) { var hc = inC.filter(function (r) { return r[8]; }).length; return hc ? ' <span class="hidx">(' + hc + ' hidden)</span>' : ''; });
     var t = '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="pf2.q" value="' + esc(F.q || '') + '" placeholder="Part number or description"></label>' + msel('pf2', 'brand', 'Brand', facetOpts(all.filter(function (r) { return !F.cat || r[2] === F.cat; }), brandOf)) + msel('pf2', 'market', 'Market', facetOpts(all, function (r) { return r[4]; }, { '(none)': 'Both' })) +
       '<select class="sel" data-chg="pf2.vis">' + opt('', 'Visible and hidden', F.vis || '') + opt('visible', 'Visible only', F.vis || '') + opt('hidden', 'Hidden only', F.vis || '') + '</select><select class="sel" data-chg="pf2.stock">' + opt('', 'Any stock', F.stock || '') + opt('in', 'In stock', F.stock || '') + opt('out', 'Out of stock', F.stock || '') + '</select><select class="sel" data-chg="pf2.sold">' + opt('', 'Any sales', F.sold || '') + opt('yes', 'Sold in 12 months', F.sold || '') + opt('no', 'Not sold in 12 months', F.sold || '') + '</select>' +
       '<span class="sp"></span><span class="muted">' + n0(rows.length) + ' products</span></div>';
@@ -681,7 +735,7 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
     if (e.target.matches('input[type=checkbox]') && !e.target.dataset.act) return;
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = ''; S.okMsg = '';
-    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; if (S.tab === 'segments') S.segOpen = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return draw(); }
+    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return draw(); }
     var act = t.dataset.act, id = t.dataset.id;
     if (act === 'me') { S.meOpen = !S.meOpen; return draw(); }
     if (act === 'pop') { S.pop = S.pop === t.dataset.id ? null : t.dataset.id; return draw(); }
@@ -715,8 +769,8 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
           api('segment-invite', { segment: S.segOpen, companies: ids.slice(i, i + 10) }).then(function (r) { (r.results || ids.slice(i, i + 10).map(function (x) { return { id: x, n: x, error: r.error || 'failed' }; })).forEach(function (x) { S.sendRun.results.push(x); }); draw(); next(i + 10); }); })(0); }); return; }
     if (act === 'send-x') { S.sendRun = null; return draw(); }
     // products
-    if (act === 'pcat') { S.pf2 = S.pf2 || {}; S.pf2.cat = t.dataset.c; S.pf2.sub = ''; S.pn = 100; return draw(); }
-    if (act === 'psub') { S.pf2.sub = S.pf2.sub === t.dataset.s ? '' : t.dataset.s; S.pn = 100; return draw(); }
+    if (act === 'pcat') { var gq = t.dataset.g || 'pf2'; S[gq] = S[gq] || {}; S[gq].cat = t.dataset.c; S[gq].sub = ''; S.pn = 100; S.cpn = 100; return draw(); }
+    if (act === 'psub') { var gs = t.dataset.g || 'pf2'; S[gs].sub = S[gs].sub === t.dataset.s ? '' : t.dataset.s; S.pn = 100; S.cpn = 100; return draw(); }
     if (act === 'pvis') { S.pf2 = S.pf2 || {}; S.pf2.vis = t.dataset.v; return draw(); }
     if (act === 'psort') { var cs = S.pso || {}; S.pso = { k: t.dataset.k, d: cs.k === t.dataset.k ? -cs.d : (t.dataset.k === 'code' ? 1 : -1) }; return draw(); }
     if (act === 'psel-all') { var pr = prodFilter().slice(0, S.pn || 100), on3 = pr.every(function (r) { return (S.psel || {})[r[0]]; }); S.psel = S.psel || {}; pr.forEach(function (r) { if (on3) delete S.psel[r[0]]; else S.psel[r[0]] = 1; }); return draw(); }
@@ -725,6 +779,22 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
     if (act === 'pbulk') { var hide = t.dataset.h === '1', codes = Object.keys(S.psel || {}); if (!codes.length) codes = prodFilter().map(function (r) { return r[0]; }); if (!codes.length) return;
       if (!confirm((hide ? 'Hide ' : 'Show ') + codes.length + ' products ' + (hide ? 'from' : 'to') + ' every customer?')) return; S.busy = true;
       api('hidden-set', { hide: hide, codes: codes, reason: S.hreason || '' }).then(function (r) { S.busy = false; if (r.ok) { var set = {}; codes.forEach(function (c) { set[c] = 1; }); S.cat.rows.forEach(function (x) { if (set[x[0]]) x[8] = hide ? [S.hreason || '', S.me.email, new Date().toISOString()] : null; }); S.psel = {}; S.okMsg = codes.length + (hide ? ' products hidden.' : ' products visible again.') + ' Customers see the change within a minute.'; draw(); } else fail(r); }); return; }
+    // campaigns
+    if (act === 'cp-new') return openCampaign(null);
+    if (act === 'cp-open') return openCampaign(id);
+    if (act === 'cp-back') { S.cp = null; loadTab('campaigns'); return draw(); }
+    if (act === 'cp-kind') { S.cp.kind = t.dataset.k; return draw(); }
+    if (act === 'cp-color') { S.cp.color = t.dataset.c; return draw(); }
+    if (act === 'cp-inc') { S.cpf = S.cpf || {}; S.cpf.inc = t.dataset.v; S.cpn = 100; return draw(); }
+    if (act === 'cpn-more') { S.cpn = (S.cpn || 100) + 200; return draw(); }
+    if (act === 'cp-dur') { var s0 = S.cp.starts_at ? new Date(S.cp.starts_at.slice(0, 10) + 'T12:00:00') : new Date(); S.cp.starts_at = s0.toISOString().slice(0, 10); S.cp.ends_at = new Date(s0.getTime() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
+    if (act === 'cp-addall') { prodFilter('cpf').forEach(function (r) { if (!(r[0] in S.cp.items)) S.cp.items[r[0]] = null; }); return draw(); }
+    if (act === 'cp-rmall') { var rr = prodFilter('cpf').filter(function (r) { return r[0] in S.cp.items; }); if (rr.length > 20 && !confirm('Remove ' + rr.length + ' parts from the campaign?')) return; rr.forEach(function (r) { delete S.cp.items[r[0]]; }); return draw(); }
+    if (act === 'cp-del') { if (!confirm('Delete the campaign "' + S.cp.name + '"? The parts go back to their normal price.')) return; api('campaign-toggle', { id: S.cp.id, remove: true }).then(function (r) { if (r.ok) { S.cp = null; S.okMsg = 'Campaign deleted.'; loadTab('campaigns'); } else fail(r); }); return; }
+    if (act === 'cp-save') { var c = S.cp; S.busy = true; draw();
+      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.value, color: c.color, active: c.active !== false,
+        starts_at: c.starts_at ? new Date(c.starts_at.slice(0, 10) + 'T00:00:00').toISOString() : '', ends_at: c.ends_at ? new Date(c.ends_at.slice(0, 10) + 'T23:59:59').toISOString() : '',
+        items: Object.keys(c.items).map(function (k) { return { code: k, value: c.items[k] }; }), rules: S.cpf || {} }).then(function (r) { S.busy = false; if (r.ok) { S.okMsg = 'Campaign saved. Customers see it in the portal within a minute.'; S.cp.id = r.id; S.cp.slug = r.slug; draw(); } else fail(r); }); return; }
     // vouchers
     if (act === 'vt') { S.vt = t.dataset.s; return draw(); }
     if (act === 'v-new') { S.ex.v = { kind: 'percent', starts_at: new Date().toISOString().slice(0, 10) }; S.vd = true; S.vcq = ''; return draw(); }
@@ -791,6 +861,10 @@ table{width:100%;border-collapse:collapse;font-size:13.5px}td,th{text-align:left
   app.addEventListener('change', function (e) { var d = e.target.dataset || {};
     if (d.sel) { S.sel = S.sel || {}; if (e.target.checked) S.sel[d.sel] = 1; else delete S.sel[d.sel]; return draw(); }
     if (d.ms) { var pth = d.ms.split('.'), F = S[pth[0]] = S[pth[0]] || {}, arr = F[pth[1]] = (F[pth[1]] || []).slice(); var ix = arr.indexOf(e.target.value); if (e.target.checked && ix < 0) arr.push(e.target.value); if (!e.target.checked && ix >= 0) arr.splice(ix, 1); F[pth[1]] = arr; if (pth[0] === 'df') S.dn = 80; if (pth[0] === 'pf2') S.pn = 100; return draw(); }
+    if (d.cpitem) { if (e.target.checked) S.cp.items[d.cpitem] = null; else delete S.cp.items[d.cpitem]; return draw(); }
+    if (d.cpval) { var vv2 = parseFloat(e.target.value); S.cp.items[d.cpval] = vv2 > 0 ? vv2 : null; return; }
+    if (d.cpactive) { S.cp.active = e.target.checked; return draw(); }
+    if (d.cptog) { api('campaign-toggle', { id: d.cptog, active: e.target.checked }).then(function (r) { if (r.ok) { S.cps.forEach(function (x) { if (x.id === d.cptog) x.active = e.target.checked; }); draw(); } else fail(r); }); return; }
     if (d.pick) { S.pick = S.pick || {}; if (e.target.checked) S.pick[d.pick] = 1; else delete S.pick[d.pick]; return draw(); }
     if (d.psel) { S.psel = S.psel || {}; if (e.target.checked) S.psel[d.psel] = 1; else delete S.psel[d.psel]; return draw(); }
     if (d.pvis) { var hide = !e.target.checked, code = d.pvis; api('hidden-set', { hide: hide, codes: [code], reason: S.hreason || '' }).then(function (r) { if (r.ok) { S.cat.rows.forEach(function (x) { if (x[0] === code) x[8] = hide ? [S.hreason || '', S.me.email, new Date().toISOString()] : null; }); draw(); } else fail(r); }); return; }
