@@ -195,6 +195,8 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 @media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 .apvh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.apvh small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;max-width:520px}.btn.dang{color:var(--red);border-color:#f2c4c8}.btn.dang:hover{background:#fdecee}
 .tgc{padding-right:4px;background:#eef0ff;color:var(--blue)}.tgc button{border:0;background:none;color:inherit;cursor:pointer;padding:0 2px;display:inline-flex;opacity:.6}.tgc button:hover{opacity:1}
+.toast{bottom:84px}@media(min-width:901px){.toast{bottom:22px}}.drawer~.toast{bottom:96px}
+@media(max-width:900px){.g12[style]{grid-template-columns:1fr!important}.dt{min-width:0}table{max-width:100%}}
 </style>
 </head>
 <body>
@@ -967,7 +969,7 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (e.target.matches('input[type=checkbox]') && !e.target.dataset.act) return;
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = ''; S.okMsg = '';
-    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw); }
+    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw); }
     var act = t.dataset.act, id = t.dataset.id;
     if (act === 'me') { S.meOpen = !S.meOpen; return draw(); }
     if (act === 'nf-kind') { S.nf = S.nf || {}; S.nf.kind = t.dataset.k; return draw(); }
@@ -1049,7 +1051,8 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
     if (act === 'cp-inc') { S.cpf = S.cpf || {}; S.cpf.inc = t.dataset.v; S.cpn = 100; return draw(); }
     if (act === 'cpn-more') { S.cpn = (S.cpn || 100) + 200; return draw(); }
     if (act === 'cp-dur') { var s0 = S.cp.starts_at ? new Date(S.cp.starts_at.slice(0, 10) + 'T12:00:00') : new Date(); S.cp.starts_at = s0.toISOString().slice(0, 10); S.cp.ends_at = new Date(s0.getTime() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
-    if (act === 'cp-addall') { prodFilter('cpf').forEach(function (r) { if (!(r[0] in S.cp.items)) S.cp.items[r[0]] = null; }); return draw(); }
+    if (act === 'cp-addall') { var CF = S.cpf || {}, add = prodFilter('cpf').filter(function (r) { return !(r[0] in S.cp.items); }); if (!add.length) return; if (!(CF.q || CF.cat || CF.sub || (CF.brand || []).length || (CF.market || []).length || CF.stock || CF.sold || CF.vis)) { S.err = 'Filter first (search, category or brand), then add the parts in the view.'; return draw(); }
+      if (add.length > 300 && ask('All ' + add.length + ' parts in this view get the campaign price. Type ' + add.length + ' to confirm.', { title: 'Add ' + add.length + ' parts?', must: add.length, placeholder: String(add.length), ok: 'Add them' }) === null) return; add.forEach(function (r) { S.cp.items[r[0]] = null; }); return draw(); }
     if (act === 'cp-rmall') { var rr = prodFilter('cpf').filter(function (r) { return r[0] in S.cp.items; }); if (rr.length > 20 && !ok('Remove ' + rr.length + ' parts from the campaign?')) return; rr.forEach(function (r) { delete S.cp.items[r[0]]; }); return draw(); }
     if (act === 'cp-del') { if (!ok('Delete the campaign "' + S.cp.name + '"? The parts go back to their normal price.')) return; api('campaign-toggle', { id: S.cp.id, remove: true }).then(function (r) { if (r.ok) { S.cp = null; S.okMsg = 'Campaign deleted.'; loadTab('campaigns'); } else fail(r); }); return; }
     if (act === 'cp-save') { var c = S.cp; S.busy = true; draw();
