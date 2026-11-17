@@ -56,7 +56,7 @@ A.confirm = async (req, res) => {
   return res.json({ ok: true });
 };
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; return res.json(Object.assign({}, w, { mailOn: mailMode() })); };
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -192,10 +192,11 @@ const ROLES = ['superadmin', 'sales', 'marketing'];
 A.admins = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
-  const rows = await db.select('admins', 'select=email,name,role,active,created_at,created_by&order=created_at');
+  const rows = await db.select('admins', 'select=email,name,role,active,salesperson,created_at,created_by&order=created_at');
   const inTable = new Set(rows.map((r) => String(r.email).toLowerCase()));
   const boot = envAdmins().filter((e) => !inTable.has(e)).map((e) => ({ email: e, name: '', role: 'superadmin', active: true, bootstrap: true }));
-  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot), roles: ROLES });
+  const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot), roles: ROLES, salespeople: sps });
 };
 A['admin-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -207,7 +208,7 @@ A['admin-save'] = async (req, res) => {
   if (!ROLES.includes(role)) return res.status(400).json({ error: 'role' });
   if (email === w.email && (!active || role !== 'superadmin')) return res.status(400).json({ error: 'You cannot remove your own superadmin access.' });
   const before = (await db.select('admins', 'select=*&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0] || null;
-  await db.insert('admins', [{ email, role, name: name || null, active, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
+  await db.insert('admins', [{ email, role, name: name || null, active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
   if (!active || (before && before.role !== role)) await SDB.revokeEmail(email, w.email, 'admin').catch(() => {}); // new rights start at the next sign-in
   await PS.audit(w.email, before ? 'admin.update' : 'admin.create', 'admin', email, before && { role: before.role, active: before.active }, { role, active });
   return res.json({ ok: true });
@@ -861,20 +862,20 @@ async function names() {
   return m;
 }
 // rule-based next actions; each one says who, why and what to do, ranked by money at stake
-function actions(S, B, portal, N) {
-  const out = [], nm = (c) => (N[c] && N[c].t) || c;
+function actions(S, B, portal, N, touched) {
+  const out = [], nm = (c) => (N[c] && N[c].t) || c, T = touched || new Set(), fresh = (c) => !T.has(c);
   const inPortal = (c) => portal[c] && portal[c] !== 'rejected';
-  (S.due || []).slice(0, 25).forEach((c) => {
+  (S.due || []).filter((c) => fresh(c.c)).slice(0, 25).forEach((c) => {
     const items = (c.items || []).slice(0, 4).map((i) => i.code + ' (' + nm(i.code) + ')');
     out.push({ kind: 'reorder', channel: 'call', score: (c.r12 || 0) + (c.total || 0) / 4, title: (c.status === 'overdue' ? 'Overdue: ' : 'Due to reorder: ') + c.n,
       why: 'Buys about every ' + c.med + ' days. Last order ' + c.since + ' days ago. ' + usd(c.r12) + ' in the last 12 months.' + (c.sp ? ' Salesperson: ' + c.sp + '.' : ''),
       todo: items.length ? 'Call or e-mail with the parts they usually buy: ' + items.join(', ') + '.' : 'Call to check what they need next.',
-      who: [{ c: c.c, n: c.n }], codes: (c.items || []).map((i) => i.code) });
+      who: [{ c: c.c, n: c.n }], sp: c.sp || null, codes: (c.items || []).map((i) => i.code) });
   });
-  (S.declining || []).slice(0, 10).forEach((c) => out.push({ kind: 'declining', channel: 'call', score: (c.p12 - c.r12) * 0.8, title: 'Buying less: ' + c.n,
+  (S.declining || []).filter((c) => fresh(c.c)).slice(0, 10).forEach((c) => out.push({ kind: 'declining', channel: 'call', score: (c.p12 - c.r12) * 0.8, title: 'Buying less: ' + c.n,
     why: usd(c.r12) + ' in the last 12 months against ' + usd(c.p12) + ' the year before (' + Math.round((1 - c.r12 / Math.max(1, c.p12)) * 100) + '% down).',
-    todo: 'Ask what changed: price, stock, a competitor, or less work. A tier review or a targeted voucher may bring them back.', who: [{ c: c.c, n: c.n }] }));
-  const lost = (S.lost || []).filter((c) => c.total >= 1000);
+    todo: 'Ask what changed: price, stock, a competitor, or less work. Call first; a voucher only if it is about price.', who: [{ c: c.c, n: c.n }], sp: c.sp || null }));
+  const lost = (S.lost || []).filter((c) => c.total >= 1000 && fresh(c.c));
   if (lost.length) out.push({ kind: 'winback', channel: 'campaign', score: lost.reduce((a, c) => a + (c.p12 || 0) + c.total / 6, 0) / 3,
     title: 'Win-back campaign: ' + pl(lost.length, 'customer') + ' who stopped buying or are slipping', why: 'Together they spent ' + usd(lost.reduce((a, c) => a + c.total, 0)) + ' with Maxzz, ' + Math.round(lost.reduce((a, c) => a + c.orders, 0) / lost.length) + ' orders each on average.',
     todo: 'E-mail with a one-time voucher (for example 7% off, 30 days) and a portal invite. Call the 5 largest first.', who: lost.map((c) => ({ c: c.c, n: c.n })) });
@@ -888,7 +889,7 @@ function actions(S, B, portal, N) {
     why: p.q90 + ' units in the last 90 days against ' + p.pq90 + ' in the 90 before.', todo: 'Check stock covers the trend, feature it on the portal home and in an Instagram post or e-mail to customers of that engine.', codes: [p.code] }));
   (S.falling || []).slice(0, 3).forEach((p) => out.push({ kind: 'falling', channel: 'review', score: (p.pr90 || 0) / 3, title: 'Selling less: ' + p.code + ' ' + nm(p.code),
     why: p.q90 + ' units in the last 90 days against ' + p.pq90 + ' in the 90 before.', todo: 'Check price against the market and stock. If it is seasonal, nothing to do.', codes: [p.code] }));
-  (B.users || []).filter((u) => u.hot).slice(0, 15).forEach((u) => out.push({ kind: 'portal_intent', channel: 'call', score: 1500 + (u.ca || 0) * 500 + (u.pv || 0) * 50, title: 'Shopping without ordering: ' + (u.company || u.email),
+  (B.users || []).filter((u) => u.hot && !(u.code && T.has(u.code))).slice(0, 15).forEach((u) => out.push({ kind: 'portal_intent', channel: 'call', score: 1500 + (u.ca || 0) * 500 + (u.pv || 0) * 50, title: 'Shopping without ordering: ' + (u.company || u.email),
     why: (u.name || u.email) + ' viewed ' + (u.pv || 0) + ' parts' + (u.ca ? ' and added ' + u.ca + ' to the cart' : '') + ' in the portal, with no quote or order.' + (u.queries && u.queries.length ? ' Searched: ' + u.queries.join(', ') + '.' : ''),
     todo: 'Reach out today: help with the parts they looked at' + (u.codes && u.codes.length ? ' (' + u.codes.slice(0, 4).join(', ') + ')' : '') + ', price or stock questions.', who: [{ c: u.code, n: u.company, e: u.email }], codes: u.codes || [] }));
   return out.sort((a, b) => b.score - a.score).slice(0, 40).map((a) => { a.score = Math.round(a.score); return a; });
@@ -897,6 +898,7 @@ A.dash = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
+  const touchedP = db.select('customer_notes', 'select=customer_code,follow_up,done_at,created_at&or=(created_at.gte.' + new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10) + ',and(done_at.is.null,follow_up.gte.' + new Date().toISOString().slice(0, 10) + '))&limit=2000').catch(() => []);
   const [S, B, cos, N, ord, qts, PER] = await Promise.all([
     db.rpc('dash_sales'), db.rpc('dash_behavior', { p_days: days }),
     db.selectAll('companies', 'select=unleashed_code,status&unleashed_code=not.is.null'), names(),
@@ -913,7 +915,7 @@ A.dash = async (req, res) => {
   ['viewed', 'carted'].forEach((k) => (B[k] || []).forEach((p) => { p.t = title(p.k); }));
   const P = { orders: ord.length, order_value: Math.round(ord.reduce((a, o) => a + Number(o.total || 0), 0)), quotes: qts.length,
     companies: Object.values(portal).filter((s) => s === 'approved' || s === 'active').length, invited: Object.values(portal).filter((s) => s === 'invited').length };
-  return res.json({ days, period: PER, funnel: FUN, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(req), at: Date.now() });
+  return res.json({ days, period: PER, funnel: FUN, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N, new Set((await touchedP).map((x) => x.customer_code).filter(Boolean))), ai: aiOn(req), at: Date.now() });
 };
 // AI read of the same numbers: campaigns for groups and one-to-one actions. Off until DASH_AI=1 (it has a cost per run).
 // Only business data goes out (company names, codes, totals, parts); no e-mails or phone numbers.
@@ -1021,7 +1023,7 @@ A.customer = async (req, res) => {
   users.forEach((u) => { if (u.terms_accepted_at) push(u.terms_accepted_at, 'account', 'Accepted the terms of use', u.email); if (u.created_at && !(aud || []).length) push(u.created_at, 'account', 'Person added: ' + (u.name || u.email), u.invited_by ? 'invited by ' + u.invited_by : ''); });
   segl.forEach((x) => push(x.at, 'segment', 'Added to segment ' + (segN[x.segment_id] || ''), x.added_by ? 'by ' + x.added_by : ''));
   const NK = { call: 'Call', email: 'E-mail', meeting: 'Meeting', note: 'Note' };
-  (notes || []).forEach((n) => T.push({ at: n.created_at, kind: 'note', title: (NK[n.kind] || 'Note') + ' by ' + String(n.created_by).split('@')[0], desc: n.body, det: null, note: { id: n.id, follow_up: n.follow_up, done: !!n.done_at, done_by: n.done_by } }));
+  (notes || []).forEach((n) => T.push({ at: n.created_at, kind: 'note', title: (NK[n.kind] || 'Note') + ' by ' + String(n.created_by).split('@')[0], desc: n.body, det: null, note: { id: n.id, follow_up: n.follow_up, done: !!n.done_at, done_by: n.done_by, outcome: n.outcome, done_outcome: n.done_outcome } }));
   const u = ulc[0] || null;
   if (u && u.created_on) push(u.created_on, 'account', 'Customer created in Unleashed', u.code);
   if (co && co.created_at) push(co.created_at, 'account', 'Added to the admin', co.source ? String(co.source).replace(/_/g, ' ') : '');
@@ -1044,7 +1046,8 @@ A['note-add'] = async (req, res) => {
   if (!body) return res.status(400).json({ error: 'Write what happened.' });
   if (!code && !cid) return res.status(400).json({ error: 'customer' });
   const fu = /^\d{4}-\d{2}-\d{2}$/.test(String(b.follow_up || '')) ? b.follow_up : null;
-  const r = await db.insert('customer_notes', [{ customer_code: code, company_id: cid, customer_name: clean(b.name, 160) || null, kind: ['call', 'email', 'meeting', 'note'].includes(b.kind) ? b.kind : 'note', body, follow_up: fu, created_by: w.email }]);
+  const outcome = ['reached', 'no_answer', 'left_message', 'quote_sent', 'ordered', 'not_now', 'lost'].includes(b.outcome) ? b.outcome : null;
+  const r = await db.insert('customer_notes', [{ customer_code: code, company_id: cid, customer_name: clean(b.name, 160) || null, kind: ['call', 'email', 'meeting', 'note'].includes(b.kind) ? b.kind : 'note', body, follow_up: fu, outcome, created_by: w.email }]);
   return res.json({ ok: true, id: r[0] && r[0].id });
 };
 A['note-done'] = async (req, res) => {
@@ -1053,7 +1056,7 @@ A['note-done'] = async (req, res) => {
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const b = readBody(req), id = clean(b.id, 60);
   if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: 'id' });
-  const patch = b.snooze && /^\d{4}-\d{2}-\d{2}$/.test(b.snooze) ? { follow_up: b.snooze } : { done_at: b.undo ? null : new Date().toISOString(), done_by: b.undo ? null : w.email };
+  const patch = b.snooze && /^\d{4}-\d{2}-\d{2}$/.test(b.snooze) ? { follow_up: b.snooze } : { done_at: b.undo ? null : new Date().toISOString(), done_by: b.undo ? null : w.email, done_outcome: b.undo ? null : (['reached', 'no_answer', 'left_message', 'quote_sent', 'ordered', 'not_now', 'lost'].includes(b.outcome) ? b.outcome : null) };
   await db.update('customer_notes', 'id=eq.' + id, patch);
   return res.json({ ok: true });
 };
@@ -1062,8 +1065,26 @@ A.followups = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const until = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
-  const rows = await db.select('customer_notes', 'select=id,customer_code,company_id,customer_name,kind,body,follow_up,created_by,created_at&done_at=is.null&follow_up=lte.' + until + '&order=follow_up.asc&limit=200');
-  return res.json({ rows, me: w.email });
+  let rows = await db.select('customer_notes', 'select=id,customer_code,company_id,customer_name,kind,body,outcome,follow_up,created_by,created_at&done_at=is.null&follow_up=not.is.null&order=follow_up.asc&limit=500');
+  // a follow-up closes itself when the customer orders after the note (invoice in Unleashed or order in the portal)
+  const codes = [...new Set(rows.map((r) => r.customer_code).filter(Boolean))], cids = [...new Set(rows.map((r) => r.company_id).filter(Boolean))];
+  const minAt = rows.reduce((m, r) => (r.created_at < m ? r.created_at : m), new Date().toISOString()).slice(0, 10);
+  const inv = [], po = [];
+  for (let i = 0; i < codes.length; i += 150) inv.push(...(await db.select('sales_orders', 'select=customer_code,number,completed_date,order_date&completed_date=gte.' + minAt + '&customer_code=' + inList(codes.slice(i, i + 150)))));
+  for (let i = 0; i < cids.length; i += 150) po.push(...(await db.select('orders', 'select=company_id,number,created_at&created_at=gte.' + minAt + '&company_id=in.(' + cids.slice(i, i + 150).join(',') + ')')));
+  const closed = [];
+  rows.forEach((r) => { const d = r.created_at.slice(0, 10);
+    const o = inv.find((x) => x.customer_code === r.customer_code && (x.completed_date || x.order_date) > d) || po.find((x) => x.company_id === r.company_id && x.created_at > r.created_at);
+    if (o) closed.push({ id: r.id, ref: o.number }); });
+  for (const c of closed) await db.update('customer_notes', 'id=eq.' + c.id, { done_at: new Date().toISOString(), done_by: 'auto', done_outcome: 'ordered' }).catch(() => {});
+  const shut = new Set(closed.map((c) => c.id));
+  rows = rows.filter((r) => !shut.has(r.id) && r.follow_up <= until);
+  // whose account it is: the Unleashed salesperson of the customer
+  const sp = {}; const rc = [...new Set(rows.map((r) => r.customer_code).filter(Boolean))];
+  for (let i = 0; i < rc.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson&code=' + inList(rc.slice(i, i + 150)))).forEach((x) => { sp[x.code] = x.salesperson; });
+  rows.forEach((r) => { r.sp = sp[r.customer_code] || null; });
+  const me = (await db.select('admins', 'select=salesperson&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
+  return res.json({ rows, me: w.email, mySp: me.salesperson || null, autoClosed: closed.length });
 };
 // who is behind one funnel step: visitors (with what they did) or companies, newest first
 const FSTEPS = ['visitors', 'browsed', 'carted', 'requests', 'approved', 'bought', 'inv_invited', 'inv_accepted', 'inv_used', 'inv_bought'];
