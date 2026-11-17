@@ -351,7 +351,8 @@ A.admins = async (req, res) => {
   const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
   const mf = {}; (await db.select('admin_mfa', 'select=email,totp_on').catch(() => [])).forEach((m) => { mf[m.email] = { totp: !!m.totp_on, pk: 0 }; });
   (await db.select('admin_passkeys', 'select=email').catch(() => [])).forEach((p) => { (mf[p.email] = mf[p.email] || { totp: false, pk: 0 }).pk++; });
-  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).map((r) => Object.assign(r, { photo: r.photo || TEAM_PH[r.email] || null })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps, screens: SCREENS });
+  const last = {}; (await db.select('audit_log', 'select=admin_email,at&action=eq.admin.login&order=at.desc&limit=300').catch(() => [])).forEach((x) => { const e = String(x.admin_email || '').toLowerCase(); if (e && !last[e]) last[e] = x.at; });
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).map((r) => Object.assign(r, { photo: r.photo || TEAM_PH[r.email] || null })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 }, last_login: last[r.email] || null })), roles: ROLES, salespeople: sps, screens: SCREENS });
 };
 A['profile-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1429,7 +1430,7 @@ A.crm = async (req, res) => {
   all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
   // a photo is found by the mapped salesperson, or else by the admin's name (full name, then first name), so it shows before the mapping is done
-  const photos = {}; (await db.select('admins', 'select=email,name,first_name,salesperson,photo&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (!ph) return; [r.salesperson, r.name, r.first_name].forEach((k) => { k = String(k || '').trim(); if (k && !photos[k]) photos[k] = ph; }); });
+  const photos = {}; (await db.select('admins', 'select=email,name,first_name,salesperson,photo&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (!ph) return; [r.salesperson, r.name, r.first_name, String(r.name||'').trim().split(/\s+/)[0]].forEach((k) => { k = String(k || '').trim(); if (k && !photos[k]) photos[k] = ph; }); });
   return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
 A['crm-deal'] = async (req, res) => {
@@ -1993,7 +1994,9 @@ A.audit = async (req, res) => {
     if (!ids.length) return;
     try { (await db.select(want[ent][0], 'select=id,' + want[ent][1] + '&id=' + inList(ids))).forEach((x) => { names[x.id] = x[want[ent][1]]; }); } catch (e) { /* a missing table only costs the label */ }
   }));
-  return res.json({ rows: rows.map((r) => ({ ...r, label: names[r.entity_id] || null })), more: rows.length === 100 });
+  const people = {}; (await db.select('admins', 'select=email,name,first_name,last_name,photo').catch(() => [])).forEach((x) => { const e = String(x.email).toLowerCase(); people[e] = { name: x.name || [x.first_name, x.last_name].filter(Boolean).join(' ') || e.split('@')[0], photo: x.photo || TEAM_PH[e] || null }; });
+  Object.keys(TEAM_PH).forEach((e) => { if (!people[e]) people[e] = { name: e.split('@')[0], photo: TEAM_PH[e] }; });
+  return res.json({ rows: rows.map((r) => ({ ...r, label: names[r.entity_id] || null })), more: rows.length === 100, people });
 };
 
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
