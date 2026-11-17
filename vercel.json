@@ -49,6 +49,9 @@
     },
     "api/admin.js": {
       "maxDuration": 60
+    },
+    "api/cron-digest.js": {
+      "maxDuration": 60
     }
   },
   "headers": [
@@ -1151,6 +1154,22 @@
     {
       "path": "/api/cron-sales",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron-digest?when=am",
+      "schedule": "0 11 * * 1-5"
+    },
+    {
+      "path": "/api/cron-digest?when=am",
+      "schedule": "0 12 * * 1-5"
+    },
+    {
+      "path": "/api/cron-digest?when=pm",
+      "schedule": "0 22 * * 1-5"
+    },
+    {
+      "path": "/api/cron-digest?when=pm",
+      "schedule": "0 23 * * 1-5"
     }
   ],
   "rewrites": [
