@@ -660,7 +660,7 @@ A['hidden-set'] = async (req, res) => {
     if (b.hide) await db.insert('hidden_products', part.map((code) => ({ code, reason: clean(b.reason, 200) || null, hidden_by: w.email })), { onConflict: 'code' });
     else await db.remove('hidden_products', 'code=' + inList(part));
   }
-  await PS.audit(w.email, b.hide ? 'product.hide' : 'product.show', 'product', codes.join(',').slice(0, 200));
+  await PS.audit(w.email, b.hide ? 'product.hide' : 'product.show', 'product', codes.join(',').slice(0, 200), null, { n: codes.length, reason: clean(b.reason, 200) || null });
   return res.json({ ok: true, n: codes.length });
 };
 
@@ -1191,7 +1191,16 @@ A['loyalty-save'] = async (req, res) => {
 A.audit = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
-  return res.json({ rows: await db.select('audit_log', 'select=*&order=at.desc&limit=100') });
+  const before = req.query.before && !isNaN(Date.parse(req.query.before)) ? '&at=lt.' + encodeURIComponent(new Date(req.query.before).toISOString()) : '';
+  const rows = await db.select('audit_log', 'select=*&order=at.desc&limit=100' + before);
+  // names for the records the log points at, so the list reads "Thanksgiving" instead of an id
+  const UUID = /^[0-9a-f-]{36}$/i, want = { campaign: ['campaigns', 'name'], voucher: ['vouchers', 'code'], company: ['companies', 'name'], segment: ['segments', 'name'] }, names = {};
+  await Promise.all(Object.keys(want).map(async (ent) => {
+    const ids = [...new Set(rows.filter((r) => r.entity === ent && UUID.test(r.entity_id || '')).map((r) => r.entity_id))];
+    if (!ids.length) return;
+    try { (await db.select(want[ent][0], 'select=id,' + want[ent][1] + '&id=' + inList(ids))).forEach((x) => { names[x.id] = x[want[ent][1]]; }); } catch (e) { /* a missing table only costs the label */ }
+  }));
+  return res.json({ rows: rows.map((r) => ({ ...r, label: names[r.entity_id] || null })), more: rows.length === 100 });
 };
 
 module.exports = async (req, res) => {

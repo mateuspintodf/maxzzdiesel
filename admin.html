@@ -76,6 +76,7 @@ svg.chart{width:100%;height:auto;display:block}.chart .b1{fill:url(#hatch)}.char
 .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:999px;padding:3px 10px;background:var(--soft);color:var(--ink2);white-space:nowrap;--c:#9aa0a8}
 .st:before{content:'';width:6px;height:6px;border-radius:50%;background:var(--c)}
 .st.portal{--c:var(--acc);background:var(--accs);color:#8a3f0a}.st.live{--c:var(--ok);background:var(--oks);color:var(--ok)}
+.aud{table-layout:fixed}.aud td{overflow-wrap:anywhere;vertical-align:top}.aud td small{display:block;color:var(--muted);font-size:12px;margin-top:2px}.aud .codes{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}.aud .aday td{background:var(--soft);font-size:12px;font-weight:600;color:var(--ink2);padding:7px 12px}
 .spec{display:grid;grid-template-columns:70px minmax(0,1fr);gap:6px 10px;margin:14px 0 0;font-size:12.5px}.spec dt{color:var(--muted)}.spec dd{margin:0;color:var(--ink2)}
 .cpban{aspect-ratio:4/1;border-radius:12px;background:#eef0f2 center/cover no-repeat}.cpdrop{display:flex;align-items:center;justify-content:center;gap:8px;aspect-ratio:4/1;border:1.5px dashed #c3c8cf;border-radius:12px;color:var(--ink2);cursor:pointer;font-weight:500}.cpdrop:hover{border-color:var(--ink);color:var(--ink)}.cpdrop.busy{cursor:progress}.cplink{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2);flex-wrap:wrap}.cplink .mono{color:var(--muted);font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;background:var(--soft)}.pill.pending{background:var(--warns);color:var(--warn)}.pill.approved{background:var(--oks);color:var(--ok)}.pill.rejected{background:#fdecee;color:var(--red)}
@@ -312,7 +313,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     var M = { pipe: ['pipeline', 'pipe'], campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
       stream: ['behavior-stream', 'bs', 'rows', bd + (sf.type ? '&type=' + encodeURIComponent(sf.type) : '') + (sf.signed ? '&signed=1' : '')], audit: ['audit', 'audit', 'rows'], terms: ['terms', 'terms', 'terms'], loyalty: ['loyalty', 'loy'], admins: ['admins', 'adm'] };
     var L = M[t]; if (!L) return;
-    S.tabErr = null; api(L[0], null, L[3] || '').then(function (r) { if (r._status === 200) { S[L[1]] = L[2] ? (r[L[2]] || []) : r; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = t; draw(); } });
+    S.tabErr = null; api(L[0], null, L[3] || '').then(function (r) { if (r._status === 200) { S[L[1]] = L[2] ? (r[L[2]] || []) : r; if (t === 'audit') S.audMore = !!r.more; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = t; draw(); } });
     if ((t === 'vouchers' || t === 'dir') && !S.data) load();
     if (t === 'campaigns' && !S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
   }
@@ -966,9 +967,28 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     });
     return h + '</div>';
   }
+  var AUD = { 'admin.login': 'Signed in', 'admin.create': 'Added an admin', 'admin.update': 'Changed an admin', 'campaign.create': 'Created a campaign', 'campaign.update': 'Edited a campaign', 'campaign.delete': 'Deleted a campaign', 'campaign.on': 'Turned a campaign on', 'campaign.off': 'Turned a campaign off', 'campaign.banner': 'Uploaded a campaign banner',
+    'voucher.create': 'Created a voucher', 'voucher.update': 'Edited a voucher', 'voucher.on': 'Turned a voucher on', 'voucher.off': 'Turned a voucher off', 'product.hide': 'Hid products', 'product.show': 'Showed products', 'product.standard.save': 'Saved the standard hidden list', 'product.standard.restore': 'Restored the standard hidden list',
+    'segment.create': 'Created a segment', 'segment.save': 'Edited a segment', 'segment.delete': 'Deleted a segment', 'segment.clear': 'Emptied a segment', 'segment.import': 'Imported a CSV into a segment', 'segment.template': 'Edited an invite text', 'import.run': 'Imported customers from Unleashed',
+    'invite.send': 'Sent a portal invite', 'invite.accept': 'Accepted the invite', 'company.approve': 'Approved portal access', 'company.reject': 'Removed portal access', 'company.remove': 'Removed companies from the admin', 'prospect.add': 'Added a prospect', 'session.revoke': 'Signed someone out',
+    'terms.save': 'Saved the terms draft', 'terms.publish': 'Published the terms', 'loyalty.save': 'Changed Max Rewards', 'dash.ai': 'Ran the AI plan', 'pipeline.lost': 'Marked an order as lost', 'pipeline.handled': 'Marked an order as handled' };
+  function audOn(r) { var a = r.after || {}, id = String(r.entity_id || '');
+    if (/^product\.(hide|show)$/.test(r.action)) { var cs = id.split(',').filter(Boolean), n = a.n || cs.length, more = a.n ? a.n - Math.min(cs.length, 3) : 0;
+      return '<b>' + n0(n) + ' part' + (n === 1 ? '' : 's') + '</b>' + (a.reason ? ' <span class="muted">· ' + esc(a.reason) + '</span>' : '') + '<small class="codes">' + esc(cs.slice(0, 3).join(', ')) + (cs.length > 3 || more > 0 ? ' and ' + n0(Math.max(more, cs.length - 3)) + ' more' : '') + '</small>'; }
+    if (/^product\.standard/.test(r.action)) return '<b>' + n0(+id || 0) + ' parts</b>';
+    var name = r.label || a.name || a.segment || a.code || a.company || '', extra = [];
+    if (a.products != null) extra.push(n0(a.products) + ' parts'); if (a.members != null) extra.push(n0(a.members) + ' members'); if (a.email) extra.push(a.email); if (a.terms) extra.push('terms ' + a.terms); if (a.reason) extra.push(a.reason); if (a.force) extra.push('saved under the margin floor');
+    if (!name) name = /^[0-9a-f-]{36}$/i.test(id) ? '' : id;
+    return (name ? '<b>' + esc(name) + '</b>' : '<span class="muted">' + esc(r.entity || '') + '</span>') + (extra.length ? '<small>' + esc(extra.join(' · ')) + '</small>' : ''); }
   function drawAudit() {
     if (!S.audit) return ld();
-    return '<div class="card"><table><tr><th>When</th><th>Who</th><th>What</th><th>On</th></tr>' + S.audit.map(function (r) { return '<tr><td>' + esc(new Date(r.at).toLocaleString()) + '</td><td>' + esc(r.admin_email) + '</td><td>' + esc(r.action) + '</td><td>' + esc(r.entity_id) + '</td></tr>'; }).join('') + '</table></div>';
+    var q = (S.audq || '').toLowerCase(), rows = S.audit.filter(function (r) { return !q || ((AUD[r.action] || r.action) + ' ' + r.admin_email + ' ' + (r.label || '') + ' ' + JSON.stringify(r.after || {}) + ' ' + (r.entity_id || '')).toLowerCase().indexOf(q) >= 0; }), day = '';
+    var h = '<section class="card flush"><div class="fbar"><input type="search" class="srch" data-m="audq" value="' + esc(S.audq || '') + '" placeholder="Search who, what or which part" style="max-width:340px"><span class="sp"></span><span class="muted">' + n0(rows.length) + ' shown</span></div><table class="aud"><colgroup><col style="width:90px"><col style="width:190px"><col style="width:260px"><col></colgroup><tr><th>When</th><th>Who</th><th>What</th><th>Details</th></tr>';
+    rows.forEach(function (r) { var d = new Date(r.at), dl = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+      if (dl !== day) { day = dl; h += '<tr class="aday"><td colspan="4">' + esc(dl) + '</td></tr>'; }
+      h += '<tr><td class="nw muted">' + esc(d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })) + '</td><td>' + esc(String(r.admin_email || '').split('@')[0]) + '</td><td>' + esc(AUD[r.action] || r.action) + '</td><td>' + audOn(r) + '</td></tr>'; });
+    h += '</table>' + (!rows.length ? '<div class="empty">Nothing matches.</div>' : '') + (S.audMore ? '<div style="padding:14px 20px"><button class="btn ghost sm" data-act="aud-more"' + (S.busy ? ' disabled' : '') + '>Load older</button></div>' : '') + '</section>';
+    return h;
   }
 
   function drawImport() {
@@ -1160,6 +1180,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'cp-back') { S.cp = null; loadTab('campaigns'); return go(draw, 'back'); }
     if (act === 'cp-kind') { S.cp.kind = t.dataset.k; return draw(); }
     if (act === 'cp-color') { S.cp.color = t.dataset.c; return draw(); }
+    if (act === 'aud-more') { var last = S.audit[S.audit.length - 1]; if (!last) return; S.busy = true; draw(); api('audit', null, '&before=' + encodeURIComponent(last.at)).then(function (r) { S.busy = false; if (r._status !== 200) return fail(r); S.audit = S.audit.concat(r.rows || []); S.audMore = !!r.more; draw(); }); return; }
     if (act === 'cp-ban-rm') { S.cp.banner_url = ''; S.cp._banPrev = ''; return draw(); }
     if (act === 'cp-copy') { var u = t.dataset.u, done = function () { toast('Link copied. Paste it in your post, e-mail or WhatsApp.', true); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done, function () { S.err = 'Could not copy. The link is ' + u; draw(); }); else { var ta = document.createElement('textarea'); ta.value = u; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (x) {} ta.remove(); } return; }
     if (act === 'cp-inc') { S.cpf = S.cpf || {}; S.cpf.inc = t.dataset.v; S.cpn = 100; return draw(); }
