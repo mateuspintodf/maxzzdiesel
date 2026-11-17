@@ -451,6 +451,125 @@ A.events = async (req, res) => {
   });
 };
 
+// ---------------------------------------------------------------- dashboard: sales (Unleashed history), portal behavior, next actions
+const { cached } = require('../lib/store');
+const pl = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+const usd = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
+async function names() {
+  const cat = await cached('catalog/live.json', 60 * 60 * 1000).catch(() => null);
+  const m = {}; (Array.isArray(cat) ? cat : []).forEach((r) => { m[r[0]] = { t: String(r[1] || '').split(' / ')[0].slice(0, 70), k: r[3] }; });
+  return m;
+}
+// rule-based next actions; each one says who, why and what to do, ranked by money at stake
+function actions(S, B, portal, N) {
+  const out = [], nm = (c) => (N[c] && N[c].t) || c;
+  const inPortal = (c) => portal[c] && portal[c] !== 'rejected';
+  (S.due || []).slice(0, 25).forEach((c) => {
+    const items = (c.items || []).slice(0, 4).map((i) => i.code + ' (' + nm(i.code) + ')');
+    out.push({ kind: 'reorder', channel: 'call', score: (c.r12 || 0) + (c.total || 0) / 4, title: (c.status === 'overdue' ? 'Overdue: ' : 'Due to reorder: ') + c.n,
+      why: 'Buys about every ' + c.med + ' days. Last order ' + c.since + ' days ago. ' + usd(c.r12) + ' in the last 12 months.' + (c.sp ? ' Salesperson: ' + c.sp + '.' : ''),
+      todo: items.length ? 'Call or e-mail with the parts they usually buy: ' + items.join(', ') + '.' : 'Call to check what they need next.',
+      who: [{ c: c.c, n: c.n }], codes: (c.items || []).map((i) => i.code) });
+  });
+  (S.declining || []).slice(0, 10).forEach((c) => out.push({ kind: 'declining', channel: 'call', score: (c.p12 - c.r12) * 0.8, title: 'Buying less: ' + c.n,
+    why: usd(c.r12) + ' in the last 12 months against ' + usd(c.p12) + ' the year before (' + Math.round((1 - c.r12 / Math.max(1, c.p12)) * 100) + '% down).',
+    todo: 'Ask what changed: price, stock, a competitor, or less work. A tier review or a targeted voucher may bring them back.', who: [{ c: c.c, n: c.n }] }));
+  const lost = (S.lost || []).filter((c) => c.total >= 1000);
+  if (lost.length) out.push({ kind: 'winback', channel: 'campaign', score: lost.reduce((a, c) => a + (c.p12 || 0) + c.total / 6, 0) / 3,
+    title: 'Win-back campaign: ' + pl(lost.length, 'customer') + ' who stopped buying or are slipping', why: 'Together they spent ' + usd(lost.reduce((a, c) => a + c.total, 0)) + ' with Maxzz, ' + Math.round(lost.reduce((a, c) => a + c.orders, 0) / lost.length) + ' orders each on average.',
+    todo: 'E-mail with a one-time voucher (for example 7% off, 30 days) and a portal invite. Call the 5 largest first.', who: lost.map((c) => ({ c: c.c, n: c.n })) });
+  const nw = (S.new_customers || []).filter((c) => c.orders === 1);
+  if (nw.length) out.push({ kind: 'second_order', channel: 'campaign', score: nw.length * 800, title: 'Second order push: ' + pl(nw.length, 'new customer') + ' with one order',
+    why: 'New in the last 4 months and have not ordered again yet. The second order is where a customer usually sticks.', todo: 'Send a welcome with a portal invite and the parts most bought with what they ordered.', who: nw.map((c) => ({ c: c.c, n: c.n })) });
+  const notIn = (S.top_customers || []).filter((c) => c.r12 > 0 && !inPortal(c.c)).slice(0, 25);
+  if (notIn.length) out.push({ kind: 'portal_invite', channel: 'campaign', score: notIn.reduce((a, c) => a + c.r12, 0) / 20, title: 'Invite top customers to the portal: ' + notIn.length + ' not in yet',
+    why: 'They are among your 40 biggest customers in the last 12 months and still order by phone or e-mail.', todo: 'Import them as a segment and send the portal invite, starting with the ones you talk to most.', who: notIn.map((c) => ({ c: c.c, n: c.n })) });
+  (S.rising || []).slice(0, 5).forEach((p) => out.push({ kind: 'rising', channel: 'content', score: (p.r90 || 0) / 2, title: 'Selling more: ' + p.code + ' ' + nm(p.code),
+    why: p.q90 + ' units in the last 90 days against ' + p.pq90 + ' in the 90 before.', todo: 'Check stock covers the trend, feature it on the portal home and in an Instagram post or e-mail to customers of that engine.', codes: [p.code] }));
+  (S.falling || []).slice(0, 3).forEach((p) => out.push({ kind: 'falling', channel: 'review', score: (p.pr90 || 0) / 3, title: 'Selling less: ' + p.code + ' ' + nm(p.code),
+    why: p.q90 + ' units in the last 90 days against ' + p.pq90 + ' in the 90 before.', todo: 'Check price against the market and stock. If it is seasonal, nothing to do.', codes: [p.code] }));
+  (B.users || []).filter((u) => u.hot).slice(0, 15).forEach((u) => out.push({ kind: 'portal_intent', channel: 'call', score: 1500 + (u.ca || 0) * 500 + (u.pv || 0) * 50, title: 'Shopping without ordering: ' + (u.company || u.email),
+    why: (u.name || u.email) + ' viewed ' + (u.pv || 0) + ' parts' + (u.ca ? ' and added ' + u.ca + ' to the cart' : '') + ' in the portal, with no quote or order.' + (u.queries && u.queries.length ? ' Searched: ' + u.queries.join(', ') + '.' : ''),
+    todo: 'Reach out today: help with the parts they looked at' + (u.codes && u.codes.length ? ' (' + u.codes.slice(0, 4).join(', ') + ')' : '') + ', price or stock questions.', who: [{ c: u.code, n: u.company, e: u.email }], codes: u.codes || [] }));
+  return out.sort((a, b) => b.score - a.score).slice(0, 40).map((a) => { a.score = Math.round(a.score); return a; });
+}
+A.dash = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
+  const [S, B, cos, N, ord, qts] = await Promise.all([
+    db.rpc('dash_sales'), db.rpc('dash_behavior', { p_days: days }),
+    db.select('companies', 'select=unleashed_code,status&unleashed_code=not.is.null'), names(),
+    db.select('orders', 'select=total,created_at,status&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
+    db.select('quotes', 'select=created_at&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
+  ]);
+  const portal = {}; (cos || []).forEach((c) => { portal[c.unleashed_code] = c.status; });
+  const title = (c) => (N[c] ? N[c].t : '');
+  ['products', 'rising', 'falling'].forEach((k) => (S[k] || []).forEach((p) => { p.t = title(p.code); p.k = N[p.code] ? N[p.code].k : ''; }));
+  (S.due || []).forEach((c) => (c.items || []).forEach((i) => { i.t = title(i.code); }));
+  ['top_customers', 'due', 'lost', 'declining', 'new_customers'].forEach((k) => (S[k] || []).forEach((c) => { c.portal = portal[c.c] || null; }));
+  ['viewed', 'carted'].forEach((k) => (B[k] || []).forEach((p) => { p.t = title(p.k); }));
+  const P = { orders: ord.length, order_value: Math.round(ord.reduce((a, o) => a + Number(o.total || 0), 0)), quotes: qts.length,
+    companies: Object.values(portal).filter((s) => s === 'approved' || s === 'active').length, invited: Object.values(portal).filter((s) => s === 'invited').length };
+  return res.json({ days, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(), at: Date.now() });
+};
+// AI read of the same numbers: campaigns for groups and one-to-one actions. Off until DASH_AI=1 (it has a cost per run).
+// Only business data goes out (company names, codes, totals, parts); no e-mails or phone numbers.
+const AI_KEY = () => process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN || '';
+const aiOn = () => process.env.DASH_AI === '1' && !!AI_KEY();
+A['dash-ai'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const { readJson, writeJson } = require('../lib/store');
+  if (req.method !== 'POST') return res.json({ on: aiOn(), last: await readJson('portal/dash-ai.json').catch(() => null) });
+  if (!originOk(req)) return res.status(405).json({ error: 'method' });
+  if (!aiOn()) return res.status(409).json({ error: 'AI suggestions are not switched on yet.' });
+  const last = await readJson('portal/dash-ai.json').catch(() => null);
+  if (last && Date.now() - last.at < 10 * 60 * 1000) return res.json(last); // one run per 10 minutes is plenty
+  const [S, B, N] = await Promise.all([db.rpc('dash_sales'), db.rpc('dash_behavior', { p_days: 30 }), names()]);
+  const nm = (c) => (N[c] ? N[c].t : '');
+  const cut = (a, n, f) => (a || []).slice(0, n).map(f);
+  const facts = {
+    today: new Date().toISOString().slice(0, 10), kpi: S.kpi, months: (S.months || []).slice(-13), segments: S.segments, status: S.status,
+    due: cut(S.due, 20, (c) => ({ customer: c.n, code: c.c, every_days: c.med, days_since: c.since, last12: c.r12, rep: c.sp, usual_parts: (c.items || []).slice(0, 4).map((i) => i.code + ' ' + nm(i.code)) })),
+    lost_or_at_risk: cut(S.lost, 15, (c) => ({ customer: c.n, code: c.c, lifetime: c.total, prev12: c.p12, days_since: c.since, orders: c.orders })),
+    declining: cut(S.declining, 10, (c) => ({ customer: c.n, last12: c.r12, prev12: c.p12 })),
+    new_customers: cut(S.new_customers, 15, (c) => ({ customer: c.n, first: c.first, orders: c.orders, total: c.total, country: c.country })),
+    top_products: cut(S.products, 20, (p) => ({ code: p.code, name: nm(p.code), type: N[p.code] ? N[p.code].k : '', rev12: p.r12, units12: p.q12, buyers12: p.cust12 })),
+    rising: cut(S.rising, 10, (p) => ({ code: p.code, name: nm(p.code), units90: p.q90, prev90: p.pq90 })),
+    falling: cut(S.falling, 8, (p) => ({ code: p.code, name: nm(p.code), units90: p.q90, prev90: p.pq90 })),
+    countries: S.countries, reps: S.reps,
+    portal_30d: { totals: B.totals, funnel: B.funnel, sources: B.sources, searches: (B.searches || []).slice(0, 15), viewed: cut(B.viewed, 12, (p) => ({ code: p.k, name: nm(p.k), views: p.c })),
+      shopping_without_order: (B.users || []).filter((u) => u.hot).slice(0, 10).map((u) => ({ company: u.company, viewed: u.pv, carted: u.ca, parts: u.codes, searched: u.queries })) },
+  };
+  const prompt = 'You are the sales analyst of Maxzz Diesel, a diesel fuel injection distributor in Florida (Bosch injectors, pumps, nozzles, repair parts, tools) selling B2B to repair shops and rebuilders in the US and Latin America through a sales team and a B2B portal. ' +
+    'From the data below, write the actions with the best expected return for the next 2 weeks. Be specific: name customers, parts and numbers from the data, never invent figures. Plain, direct English, no hype, no em dashes. ' +
+    'Answer only with JSON: {"summary": "3 to 5 sentences on how the business is doing and why", "one_to_one": [{"customer": "", "code": "", "action": "", "why": "", "channel": "call|email|whatsapp|visit", "priority": 1}], ' +
+    '"campaigns": [{"name": "", "audience": "who and how many, from the data", "codes": ["customer codes if known"], "channel": "email|whatsapp|instagram|portal|call", "offer": "", "message": "a short draft of the message", "why": "", "expected": "what success looks like"}], ' +
+    '"products": [{"code": "", "action": "", "why": ""}], "watch": ["risks or data gaps worth checking"]}. Up to 10 one_to_one, 5 campaigns, 5 products.\n\nDATA:\n' + JSON.stringify(facts);
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 50000);
+  try {
+    const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + AI_KEY(), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', max_tokens: 6000, messages: [{ role: 'user', content: prompt }] }) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) { console.error('dash-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: 'The AI service did not answer. Try again in a minute.' }); }
+    const text = String(j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || '');
+    let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
+    if (!out) return res.status(502).json({ error: 'The AI answer could not be read. Try again.' });
+    const doc = { at: Date.now(), by: w.email, model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', out };
+    await writeJson('portal/dash-ai.json', doc);
+    await PS.audit(w.email, 'dash.ai', 'dashboard', 'ai').catch(() => {});
+    return res.json(doc);
+  } finally { clearTimeout(t); }
+};
+A['dash-sync'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const out = await require('../lib/sales-sync').run(45 * 1000);
+  return res.json(Object.assign({ ok: !out.error }, out));
+};
+
 // ---------------------------------------------------------------- loyalty (off until the rules are decided)
 A.loyalty = async (req, res) => {
   const w = await who(req, res); if (!w) return;

@@ -52,7 +52,7 @@
     if (m[1] === 'p') Beacon.send('product', { code: a }); else if (m[1] === 's') Beacon.send('search', { query: a }); else if (m[1] === 'cart') Beacon.send('cart_view'); else Beacon.send('page', { path: m[1] });
   }
   window.addEventListener('hashchange', hashEvent); setTimeout(hashEvent, 600);
-  var TMAP = { add_to_cart: function (p) { return ['cart_add', { code: p.item_id, qty: p.quantity }]; }, generate_lead: function (p) { return /order/.test(p.form || '') ? ['order', { props: { number: p.quote_id, items: p.items } }] : ['quote', { props: { id: p.quote_id, items: p.items } }]; } };
+  var TMAP = { add_to_cart: function (p) { return ['cart_add', { code: p.item_id, qty: p.quantity }]; }, quote_add_item: function (p) { return ['cart_add', { code: p.item_id, qty: p.quantity, props: { list: 'quote' } }]; }, login: function (p) { return ['login', { props: { method: p.method } }]; }, generate_lead: function (p) { return /order/.test(p.form || '') ? ['order', { props: { number: p.quote_id, items: p.items } }] : ['quote', { props: { id: p.quote_id, items: p.items } }]; } };
   function track(ev, p) {
     try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: ev }, p || {})); } catch (e) {}
     try { var f = TMAP[ev]; if (f) { var r = f(p || {}); Beacon.send(r[0], r[1]); } } catch (e) {}
