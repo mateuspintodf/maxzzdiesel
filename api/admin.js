@@ -575,6 +575,66 @@ A['behavior-stream'] = async (req, res) => {
     company: e.company_id && C[e.company_id] ? C[e.company_id].name : '', cid: e.company_id, code_c: e.company_id && C[e.company_id] ? C[e.company_id].unleashed_code : '', person: e.user_id && U[e.user_id] ? (U[e.user_id].name || U[e.user_id].email) : '' })) });
 };
 
+// ---------------------------------------------------------------- product campaigns (badge + discount on chosen parts)
+const slugify = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50);
+A.campaigns = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const cs = await db.select('campaigns', 'select=*&order=starts_at.desc&limit=200');
+  const items = cs.length ? await db.selectAll('campaign_products', 'select=campaign_id,code') : [];
+  const n = {}; items.forEach((i) => { n[i.campaign_id] = (n[i.campaign_id] || 0) + 1; });
+  // orders with campaign parts since the campaign started: units and value at the order price
+  return res.json({ campaigns: cs.map((c) => Object.assign(c, { products: n[c.id] || 0 })) });
+};
+A.campaign = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const id = clean(req.query.id, 60);
+  const c = (await db.select('campaigns', 'select=*&id=eq.' + id + '&limit=1'))[0];
+  if (!c) return res.status(404).json({ error: 'campaign' });
+  const items = await db.selectAll('campaign_products', 'select=code,value&campaign_id=eq.' + id);
+  let sold = []; try {
+    sold = await db.selectAll('order_lines', 'select=code,qty,price,orders!inner(created_at,status)&code=in.(' + items.slice(0, 800).map((i) => '"' + String(i.code).replace(/"/g, '') + '"').join(',') + ')&orders.created_at=gte.' + c.starts_at);
+  } catch (e) { sold = []; }
+  return res.json({ campaign: c, items, sold: { lines: sold.length, units: sold.reduce((a, l) => a + Number(l.qty || 0), 0), value: Math.round(sold.reduce((a, l) => a + Number(l.qty || 0) * Number(l.price || 0), 0)) } });
+};
+A['campaign-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), id = clean(b.id, 60), name = clean(b.name, 80);
+  if (!name) return res.status(400).json({ error: 'Give the campaign a name.' });
+  const kind = b.kind === 'price' ? 'price' : 'percent', value = num(b.value);
+  if (kind === 'percent' && !(value > 0 && value < 100)) return res.status(400).json({ error: 'The discount must be between 1 and 99%.' });
+  const starts = b.starts_at ? new Date(b.starts_at) : new Date(), ends = b.ends_at ? new Date(b.ends_at) : null;
+  if (!ends || isNaN(ends) || isNaN(starts) || ends <= starts) return res.status(400).json({ error: 'Set when the campaign ends (after it starts).' });
+  const codes = [...new Map((Array.isArray(b.items) ? b.items : []).map((i) => [clean(i && i.code, 60), i && num(i.value) > 0 ? num(i.value) : null]).filter((x) => x[0])).entries()].slice(0, 6000);
+  if (!codes.length) return res.status(400).json({ error: 'Add at least one product to the campaign.' });
+  if (kind === 'price' && codes.some((x) => !(x[1] > 0)) && !(value > 0)) return res.status(400).json({ error: 'Fixed price campaigns need a price on every product.' });
+  const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: value || 0,
+    color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
+  let cid = id;
+  try {
+    if (cid) await db.update('campaigns', 'id=eq.' + cid, rec);
+    else cid = (await db.insert('campaigns', [Object.assign(rec, { created_by: w.email })]))[0].id;
+  } catch (e) { return res.status(409).json({ error: /duplicate|unique/i.test(e.message) ? 'Another campaign already uses that link name. Change the name or the link.' : 'Could not save.' }); }
+  await db.remove('campaign_products', 'campaign_id=eq.' + cid);
+  for (let i = 0; i < codes.length; i += 500) await db.insert('campaign_products', codes.slice(i, i + 500).map((x) => ({ campaign_id: cid, code: x[0], value: x[1] })));
+  require('../lib/campaigns').reset();
+  await PS.audit(w.email, id ? 'campaign.update' : 'campaign.create', 'campaign', cid, null, { name, products: codes.length });
+  return res.json({ ok: true, id: cid, slug: rec.slug });
+};
+A['campaign-toggle'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), id = clean(b.id, 60);
+  if (b.remove) { await db.remove('campaigns', 'id=eq.' + id); await PS.audit(w.email, 'campaign.delete', 'campaign', id); }
+  else { await db.update('campaigns', 'id=eq.' + id, { active: !!b.active, updated_at: new Date().toISOString() }); await PS.audit(w.email, b.active ? 'campaign.on' : 'campaign.off', 'campaign', id); }
+  require('../lib/campaigns').reset();
+  return res.json({ ok: true });
+};
+
 // ---------------------------------------------------------------- behaviour log: summaries for BI
 A.events = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -645,11 +705,12 @@ A.dash = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
-  const [S, B, cos, N, ord, qts] = await Promise.all([
+  const [S, B, cos, N, ord, qts, PER] = await Promise.all([
     db.rpc('dash_sales'), db.rpc('dash_behavior', { p_days: days }),
     db.select('companies', 'select=unleashed_code,status&unleashed_code=not.is.null'), names(),
     db.select('orders', 'select=total,created_at,status&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
     db.select('quotes', 'select=created_at&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
+    db.rpc('dash_period', { p_days: days }).catch(() => null),
   ]);
   const portal = {}; (cos || []).forEach((c) => { portal[c.unleashed_code] = c.status; });
   const title = (c) => (N[c] ? N[c].t : '');
@@ -659,7 +720,7 @@ A.dash = async (req, res) => {
   ['viewed', 'carted'].forEach((k) => (B[k] || []).forEach((p) => { p.t = title(p.k); }));
   const P = { orders: ord.length, order_value: Math.round(ord.reduce((a, o) => a + Number(o.total || 0), 0)), quotes: qts.length,
     companies: Object.values(portal).filter((s) => s === 'approved' || s === 'active').length, invited: Object.values(portal).filter((s) => s === 'invited').length };
-  return res.json({ days, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(req), at: Date.now() });
+  return res.json({ days, period: PER, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(req), at: Date.now() });
 };
 // AI read of the same numbers: campaigns for groups and one-to-one actions. Off until DASH_AI=1 (it has a cost per run).
 // Only business data goes out (company names, codes, totals, parts); no e-mails or phone numbers.
