@@ -204,7 +204,7 @@ A['mfa-reset'] = async (req, res) => {
 
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
 const TEAM_PH = (() => { try { return require('../lib/team-photos.json'); } catch (e) { return {}; } })(); // starter photos, a photo saved in the admin wins
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,last_name,phone,photo&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, last_name: a.last_name || null, phone: a.phone || null, photo: a.photo || TEAM_PH[w.email] || null })); };
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,last_name,phone,photo,screens&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, last_name: a.last_name || null, phone: a.phone || null, photo: a.photo || TEAM_PH[w.email] || null, screens: w.role === 'superadmin' ? null : (Array.isArray(a.screens) ? a.screens : null) })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -343,13 +343,13 @@ const ROLES = ['superadmin', 'sales', 'marketing'];
 A.admins = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
-  const rows = await db.select('admins', 'select=email,name,first_name,last_name,phone,photo,role,active,salesperson,created_at,created_by&order=created_at');
+  const rows = await db.select('admins', 'select=email,name,first_name,last_name,phone,photo,role,active,salesperson,screens,created_at,created_by&order=created_at');
   const inTable = new Set(rows.map((r) => String(r.email).toLowerCase()));
   const boot = envAdmins().filter((e) => !inTable.has(e)).map((e) => ({ email: e, name: '', role: 'superadmin', active: true, bootstrap: true }));
   const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
   const mf = {}; (await db.select('admin_mfa', 'select=email,totp_on').catch(() => [])).forEach((m) => { mf[m.email] = { totp: !!m.totp_on, pk: 0 }; });
   (await db.select('admin_passkeys', 'select=email').catch(() => [])).forEach((p) => { (mf[p.email] = mf[p.email] || { totp: false, pk: 0 }).pk++; });
-  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).map((r) => Object.assign(r, { photo: r.photo || TEAM_PH[r.email] || null })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps });
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).map((r) => Object.assign(r, { photo: r.photo || TEAM_PH[r.email] || null })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps, screens: SCREENS });
 };
 A['profile-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -379,10 +379,12 @@ A['admin-save'] = async (req, res) => {
   if (!EMAIL.test(email)) return res.status(400).json({ error: 'That e-mail does not look right.' });
   if (!ROLES.includes(role)) return res.status(400).json({ error: 'role' });
   if (email === w.email && (!active || role !== 'superadmin')) return res.status(400).json({ error: 'You cannot remove your own superadmin access.' });
+  const scr = b.screens === undefined ? undefined : (Array.isArray(b.screens) ? [...new Set(b.screens.map((x) => String(x)).filter((x) => SCREENS.includes(x)))] : null);
   const before = (await db.select('admins', 'select=*&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0] || null;
-  await db.insert('admins', [{ email, role, name: name || null, first_name: fn || null, last_name: ln || null, phone: ph || null, ...(photo === undefined ? {} : { photo: photo || null }), active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
+  await db.insert('admins', [{ email, role, name: name || null, first_name: fn || null, last_name: ln || null, phone: ph || null, ...(photo === undefined ? {} : { photo: photo || null }), ...(scr === undefined ? {} : { screens: role === 'superadmin' ? null : scr }), active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
   if (!active || (before && before.role !== role)) await SDB.revokeEmail(email, w.email, 'admin').catch(() => {}); // new rights start at the next sign-in
   await PS.audit(w.email, before ? 'admin.update' : 'admin.create', 'admin', email, before && { role: before.role, active: before.active }, { role, active });
+  scrMemo.delete(email);
   return res.json({ ok: true });
 };
 // ---------------------------------------------------------------- Unleashed import into segments
@@ -1726,6 +1728,31 @@ A['sales-data'] = async (req, res) => {
     days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
     customers, people, parts, signals, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
 };
+// ---- sales mix: the same period cut by category, part type, brand, customer type (channel) or state (region)
+A['sales-mix'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, req); if (sc.none) return res.json({ rows: [], total: 0 });
+  const today = new Date().toISOString().slice(0, 10), to = ISO10.test(req.query.to || '') ? req.query.to : today;
+  let from = ISO10.test(req.query.from || '') ? req.query.from : addDays(to, -29); if (from > to) from = to;
+  if (spanDays(from, to) > 3700) from = addDays(to, -3699);
+  const dim = ['category', 'type', 'brand', 'channel', 'region'].includes(req.query.dim) ? req.query.dim : 'category';
+  const prof = (r) => (Number(r.cov) || 0) - (Number(r.cost) || 0);
+  let src = [], key;
+  if (['channel', 'region'].includes(dim)) {
+    const ag = await db.rpc('sales_agg', { p_from: from, p_to: to, p_sp: sc.sp }); src = ag.orders || [];
+    const codes = [...new Set(src.map((r) => r.c).filter(Boolean))], cu = {};
+    for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,type,state,country&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { cu[x.code] = x; });
+    key = (r) => { const c = cu[r.c] || {}; return dim === 'channel' ? (c.type || 'No customer type') : ([c.state, c.country && c.country !== 'United States' ? c.country : ''].filter(Boolean).join(', ') || 'No address'); };
+  } else {
+    src = await db.rpc('sales_by_code', { p_from: from, p_to: to, p_sp: sc.sp }); src = Array.isArray(src) ? src : [];
+    const cat = await cached('catalog/live.json', 60 * 60 * 1000).catch(() => null), cm = {}; (Array.isArray(cat) ? cat : []).forEach((r) => { cm[r[0]] = r; });
+    key = (r) => { const c = cm[r.code]; if (!c) return 'Not in the catalog'; return (dim === 'brand' ? c[4] : dim === 'type' ? c[2] : c[3]) || 'Not set'; };
+  }
+  const g = {}; src.forEach((r) => { const k = key(r), x = g[k] || (g[k] = { k, sales: 0, profit: 0, cov: 0, lines: 0 }); x.sales += Number(r.sales) || 0; x.profit += prof(r); x.cov += Number(r.cov) || 0; x.lines += r.cnt != null ? Number(r.cnt) || 0 : 1; });
+  const rows = Object.values(g).filter((x) => Math.abs(x.sales) > 0.5).sort((a, b) => b.sales - a.sales).slice(0, 60), total = rows.reduce((t, x) => t + x.sales, 0);
+  return res.json({ from, to, dim, total, rows: rows.map((x) => ({ k: x.k, sales: x.sales, profit: x.profit, margin: x.cov ? x.profit / x.cov : null, share: total ? x.sales / total : 0 })) });
+};
 // ---- monthly commission close: a closed month keeps the numbers it had at closing, so a later edit in Unleashed does not change what was paid.
 A['commission-close'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1944,11 +1971,28 @@ A.audit = async (req, res) => {
   return res.json({ rows: rows.map((r) => ({ ...r, label: names[r.entity_id] || null })), more: rows.length === 100 });
 };
 
+// ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
+const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
+const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
+  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
+  vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
+  loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products'],
+  events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
+  segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
+  prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
+const scrMemo = new Map();
+async function screensOf(email) {
+  const k = String(email).toLowerCase(), hit = scrMemo.get(k); if (hit && Date.now() - hit.t < 20000) return hit.v;
+  let v = null; try { const r = (await db.select('admins', 'select=role,screens&email=eq.' + encodeURIComponent(k) + '&limit=1'))[0]; if (r && r.role !== 'superadmin' && Array.isArray(r.screens)) v = r.screens; } catch (e) { v = null; }
+  scrMemo.set(k, { t: Date.now(), v }); return v;
+}
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Robots-Tag', 'noindex');
   if (!PS.on()) return res.status(503).json({ error: 'database mode is off' });
   const fn = A[String(req.query.a || '')];
   if (!fn) return res.status(404).json({ error: 'not found' });
+  const need = API_SCREEN[String(req.query.a || '')];
+  if (need) { const s0 = await SDB.lookup(req, 'admin').catch(() => null), allow = s0 && s0.email ? await screensOf(s0.email) : null; if (allow && !need.some((x) => allow.includes(x))) return res.status(403).json({ error: 'This screen is not enabled for your login.' }); }
   try { return await fn(req, res); }
   catch (e) { console.error('admin', req.query.a, e.message); return res.status(500).json({ error: 'server' }); }
 };
