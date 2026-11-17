@@ -1,4 +1,4 @@
-// Scheduled (Vercel Cron, hourly): sales history from Unleashed into Supabase for the admin dashboard. See lib/sales-sync.js.
+// Scheduled (Vercel Cron, every 5 minutes (near real time with the ERP)): sales history from Unleashed into Supabase for the admin dashboard. See lib/sales-sync.js.
 const { run } = require('../lib/sales-sync');
 
 module.exports = async (req, res) => {

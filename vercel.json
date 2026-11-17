@@ -1150,7 +1150,7 @@
     },
     {
       "path": "/api/cron-sales",
-      "schedule": "25 * * * *"
+      "schedule": "*/5 * * * *"
     }
   ],
   "rewrites": [
