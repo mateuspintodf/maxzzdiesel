@@ -233,18 +233,19 @@ button.fst{font:inherit;color:inherit;text-align:left;border:0;cursor:pointer;tr
 .sw span,.sw span:before{transition:background .2s ease,transform .32s cubic-bezier(.34,1.56,.64,1)}
 .btn{transition:background .15s ease,box-shadow .15s ease,transform .1s ease}.btn:active:not(:disabled){transform:scale(.97)}
 
-/* truck loader */
-.tl{display:grid;justify-items:center;gap:16px;padding:64px 20px}
+/* truck loader: small dark pill, white truck, thin line that fills */
+.tl{display:grid;justify-items:center;gap:12px;padding:64px 20px}
 .tl.sm{padding:22px 20px}
-.tl-road{position:relative;width:min(340px,78%);height:7px;border-radius:99px;background:#e6e6e9;margin-top:46px}
-.tl .tl-fill{display:block;position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;background:#d32a37;animation:tlfill 2.4s cubic-bezier(.45,0,.25,1) infinite}
-.tl-truck{position:absolute;left:0;bottom:6px;width:62px;height:auto;transform:translateX(-100%);animation:tldrive 2.4s cubic-bezier(.45,0,.25,1) infinite}
+.tl-road{position:relative;width:190px;height:34px;border-radius:99px;background:#15161e;overflow:hidden}
+.tl .tl-fill{display:block;position:absolute;left:14px;bottom:7px;height:2px;width:0;border-radius:2px;background:rgba(255,255,255,.55);animation:tlfill 2.4s cubic-bezier(.45,0,.25,1) infinite}
+.tl-road:before{content:"";position:absolute;left:14px;right:14px;bottom:7px;height:2px;border-radius:2px;background:rgba(255,255,255,.14)}
+.tl-truck{position:absolute;left:14px;bottom:10px;width:26px;transform:translateX(-100%);animation:tldrive 2.4s cubic-bezier(.45,0,.25,1) infinite}
 .tl-truck svg{display:block;width:100%;height:auto;animation:tlbob .34s ease-in-out infinite alternate}
-.tl-t{font-size:13px;color:var(--mut,#6b6b74);letter-spacing:.02em}
-@keyframes tlfill{0%{width:0;opacity:1}82%{width:100%;opacity:1}100%{width:100%;opacity:0}}
-@keyframes tldrive{0%{left:0;opacity:1}82%{left:100%;opacity:1}100%{left:100%;opacity:0}}
-@keyframes tlbob{from{transform:translateY(0)}to{transform:translateY(-1.5px)}}
-@media(prefers-reduced-motion:reduce){.tl-fill{animation:none;width:60%}.tl-truck{animation:none;left:60%}.tl-truck svg{animation:none}}
+.tl-t{font-size:12px;color:var(--mut,#8a8a93);letter-spacing:.02em}
+@keyframes tlfill{0%{width:0;opacity:1}82%{width:162px;opacity:1}100%{width:162px;opacity:0}}
+@keyframes tldrive{0%{left:14px;opacity:1}82%{left:176px;opacity:1}100%{left:176px;opacity:0}}
+@keyframes tlbob{from{transform:translateY(0)}to{transform:translateY(-.8px)}}
+@media(prefers-reduced-motion:reduce){.tl .tl-fill{animation:none;width:100px}.tl-truck{animation:none;left:114px}.tl-truck svg{animation:none}}
 /* skeleton while a page loads */
 .skel{display:grid;gap:14px}.skel i{display:block;height:92px;border-radius:var(--r);background:linear-gradient(90deg,#fff 0,#f3f3f4 40%,#fff 80%);background-size:300% 100%;animation:shm 1.2s ease-in-out infinite}.skel i:nth-child(2){height:220px}.skel i:nth-child(3){height:160px}
 @keyframes shm{from{background-position:100% 0}to{background-position:0 0}}
@@ -407,7 +408,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 </style>
 </head>
 <body>
-<div id="app"><div class="tl" role="status" aria-busy="true" style="min-height:70vh;align-content:center"><div class="tl-road"><span class="tl-fill"></span><span class="tl-truck"><svg viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="#15161e" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="#15161e" cx="91.62" cy="180.66" r="28.06"/><path fill="#d32a37" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="#15161e" cx="271.95" cy="179.07" r="26.87"/></svg></span></div><span class="tl-t">Loading</span></div></div>
+<div id="app"><div class="tl" role="status" aria-busy="true" style="min-height:70vh;align-content:center"><div class="tl-road"><span class="tl-fill"></span><span class="tl-truck"><svg viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="#fff" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="#fff" cx="91.62" cy="180.66" r="28.06"/><path fill="#fff" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="#fff" cx="271.95" cy="179.07" r="26.87"/></svg></span></div><span class="tl-t">Loading</span></div></div>
 <script src="/js/admin-subs.js?v=1"></script>
 <script src="/js/morphdom.min.js?v=1"></script>
 <script>
@@ -500,7 +501,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if ((t === 'vouchers' || t === 'dir') && !S.data) load();
     if (t === 'campaigns' && !S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
   }
-  function tload(msg, sm) { return '<div class="tl' + (sm ? ' sm' : '') + '" role="status" aria-busy="true" aria-live="polite"><div class="tl-road"><span class="tl-fill"></span><span class="tl-truck"><svg viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="#15161e" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="#15161e" cx="91.62" cy="180.66" r="28.06"/><path fill="#d32a37" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="#15161e" cx="271.95" cy="179.07" r="26.87"/></svg></span></div><span class="tl-t">' + (msg || 'Loading') + '</span></div>'; }
+  function tload(msg, sm) { return '<div class="tl' + (sm ? ' sm' : '') + '" role="status" aria-busy="true" aria-live="polite"><div class="tl-road"><span class="tl-fill"></span><span class="tl-truck"><svg viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="#fff" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="#fff" cx="91.62" cy="180.66" r="28.06"/><path fill="#fff" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="#fff" cx="271.95" cy="179.07" r="26.87"/></svg></span></div><span class="tl-t">' + (msg || 'Loading') + '</span></div>'; }
   function ld() { if (S.tabErr && S.tabErr === S.tab) return '<div class="card"><h2>Could not load this page</h2><p class="muted">The server did not answer. Check your connection and try again.</p><button class="btn sm" data-act="retry">Try again</button></div>'; return tload('Loading this page'); }
   function photoData(file, cb) { var im = new Image(), u = URL.createObjectURL(file); im.onload = function () { var z = 192, c = document.createElement('canvas'), m = Math.min(im.width, im.height); c.width = c.height = z; c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, z, z); URL.revokeObjectURL(u); cb(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = function () { URL.revokeObjectURL(u); toast('Could not read that image.'); }; im.src = u; }
   function adPhoto(file) { var im = new Image(), u = URL.createObjectURL(file); im.onload = function () { var z = 192, c = document.createElement('canvas'), m = Math.min(im.width, im.height); c.width = c.height = z; c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, z, z); URL.revokeObjectURL(u); S.adPhoto = c.toDataURL('image/jpeg', 0.82); S.ex.ad = Object.assign({}, grp('ad'), { photo: S.adPhoto }); draw(); }; im.onerror = function () { URL.revokeObjectURL(u); toast('Could not read that image.'); }; im.src = u; }
