@@ -563,6 +563,34 @@ A['dash-ai'] = async (req, res) => {
     return res.json(doc);
   } finally { clearTimeout(t); }
 };
+A['dash-customers'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const [rows, cos] = await Promise.all([db.rpc('dash_customers'), db.select('companies', 'select=unleashed_code,status&unleashed_code=not.is.null')]);
+  const portal = {}; (cos || []).forEach((c) => { portal[c.unleashed_code] = c.status; });
+  (rows || []).forEach((r) => { r.portal = portal[r.c] || null; });
+  return res.json({ rows: rows || [] });
+};
+// one customer, everything we know: sales rhythm and history from Unleashed, portal people, behavior, portal orders and quotes
+A.customer = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const code = clean(req.query.code, 60), id = clean(req.query.id, 60);
+  if (!code && !id) return res.status(400).json({ error: 'code' });
+  const co = (await db.select('companies', 'select=*&' + (id ? 'id=eq.' + encodeURIComponent(id) : 'unleashed_code=eq.' + encodeURIComponent(code)) + '&limit=1'))[0] || null;
+  const c = code || (co && co.unleashed_code) || '';
+  const [sales, N, users, ev, ord, qts] = await Promise.all([
+    c ? db.rpc('dash_customer', { p_code: c }) : null, names(),
+    co ? db.select('users', 'select=email,name,phone,status,last_login_at&company_id=eq.' + co.id) : [],
+    co ? db.select('events', 'select=at,type,code,query,path,device,city&company_id=eq.' + co.id + '&type=neq.page&order=at.desc&limit=60') : [],
+    co ? db.select('orders', 'select=number,status,total,created_at&company_id=eq.' + co.id + '&order=created_at.desc&limit=10') : [],
+    co ? db.select('quotes', 'select=number,status,created_at&company_id=eq.' + co.id + '&order=created_at.desc&limit=10') : [],
+  ]);
+  if (sales) (sales.parts || []).forEach((p) => { p.t = N[p.code] ? N[p.code].t : ''; });
+  (ev || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; });
+  return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at },
+    sales, users, events: ev, orders: ord, quotes: qts });
+};
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
