@@ -2072,7 +2072,97 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <a class="px-fab-b" href="#/cart" v-if="canOrder && cart.length && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span class="t">My cart</span><span class="n" v-text="cart.length"></span></a>
 <button type="button" class="px-fab-b red" v-if="quoteN && !lp && ['quote', 'cart', 'checkout'].indexOf(route) < 0 && (route !== 'p' || mbarOn)" @click="qOpen ? qClose() : (qOpen = true)" :aria-expanded="qOpen ? 'true' : 'false'"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 10h6M9 14h6M9 18h3"/></svg><span class="t">My quote list</span><span class="n" v-text="quoteN"></span></button>
 </div>
+<nav class="px-tabs" v-if="!lp && route !== 'checkout' && !(route === 'quote' && arg)" aria-label="Store menu" v-effect="document.documentElement.classList.toggle('px-lock', mOpen)">
+<a href="#/" :class="tab === 'home' && !mOpen ? 'on' : ''" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M10 20v-5h4v5"/></svg><span>Store</span></a>
+<a href="#/all" :class="tab === 'cat' && !mOpen ? 'on' : ''" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/></svg><span>Catalog</span></a>
+<button type="button" :class="tab === 'search' && !mOpen ? 'on' : ''" @click="tabSearch()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Search</span></button>
+<a href="#/cart" v-if="canOrder" :class="tab === 'cart' && !mOpen ? 'on' : ''" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><i v-if="cart.length" v-text="cart.length"></i><span>Cart</span></a>
+<button type="button" v-else :class="qOpen ? 'on' : ''" @click="mOpen = false; qOpen ? qClose() : (qOpen = true)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><i v-if="quoteN" v-text="quoteN"></i><span>Quote list</span></button>
+<button type="button" :class="mOpen || tab === 'menu' ? 'on' : ''" :aria-expanded="mOpen ? 'true' : 'false'" @click="menu(!mOpen)"><span class="av" v-if="me" v-text="initials"></span><svg v-else width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg><span v-text="me ? 'Account' : 'Menu'"></span></button>
+</nav>
+<div class="px-msh" v-if="mOpen" role="dialog" aria-modal="true" aria-label="Menu" @keydown.escape="mOpen = false">
+<div class="px-msh-h"><b>Menu</b><button type="button" class="px-msh-x" @click="mOpen = false" aria-label="Close menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+<form class="px-msh-s" role="search" @submit.prevent="mSearch()"><input type="search" v-model="mQ" placeholder="Part number or engine" aria-label="Search parts" enterkeyhint="search"><button class="px-btn px-red" type="submit">Search</button></form>
+<div class="px-msh-me" v-if="me"><span class="av" v-text="initials"></span><span><b v-text="me.name || firstName"></b><small v-text="(me.account ? me.account.company : 'Maxzz Diesel team') + (me.account && me.account.code ? ' · ' + me.account.code : '')"></small></span></div>
+<div class="px-msh-g" v-if="me">
+<a href="#/orders" v-if="canOrder" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/></svg><span>Orders and quotes</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="#/cart" v-if="canOrder" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4h2l2.4 11h11.2L21 8H6.2"/><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/></svg><span>Cart</span><em v-if="cart.length" v-text="cart.length"></em><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="#" @click.prevent="mOpen = false; qOpen = true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 10h6M9 14h6M9 18h3"/></svg><span>Quote list</span><em v-if="quoteN" v-text="quoteN"></em><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="#/rewards" v-if="REWARDS.on && (canOrder || me.admin)" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="m8.5 13.5-1.5 7 5-2.5 5 2.5-1.5-7"/></svg><span>Max Rewards</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="#/admin" v-if="me.admin" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/></svg><span>Admin</span><em v-if="pendingCount" v-text="pendingCount"></em><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
 </div>
+<div class="px-msh-in" v-else><p>Sign in to see your prices, live stock and order online.</p><div class="px-btns"><a class="px-btn px-red" href="#/login" @click="mOpen = false">Sign in</a><a class="px-btn px-ghost" href="#/request" @click="mOpen = false">Request access</a></div></div>
+<h3>Parts</h3>
+<div class="px-msh-g">
+<a v-for="c in cats" :href="'#/c/' + encodeURIComponent(c.k)" @click="mOpen = false"><span class="ci" v-html="icon(c.ic)"></span><span v-text="c.label"></span><small v-text="c.n.toLocaleString('en-US')"></small><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="#/all" @click="mOpen = false"><span class="ci" v-html="icon('all')"></span><span>All parts</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+</div>
+<h3 v-if="fit.tree.length">By vehicle</h3>
+<div class="px-msh-v" v-if="fit.tree.length">
+<div class="px-msh-mk" v-for="m in fit.tree" :class="mMake === m.key ? 'open' : ''">
+<button type="button" @click="mMake = mMake === m.key ? '' : m.key" :aria-expanded="mMake === m.key ? 'true' : 'false'"><span v-text="m.label"></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+<div class="px-msh-en" v-if="mMake === m.key"><div v-for="e in m.engines"><b v-text="e.label"></b><span><button type="button" class="px-gen" v-for="g in e.gens" @click="mGo('g', g.key)" v-text="g.years || g.label"></button></span></div></div>
+</div>
+</div>
+<h3>Talk to us</h3>
+<div class="px-msh-g">
+<a href="tel:+19545864158"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><span>Call +1 (954) 586-4158</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a :href="wa('us', '')" target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/></svg><span>WhatsApp, United States</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a :href="wa('latam', '')" target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/></svg><span>WhatsApp, Latin America</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="mailto:sales@maxzzdiesel.com"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><span>sales@maxzzdiesel.com</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+<a href="/"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>maxzzdiesel.com</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
+</div>
+<button type="button" class="px-msh-out" v-if="me" @click="logout">Sign out</button>
+</div>
+</div>
+<style>
+/* mobile: bottom tab bar + menu sheet */
+.px-tabs,.px-msh{display:none}
+@media (max-width:900px){
+.px-tabs{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;position:fixed;left:0;right:0;bottom:0;z-index:106;background:rgba(22,25,29,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,.08);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.px-tabs a,.px-tabs button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:50px;border:0;background:none;color:#a7adb5;font:inherit;font-size:11px;font-weight:500;letter-spacing:.01em;text-decoration:none;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:12px}
+.px-tabs .on{color:#fff}.px-tabs .on svg{color:#fc771d}.px-tabs a:active,.px-tabs button:active{background:rgba(255,255,255,.06)}
+.px-tabs i{position:absolute;top:3px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#d32a37;color:#fff;font-style:normal;font-size:11px;font-weight:600;line-height:18px;text-align:center;box-sizing:border-box}
+.px-tabs .av{width:24px;height:24px;border-radius:50%;background:#fc771d;color:#16191d;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.px .px-fab{display:none!important}
+.pxh .pxh-ic{display:none}
+.px-wrap{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.pxf{padding-bottom:calc(80px + env(safe-area-inset-bottom))!important}
+.px .px-mbar{bottom:calc(74px + env(safe-area-inset-bottom))!important;right:12px!important}
+.px-fbar{bottom:calc(74px + env(safe-area-inset-bottom))!important;margin-right:0!important}
+.px-list-h>span{width:100%;flex-wrap:nowrap}.px-list-h>span>span{font-size:13px}.px-list-h .px-ftog{order:1;flex:none;height:42px}.px-list-h .px-sort{order:2;flex:1 1 0;min-width:0;width:0;height:42px}
+.px-qp{bottom:calc(76px + env(safe-area-inset-bottom))!important}
+.px-msh{display:block;position:fixed;inset:0 0 calc(62px + env(safe-area-inset-bottom));z-index:105;background:#f3f4f6;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:0 16px 28px;animation:pxMsh .28s cubic-bezier(.2,.9,.25,1) both}
+@keyframes pxMsh{from{opacity:0;transform:translateY(16px)}}
+.px-msh-h{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;margin:0 -16px;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;background:rgba(243,244,246,.94);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.px-msh-h b{font-size:22px;font-weight:600;color:#1d2126}
+.px-msh-x{width:42px;height:42px;border-radius:50%;border:1px solid #d5d9de;background:#fff;color:#1d2126;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.px-msh-s{display:flex;gap:8px;background:#fff;border:1px solid #dcdfe3;border-radius:999px;padding:5px 5px 5px 18px;margin:4px 0 16px}
+.px-msh-s input{flex:1;min-width:0;border:0;outline:0;background:none;font:inherit;font-size:16px;color:#1d2126}
+.px-msh-s .px-btn{height:42px;padding:0 18px}
+.px-msh h3{margin:22px 4px 8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#7a7f87}
+.px-msh-me{display:flex;align-items:center;gap:12px;background:#1d2126;color:#fff;border-radius:18px;padding:14px 16px;margin:0 0 10px}
+.px-msh-me .av{width:40px;height:40px;border-radius:50%;background:#fc771d;color:#16191d;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.px-msh-me b{display:block;font-size:16px}.px-msh-me small{display:block;color:#b9bec5;font-size:13px}
+.px-msh-g{background:#fff;border-radius:18px;overflow:hidden;border:1px solid #e6e8eb}
+.px-msh-g a{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;color:#1d2126;text-decoration:none;font-size:16px;border-top:1px solid #eef0f2}
+.px-msh-g a:first-child{border-top:0}.px-msh-g a:active{background:#f6f7f8}
+.px-msh-g a>span:not(.ci){flex:1;min-width:0}.px-msh-g svg{flex:none;color:#5b626b}.px-msh-g .ci{display:flex;color:#fc771d}.px-msh-g .ci svg{color:#fc771d}
+.px-msh-g small{color:#8a919a;font-size:13px}.px-msh-g em{font-style:normal;min-width:22px;height:22px;padding:0 7px;border-radius:11px;background:#d32a37;color:#fff;font-size:12px;font-weight:600;line-height:22px;text-align:center;box-sizing:border-box}
+.px-msh-g .ar{color:#b3b8bf}
+.px-msh-in{background:#fff;border:1px solid #e6e8eb;border-radius:18px;padding:16px}.px-msh-in p{margin:0 0 12px;color:#4a5058;font-size:15px}.px-msh-in .px-btns{display:flex;gap:8px;flex-wrap:wrap}.px-msh-in .px-btn{flex:1;justify-content:center;white-space:nowrap;padding:0 14px}
+.px-msh-v{background:#fff;border:1px solid #e6e8eb;border-radius:18px;overflow:hidden}
+.px-msh-mk{border-top:1px solid #eef0f2}.px-msh-mk:first-child{border-top:0}
+.px-msh-mk>button{width:100%;display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:0 14px;border:0;background:none;font:inherit;font-size:16px;color:#1d2126;cursor:pointer;text-align:left}
+.px-msh-mk>button svg{color:#8a919a;transition:transform .2s}.px-msh-mk.open>button svg{transform:rotate(180deg)}
+.px-msh-en{padding:0 14px 12px}.px-msh-en>div{padding:8px 0;border-top:1px dashed #e6e8eb}.px-msh-en>div:first-child{border-top:0}.px-msh-en b{display:block;font-size:13px;color:#5b626b;margin:0 0 6px}.px-msh-en span{display:flex;flex-wrap:wrap;gap:6px}
+.px-msh-en .px-gen{min-height:36px}
+.px-msh-out{display:block;width:100%;margin:18px 0 0;min-height:50px;border:1px solid #d5d9de;border-radius:999px;background:#fff;color:#d32a37;font:inherit;font-weight:600;font-size:15px;cursor:pointer}
+html.px-lock,html.px-lock body{overflow:hidden}
+}
+@media (max-width:900px) and (min-width:761px){.px-msh{padding:0 max(16px,calc(50vw - 300px)) 28px}.px-msh-h{margin:0 calc(-1 * max(16px,calc(50vw - 300px)));padding-left:max(16px,calc(50vw - 300px));padding-right:max(16px,calc(50vw - 300px))}}
+@media print{.px-tabs,.px-msh{display:none!important}}
+</style>
 <!-- FOOTER -->
 <footer class="pxf">
 <div class="pxf-in">
@@ -2086,7 +2176,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=85"></script>
+<script src="/js/portal-app.js?v=86"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

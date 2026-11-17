@@ -2424,7 +2424,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -3007,7 +3007,7 @@
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
       track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
-      this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false;
+      this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false; this.mOpen = false; document.documentElement.classList.remove('px-lock');
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
@@ -3037,6 +3037,17 @@
       return false;
     },
     nav: function (r, a) { location.hash = '#/' + r + (a ? '/' + encodeURIComponent(a) : ''); },
+    // mobile: bottom tab bar and the full menu sheet
+    menu: function (on) { var self = this; this.mOpen = on; if (on) this.$nextTick(function () { var x = document.querySelector('.px-msh-x'); if (x) x.focus(); }); },
+    mGo: function (r, a) { this.mOpen = false; this.nav(r, a); },
+    mSearch: function () { var q = this.mQ.trim(); if (q.length < 2) return; var hit = this.cat.length ? exactHit(this.cat, q) : null; this.mQ = ''; this.mOpen = false; if (hit) this.nav('p', hit[0]); else this.nav('s', q); },
+    tabSearch: function () {
+      var el = document.querySelector('.px-hs input');
+      if (el && !this.mOpen) { window.scrollTo({ top: 0, behavior: 'smooth' }); setTimeout(function () { el.focus(); }, 250); return; }
+      this.menu(true); setTimeout(function () { var i = document.querySelector('.px-msh-s input'); if (i) i.focus(); }, 80);
+    },
+    get tab() { var r = this.route; return r === 'home' ? 'home' : ['all', 'c', 'g', 'p'].indexOf(r) >= 0 ? 'cat' : r === 's' ? 'search' : ['cart', 'quote', 'checkout'].indexOf(r) >= 0 ? 'cart' : ['orders', 'o', 'rewards', 'account', 'admin'].indexOf(r) >= 0 ? 'menu' : ''; },
+
     search: function () {
       if (this.sugOn && this.sugI >= 0 && this.sug[this.sugI]) { this.nav('p', this.sug[this.sugI][0]); return; }
       var q = this.qInput.trim(); if (q.length < 2) return;
