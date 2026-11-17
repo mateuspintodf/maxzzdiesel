@@ -14,7 +14,8 @@ const hash = (email) => crypto.createHash('sha256').update(email).digest('hex').
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   const cs = process.env.CRON_SECRET || '';
-  if (req.method !== 'POST' || !cs || req.headers.authorization !== 'Bearer ' + cs) return res.status(401).json({ error: 'auth' });
+  // POST by hand, or GET from the Vercel cron (which sends the same CRON_SECRET)
+  if (!['POST', 'GET'].includes(req.method) || !cs || req.headers.authorization !== 'Bearer ' + cs) return res.status(401).json({ error: 'auth' });
   const apply = req.query.apply === '1';
   const out = { apply, companies: 0, users: 0, addresses: 0, orders: 0, orderLines: 0, quotes: 0, quoteLines: 0, skipped: [] };
   try {
@@ -113,6 +114,7 @@ module.exports = async (req, res) => {
       await db.update('sequences', 'name=eq.MXQ', { value: seq.quote || 10000 });
     }
     out.sequences = seq ? { MXO: seq.order || 10000, MXQ: seq.quote || 10000 } : null;
+    console.log('migrate result', JSON.stringify(out));
     return res.json(out);
   } catch (e) {
     console.error('migrate', e.message);
