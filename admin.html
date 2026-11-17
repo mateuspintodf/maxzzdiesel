@@ -444,7 +444,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0, P = PAGE[S.tab] || PAGE.dash, grp = NAV.filter(function (g) { return g[0] === P.g; })[0];
     var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="dash"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
     NAV.forEach(function (g) { h += '<button data-tab="' + g[2][0][0] + '" class="' + (P.g === g[0] ? 'on' : '') + '">' + g[1] + '</button>'; });
-    h += '</nav><div class="tools"><button class="cb" data-act="cst" data-s="pending" title="Access requests waiting" aria-label="Access requests waiting">' + ic('bell') + (pend ? '<i></i>' : '') + '</button><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
+    h += '</nav><div class="tools"><div style="position:relative"><button class="cb" data-act="bell" title="Notifications" aria-label="Notifications">' + ic('bell') + (pend || nfUn() ? '<i></i>' : '') + '</button>' + (S.nfOpen ? nfPanel(pend) : '') + '</div><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
       (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="profile">' + ic('user', 16) + 'My profile</button><button data-tab="admins">' + ic('shield', 16) + 'Admin users</button><button data-tab="audit">' + ic('clock', 16) + 'Activity log</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></header>';
     var title = S.tab === 'dash' ? hello() : P.n, sub = S.tab === 'dash' ? 'Maxzz Diesel · ' + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : P.gn;
     h += '<div class="ph"><div class="t"><small>' + esc(sub) + '</small><h1>' + esc(title) + '</h1></div><div class="acts">' + (HEAD[S.tab] ? HEAD[S.tab]() : '') + (grp && grp[2].length > 1 ? '<div class="seg">' + grp[2].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + (t[0] === 'clients' && pend ? ' (' + pend + ')' : '') + '</button>'; }).join('') + '</div>' : '') + '</div></div>';
@@ -700,7 +700,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var open = deals.filter(function (d) { var s = crmStage(d.stage); return s && s.kind === 'open'; }), won = deals.filter(function (d) { return d.stage === 'won'; });
     var sum = function (L) { return L.reduce(function (t, d) { return t + (Number(d.value) || 0); }, 0); }, wsum = function (L) { return L.reduce(function (t, d) { var s = crmStage(d.stage); return t + (Number(d.value) || 0) * ((s && s.prob) || 0) / 100; }, 0); };
     var needs = C.deals.filter(function (d) { var s = crmStage(d.stage); return s && s.kind === 'open' && crmLate(d); }).length, dot = '<i>&bull;</i>', stat = function (l, v, tip) { return '<span' + (tip ? ' data-tip="' + esc(tip) + '"' : '') + '>' + l + ': <b>' + v + '</b></span>'; };
-    var h = '<section class="card flush"><div class="vbar"><div class="vt"><button data-act="crm-v" data-v="board" class="' + (V === 'board' ? 'on' : '') + '">' + ic('board', 16) + ' Pipeline</button><button data-act="crm-v" data-v="list" class="' + (V === 'list' ? 'on' : '') + '">' + ic('list', 16) + ' List</button></div><span class="vsep"></span><div class="vst">' +
+    var h = '<section class="card flush"><div class="vbar"><div class="vt"><button data-act="crm-v" data-v="board" class="' + (V === 'board' ? 'on' : '') + '">' + ic('board', 16) + ' Pipeline</button><button data-act="crm-v" data-v="list" class="' + (V === 'list' ? 'on' : '') + '">' + ic('list', 16) + ' List</button><button data-act="crm-v" data-v="contacts" class="' + (V === 'contacts' ? 'on' : '') + '">' + ic('user', 16) + ' Contacts</button></div><span class="vsep"></span><div class="vst">' +
       stat('Created', crmPer(F).lab, 'Filter by creation date. Deals closed more than 60 days ago are not loaded.') + dot + stat('Open deals', n0(open.length)) + dot + stat('Pipeline', m0(sum(open)), 'Total value of open deals') + dot + stat('Forecast', m0(wsum(open)), 'Weighted by the chance of each stage') + dot + stat('Won, 60 days', m0(sum(won)) + ' (' + won.length + ')') + dot +
       '<button class="vneed' + (needs ? ' hot' : '') + (F.late ? ' on' : '') + '" data-act="crm-late" data-tip="Late task, new deal waiting 2 days or idle 7 days. Click to filter.">Needs action: <b>' + needs + '</b></button></div></div>';
     var ins = C.ins || [];
@@ -714,9 +714,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       (C.isSuper ? '<select class="sel" data-chg="crmf.owner" aria-label="Owner"><option value="">All owners</option>' + C.owners.map(function (o) { return opt(o, o, F.owner || ''); }).join('') + '</select>' : '') +
       '<select class="sel" data-chg="crmf.src" aria-label="Source"><option value="">All sources</option>' + Object.keys(srcs).map(function (k) { return opt(k, CRMSRC[k] || k, F.src || ''); }).join('') + '</select>' +
       '<select class="sel" data-chg="crmf.per" aria-label="Created date"><option value="">Created: any date</option>' + [['month', 'This month'], ['lastm', 'Last month'], ['30', 'Last 30 days'], ['90', 'Last 90 days'], ['year', 'This year'], ['custom', 'Custom range']].map(function (o) { return opt(o[0], o[1], F.per || ''); }).join('') + '</select>' +
-      (F.per === 'custom' ? '<input type="date" class="sel" data-chg="crmf.from" value="' + esc(F.from || '') + '" aria-label="From"><input type="date" class="sel" data-chg="crmf.to" value="' + esc(F.to || '') + '" aria-label="To">' : '') +
+      (F.per === 'custom' ? '<input type="date" class="sel" style="width:150px;flex:none" data-chg="crmf.from" value="' + esc(F.from || '') + '" aria-label="From"><input type="date" class="sel" style="width:150px;flex:none" data-chg="crmf.to" value="' + esc(F.to || '') + '" aria-label="To">' : '') +
       (F.ids || F.late ? '<button class="chip on" data-act="crm-clr">' + esc(F.ids ? (F.label || 'Filtered') : 'Needs action') + ' ' + ic('x', 12) + '</button>' : '') +
       '<span class="sp"></span>' + (C.isSuper ? '<button class="btn ghost sm" data-act="crm-stg">Stages</button>' : '') + '<button class="btn sm" data-act="crm-new">' + ic('plus', 14) + ' New deal</button></div>';
+    if (V === 'contacts') return h + crmContacts(q) + '</section>';
     if (V === 'list') {
       var ord = deals.slice().sort(function (a, b) { var ao = (crmStage(a.stage) || {}).kind === 'open' ? 0 : 1, bo = (crmStage(b.stage) || {}).kind === 'open' ? 0 : 1; return ao - bo || (Number(b.value) || 0) - (Number(a.value) || 0); });
       h += '<div style="padding:0 12px 12px">' + tbl([h0('Deal'), h0('Stage'), h0('Owner'), h0('Contact'), hr('Amount'), hr('Weighted'), h0('Last activity'), h0('Next task')], ord.map(function (d) { var s = crmStage(d.stage) || {}, nm = crmNames(d);
@@ -774,7 +775,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       '<div class="row" style="margin-top:8px;gap:6px;flex-wrap:wrap">' + (mailto ? '<a class="btn ghost sm" data-stop="1" href="' + mailto + '">' + ic('mail', 14) + ' Follow up by email</a>' : '') + (d.contact_phone ? '<a class="btn ghost sm" data-stop="1" href="tel:' + esc(d.contact_phone) + '">' + ic('phone', 14) + ' Call</a>' : '') + '<button class="btn ghost sm" data-act="crm-k" data-v="task">' + ic('plus', 14) + ' Add task</button></div>');
     h += crmPane('Log activity', '<div class="seg" style="background:var(--soft);margin-bottom:10px">' + ['note', 'call', 'email', 'task'].map(function (k) { return '<button data-act="crm-k" data-v="' + k + '" class="' + (K === k ? 'on' : '') + '">' + CRMK[k][0] + '</button>'; }).join('') + '</div>' +
       (K === 'call' ? '<div class="outc" style="margin-bottom:8px">' + CALLR.map(function (c) { return '<button data-act="crm-cr" data-v="' + esc(c[0]) + '" class="' + (Cd.cr === c[0] ? 'on' : '') + '">' + esc(c[1]) + '</button>'; }).join('') + '</div>' : '') +
-      '<textarea id="crm-body" rows="3" placeholder="' + (K === 'call' ? 'What was said on the call' : K === 'email' ? 'What you sent or received' : K === 'task' ? 'What needs doing' : 'What happened') + '"></textarea>' +
+      '<textarea id="crm-body" rows="3" placeholder="' + (K === 'call' ? 'What was said on the call. Type @ to mention a teammate' : K === 'email' ? 'What you sent or received' : K === 'task' ? 'What needs doing' : 'What happened') + '"></textarea>' +
       '<div class="lrow">' + (K === 'task' ? '<div><label class="l">Due date</label><input type="date" id="crm-due"></div>' : '<div><label class="l">Follow up on (optional)</label><input type="date" id="crm-due"></div>') + '<button class="btn sm" data-act="crm-log" data-id="' + esc(d.id) + '">' + (K === 'task' ? 'Add task' : 'Log ' + CRMK[K][0].toLowerCase()) + '</button></div>');
     if (Cd.lines && Cd.lines.length) h += crmPane('Products in this deal', tbl([h0('Part'), hr('Qty'), hr('Price'), hr('Total')], Cd.lines.map(function (l) { return '<tr><td><b class="mono">' + esc(l.code) + '</b><br><small class="muted">' + esc(l.desc) + '</small></td><td class="r">' + n0(l.qty) + '</td><td class="r">' + m0(l.price) + '</td><td class="r">' + m0(l.total) + '</td></tr>'; }).concat(['<tr><td colspan="3" class="r"><b>Total</b></td><td class="r"><b>' + m0(Cd.lines.reduce(function (t, l) { return t + l.total; }, 0)) + '</b></td></tr>']), 'dt'));
     else if (d.ref && /^(site_quote|portal_quote|portal_order|parked)$/.test(d.source)) h += crmPane('Products in this deal', '<p class="muted" style="margin:0">' + (Cd.lines === null ? 'The lines could not be loaded from Unleashed right now.' : 'This order has no lines yet.') + '</p>');
@@ -857,7 +858,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     return h;
   }
   function drawDrawer() { if (S.cs) return drawStagesDrawer(); if (S.cd) return drawCrmDrawer(); if (S.vd) return drawVoucherDrawer(); if (S.fd && !S.dr) return drawFunnelDrawer(); return drawCustDrawer(); }
-  var FEV = { page: 'Opened', product: 'Viewed', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', cart_view: 'Opened the cart', checkout: 'Started checkout', order: 'Ordered', quote: 'Sent a quote', login: 'Signed in', voucher: 'Tried a voucher', filter: 'Filtered', click: 'Clicked' };
+  var FEV = { page: 'Opened', product: 'Viewed', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', quote_remove: 'Removed from the quote', qty_change: 'Changed a quantity', quote_abandon: 'Left with items in the list', campaign_click: 'Came from a campaign', search_empty: 'Searched, no result', cart_view: 'Opened the cart', checkout: 'Started checkout', order: 'Ordered', quote: 'Sent a quote', login: 'Signed in', voucher: 'Tried a voucher', filter: 'Filtered', click: 'Clicked' };
   function drawFunnelDrawer() {
     var F = S.fd, h = '<div class="dscrim" data-act="fd-x"></div><aside class="drawer" role="dialog" aria-label="' + esc(F.label) + '"><div class="dh"><div><small>Funnel step · last ' + esc(F.days) + ' days</small><h2>' + esc(F.label) + '</h2>';
     if (F.loading) return h + '</div><button class="ib" data-act="fd-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">' + ld() + '</div></aside>';
@@ -1418,10 +1419,44 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function pgBadge(b, BD) { var d = BD[b[0]] || [b[0], '']; return '<span class="bdg" data-tip="' + esc(d[0] + ': ' + d[1] + (b[1] > 1 || b[0] === 'hunter' || b[0] === 'comeback' || b[0] === 'closer' ? ' (' + b[1] + ')' : '')) + '">' + esc(d[0]) + (b[1] > 1 ? ' x' + b[1] : '') + '</span>'; }
   function ini(n) { return String(n || '?').split(/\s+/).slice(0, 2).map(function (x) { return x.charAt(0); }).join('').toUpperCase(); }
   function ring(pct, big, small) { var p = Math.max(0, Math.min(1, pct || 0)), c = 2 * Math.PI * 52; return '<div class="ringw"><svg viewBox="0 0 120 120" width="150" height="150"><circle cx="60" cy="60" r="52" fill="none" stroke="#eceef1" stroke-width="12"></circle><circle cx="60" cy="60" r="52" fill="none" stroke="#f08a24" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 60 60)"></circle></svg><div class="ringt"><b>' + big + '</b><small>' + small + '</small></div></div>'; }
+  function nfUn() { return S.nf ? S.nf.unread : 0; }
+  function nfAgo(iso) { var m = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000)); return m < 60 ? m + 'm' : m < 1440 ? Math.round(m / 60) + 'h' : Math.round(m / 1440) + 'd'; }
+  function nfPanel(pend) {
+    var L = (S.nf && S.nf.items) || [], h = '<div class="menu nfp" style="right:0;left:auto;width:340px;max-width:92vw;padding:0"><div class="hd" style="display:flex;align-items:center;gap:8px"><b style="flex:1">Notifications</b>' + (nfUn() ? '<button class="btn ghost sm" data-act="nf-all">Mark all read</button>' : '') + '</div>';
+    if (pend) h += '<button data-act="cst" data-s="pending" style="display:block;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2)"><b>' + pend + ' access request' + (pend === 1 ? '' : 's') + ' waiting</b><small style="display:block" class="muted">Click to review</small></button>';
+    h += L.length ? L.map(function (n) { return '<button data-act="nf-open" data-id="' + n.id + '" data-deal="' + esc(n.deal_id || '') + '" style="display:block;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line2);' + (n.read_at ? 'opacity:.6' : 'background:#fff8f0') + '"><b style="font-size:13px">' + esc(n.title) + '</b><small style="display:block" class="muted">' + esc(n.body || '') + '</small><small class="muted">' + nfAgo(n.created_at) + ' ago</small></button>'; }).join('') : (pend ? '' : '<p class="muted" style="padding:14px;margin:0">Nothing new. You get a note here and an e-mail when someone @mentions you.</p>');
+    return h + '</div>';
+  }
+  function nfLoad() { if (!S.me) return; api('notifs').then(function (r) { if (r._status === 200) { var prev = nfUn(); S.nf = r; if (r.unread !== prev && !S.busy) draw(); } }); }
+  setInterval(nfLoad, 60000);
+  var MN = { list: [], at: null };
+  function mnClose() { var p = document.getElementById('mn-pop'); if (p) p.remove(); }
+  function mnCheck(ta) {
+    var v = ta.value, c = ta.selectionStart, m = v.slice(0, c).match(/(^|\s)@([a-z0-9._-]{0,30})$/i);
+    if (!m || !S.crm || !(S.crm.team || []).length) return mnClose();
+    var q = m[2].toLowerCase(), L = S.crm.team.filter(function (t) { return !q || t.handle.indexOf(q) === 0 || String(t.name).toLowerCase().indexOf(q) >= 0; }).slice(0, 6);
+    if (!L.length) return mnClose();
+    var p = document.getElementById('mn-pop') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'mn-pop' })), r = ta.getBoundingClientRect();
+    p.style.cssText = 'position:fixed;z-index:9999;left:' + r.left + 'px;top:' + (r.bottom + 4) + 'px;width:' + Math.min(280, r.width) + 'px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.14);padding:4px';
+    p.innerHTML = L.map(function (t) { return '<button type="button" data-mn="' + esc(t.handle) + '" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px"><span class="av" style="width:24px;height:24px;font-size:10px">' + avIn({ name: t.name, photo: t.photo }) + '</span><b style="font-size:13px">' + esc(t.name) + '</b><small class="muted">@' + esc(t.handle) + '</small></button>'; }).join('');
+    MN.ta = ta; MN.start = c - m[2].length - 1;
+  }
+  document.addEventListener('input', function (e) { if (e.target && e.target.id === 'crm-body') mnCheck(e.target); });
+  document.addEventListener('mousedown', function (e) { var b = e.target.closest && e.target.closest('[data-mn]'); if (!b || !MN.ta) return; e.preventDefault(); var ta = MN.ta, v = ta.value, c = ta.selectionStart; ta.value = v.slice(0, MN.start) + '@' + b.dataset.mn + ' ' + v.slice(c); var pos = MN.start + b.dataset.mn.length + 2; ta.setSelectionRange(pos, pos); ta.focus(); mnClose(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') mnClose(); });
+  function crmContacts(q) {
+    var K = S.ct, f = S.ctf;
+    if (!K && !S.ctLoading) { S.ctLoading = true; api('crm-contacts').then(function (r) { S.ctLoading = false; S.ct = r._status === 200 ? r.contacts : []; draw(); }); }
+    var ql = String(q || '').toLowerCase(), L = (K || []).filter(function (c) { return !ql || [c.name, c.email, c.phone, c.company_name, c.role].join(' ').toLowerCase().indexOf(ql) >= 0; });
+    var h = '<div style="padding:4px 16px 16px"><div class="row" style="margin:6px 0 12px"><span class="muted" style="font-size:13px">' + (K ? L.length + (L.length === 1 ? ' contact' : ' contacts') : 'Loading...') + '. Every deal contact is saved here by its e-mail, so one person is one record.</span><span class="sp"></span><button class="btn sm" data-act="ct-new">' + ic('plus', 14) + ' New contact</button></div>';
+    if (f) h += '<div class="card" style="padding:14px;margin-bottom:12px"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px">' + fld('ct', 'name', 'Name', f.name) + fld('ct', 'email', 'E-mail', f.email, 'email') + fld('ct', 'phone', 'Phone', f.phone) + fld('ct', 'role', 'Role', f.role, 'text', 'Buyer, owner, accounts payable') + fld('ct', 'company_name', 'Company', f.company_name) + fld('ct', 'customer_code', 'Unleashed code', f.customer_code) + '</div><div class="mact" style="margin-top:10px"><button class="btn sm" data-act="ct-save">Save contact</button><button class="btn ghost sm" data-act="ct-x">Cancel</button>' + (f.id ? '<button class="btn ghost sm" data-act="ct-del" style="color:var(--red)">Delete</button>' : '') + '</div></div>';
+    if (!K) return h + '</div>';
+    return h + tbl([h0('Contact'), h0('Company'), h0('Role'), h0('Phone'), hr('Open deals'), hr('Pipeline'), h0('Owner')], L.map(function (c) { return '<tr data-act="ct-edit" data-id="' + esc(c.id) + '" tabindex="0"><td><b>' + esc(c.name || c.email) + '</b>' + (c.name && c.email ? '<br><small class="muted">' + esc(c.email) + '</small>' : '') + '</td><td>' + (c.customer_code ? '<a class="cl" data-act="crm-cust" data-code="' + esc(c.customer_code) + '" data-stop="1">' + esc(c.company_name || c.customer_code) + '</a>' : esc(c.company_name || '')) + '</td><td>' + esc(c.role || '') + '</td><td>' + esc(c.phone || '') + '</td><td class="r">' + n0(c.deals.open) + (c.deals.n > c.deals.open ? '<small class="muted"> / ' + n0(c.deals.n) + '</small>' : '') + '</td><td class="r">' + (c.deals.value ? m0(c.deals.value) : '') + '</td><td>' + esc(c.owner || '') + '</td></tr>'; })) + '</div>';
+  }
   function crmAttr(A) {
     var F = A.first || {}, L = A.last || {}, row = function (l, v) { return v ? crmRow(l, esc(v)) : ''; }, ids = function (T) { return ['gclid', 'fbclid', 'msclkid', 'ttclid'].filter(function (k) { return T[k]; }).map(function (k) { return k; }).join(', '); };
-    var src = function (T) { return [T.utm_source, T.utm_medium].filter(Boolean).join(' / ') || (T.ref ? 'Referral: ' + T.ref : (ids(T) ? 'Paid click' : 'Direct')); };
-    var one = function (T, title) { return '<div style="margin:0 0 10px"><b style="font-size:12px">' + title + '</b>' + row('Source', src(T)) + row('Campaign', T.utm_campaign) + row('Term', T.utm_term) + row('Content', T.utm_content) + row('Click id', ids(T)) + row('Referrer', T.ref) + row('Landing page', T.landing) + (T.ts ? row('When', new Date(T.ts).toISOString().slice(0, 10)) : '') + '</div>'; };
+    var src = function (T) { return [T.source, T.medium].filter(Boolean).join(' / ') || (T.ref ? 'Referral: ' + T.ref : (ids(T) ? 'Paid click' : 'Direct')); };
+    var one = function (T, title) { return '<div style="margin:0 0 10px"><b style="font-size:12px">' + title + '</b>' + row('Source', src(T)) + row('Campaign', T.campaign) + row('Term', T.term) + row('Content', T.content) + row('Click id', ids(T)) + row('Referrer', T.ref) + row('Landing page', T.landing) + (T.t ? row('When', new Date(T.t).toISOString().slice(0, 10)) : '') + '</div>'; };
     var same = JSON.stringify(F) === JSON.stringify(L);
     return (A.first ? one(F, same ? 'First and last touch' : 'First touch') : '') + (!same && A.last ? one(L, 'Last touch') : '') + row('Form', A.kind === 'quote' ? 'Quote request ' + (A.ref || '') : 'Access request') + row('Device', A.device) + row('Country', A.country) + (!A.first && !A.last ? '<p class="muted" style="margin:0">No campaign data. Direct visit or the browser blocked tracking.</p>' : '');
   }
@@ -1515,7 +1550,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     return h;
   }
   function nextYm(ym) { var y = +ym.slice(0, 4), m = +ym.slice(5, 7); m++; if (m > 12) { m = 1; y++; } return y + '-' + ('0' + m).slice(-2); }
-  var EVL = { product: 'Viewed a part', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', cart_view: 'Opened the cart', checkout: 'Checkout', order: 'Placed an order', quote: 'Sent a quote', login: 'Signed in', voucher: 'Used a voucher', filter: 'Filtered' };
+  var EVL = { product: 'Viewed a part', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', quote_remove: 'Removed from the quote', qty_change: 'Changed a quantity', quote_abandon: 'Left with items in the list', campaign_click: 'Came from a campaign', search_empty: 'Searched, no result', cart_view: 'Opened the cart', checkout: 'Checkout', order: 'Placed an order', quote: 'Sent a quote', login: 'Signed in', voucher: 'Used a voucher', filter: 'Filtered' };
   function drawStream() {
     if (!S.bs) return ld();
     var F = S.sf || {};
@@ -1771,8 +1806,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
   app.addEventListener('click', function (e) {
     if (!S.replaying) S.okKey = null; var t0 = e.target.closest('[data-act],[data-tab]'); if (t0 && !/^m-/.test(t0.dataset.act || '')) S.curEv = { type: 'click', sel: selOf(t0) };
-    var inPop = e.target.closest('.ms, .menu, .who');
-    if (!inPop && (S.pop || S.meOpen)) { S.pop = null; S.meOpen = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
+    var inPop = e.target.closest('.ms, .menu, .who, .cb');
+    if (!inPop && (S.pop || S.meOpen || S.nfOpen)) { S.pop = null; S.meOpen = false; S.nfOpen = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
     if (e.target.closest('[data-stop]') && !e.target.closest('[data-stop] [data-act]')) return;
     if (e.target.matches('input[type=checkbox]') && !e.target.dataset.act) return;
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
@@ -1791,6 +1826,14 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'funv') { S.funv = t.dataset.v; return draw(); }
     if (act === 'pf-kind') { S.pf = S.pf || {}; S.pf.kind = t.dataset.v; return draw(); }
     if (act === 'pf-fresh') { S.pipe = null; draw(); api('pipeline', null, '&fresh=1').then(function (r) { if (r._status === 200) { S.pipe = r; draw(); } else fail(r); }); return; }
+    if (act === 'bell') { S.nfOpen = !S.nfOpen; S.meOpen = false; if (S.nfOpen) nfLoad(); return draw(); }
+    if (act === 'nf-all') { api('notifs-read', {}).then(function () { if (S.nf) { S.nf.items.forEach(function (n) { n.read_at = n.read_at || 'x'; }); S.nf.unread = 0; } draw(); }); return; }
+    if (act === 'nf-open') { var nid = t.dataset.id, nd = t.dataset.deal; S.nfOpen = false; api('notifs-read', { ids: [nid] }).then(nfLoad); if (nd) { S.tab = 'crm'; loadTab('crm'); S.cd = { id: nd, loading: true, k: 'note' }; draw(); crmDeal(); } else draw(); return; }
+    if (act === 'ct-new') { S.ctf = { name: '', email: '', phone: '', role: '', company_name: '', customer_code: '' }; return draw(); }
+    if (act === 'ct-x') { S.ctf = null; return draw(); }
+    if (act === 'ct-edit') { S.ctf = ((S.ct || []).filter(function (c) { return c.id === t.dataset.id; })[0]) || null; if (S.ctf) S.ctf = Object.assign({}, S.ctf); return draw(); }
+    if (act === 'ct-save') { var cf = grp('ct'); api('contact-save', Object.assign({ id: S.ctf && S.ctf.id }, cf)).then(function (r) { if (!r.ok) return fail(r); toast('Contact saved.', true); S.ctf = null; S.ct = null; draw(); }); return; }
+    if (act === 'ct-del') { if (!ok('This removes the contact record. Deals keep their own contact details.', { title: 'Delete this contact?', ok: 'Delete' })) return; api('contact-save', { id: S.ctf.id, del: true }).then(function (r) { if (!r.ok) return fail(r); toast('Contact deleted.', true); S.ctf = null; S.ct = null; draw(); }); return; }
     if (act.indexOf('crm-') === 0) return crmAct(act, t);
     if (act === 'pf-log') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call', body: 'About ' + t.dataset.n + ': ' }; return; }
     if (act === 'pf-done' || act === 'pf-lost') { var lostR = null; if (act === 'pf-lost') { lostR = pick('Why was it lost? It is saved on the customer.', [['price', 'Price'], ['stock', 'No stock or lead time'], ['competitor', 'Bought elsewhere'], ['no_answer', 'Never answered'], ['not_needed', 'Not needed anymore'], ['other', 'Other']], { title: 'Mark ' + t.dataset.n + ' as lost', ok: 'Mark lost', danger: true }); if (lostR === null) return; }
@@ -1926,6 +1969,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       return api('sales-commission', { salesperson: rp.sp, basis: rb.value, pct: parseFloat(rv.value) }).then(function (r) { if (r.ok) { toast('Commission saved for ' + rp.sp + '.'); slLoad(); } else fail(r); }); }
     if (act === 'sort') { var sk = t.dataset.sk, kk = t.dataset.k, cur = S[sk] || {}; S[sk] = { k: kk, d: cur.k === kk ? -cur.d : (['n', 'company', 'code', 'k', 'sp', 'status', 'segment', 'customerCode', 'tier', 'loc', 'next', 'since'].indexOf(kk) >= 0 ? 1 : -1) }; return draw(); }
     if (act === 'ach') { S.ach = t.dataset.c; return draw(); }
+    if (act === 'cst') { S.nfOpen = false; }
     if (act === 'cst') { S.cst = t.dataset.s; if (S.tab !== 'clients') S.tab = 'clients'; return draw(); }
     if (act === 'cf-clear') { S.cf = {}; S.cn = 60; return draw(); }
     if (act === 'cn-more') { S.cn = (S.cn || 60) + 60; return draw(); }
@@ -2053,7 +2097,9 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   })();
   document.addEventListener('keydown', function (e) { if (!S.modal) { if (e.key === 'Escape' && !e.defaultPrevented && S.fd && !S.dr) { S.fd = null; draw(); } return; } if (e.key === 'Escape') { S.modal = null; draw(); } if (e.key === 'Enter' && (e.target.matches('.mdl input[type=text]') || e.target.classList.contains('mok') || !e.target.closest('.mdl'))) { e.preventDefault(); modalOk(); }
     if (e.key === 'Tab') { var fs = [].slice.call(document.querySelectorAll('.mdl input,.mdl button')); if (fs.length) { var i = fs.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && i === fs.length - 1) { e.preventDefault(); fs[0].focus(); } else if (i < 0) { e.preventDefault(); fs[0].focus(); } } } });
-  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; if (m._status === 401 && m.error === 'mfa') return api('mfa').then(function (d) { S.mfa = d._status === 200 ? d : null; draw(); }); S.mfa = null; draw(); } }); }
+  function goDeal() { var id = null; try { id = sessionStorage.getItem('mz_godeal'); sessionStorage.removeItem('mz_godeal'); } catch (e) {} if (id && /^[0-9a-f-]{36}$/i.test(id)) { S.tab = 'crm'; loadTab('crm'); S.cd = { id: id, loading: true, k: 'note' }; draw(); crmDeal(); } }
+  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); nfLoad(); goDeal(); if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; if (m._status === 401 && m.error === 'mfa') return api('mfa').then(function (d) { S.mfa = d._status === 200 ? d : null; draw(); }); S.mfa = null; draw(); } }); }
+  var gd = location.search.match(/[?&]deal=([0-9a-f-]{36})/i); if (gd) { try { sessionStorage.setItem('mz_godeal', gd[1]); } catch (e) {} history.replaceState(null, '', location.pathname); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
 })();

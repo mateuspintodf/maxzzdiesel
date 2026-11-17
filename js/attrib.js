@@ -13,6 +13,11 @@
     if (!st.first) st.first = t;
     if (has || ref || !st.last) st.last = t;
     localStorage.setItem(K, JSON.stringify(st));
+    if ((cur.campaign || cur.gclid || cur.fbclid || cur.msclkid || cur.ttclid) && !sessionStorage.getItem('mx-cc')) { // campaign landing for the marketing trail
+      sessionStorage.setItem('mx-cc', '1'); var vid = localStorage.getItem('mx-vid'); if (!vid) { vid = Math.random().toString(36).slice(2, 10) + Date.now().toString(36); localStorage.setItem('mx-vid', vid); }
+      var ev = JSON.stringify({ visitor: vid, referrer: ref, events: [{ type: 'campaign_click', path: location.pathname.slice(0, 120), props: { campaign: cur.campaign || '', source: cur.source || '', medium: cur.medium || '' } }] });
+      if (navigator.sendBeacon) navigator.sendBeacon('/api/track', new Blob([ev], { type: 'text/plain' }));
+    }
   } catch (e) {}
   window.mzAttr = function () { return read(); };
 })();

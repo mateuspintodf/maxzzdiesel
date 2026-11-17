@@ -1175,7 +1175,7 @@ A['dash-customers'] = async (req, res) => {
 };
 // one customer, everything we know: sales rhythm and history from Unleashed, portal people, behavior, portal orders and quotes
 // one customer: sales, contacts and one activity timeline (like a CRM lead page) built from everything we keep
-const EVN = { product: 'viewed', search: 'searched', cart_add: 'added to cart', cart_remove: 'removed from cart', cart_view: 'opened the cart', checkout: 'started checkout', voucher: 'tried a voucher', filter: 'filtered' };
+const EVN = { product: 'viewed', search: 'searched', cart_add: 'added to cart', cart_remove: 'removed from cart', quote_remove: 'removed from the quote', qty_change: 'changed a quantity', quote_abandon: 'left with items in the list', campaign_click: 'came from a campaign', search_empty: 'searched with no result', cart_view: 'opened the cart', checkout: 'started checkout', voucher: 'tried a voucher', filter: 'filtered' };
 const AUD = { 'invite.send': ['invite', 'Invite e-mail sent'], 'invite.accept': ['account', 'Invite accepted'], 'company.approve': ['account', 'Account approved'], 'company.reject': ['account', 'Access request rejected'], 'prospect.add': ['account', 'Added by hand'] };
 A.customer = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1425,7 +1425,7 @@ A.crm = async (req, res) => {
   all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
   const photos = {}; (await db.select('admins', 'select=email,salesperson,photo&salesperson=not.is.null&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (ph) photos[r.salesperson] = ph; });
-  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
 A['crm-deal'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1493,6 +1493,71 @@ A['crm-ai'] = async (req, res) => {
     return res.json(doc);
   } catch (e) { return res.status(504).json({ error: 'The AI service took too long. Try again.' }); } finally { clearTimeout(t); }
 };
+
+// ---- @mentions and the bell: notifications for the team (in the admin and by e-mail, team addresses only)
+const handlesOf = (a) => { const out = new Set(), e = String(a.email || '').toLowerCase(); out.add(e.split('@')[0]);
+  [a.first_name, a.name, a.salesperson].forEach((x) => { const t = String(x || '').trim().split(/\s+/)[0]; if (t) out.add(t.toLowerCase().replace(/[^a-z0-9._-]/g, '')); }); out.delete(''); return [...out]; };
+const teamList = async () => (await db.select('admins', 'select=email,name,first_name,last_name,salesperson,photo&active=eq.true').catch(() => [])).map((a) => ({ email: String(a.email).toLowerCase(), name: a.name || [a.first_name, a.last_name].filter(Boolean).join(' ') || a.email, handles: handlesOf(a), photo: a.photo || TEAM_PH[String(a.email).toLowerCase()] || null }));
+async function notifyMentions(req, w, d, kind, body, due) {
+  try {
+    const found = [...new Set((String(body).match(/(^|[^a-z0-9._-])@([a-z0-9._-]{2,40})/gi) || []).map((m) => m.replace(/^[^@]*@/, '').toLowerCase().replace(/[._-]+$/, '')))];
+    if (!found.length) return;
+    const team = await teamList(), me = String(w.email).toLowerCase(), mine = team.find((t) => t.email === me), from = (mine && mine.name) || w.email, sent = new Set();
+    for (const h of found) { const t = team.find((x) => x.handles.includes(h)); if (!t || t.email === me || sent.has(t.email)) continue; sent.add(t.email);
+      const title = from + ' mentioned you in ' + (kind === 'task' ? 'a task' : 'a ' + kind) + ' on ' + (d.title || 'a deal');
+      await db.insert('admin_notifications', [{ to_email: t.email, kind: 'mention', title, body: clean(body, 400), deal_id: d.id, from_email: me, from_name: from }]).catch(() => {});
+      await send(t.email, title, 'You were mentioned', '<p><b>' + esc(from) + '</b> wrote on <b>' + esc(d.title || 'a deal') + '</b>:</p><p style="padding:10px 14px;background:#f3f4f6;border-radius:8px">' + esc(clean(body, 400)) + '</p>' + (due ? '<p>Due: <b>' + esc(due) + '</b></p>' : ''),
+        { url: base(req) + '/admin?deal=' + encodeURIComponent(d.id), label: 'Open the deal' }, { greet: true, team: true }).catch(() => {}); }
+  } catch (e) { /* a mention must never break saving the note */ }
+}
+A.notifs = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  const rows = await db.select('admin_notifications', 'select=id,kind,title,body,deal_id,from_name,created_at,read_at&to_email=eq.' + encodeURIComponent(String(w.email).toLowerCase()) + '&order=created_at.desc&limit=25').catch(() => []);
+  return res.json({ items: rows, unread: rows.filter((r) => !r.read_at).length });
+};
+A['notifs-read'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return; const b = readBody(req), to = encodeURIComponent(String(w.email).toLowerCase());
+  const ids = Array.isArray(b.ids) ? b.ids.map((x) => parseInt(x, 10)).filter(Boolean).slice(0, 50) : null;
+  await db.update('admin_notifications', 'to_email=eq.' + to + '&read_at=is.null' + (ids ? '&id=in.(' + ids.join(',') + ')' : ''), { read_at: new Date().toISOString() }).catch(() => {});
+  return res.json({ ok: true });
+};
+
+// ---- CRM contacts: people as their own records (one e-mail, one contact), linked to a company by Unleashed code
+const upsertContact = async (w, c, owner) => { try { const email = clean(c.email, 160).toLowerCase(); if (!email || !/^[^\s@]+@[^\s@]+$/.test(email)) return;
+  const row = { email, name: clean(c.name, 120) || null, phone: clean(c.phone, 60) || null, customer_code: clean(c.customer_code, 60) || null, company_name: clean(c.company_name, 160) || null, owner: owner || null, created_by: w.email, updated_at: new Date().toISOString() };
+  Object.keys(row).forEach((k) => { if (row[k] == null) delete row[k]; });
+  await db.insert('crm_contacts', [row], { onConflict: 'email' }); } catch (e) { /* best effort */ } };
+A['crm-contacts'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  if (!isSuper && sc.none) return res.json({ contacts: [] });
+  const [rows, deals] = await Promise.all([db.select('crm_contacts', 'select=*&order=updated_at.desc&limit=1500' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))), db.select('crm_deals', 'select=id,contact_email,stage,value&contact_email=not.is.null&limit=3000' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))).catch(() => [])]);
+  const by = {}; deals.forEach((d) => { const k = String(d.contact_email).toLowerCase(); (by[k] = by[k] || { n: 0, open: 0, value: 0 }).n++; if (!['won', 'lost'].includes(d.stage)) { by[k].open++; by[k].value += Number(d.value) || 0; } });
+  rows.forEach((r) => { r.deals = by[r.email] || { n: 0, open: 0, value: 0 }; });
+  return res.json({ contacts: rows });
+};
+A['contact-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), isSuper = w.role === 'superadmin', sc = await salesScope(w, { query: {} });
+  if (!isSuper && sc.none) return res.status(403).json({ error: 'scope' });
+  const id = clean(b.id, 60), cur = id ? (await db.select('crm_contacts', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0] : null;
+  if (id && !cur) return res.status(404).json({ error: 'contact' });
+  if (cur && !isSuper && cur.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
+  if (b.del) { if (!cur) return res.status(400).json({ error: 'contact' }); await db.remove('crm_contacts', 'id=eq.' + cur.id); await PS.audit(w.email, 'crm.contact.delete', 'contact', cur.id, null, {}).catch(() => {}); return res.json({ ok: true }); }
+  const email = clean(b.email, 160).toLowerCase(), name = clean(b.name, 120);
+  if (!name && !email) return res.status(400).json({ error: 'Add a name or an e-mail.' });
+  if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Check the e-mail address.' });
+  const p = { name: name || null, email: email || null, phone: clean(b.phone, 60) || null, role: clean(b.role, 80) || null, customer_code: clean(b.customer_code, 60) || null, company_name: clean(b.company_name, 160) || null, updated_at: new Date().toISOString() };
+  try {
+    if (cur) await db.update('crm_contacts', 'id=eq.' + cur.id, p);
+    else await db.insert('crm_contacts', [Object.assign(p, { owner: isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp, created_by: w.email })]);
+  } catch (e) { return res.status(409).json({ error: 'A contact with this e-mail already exists.' }); }
+  return res.json({ ok: true });
+};
 A['crm-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
@@ -1535,6 +1600,7 @@ A['crm-save'] = async (req, res) => {
     const owner = isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp; if (!owner) return res.status(403).json({ error: 'scope' });
     const row = (await db.insert('crm_deals', [{ title, stage: (SK[b.stage] && SK[b.stage].kind === 'open' ? b.stage : 'new'), owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, contact_name: clean(b.contact_name, 120) || null, contact_email: clean(b.contact_email, 160) || null, contact_phone: clean(b.contact_phone, 60) || null, expected_close: ISO10.test(b.expected_close || '') ? b.expected_close : null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
     if (row) await log(row.id, 'stage', 'Created by ' + w.email);
+    if (row) await upsertContact(w, { name: b.contact_name, email: b.contact_email, phone: b.contact_phone, customer_code: b.customer_code, company_name: b.customer_name }, owner);
     return res.json({ ok: true, id: row && row.id });
   }
   const d = await mine(b.id); if (d === null) return res.status(404).json({ error: 'deal' }); if (d === false) return res.status(403).json({ error: 'scope' });
@@ -1556,12 +1622,14 @@ A['crm-save'] = async (req, res) => {
     if (b.expected_close != null) p.expected_close = ISO10.test(b.expected_close) ? b.expected_close : null;
     if (b.owner != null && isSuper && clean(b.owner, 120) !== d.owner) { p.owner = clean(b.owner, 120); await log(d.id, 'owner', 'Owner changed from ' + (d.owner || 'nobody') + ' to ' + p.owner); }
     await db.update('crm_deals', 'id=eq.' + d.id, p);
+    if (b.contact_email != null || b.contact_name != null || b.contact_phone != null) await upsertContact(w, { name: p.contact_name != null ? p.contact_name : d.contact_name, email: p.contact_email != null ? p.contact_email : d.contact_email, phone: p.contact_phone != null ? p.contact_phone : d.contact_phone, customer_code: d.customer_code, company_name: d.customer_name }, d.owner);
     return res.json({ ok: true });
   }
   if (['note', 'call', 'email', 'task'].includes(b.kind)) {
     const body = clean(b.body, 1000); if (!body) return res.status(400).json({ error: 'body' });
     const due = b.kind === 'task' && ISO10.test(b.due || '') ? b.due : null;
     await log(d.id, b.kind, body, due); await db.update('crm_deals', 'id=eq.' + d.id, { updated_at: now });
+    await notifyMentions(req, w, d, b.kind, body, due);
     return res.json({ ok: true });
   }
   if (b.kind === 'done') { await db.update('crm_activities', 'id=eq.' + encodeURIComponent(clean(b.act, 60)) + '&deal_id=eq.' + d.id, { done_at: now }); return res.json({ ok: true }); }

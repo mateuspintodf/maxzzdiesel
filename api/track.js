@@ -5,7 +5,7 @@ const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
 const { clean, readBody } = require('../lib/validate');
 
-const TYPES = new Set(['page', 'product', 'search', 'cart_add', 'cart_remove', 'cart_view', 'checkout', 'order', 'quote', 'login', 'voucher', 'filter', 'click']);
+const TYPES = new Set(['page', 'product', 'search', 'cart_add', 'cart_remove', 'cart_view', 'checkout', 'order', 'quote', 'login', 'voucher', 'filter', 'click', 'quote_remove', 'qty_change', 'quote_abandon', 'campaign_click', 'search_empty']);
 const ALLOWED = [/^https:\/\/(www\.)?maxzzdiesel\.com$/, /^https:\/\/maxzzdiesel(-[a-z0-9-]+)?\.vercel\.app$/];
 const device = (ua) => (/ipad|tablet/i.test(ua) ? 'tablet' : /mobi|android|iphone/i.test(ua) ? 'mobile' : 'desktop');
 const dec = (v) => { try { return v ? decodeURIComponent(v) : null; } catch { return null; } };
