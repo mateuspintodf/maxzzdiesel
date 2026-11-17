@@ -203,7 +203,8 @@ A['mfa-reset'] = async (req, res) => {
 };
 
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,last_name,phone,photo&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, last_name: a.last_name || null, phone: a.phone || null, photo: a.photo || null })); };
+const TEAM_PH = (() => { try { return require('../lib/team-photos.json'); } catch (e) { return {}; } })(); // starter photos, a photo saved in the admin wins
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,last_name,phone,photo&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, last_name: a.last_name || null, phone: a.phone || null, photo: a.photo || TEAM_PH[w.email] || null })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -348,7 +349,7 @@ A.admins = async (req, res) => {
   const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
   const mf = {}; (await db.select('admin_mfa', 'select=email,totp_on').catch(() => [])).forEach((m) => { mf[m.email] = { totp: !!m.totp_on, pk: 0 }; });
   (await db.select('admin_passkeys', 'select=email').catch(() => [])).forEach((p) => { (mf[p.email] = mf[p.email] || { totp: false, pk: 0 }).pk++; });
-  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps });
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).map((r) => Object.assign(r, { photo: r.photo || TEAM_PH[r.email] || null })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps });
 };
 A['profile-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1423,7 +1424,7 @@ A.crm = async (req, res) => {
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,city,state&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { pl[x.code] = [x.city, x.state].filter(Boolean).join(', '); });
   all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
-  const photos = {}; (await db.select('admins', 'select=salesperson,photo&photo=not.is.null&salesperson=not.is.null&active=eq.true').catch(() => [])).forEach((r) => { photos[r.salesperson] = r.photo; });
+  const photos = {}; (await db.select('admins', 'select=email,salesperson,photo&salesperson=not.is.null&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (ph) photos[r.salesperson] = ph; });
   return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
 A['crm-deal'] = async (req, res) => {
