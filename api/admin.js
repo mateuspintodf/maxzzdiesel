@@ -511,19 +511,20 @@ A.dash = async (req, res) => {
   ['viewed', 'carted'].forEach((k) => (B[k] || []).forEach((p) => { p.t = title(p.k); }));
   const P = { orders: ord.length, order_value: Math.round(ord.reduce((a, o) => a + Number(o.total || 0), 0)), quotes: qts.length,
     companies: Object.values(portal).filter((s) => s === 'approved' || s === 'active').length, invited: Object.values(portal).filter((s) => s === 'invited').length };
-  return res.json({ days, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(), at: Date.now() });
+  return res.json({ days, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N), ai: aiOn(req), at: Date.now() });
 };
 // AI read of the same numbers: campaigns for groups and one-to-one actions. Off until DASH_AI=1 (it has a cost per run).
 // Only business data goes out (company names, codes, totals, parts); no e-mails or phone numbers.
-const AI_KEY = () => process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN || '';
-const aiOn = () => process.env.DASH_AI === '1' && !!AI_KEY();
+// key: an AI Gateway key if one is set, else the project's own Vercel OIDC token (no key to manage)
+const AI_KEY = (req) => process.env.AI_GATEWAY_API_KEY || (req && req.headers['x-vercel-oidc-token']) || process.env.VERCEL_OIDC_TOKEN || '';
+const aiOn = (req) => process.env.DASH_AI === '1' && !!AI_KEY(req);
 A['dash-ai'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const { readJson, writeJson } = require('../lib/store');
-  if (req.method !== 'POST') return res.json({ on: aiOn(), last: await readJson('portal/dash-ai.json').catch(() => null) });
+  if (req.method !== 'POST') return res.json({ on: aiOn(req), last: await readJson('portal/dash-ai.json').catch(() => null) });
   if (!originOk(req)) return res.status(405).json({ error: 'method' });
-  if (!aiOn()) return res.status(409).json({ error: 'AI suggestions are not switched on yet.' });
+  if (!aiOn(req)) return res.status(409).json({ error: 'AI suggestions are not switched on yet.' });
   const last = await readJson('portal/dash-ai.json').catch(() => null);
   if (last && Date.now() - last.at < 10 * 60 * 1000) return res.json(last); // one run per 10 minutes is plenty
   const [S, B, N] = await Promise.all([db.rpc('dash_sales'), db.rpc('dash_behavior', { p_days: 30 }), names()]);
@@ -549,10 +550,10 @@ A['dash-ai'] = async (req, res) => {
     '"products": [{"code": "", "action": "", "why": ""}], "watch": ["risks or data gaps worth checking"]}. Up to 10 one_to_one, 5 campaigns, 5 products.\n\nDATA:\n' + JSON.stringify(facts);
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 50000);
   try {
-    const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + AI_KEY(), 'Content-Type': 'application/json' },
+    const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + AI_KEY(req), 'Content-Type': 'application/json' },
       body: JSON.stringify({ model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', max_tokens: 6000, messages: [{ role: 'user', content: prompt }] }) });
     const j = await r.json().catch(() => null);
-    if (!r.ok) { console.error('dash-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: 'The AI service did not answer. Try again in a minute.' }); }
+    if (!r.ok) { console.error('dash-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: r.status === 401 || r.status === 403 ? 'The AI service refused the key. Check AI Gateway in Vercel.' : r.status === 402 ? 'AI Gateway has no credit left this month.' : 'The AI service did not answer. Try again in a minute.' }); }
     const text = String(j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || '');
     let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
     if (!out) return res.status(502).json({ error: 'The AI answer could not be read. Try again.' });
