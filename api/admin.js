@@ -203,7 +203,8 @@ A['mfa-reset'] = async (req, res) => {
 };
 
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null })); };
+const TEAM_PH = (() => { try { return require('../lib/team-photos.json'); } catch (e) { return {}; } })(); // starter photos, a photo saved in the admin wins
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,last_name,phone,photo,screens&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, last_name: a.last_name || null, phone: a.phone || null, photo: a.photo || TEAM_PH[w.email] || null, screens: w.role === 'superadmin' ? null : (Array.isArray(a.screens) ? a.screens : null) })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -342,27 +343,48 @@ const ROLES = ['superadmin', 'sales', 'marketing'];
 A.admins = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
-  const rows = await db.select('admins', 'select=email,name,role,active,salesperson,created_at,created_by&order=created_at');
+  const rows = await db.select('admins', 'select=email,name,first_name,last_name,phone,photo,role,active,salesperson,screens,created_at,created_by&order=created_at');
   const inTable = new Set(rows.map((r) => String(r.email).toLowerCase()));
   const boot = envAdmins().filter((e) => !inTable.has(e)).map((e) => ({ email: e, name: '', role: 'superadmin', active: true, bootstrap: true }));
   const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
   const mf = {}; (await db.select('admin_mfa', 'select=email,totp_on').catch(() => [])).forEach((m) => { mf[m.email] = { totp: !!m.totp_on, pk: 0 }; });
   (await db.select('admin_passkeys', 'select=email').catch(() => [])).forEach((p) => { (mf[p.email] = mf[p.email] || { totp: false, pk: 0 }).pk++; });
-  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps });
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).map((r) => Object.assign(r, { photo: r.photo || TEAM_PH[r.email] || null })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps, screens: SCREENS });
+};
+A['profile-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  const b = readBody(req);
+  const row = (await db.select('admins', 'select=email&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0];
+  if (!row) return res.status(400).json({ error: 'Your login comes from a server setting, so it has no profile row. Ask a superadmin to add you under Admin users.' });
+  const fn = clean(b.first_name, 60), ln = clean(b.last_name, 60), ph = clean(b.phone, 40);
+  const patch = { first_name: fn || null, last_name: ln || null, phone: ph || null, name: [fn, ln].filter(Boolean).join(' ') || null, updated_at: new Date().toISOString() };
+  if (typeof b.photo === 'string') {
+    if (b.photo !== '' && !(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(b.photo) && b.photo.length <= 90000)) return res.status(400).json({ error: 'The photo is too big or not a JPG, PNG or WebP image.' });
+    patch.photo = b.photo || null;
+  }
+  await db.update('admins', 'email=eq.' + encodeURIComponent(w.email), patch);
+  await PS.audit(w.email, 'admin.profile', 'admin', w.email, null, { name: patch.name });
+  return res.json({ ok: true });
 };
 A['admin-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
   const b = readBody(req);
-  const email = clean(b.email, 160).toLowerCase(), role = clean(b.role, 20), name = clean(b.name, 120), active = b.active !== false;
+  const email = clean(b.email, 160).toLowerCase(), role = clean(b.role, 20), active = b.active !== false;
+  const fn = clean(b.first_name, 60), ln = clean(b.last_name, 60), ph = clean(b.phone, 40), name = clean(b.name, 120) || [fn, ln].filter(Boolean).join(' ');
+  const photo = typeof b.photo === 'string' ? (b.photo === '' ? '' : /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(b.photo) && b.photo.length <= 90000 ? b.photo : null) : undefined;
+  if (photo === null) return res.status(400).json({ error: 'The photo is too big or not a JPG, PNG or WebP image.' });
   if (!EMAIL.test(email)) return res.status(400).json({ error: 'That e-mail does not look right.' });
   if (!ROLES.includes(role)) return res.status(400).json({ error: 'role' });
   if (email === w.email && (!active || role !== 'superadmin')) return res.status(400).json({ error: 'You cannot remove your own superadmin access.' });
+  const scr = b.screens === undefined ? undefined : (Array.isArray(b.screens) ? [...new Set(b.screens.map((x) => String(x)).filter((x) => SCREENS.includes(x)))] : null);
   const before = (await db.select('admins', 'select=*&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0] || null;
-  await db.insert('admins', [{ email, role, name: name || null, active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
+  await db.insert('admins', [{ email, role, name: name || null, first_name: fn || null, last_name: ln || null, phone: ph || null, ...(photo === undefined ? {} : { photo: photo || null }), ...(scr === undefined ? {} : { screens: role === 'superadmin' ? null : scr }), active, salesperson: clean(b.salesperson, 120) || null, created_by: before ? before.created_by : w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
   if (!active || (before && before.role !== role)) await SDB.revokeEmail(email, w.email, 'admin').catch(() => {}); // new rights start at the next sign-in
   await PS.audit(w.email, before ? 'admin.update' : 'admin.create', 'admin', email, before && { role: before.role, active: before.active }, { role, active });
+  scrMemo.delete(email);
   return res.json({ ok: true });
 };
 // ---------------------------------------------------------------- Unleashed import into segments
@@ -1155,7 +1177,7 @@ A['dash-customers'] = async (req, res) => {
 };
 // one customer, everything we know: sales rhythm and history from Unleashed, portal people, behavior, portal orders and quotes
 // one customer: sales, contacts and one activity timeline (like a CRM lead page) built from everything we keep
-const EVN = { product: 'viewed', search: 'searched', cart_add: 'added to cart', cart_remove: 'removed from cart', cart_view: 'opened the cart', checkout: 'started checkout', voucher: 'tried a voucher', filter: 'filtered' };
+const EVN = { product: 'viewed', search: 'searched', cart_add: 'added to cart', cart_remove: 'removed from cart', quote_remove: 'removed from the quote', qty_change: 'changed a quantity', quote_abandon: 'left with items in the list', campaign_click: 'came from a campaign', search_empty: 'searched with no result', cart_view: 'opened the cart', checkout: 'started checkout', voucher: 'tried a voucher', filter: 'filtered' };
 const AUD = { 'invite.send': ['invite', 'Invite e-mail sent'], 'invite.accept': ['account', 'Invite accepted'], 'company.approve': ['account', 'Account approved'], 'company.reject': ['account', 'Access request rejected'], 'prospect.add': ['account', 'Added by hand'] };
 A.customer = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1278,11 +1300,8 @@ A['funnel-step'] = async (req, res) => {
 // quotes and portal orders waiting for the team: the Parked sales orders in Unleashed (website quotes, B2B store quotes,
 // portal orders and parked orders typed by hand), with their age and owner. Marked lost or handled ones are left out.
 let pipeMemo = { at: 0, rows: null };
-A.pipeline = async (req, res) => {
-  const w = await who(req, res); if (!w) return;
-  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
-  if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || req.query.fresh === '1') {
+async function loadParked(fresh) {
+  if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || fresh) {
     const items = [];
     for (let page = 1; page <= 3; page++) {
       const d = await ul('SalesOrders/' + page, 'pageSize=200&orderStatus=Parked', { timeoutMs: 60000 });
@@ -1295,6 +1314,13 @@ A.pipeline = async (req, res) => {
       return { number: o.OrderNumber, ref: o.CustomerRef || '', kind, code: o.Customer && o.Customer.CustomerCode, name: o.Customer && o.Customer.CustomerName, at: day(o.OrderDate) || day(o.CreatedOn),
         value: Number(o.SubTotal || o.BCSubTotal || 0), lines: (o.SalesOrderLines || []).length, sp: o.SalesPerson && (o.SalesPerson.FullName || o.SalesPerson.Email) || null, note: c.replace(/^QUOTE REQUEST [^:]*:\s*/i, '').slice(0, 220), web: /WEB CUSTOMER/i.test(c) }; }) };
   }
+  return pipeMemo.rows;
+}
+A.pipeline = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
+  await loadParked(req.query.fresh === '1');
   const marks = await db.selectAll('pipeline_marks', 'select=number,status').catch(() => []), gone = new Set(marks.map((m) => m.number));
   const rows = pipeMemo.rows.filter((r) => !gone.has(r.number));
   const codes = [...new Set(rows.map((r) => r.code).filter(Boolean))], sp = {};
@@ -1313,6 +1339,303 @@ A['pipeline-mark'] = async (req, res) => {
   if (code) await db.insert('customer_notes', [{ customer_code: code, customer_name: clean(b.name, 160) || null, kind: 'note', body: (status === 'lost' ? 'Lost ' : 'Handled ') + number + (b.reason ? ': ' + clean(b.reason, 300) : ''), outcome: status === 'lost' ? 'lost' : null, created_by: w.email }]).catch(() => {});
   await PS.audit(w.email, 'pipeline.' + status, 'order', number, null, { reason: b.reason || null });
   return res.json({ ok: true });
+};
+// ---------------------------------------------------------------- CRM (Sales > CRM): deals on a kanban, fed by the parked orders in Unleashed
+const CRM_OWNER = 'Michael'; // a new customer with no Unleashed salesperson goes here until a distribution rule exists
+const crmStageOf = (kind) => (kind === 'site_quote' || kind === 'portal_quote' ? 'new' : 'quote');
+let crmSyncAt = 0;
+async function crmSync() {
+  if (Date.now() - crmSyncAt < 90e3 || !configured()) return;
+  crmSyncAt = Date.now();
+  const parked = await loadParked(false).catch(() => null); if (!parked) return;
+  const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
+  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
+  const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
+  const ctOf = {};
+  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
+  if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
+  for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0, updated_at: new Date().toISOString() }).catch(() => {}); }
+  await crmSyncAccess().catch(() => {});
+  // deals whose order left the Parked list: lost if marked, won if invoiced
+  const gone = deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
+  if (gone.length) {
+    const nums = gone.map((d) => d.ref), inv = new Set();
+    for (let i = 0; i < nums.length; i += 150) (await db.select('sales_orders', 'select=number&number=' + inList(nums.slice(i, i + 150)))).forEach((x) => inv.add(x.number));
+    for (const d of gone) { const m = mk[d.ref], to = m ? (m.status === 'lost' ? 'lost' : 'won') : inv.has(d.ref) ? 'won' : null; if (!to) continue;
+      const now = new Date().toISOString();
+      await db.update('crm_deals', 'id=eq.' + d.id, { stage: to, stage_at: now, closed_at: now, updated_at: now, lost_reason: to === 'lost' ? (m && m.reason) || null : null }).catch(() => {});
+      await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: to === 'won' ? 'Won: order left the Parked list' + (inv.has(d.ref) ? ' and is invoiced' : '') : 'Lost' + (m && m.reason ? ': ' + m.reason : ''), created_by: 'auto' }]).catch(() => {}); }
+  }
+}
+// portal access requests become deals too: a new company asking for access is a lead nobody should miss
+async function crmSyncAccess() {
+  const pend = await db.select('companies', 'select=id,name,city,state,country,created_at&status=eq.pending&order=created_at.desc&limit=200').catch(() => []);
+  const have = await db.selectAll('crm_deals', 'select=id,ref,stage&source=eq.access_request').catch(() => []), by = {}; have.forEach((d) => { by[d.ref] = d; });
+  const fresh = pend.filter((c) => !by['access:' + c.id]);
+  if (fresh.length) {
+    const us = await db.select('users', 'select=company_id,name,email,phone&company_id=in.(' + fresh.map((c) => c.id).join(',') + ')').catch(() => []), U = {}; us.forEach((u) => { if (!U[u.company_id]) U[u.company_id] = u; });
+    const ins = await db.insert('crm_deals', fresh.map((c) => { const u = U[c.id] || {}; return { title: 'Portal access · ' + c.name, stage: 'new', owner: CRM_OWNER, customer_name: c.name, contact_name: u.name || null, contact_email: u.email || null, contact_phone: u.phone || null, value: 0, source: 'access_request', ref: 'access:' + c.id, note: [c.city, c.state, c.country].filter(Boolean).join(', ') || null, created_by: 'auto' }; }), { onConflict: 'ref' }).catch(() => null);
+    if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from a portal access request', created_by: 'auto' }))).catch(() => {});
+  }
+  const live = new Set(pend.map((c) => 'access:' + c.id)), gone = have.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
+  if (gone.length) {
+    const cs = await db.select('companies', 'select=id,status&id=in.(' + gone.map((d) => d.ref.slice(7)).join(',') + ')').catch(() => []), st = {}; cs.forEach((c) => { st[c.id] = c.status; });
+    for (const d of gone) { const cs1 = st[d.ref.slice(7)]; if (!cs1) continue; const to = cs1 === 'rejected' ? 'lost' : 'won', now = new Date().toISOString();
+      await db.update('crm_deals', 'id=eq.' + d.id, { stage: to, stage_at: now, closed_at: now, updated_at: now, lost_reason: to === 'lost' ? 'Access request rejected' : null }).catch(() => {});
+      await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: to === 'won' ? 'Access approved' : 'Access rejected', created_by: 'auto' }]).catch(() => {}); }
+  }
+}
+// rules that flag what matters today; the AI pass (crm-ai) ranks and words them when it is switched on
+function crmRules(deals, stages, isSuper) {
+  const SK = {}; stages.forEach((x) => { SK[x.key] = x; });
+  const td = new Date().toISOString().slice(0, 10), now = Date.now(), D = 864e5, open = deals.filter((d) => SK[d.stage] && SK[d.stage].kind === 'open'), out = [];
+  const nm = (L) => L.slice(0, 3).map((d) => d.customer_name || d.title).join(', ') + (L.length > 3 ? ' and ' + (L.length - 3) + ' more' : '');
+  const add = (id, sev, title, tip, L) => { if (L.length) out.push({ id, sev, title, tip, ids: L.map((d) => d.id) }); };
+  const late = open.filter((d) => d.next && d.next.due < td);
+  add('late', 3, late.length + (late.length === 1 ? ' follow-up is overdue' : ' follow-ups are overdue'), 'Overdue: ' + nm(late) + '. Open the deal, make the call and log it.', late);
+  const nw = open.filter((d) => d.stage === 'new' && now - Date.parse(d.stage_at) > 2 * D);
+  add('new', 3, nw.length + (nw.length === 1 ? ' new deal has waited' : ' new deals have waited') + ' over 2 days', 'Nobody has touched: ' + nm(nw) + '. A first reply in the first day wins more quotes.', nw);
+  const q = open.filter((d) => d.stage === 'quote' && now - Date.parse(d.updated_at) > 5 * D);
+  add('quote', 2, q.length + (q.length === 1 ? ' quote is' : ' quotes are') + ' quiet for 5 days', 'Quote sent, no reply: ' + nm(q) + '. A short call now beats waiting.', q);
+  const big = open.filter((d) => Number(d.value) >= 5000 && !d.next).sort((x, y) => y.value - x.value);
+  add('big', 2, big.length + (big.length === 1 ? ' large deal has' : ' large deals have') + ' no next step', 'Biggest first: ' + nm(big) + '. Add a dated task so it does not go cold.', big);
+  const na = open.filter((d) => !Number(d.value));
+  add('amt', 1, na.length + (na.length === 1 ? ' open deal has' : ' open deals have') + ' no amount', 'Without an amount the forecast ignores: ' + nm(na) + '.', na);
+  const wk = deals.filter((d) => d.stage === 'won' && d.closed_at && now - Date.parse(d.closed_at) < 7 * D);
+  if (wk.length) out.push({ id: 'won', sev: 0, title: wk.length + (wk.length === 1 ? ' deal' : ' deals') + ' won this week', tip: nm(wk) + ' closed in the last 7 days, ' + Math.round(wk.reduce((t, d) => t + (Number(d.value) || 0), 0)).toLocaleString('en-US') + ' dollars.', ids: wk.map((d) => d.id) });
+  if (isSuper) { const by = {}; open.filter((d) => (d.next && d.next.due < td) || now - Date.parse(d.updated_at) > 7 * D).forEach((d) => { const o = d.owner || 'No owner'; (by[o] = by[o] || []).push(d); });
+    const top = Object.entries(by).sort((x, y) => y[1].length - x[1].length)[0];
+    if (top && top[1].length >= 3) add('team', 2, top[0] + ' has ' + top[1].length + ' deals needing attention', 'Late or idle for 7 days: ' + nm(top[1]) + '. Worth a word with ' + top[0] + '.', top[1]); }
+  return out.sort((x, y) => y.sev - x.sev).slice(0, 6);
+}
+A.crm = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  await crmSync().catch(() => {});
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  if (!isSuper && sc.none) return res.json({ stages: [], deals: [], mySp: null, isSuper, owners: [] });
+  const since = new Date(Date.now() - 60 * 864e5).toISOString();
+  const [stages, all] = await Promise.all([db.select('crm_stages', 'select=*&order=pos.asc'), db.select('crm_deals', 'select=*&or=(closed_at.is.null,closed_at.gte.' + since + ')&order=updated_at.desc&limit=800' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)))]);
+  const ids = all.map((d) => d.id), next = {};
+  for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,body,due&done_at=is.null&due=not.is.null&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')&order=due.asc')).forEach((a) => { if (!next[a.deal_id]) next[a.deal_id] = a; });
+  all.forEach((d) => { d.next = next[d.id] || null; });
+  const cnt = {};
+  for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,kind,done_at&kind=in.(note,call,email,task)&limit=5000&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')').catch(() => [])).forEach((a) => { const c = cnt[a.deal_id] || (cnt[a.deal_id] = { n: 0, c: 0, e: 0, t: 0 }); if (a.kind === 'note') c.n++; else if (a.kind === 'call') c.c++; else if (a.kind === 'email') c.e++; else if (!a.done_at) c.t++; });
+  const codes = [...new Set(all.map((d) => d.customer_code).filter(Boolean))], pl = {};
+  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,city,state&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { pl[x.code] = [x.city, x.state].filter(Boolean).join(', '); });
+  all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
+  const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
+  const photos = {}; (await db.select('admins', 'select=email,salesperson,photo&salesperson=not.is.null&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (ph) photos[r.salesperson] = ph; });
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
+};
+A['crm-deal'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const id = clean(req.query.id, 60), d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0];
+  if (!d) return res.status(404).json({ error: 'deal' });
+  const sc = await salesScope(w, { query: {} }); if (w.role !== 'superadmin' && d.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
+  const code = d.customer_code, enc = code ? encodeURIComponent(code) : null;
+  const [acts, cust, orders, life, others] = await Promise.all([
+    db.select('crm_activities', 'select=*&deal_id=eq.' + d.id + '&order=created_at.desc&limit=200'),
+    enc ? db.select('ul_customers', 'select=code,name,tier,type,email,contact_name,phone,city,state,country,salesperson,payment_terms,stop_credit,created_on&code=eq.' + enc + '&limit=1').catch(() => []) : [],
+    enc ? db.select('sales_orders', 'select=number,order_date,completed_date,subtotal,status&is_return=eq.false&customer_code=eq.' + enc + '&order=order_date.desc&limit=6').catch(() => []) : [],
+    enc ? db.select('sales_orders', 'select=subtotal,order_date&is_return=eq.false&customer_code=eq.' + enc + '&limit=5000').catch(() => []) : [],
+    enc ? db.select('crm_deals', 'select=id,title,stage,value&customer_code=eq.' + enc + '&id=neq.' + d.id + '&order=updated_at.desc&limit=8').catch(() => []) : [] ]);
+  let lines = null;
+  if (d.ref && /^[A-Za-z0-9-]+$/.test(d.ref) && d.source !== 'access_request' && configured()) { // what is in the order, at sell price only (never cost)
+    try { const o = ((await ul('SalesOrders', 'orderNumber=' + encodeURIComponent(d.ref), { timeoutMs: 9000 })).Items || [])[0];
+      if (o) lines = (o.SalesOrderLines || []).filter((l) => l.Product).map((l) => ({ code: l.Product.ProductCode, desc: String(l.Product.ProductDescription || '').slice(0, 90), qty: Number(l.OrderQuantity) || 0, price: Number(l.UnitPrice) || 0, total: Number(l.LineTotal) || 0 })); } catch (e) { lines = null; } }
+  const tot = life.reduce((t, x) => t + (Number(x.subtotal) || 0), 0), last = life.reduce((m, x) => (x.order_date > m ? x.order_date : m), '');
+  let attr = null; // where the lead came from (UTM, click ids, referrer), matched by contact e-mail
+  try { const em = String(d.contact_email || (cust[0] && cust[0].email) || '').trim().toLowerCase();
+    if (em && /^[^\s@]+@[^\s@]+$/.test(em)) attr = (await db.select('lead_attribution', 'select=kind,ref,first,last,device,country,created_at&email=eq.' + encodeURIComponent(em) + '&order=created_at.asc&limit=1'))[0] || null; } catch (e) { attr = null; }
+  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others, lines, attr });
+};
+A['crm-cust'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const code = clean(req.query.code, 60); if (!code) return res.json({ deals: [] });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  if (!isSuper && sc.none) return res.json({ deals: [] });
+  const deals = await db.select('crm_deals', 'select=id,title,stage,value,owner,updated_at,expected_close&customer_code=eq.' + encodeURIComponent(code) + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)) + '&order=updated_at.desc&limit=20').catch(() => []);
+  return res.json({ deals, stages: await db.select('crm_stages', 'select=key,label,kind,color&order=pos.asc').catch(() => []) });
+};
+const crmAiMemo = {};
+A['crm-ai'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin', key = isSuper ? 'all' : sc.sp || 'none';
+  if (req.method !== 'POST') return res.json({ on: aiOn(req), last: crmAiMemo[key] || null });
+  if (!originOk(req)) return res.status(405).json({ error: 'method' });
+  if (!aiOn(req)) return res.status(409).json({ error: 'AI insights are not switched on yet. Turn on DASH_AI and add the AI Gateway key in Vercel.' });
+  if (crmAiMemo[key] && Date.now() - crmAiMemo[key].at < 10 * 60e3) return res.json(crmAiMemo[key]);
+  if (!isSuper && sc.none) return res.json({ at: Date.now(), out: { summary: 'Your login is not linked to a salesperson yet.', items: [] } });
+  const stages = await db.select('crm_stages', 'select=*&order=pos.asc'), SK = {}; stages.forEach((x) => { SK[x.key] = x; });
+  const rows = await db.select('crm_deals', 'select=id,title,stage,owner,customer_code,customer_name,value,source,created_at,stage_at,updated_at,expected_close&closed_at=is.null&order=value.desc&limit=60' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)));
+  const dn = {}; rows.forEach((d) => { dn[d.id] = d; });
+  const acts = rows.length ? await db.select('crm_activities', 'select=deal_id,kind,body,due,done_at,created_at&deal_id=in.(' + rows.map((d) => d.id).join(',') + ')&order=created_at.desc&limit=600').catch(() => []) : [];
+  const A1 = {}; acts.forEach((a) => { (A1[a.deal_id] = A1[a.deal_id] || []).push(a); });
+  const days = (t) => Math.floor((Date.now() - Date.parse(t)) / 864e5), td = new Date().toISOString().slice(0, 10);
+  const facts = { today: td, deals: rows.map((d) => ({ id: d.id, title: d.title, company: d.customer_name, stage: SK[d.stage] && SK[d.stage].label, chance: SK[d.stage] && SK[d.stage].prob, value: Number(d.value) || 0, owner: d.owner, source: d.source, age_days: days(d.created_at), days_in_stage: days(d.stage_at), idle_days: days(d.updated_at), expected_close: d.expected_close,
+    open_tasks: (A1[d.id] || []).filter((a) => a.kind === 'task' && !a.done_at).map((a) => ({ what: String(a.body || '').slice(0, 80), due: a.due })).slice(0, 3), last_notes: (A1[d.id] || []).filter((a) => a.kind !== 'stage').slice(0, 3).map((a) => a.kind + ': ' + String(a.body || '').slice(0, 100)) })) };
+  const prompt = 'You are the sales coach of Maxzz Diesel, a diesel fuel injection parts distributor selling B2B. Below are the open deals in the CRM' + (isSuper ? ' for the whole team' : ' of one salesperson') + '. Tell what matters today. Rank by expected money at risk or to win. Be specific: name the company, the number and the next action. Never invent facts. Plain direct English, no hype, no em dashes. ' +
+    'Answer only with JSON: {"summary": "2 to 3 sentences on the state of the pipeline today", "items": [{"deal_id": "id from the data or empty for a team point", "headline": "under 70 characters", "why": "one or two sentences with the evidence", "action": "the next step to take", "channel": "call|email|whatsapp|visit|none", "priority": 1}]}. Up to 7 items.\n\nDATA:\n' + JSON.stringify(facts);
+  const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 45000);
+  try {
+    const r = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', { method: 'POST', signal: ctl.signal, headers: { Authorization: 'Bearer ' + AI_KEY(req), 'Content-Type': 'application/json' }, body: JSON.stringify({ model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', max_tokens: 3000, messages: [{ role: 'user', content: prompt }] }) });
+    const j = await r.json().catch(() => null);
+    if (!r.ok) { console.error('crm-ai', r.status, JSON.stringify(j).slice(0, 300)); return res.status(502).json({ error: /customer_verification|credit card/i.test(JSON.stringify(j)) ? 'AI Gateway in Vercel needs a credit card on file before it answers.' : r.status === 402 ? 'AI Gateway has no credit left this month.' : r.status === 401 || r.status === 403 ? 'The AI service refused the key. Check AI Gateway in Vercel.' : 'The AI service did not answer. Try again in a minute.' }); }
+    const text = String(j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content || '');
+    let out = null; try { out = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1)); } catch (e) {}
+    if (!out || !Array.isArray(out.items)) return res.status(502).json({ error: 'The AI answer could not be read. Try again.' });
+    out.items = out.items.filter((i) => i && (!i.deal_id || dn[i.deal_id])).slice(0, 7).map((i) => ({ deal_id: i.deal_id || '', headline: String(i.headline || '').slice(0, 90), why: String(i.why || '').slice(0, 320), action: String(i.action || '').slice(0, 220), channel: String(i.channel || ''), priority: Number(i.priority) || 3, title: i.deal_id ? dn[i.deal_id].customer_name || dn[i.deal_id].title : '' }));
+    const doc = { at: Date.now(), model: process.env.DASH_AI_MODEL || 'anthropic/claude-sonnet-5.5', out: { summary: String(out.summary || '').slice(0, 500), items: out.items } };
+    crmAiMemo[key] = doc; await PS.audit(w.email, 'crm.ai', 'crm', key).catch(() => {});
+    return res.json(doc);
+  } catch (e) { return res.status(504).json({ error: 'The AI service took too long. Try again.' }); } finally { clearTimeout(t); }
+};
+
+// ---- @mentions and the bell: notifications for the team (in the admin and by e-mail, team addresses only)
+const handlesOf = (a) => { const out = new Set(), e = String(a.email || '').toLowerCase(); out.add(e.split('@')[0]);
+  [a.first_name, a.name, a.salesperson].forEach((x) => { const t = String(x || '').trim().split(/\s+/)[0]; if (t) out.add(t.toLowerCase().replace(/[^a-z0-9._-]/g, '')); }); out.delete(''); return [...out]; };
+const teamList = async () => (await db.select('admins', 'select=email,name,first_name,last_name,salesperson,photo&active=eq.true').catch(() => [])).map((a) => ({ email: String(a.email).toLowerCase(), name: a.name || [a.first_name, a.last_name].filter(Boolean).join(' ') || a.email, handles: handlesOf(a), photo: a.photo || TEAM_PH[String(a.email).toLowerCase()] || null }));
+async function notifyMentions(req, w, d, kind, body, due) {
+  try {
+    const found = [...new Set((String(body).match(/(^|[^a-z0-9._-])@([a-z0-9._-]{2,40})/gi) || []).map((m) => m.replace(/^[^@]*@/, '').toLowerCase().replace(/[._-]+$/, '')))];
+    if (!found.length) return;
+    const team = await teamList(), me = String(w.email).toLowerCase(), mine = team.find((t) => t.email === me), from = (mine && mine.name) || w.email, sent = new Set();
+    for (const h of found) { const t = team.find((x) => x.handles.includes(h)); if (!t || t.email === me || sent.has(t.email)) continue; sent.add(t.email);
+      const title = from + ' mentioned you in ' + (kind === 'task' ? 'a task' : 'a ' + kind) + ' on ' + (d.title || 'a deal');
+      await db.insert('admin_notifications', [{ to_email: t.email, kind: 'mention', title, body: clean(body, 400), deal_id: d.id, from_email: me, from_name: from }]).catch(() => {});
+      await send(t.email, title, 'You were mentioned', '<p><b>' + esc(from) + '</b> wrote on <b>' + esc(d.title || 'a deal') + '</b>:</p><p style="padding:10px 14px;background:#f3f4f6;border-radius:8px">' + esc(clean(body, 400)) + '</p>' + (due ? '<p>Due: <b>' + esc(due) + '</b></p>' : ''),
+        { url: base(req) + '/admin?deal=' + encodeURIComponent(d.id), label: 'Open the deal' }, { greet: true, team: true }).catch(() => {}); }
+  } catch (e) { /* a mention must never break saving the note */ }
+}
+A.notifs = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  const rows = await db.select('admin_notifications', 'select=id,kind,title,body,deal_id,from_name,created_at,read_at&to_email=eq.' + encodeURIComponent(String(w.email).toLowerCase()) + '&order=created_at.desc&limit=25').catch(() => []);
+  return res.json({ items: rows, unread: rows.filter((r) => !r.read_at).length });
+};
+A['notifs-read'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return; const b = readBody(req), to = encodeURIComponent(String(w.email).toLowerCase());
+  const ids = Array.isArray(b.ids) ? b.ids.map((x) => parseInt(x, 10)).filter(Boolean).slice(0, 50) : null;
+  await db.update('admin_notifications', 'to_email=eq.' + to + '&read_at=is.null' + (ids ? '&id=in.(' + ids.join(',') + ')' : ''), { read_at: new Date().toISOString() }).catch(() => {});
+  return res.json({ ok: true });
+};
+
+// ---- CRM contacts: people as their own records (one e-mail, one contact), linked to a company by Unleashed code
+const upsertContact = async (w, c, owner) => { try { const email = clean(c.email, 160).toLowerCase(); if (!email || !/^[^\s@]+@[^\s@]+$/.test(email)) return;
+  const row = { email, name: clean(c.name, 120) || null, phone: clean(c.phone, 60) || null, customer_code: clean(c.customer_code, 60) || null, company_name: clean(c.company_name, 160) || null, owner: owner || null, created_by: w.email, updated_at: new Date().toISOString() };
+  Object.keys(row).forEach((k) => { if (row[k] == null) delete row[k]; });
+  await db.insert('crm_contacts', [row], { onConflict: 'email' }); } catch (e) { /* best effort */ } };
+A['crm-contacts'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  if (!isSuper && sc.none) return res.json({ contacts: [] });
+  const [rows, deals] = await Promise.all([db.select('crm_contacts', 'select=*&order=updated_at.desc&limit=1500' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))), db.select('crm_deals', 'select=id,contact_email,stage,value&contact_email=not.is.null&limit=3000' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))).catch(() => [])]);
+  const by = {}; deals.forEach((d) => { const k = String(d.contact_email).toLowerCase(); (by[k] = by[k] || { n: 0, open: 0, value: 0 }).n++; if (!['won', 'lost'].includes(d.stage)) { by[k].open++; by[k].value += Number(d.value) || 0; } });
+  rows.forEach((r) => { r.deals = by[r.email] || { n: 0, open: 0, value: 0 }; });
+  return res.json({ contacts: rows });
+};
+A['contact-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), isSuper = w.role === 'superadmin', sc = await salesScope(w, { query: {} });
+  if (!isSuper && sc.none) return res.status(403).json({ error: 'scope' });
+  const id = clean(b.id, 60), cur = id ? (await db.select('crm_contacts', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0] : null;
+  if (id && !cur) return res.status(404).json({ error: 'contact' });
+  if (cur && !isSuper && cur.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
+  if (b.del) { if (!cur) return res.status(400).json({ error: 'contact' }); await db.remove('crm_contacts', 'id=eq.' + cur.id); await PS.audit(w.email, 'crm.contact.delete', 'contact', cur.id, null, {}).catch(() => {}); return res.json({ ok: true }); }
+  const email = clean(b.email, 160).toLowerCase(), name = clean(b.name, 120);
+  if (!name && !email) return res.status(400).json({ error: 'Add a name or an e-mail.' });
+  if (email && !/^[^\s@]+@[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Check the e-mail address.' });
+  const p = { name: name || null, email: email || null, phone: clean(b.phone, 60) || null, role: clean(b.role, 80) || null, customer_code: clean(b.customer_code, 60) || null, company_name: clean(b.company_name, 160) || null, updated_at: new Date().toISOString() };
+  try {
+    if (cur) await db.update('crm_contacts', 'id=eq.' + cur.id, p);
+    else await db.insert('crm_contacts', [Object.assign(p, { owner: isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp, created_by: w.email })]);
+  } catch (e) { return res.status(409).json({ error: 'A contact with this e-mail already exists.' }); }
+  return res.json({ ok: true });
+};
+A['crm-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), isSuper = w.role === 'superadmin', sc = await salesScope(w, { query: {} }), now = new Date().toISOString();
+  const st = await db.select('crm_stages', 'select=key,kind,label'), SK = {}; st.forEach((s) => { SK[s.key] = s; });
+  const log = (id, kind, body, due) => db.insert('crm_activities', [{ deal_id: id, kind, body: clean(body, 1000) || null, due: due || null, created_by: w.email }]);
+  const mine = async (id) => { const d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(clean(id, 60)) + '&limit=1'))[0]; if (!d) return null; return isSuper || d.owner === sc.sp ? d : false; };
+  if (/^stage_/.test(b.kind || '')) {
+    if (!isSuper) return res.status(403).json({ error: 'role' });
+    const all = await db.select('crm_stages', 'select=*&order=pos.asc'), byK = {}; all.forEach((x) => { byK[x.key] = x; });
+    const renum = async (open) => { const ord = open.concat(all.filter((x) => x.kind === 'won'), all.filter((x) => x.kind === 'lost')); for (let i = 0; i < ord.length; i++) if (ord[i].pos !== (i + 1) * 10) await db.update('crm_stages', 'key=eq.' + encodeURIComponent(ord[i].key), { pos: (i + 1) * 10 }); };
+    const open = all.filter((x) => x.kind === 'open');
+    if (b.kind === 'stage_add') {
+      const label = clean(b.label, 40); if (!label) return res.status(400).json({ error: 'label' });
+      let key = label.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 24) || 'stage'; while (byK[key]) key += '2';
+      await db.insert('crm_stages', [{ key, label, pos: 9999, kind: 'open', color: '#8b7cf6', prob: 20 }]); all.push({ key, label, pos: 9999, kind: 'open' }); open.push({ key, pos: 9999, kind: 'open' }); await renum(open);
+      await PS.audit(w.email, 'crm.stage_add', 'crm', key).catch(() => {}); return res.json({ ok: true });
+    }
+    const x = byK[clean(b.key, 40)]; if (!x) return res.status(404).json({ error: 'stage' });
+    if (b.kind === 'stage_edit') {
+      const p = {}; if (b.label != null) p.label = clean(b.label, 40) || x.label;
+      if (b.prob != null && x.kind === 'open') p.prob = Math.min(95, Math.max(1, Math.round(Number(b.prob) || x.prob)));
+      if (b.color != null && /^#[0-9a-fA-F]{6}$/.test(b.color)) p.color = b.color;
+      await db.update('crm_stages', 'key=eq.' + encodeURIComponent(x.key), p); await PS.audit(w.email, 'crm.stage_edit', 'crm', x.key, null, p).catch(() => {}); return res.json({ ok: true });
+    }
+    if (b.kind === 'stage_move') {
+      if (x.kind !== 'open') return res.status(400).json({ error: 'stage' }); const i = open.findIndex((y) => y.key === x.key), j = i + (Number(b.dir) < 0 ? -1 : 1); if (j < 0 || j >= open.length) return res.json({ ok: true });
+      [open[i], open[j]] = [open[j], open[i]]; await renum(open); return res.json({ ok: true });
+    }
+    if (b.kind === 'stage_del') {
+      if (x.kind !== 'open') return res.status(400).json({ error: 'stage' }); if (open.length <= 2) return res.status(400).json({ error: 'Keep at least two open stages.' });
+      const n = (await db.select('crm_deals', 'select=id&stage=eq.' + encodeURIComponent(x.key) + '&limit=1')).length; if (n) return res.status(400).json({ error: 'Move the deals out of this stage first.' });
+      await db.remove('crm_stages', 'key=eq.' + encodeURIComponent(x.key)); await PS.audit(w.email, 'crm.stage_del', 'crm', x.key).catch(() => {}); return res.json({ ok: true });
+    }
+    return res.status(400).json({ error: 'kind' });
+  }
+  if (b.kind === 'create') {
+    const title = clean(b.title, 160); if (!title) return res.status(400).json({ error: 'title' });
+    const owner = isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp; if (!owner) return res.status(403).json({ error: 'scope' });
+    const row = (await db.insert('crm_deals', [{ title, stage: (SK[b.stage] && SK[b.stage].kind === 'open' ? b.stage : 'new'), owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, contact_name: clean(b.contact_name, 120) || null, contact_email: clean(b.contact_email, 160) || null, contact_phone: clean(b.contact_phone, 60) || null, expected_close: ISO10.test(b.expected_close || '') ? b.expected_close : null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
+    if (row) await log(row.id, 'stage', 'Created by ' + w.email);
+    if (row) await upsertContact(w, { name: b.contact_name, email: b.contact_email, phone: b.contact_phone, customer_code: b.customer_code, company_name: b.customer_name }, owner);
+    return res.json({ ok: true, id: row && row.id });
+  }
+  const d = await mine(b.id); if (d === null) return res.status(404).json({ error: 'deal' }); if (d === false) return res.status(403).json({ error: 'scope' });
+  if (b.kind === 'move') {
+    const to = SK[b.stage]; if (!to) return res.status(400).json({ error: 'stage' });
+    if (to.kind === 'lost' && !clean(b.reason, 300)) return res.status(400).json({ error: 'reason' });
+    const closed = to.kind !== 'open';
+    await db.update('crm_deals', 'id=eq.' + d.id, { stage: to.key, stage_at: now, updated_at: now, closed_at: closed ? now : null, lost_reason: to.kind === 'lost' ? clean(b.reason, 300) : null });
+    await log(d.id, 'stage', 'Moved to ' + to.label + (to.kind === 'lost' ? ': ' + clean(b.reason, 300) : ''));
+    return res.json({ ok: true });
+  }
+  if (b.kind === 'edit') {
+    const p = { updated_at: now };
+    if (b.title != null) p.title = clean(b.title, 160) || d.title;
+    if (b.value != null) p.value = Math.max(0, Number(b.value) || 0);
+    if (b.note != null) p.note = clean(b.note, 1000) || null;
+    ['contact_name', 'contact_phone'].forEach((k) => { if (b[k] != null) p[k] = clean(b[k], 120) || null; });
+    if (b.contact_email != null) p.contact_email = clean(b.contact_email, 160) || null;
+    if (b.expected_close != null) p.expected_close = ISO10.test(b.expected_close) ? b.expected_close : null;
+    if (b.owner != null && isSuper && clean(b.owner, 120) !== d.owner) { p.owner = clean(b.owner, 120); await log(d.id, 'owner', 'Owner changed from ' + (d.owner || 'nobody') + ' to ' + p.owner); }
+    await db.update('crm_deals', 'id=eq.' + d.id, p);
+    if (b.contact_email != null || b.contact_name != null || b.contact_phone != null) await upsertContact(w, { name: p.contact_name != null ? p.contact_name : d.contact_name, email: p.contact_email != null ? p.contact_email : d.contact_email, phone: p.contact_phone != null ? p.contact_phone : d.contact_phone, customer_code: d.customer_code, company_name: d.customer_name }, d.owner);
+    return res.json({ ok: true });
+  }
+  if (['note', 'call', 'email', 'task'].includes(b.kind)) {
+    const body = clean(b.body, 1000); if (!body) return res.status(400).json({ error: 'body' });
+    const due = b.kind === 'task' && ISO10.test(b.due || '') ? b.due : null;
+    await log(d.id, b.kind, body, due); await db.update('crm_deals', 'id=eq.' + d.id, { updated_at: now });
+    await notifyMentions(req, w, d, b.kind, body, due);
+    return res.json({ ok: true });
+  }
+  if (b.kind === 'done') { await db.update('crm_activities', 'id=eq.' + encodeURIComponent(clean(b.act, 60)) + '&deal_id=eq.' + d.id, { done_at: now }); return res.json({ ok: true }); }
+  return res.status(400).json({ error: 'kind' });
 };
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1341,6 +1664,7 @@ async function salesScope(w, req) {
   const a = (await db.select('admins', 'select=salesperson&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
   return a.salesperson ? { sp: a.salesperson, all: false } : { sp: null, all: false, none: true };
 }
+const m$ = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
 const sumBy = (rows, f) => rows.reduce((t, r) => t + (Number(f(r)) || 0), 0);
 A['sales-data'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1374,11 +1698,104 @@ A['sales-data'] = async (req, res) => {
   const people = Object.values(su).sort((a, b) => b.sales - a.sales).map((g) => ({ sp: g.k, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: comOf(g.k, g.sales, g.cov - g.cost), prev: sp0[g.k] ? sp0[g.k].sales : 0, rule: rule[g.k] ? { basis: rule[g.k].basis, pct: Number(rule[g.k].pct) } : null }));
   const pp = {}; (prv.parts || []).forEach((r) => { pp[r.code] = r; });
   const parts = (cur.parts || []).slice(0, 120).map((r) => ({ code: r.code, name: (N[r.code] && N[r.code].t) || '', qty: r.qty, sales: r.sales, profit: (Number(r.cov) || 0) - (Number(r.cost) || 0), prev: pp[r.code] ? pp[r.code].sales : 0 }));
+  // signals: plain rules over the numbers above, each with the evidence behind it and what to do about it
+  const signals = [];
+  const ev = (arr, f) => arr.slice(0, 25).map(f);
+  const rowOf = (c, note) => ({ c: c.c, n: c.n, a: Math.round(c.sales), b: Math.round(c.prev), sp: c.sp, note: note || '' });
+  const prevOnly = Object.values(pc).filter((g) => g.sales > 0 && !cu[g.k]);
+  const named = {}; (cur.orders || []).concat(prv.orders || []).forEach((r) => { if (r.c && r.n) named[r.c] = r.n; });
+  if (cmp !== 'none') {
+    const gone = prevOnly.filter((g) => g.sales >= 3000).sort((a, b) => b.sales - a.sales).map((g) => ({ c: g.k, n: named[g.k] || g.k, a: 0, b: Math.round(g.sales), sp: '', note: 'Bought before, nothing in this period' }));
+    if (gone.length) signals.push({ id: 'quiet', sev: 'high', title: 'Customers gone quiet', n: gone.length, tip: gone.length + ' customers that bought ' + m$(sumBy(gone, (r) => r.b)) + ' in the comparison period have not bought in this one.', text: 'These customers bought in the comparison period and have not ordered since. Call them before they settle with another supplier: ask if something went wrong, offer a restock on their usual parts.', rows: gone.slice(0, 25) });
+    const down = customers.filter((c) => c.prev >= 5000 && c.sales > 0 && c.sales <= c.prev * 0.6).sort((a, b) => (b.prev - b.sales) - (a.prev - a.sales));
+    if (down.length) signals.push({ id: 'down', sev: 'high', title: 'Spending dropped', n: down.length, tip: down.length + ' customers are buying at least 40% less than in the comparison period.', text: 'Same customers, clearly smaller baskets. Check what changed: price, stock outs, a competitor, or a shop that slowed down. A quote on their usual parts is a good opener.', rows: ev(down, (c) => rowOf(c, Math.round((1 - c.sales / c.prev) * 100) + '% less')) });
+    const up = customers.filter((c) => c.sales >= 5000 && c.prev > 0 && c.sales >= c.prev * 1.5).sort((a, b) => (b.sales - b.prev) - (a.sales - a.prev));
+    if (up.length) signals.push({ id: 'up', sev: 'good', title: 'Growing accounts', n: up.length, tip: up.length + ' customers are buying at least 50% more than before.', text: 'Worth a thank you and a conversation about what else they could stock with you. Good candidates for a tier review.', rows: ev(up, (c) => rowOf(c, '+' + Math.round((c.sales / c.prev - 1) * 100) + '%')) });
+    const fresh = customers.filter((c) => c.prev === 0 && c.sales >= 1000).sort((a, b) => b.sales - a.sales);
+    if (fresh.length) signals.push({ id: 'new', sev: 'info', title: 'New or returning buyers', n: fresh.length, tip: fresh.length + ' customers bought in this period and not in the comparison one.', text: 'First orders and customers that came back. A call in the first 30 days decides whether they become regulars.', rows: ev(fresh, (c) => rowOf(c, 'No sales in the comparison period')) });
+  }
+  const low = customers.filter((c) => c.cov >= 3000 && c.profit / c.cov < 0.1).sort((a, b) => a.profit / a.cov - b.profit / b.cov);
+  if (low.length) signals.push({ id: 'margin', sev: 'high', title: 'Thin margin', n: low.length, tip: low.length + ' customers earn under 10% margin on the sales that have a recorded cost.', text: 'Margin is measured on lines with the cost recorded at the time of the sale. Review the tier and the discounts given to these accounts.', rows: ev(low, (c) => rowOf(c, 'Margin ' + Math.round(c.profit / c.cov * 100) + '%')) });
+  const topC = customers[0], totS = sumBy(customers, (c) => c.sales);
+  if (topC && totS > 0 && topC.sales / totS >= 0.25) signals.push({ id: 'conc', sev: 'med', title: 'One customer is a quarter of sales', n: 1, tip: topC.n + ' is ' + Math.round(topC.sales / totS * 100) + '% of the sales in this period.', text: 'A lot rides on one account. Protect it, and look for customers of similar profile to spread the risk.', rows: [rowOf(topC, Math.round(topC.sales / totS * 100) + '% of sales')] });
+  const unas = customers.filter((c) => c.sp === 'Unassigned');
+  if (unas.length) signals.push({ id: 'unas', sev: 'med', title: 'Sales without a salesperson', n: unas.length, tip: unas.length + ' customers have sales but no salesperson in Unleashed.', text: 'Set the salesperson on the customer in Unleashed so the sale and the commission land with the right person.', rows: ev(unas, (c) => rowOf(c, '')) });
+  const k0 = kpi(cur);
+  if (k0.sales > 0 && k0.coverage != null && k0.coverage < 0.7) signals.push({ id: 'cost', sev: 'info', title: 'Profit covers part of the sales', n: 1, tip: 'Only ' + Math.round(k0.coverage * 100) + '% of the sales in this period have a recorded cost.', text: 'The cost at the time of the sale is being loaded from Unleashed for older orders. Profit and margin firm up as the history load finishes.', rows: [] });
   let everyone = [];
   if (sc.all) everyone = [...new Set([...people.map((x) => x.sp), ...comm.map((x) => x.salesperson), ...(await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson)])].sort();
   return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
     days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
-    customers, people, parts, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
+    customers, people, parts, signals, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
+};
+// ---- sales mix: the same period cut by category, part type, brand, customer type (channel) or state (region)
+A['sales-mix'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, req); if (sc.none) return res.json({ rows: [], total: 0 });
+  const today = new Date().toISOString().slice(0, 10), to = ISO10.test(req.query.to || '') ? req.query.to : today;
+  let from = ISO10.test(req.query.from || '') ? req.query.from : addDays(to, -29); if (from > to) from = to;
+  if (spanDays(from, to) > 3700) from = addDays(to, -3699);
+  const dim = ['category', 'type', 'brand', 'channel', 'region'].includes(req.query.dim) ? req.query.dim : 'category';
+  const prof = (r) => (Number(r.cov) || 0) - (Number(r.cost) || 0);
+  let src = [], key;
+  if (['channel', 'region'].includes(dim)) {
+    const ag = await db.rpc('sales_agg', { p_from: from, p_to: to, p_sp: sc.sp }); src = ag.orders || [];
+    const codes = [...new Set(src.map((r) => r.c).filter(Boolean))], cu = {};
+    for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,type,state,country&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { cu[x.code] = x; });
+    key = (r) => { const c = cu[r.c] || {}; return dim === 'channel' ? (c.type || 'No customer type') : ([c.state, c.country && c.country !== 'United States' ? c.country : ''].filter(Boolean).join(', ') || 'No address'); };
+  } else {
+    src = await db.rpc('sales_by_code', { p_from: from, p_to: to, p_sp: sc.sp }); src = Array.isArray(src) ? src : [];
+    const cat = await cached('catalog/live.json', 60 * 60 * 1000).catch(() => null), cm = {}; (Array.isArray(cat) ? cat : []).forEach((r) => { cm[r[0]] = r; });
+    key = (r) => { const c = cm[r.code]; if (!c) return 'Not in the catalog'; return (dim === 'brand' ? c[4] : dim === 'type' ? c[2] : c[3]) || 'Not set'; };
+  }
+  const g = {}; src.forEach((r) => { const k = key(r), x = g[k] || (g[k] = { k, sales: 0, profit: 0, cov: 0, lines: 0 }); x.sales += Number(r.sales) || 0; x.profit += prof(r); x.cov += Number(r.cov) || 0; x.lines += r.cnt != null ? Number(r.cnt) || 0 : 1; });
+  const rows = Object.values(g).filter((x) => Math.abs(x.sales) > 0.5).sort((a, b) => b.sales - a.sales).slice(0, 60), total = rows.reduce((t, x) => t + x.sales, 0);
+  return res.json({ from, to, dim, total, rows: rows.map((x) => ({ k: x.k, sales: x.sales, profit: x.profit, margin: x.cov ? x.profit / x.cov : null, share: total ? x.sales / total : 0 })) });
+};
+// ---- monthly commission close: a closed month keeps the numbers it had at closing, so a later edit in Unleashed does not change what was paid.
+A['commission-close'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const post = req.method === 'POST';
+  if (post && !originOk(req)) return res.status(405).json({ error: 'method' });
+  const b = post ? readBody(req) : req.query || {};
+  const ym = String(b.ym || '');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return res.status(400).json({ error: 'Pick a month.' });
+  const from = ym + '-01', to = ym + '-' + String(monthDays(ym)).padStart(2, '0');
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const sc = await salesScope(w, req);
+  const [agg, rules, closed] = await Promise.all([
+    sc.none ? [] : db.rpc('sales_agg', { p_from: from, p_to: to, p_sp: post ? null : sc.sp }).then((d) => d.orders || []),
+    db.select('sales_commission', 'select=*').catch(() => []),
+    db.select('commission_closes', 'select=*&ym=eq.' + ym).catch(() => []),
+  ]);
+  const rule = {}; rules.forEach((r) => { rule[r.salesperson] = r; });
+  const by = {}; agg.forEach((r) => { const k = r.sp || 'Unassigned'; const x = by[k] || (by[k] = { sales: 0, profit: 0 }); x.sales += Number(r.sales) || 0; x.profit += (Number(r.cov) || 0) - (Number(r.cost) || 0); });
+  const live = Object.keys(by).filter((k) => k !== 'Unassigned').sort((a, c) => by[c].sales - by[a].sales).map((sp) => {
+    const r = rule[sp], base = r ? (r.basis === 'sales' ? by[sp].sales : by[sp].profit) : 0;
+    return { sp, sales: by[sp].sales, profit: by[sp].profit, basis: r ? r.basis : null, pct: r ? Number(r.pct) : null, commission: r ? Math.round(base * Number(r.pct)) / 100 : 0 };
+  });
+  if (post) {
+    if (w.role !== 'superadmin') return res.status(403).json({ error: 'Only a superadmin closes or reopens a month.' });
+    if (b.kind === 'reopen') {
+      await db.remove('commission_closes', 'ym=eq.' + ym);
+      await PS.audit(w.email, 'commission.reopen', 'month', ym, null, null);
+      return res.json({ ok: true });
+    }
+    if (ym >= thisMonth) return res.status(400).json({ error: 'A month can be closed only after it ends.' });
+    if (closed.length) return res.status(400).json({ error: 'That month is already closed.' });
+    if (!live.length) return res.status(400).json({ error: 'No sales in that month.' });
+    await db.insert('commission_closes', live.map((x) => ({ ym, salesperson: x.sp, basis: x.basis, pct: x.pct, sales: x.sales, profit: x.profit, commission: x.commission, closed_by: w.email })));
+    await PS.audit(w.email, 'commission.close', 'month', ym, null, { total: live.reduce((t, x) => t + x.commission, 0) });
+    return res.json({ ok: true });
+  }
+  const frozen = {}; closed.forEach((c) => { frozen[c.salesperson] = c; });
+  const rows = (closed.length ? Object.keys(frozen).filter((k) => (sc.all && !sc.sp) || k === sc.sp) : live.map((x) => x.sp)).map((sp) => {
+    const l = live.find((x) => x.sp === sp) || { sales: 0, profit: 0, commission: 0 }, f = frozen[sp];
+    return { sp, sales: f ? Number(f.sales) : l.sales, profit: f ? Number(f.profit) : l.profit, basis: f ? f.basis : l.basis, pct: f ? (f.pct == null ? null : Number(f.pct)) : l.pct, commission: f ? Number(f.commission) : l.commission, now: f ? l.commission : null };
+  });
+  return res.json({ ym, closed: closed.length ? { by: closed[0].closed_by, at: closed[0].closed_at } : null, canClose: ym < thisMonth, rows });
 };
 A['sales-commission'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1390,6 +1807,144 @@ A['sales-commission'] = async (req, res) => {
   await db.insert('sales_commission', [{ salesperson: sp, basis, pct: Math.round(pct * 100) / 100, updated_by: w.email, updated_at: new Date().toISOString() }], { onConflict: 'salesperson' });
   await PS.audit(w.email, 'commission.save', 'salesperson', sp, null, { basis, pct });
   return res.json({ ok: true });
+};
+// ---- Sales > Goals & rewards: goals per salesperson and month, a points and levels program, badges, weekly and monthly awards.
+// Everything is worked out from the synced sales. Superadmin sets goals and the program; the sales role sees the ranking
+// (names, % of goal, points, level, badges) but dollar amounts only for itself.
+const PROG_DEFAULT = {
+  pts: { per100: 1, goal: 200, margin: 100, newc: 50, back: 75 }, marginTarget: 0.15, autoGoalPct: 5,
+  levels: [['Skates', 0], ['Scooter', 1000], ['Bicycle', 3000], ['Motorbike', 8000], ['Pickup', 20000], ['Big Rig', 50000]],
+  awards: [
+    { id: 'week_top', cycle: 'week', rule: 'top', text: 'Top of the week: lunch on the team' },
+    { id: 'week_goal', cycle: 'week', rule: 'goal', text: 'Weekly goal reached: leave early on Friday' },
+    { id: 'month_top', cycle: 'month', rule: 'top', text: 'Top of the month: gift card' },
+    { id: 'month_goal', cycle: 'month', rule: 'goal', text: 'Monthly goal reached: bonus day off' }],
+};
+const isoDay = (d) => d.toISOString().slice(0, 10);
+const mondayOf = (iso) => { const t = new Date(iso + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return isoDay(t); };
+const monthDays = (ym) => new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate();
+const ymAdd = (ym, n) => { const d = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7) - 1 + n, 1)); return d.toISOString().slice(0, 7); };
+function progCfg(row) { const c = (row && row.config) || {}; return { pts: Object.assign({}, PROG_DEFAULT.pts, c.pts), marginTarget: c.marginTarget != null ? c.marginTarget : PROG_DEFAULT.marginTarget, autoGoalPct: c.autoGoalPct != null ? c.autoGoalPct : PROG_DEFAULT.autoGoalPct, levels: Array.isArray(c.levels) && c.levels.length ? c.levels : PROG_DEFAULT.levels, awards: Array.isArray(c.awards) ? c.awards : PROG_DEFAULT.awards }; }
+A['sales-program'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  const today = isoDay(new Date()), ym = today.slice(0, 7), wk = mondayOf(today), md = monthDays(ym), ms0 = ym + '-01';
+  const weeks = [1, 2, 3, 4].map((i) => { const a = isoDay(new Date(Date.parse(wk + 'T00:00:00Z') - i * 7 * 864e5)); return [a, isoDay(new Date(Date.parse(a + 'T00:00:00Z') + 6 * 864e5))]; });
+  const [dayR, weekR, monR, months, goalRows, cfgRow, log, ...pastW] = await Promise.all([
+    db.rpc('sales_sp_period', { p_from: today, p_to: today }), db.rpc('sales_sp_period', { p_from: wk, p_to: today }), db.rpc('sales_sp_period', { p_from: ms0, p_to: today }),
+    db.rpc('sales_sp_months'), db.select('sales_goals', 'select=salesperson,ym,target&limit=2000').catch(() => []), db.select('sales_program', 'select=config&id=eq.1').then((r) => r[0]).catch(() => null),
+    db.select('sales_award_log', 'select=*&order=cycle.desc&limit=400').catch(() => []), ...weeks.map((r) => db.rpc('sales_sp_period', { p_from: r[0], p_to: r[1] })),
+  ]);
+  const cfg = progCfg(cfgRow), P = cfg.pts;
+  const goal = {}; goalRows.forEach((g) => { goal[g.salesperson + '|' + g.ym] = Number(g.target); });
+  const mon = {}; (months || []).forEach((r) => { (mon[r.sp] = mon[r.sp] || {})[r.ym] = r; });
+  const recent = (sp) => ymAdd(ym, -1) in (mon[sp] || {}) || ym in (mon[sp] || {}) || ymAdd(ym, -2) in (mon[sp] || {});
+  const people = [...new Set([...Object.keys(mon).filter((k) => k !== 'Unassigned' && recent(k)), ...goalRows.map((g) => g.salesperson).filter((k) => k !== '*')])].sort();
+  // seasonality: share of each month in last year's sales (the person's own, else the whole company's, else even)
+  const seasC = {}, pad2 = (i) => String(i).padStart(2, '0');
+  const seas = (sp, y) => { const k = sp + '|' + y; if (seasC[k]) return seasC[k]; const keys = Array.from({ length: 12 }, (_, i) => (y - 1) + '-' + pad2(i + 1));
+    const pick = (f) => keys.map((m) => Math.max(0, Number(f(m)) || 0)); const sum = (a) => a.reduce((x, z) => x + z, 0);
+    let w = sp === '*' ? [] : pick((m) => ((mon[sp] || {})[m] || {}).sales); if (!(sum(w) > 0)) w = pick((m) => Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0));
+    const t = sum(w); return (seasC[k] = t > 0 ? w.map((x) => x / t) : Array(12).fill(1 / 12)); };
+  // goal of one person for one month: set for that month, else the yearly goal split by seasonality, else the average of the 3 months before plus a margin
+  const goalOf = (sp, m) => { const g = goal[sp + '|' + m]; if (g != null) return { v: g, auto: false, src: 'month' };
+    const yg = goal[sp + '|' + m.slice(0, 4) + '-00']; if (yg != null) return { v: Math.round(yg * seas(sp, +m.slice(0, 4))[+m.slice(5, 7) - 1]), auto: false, src: 'annual' };
+    const prev = [1, 2, 3].map((i) => Number(((mon[sp] || {})[ymAdd(m, -i)] || {}).sales) || 0); const avg = prev.reduce((a, b) => a + b, 0) / 3; return avg > 0 ? { v: Math.round(avg * (1 + cfg.autoGoalPct / 100)), auto: true, src: 'auto' } : { v: null, auto: true, src: 'auto' }; };
+  const pointsOf = (r, g) => { const sales = Number(r.sales) || 0, cov = Number(r.cov) || 0, margin = cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, cvg = sales > 0 ? cov / sales : 0;
+    return Math.max(0, Math.floor(sales / 100 * P.per100)) + (g && sales >= g ? P.goal : 0) + (margin != null && margin >= cfg.marginTarget && cvg >= 0.7 ? P.margin : 0) + (Number(r.newc) || 0) * P.newc + (Number(r.back) || 0) * P.back; };
+  const board = (rows, scale) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; });
+    const out = people.map((sp) => { const r = by[sp] || { sales: 0, cost: 0, cov: 0, orders: 0, newc: 0, back: 0 }, g = goalOf(sp, ym), gv = g.v != null ? g.v * scale : null, sales = Number(r.sales) || 0, cov = Number(r.cov) || 0;
+      return { sp, sales, goal: gv != null ? Math.round(gv) : null, auto: g.auto, pct: gv ? sales / gv : null, orders: Number(r.orders) || 0, newc: Number(r.newc) || 0, back: Number(r.back) || 0, margin: cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, points: pointsOf(r, gv) }; });
+    out.sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales); out.forEach((r, i) => { r.rank = i + 1; }); return out; };
+  // lifetime points and levels, streaks and badges from the monthly history
+  const life = {}, badges = {};
+  people.forEach((sp) => {
+    const all = Object.keys(mon[sp] || {}).sort(); let pts = 0, hit = 0, mk = 0, streak = 0;
+    all.forEach((m) => { const r = mon[sp][m], sales = Number(r.sales) || 0, gg = goalOf(sp, m), g = gg.auto ? null : gg.v; pts += Math.max(0, Math.floor(sales / 100 * P.per100)); if (g != null && sales >= g) { pts += P.goal; hit++; }
+      const cov = Number(r.cov) || 0; if (cov > 0 && sales > 0 && cov / sales >= 0.7 && (cov - (Number(r.cost) || 0)) / cov >= cfg.marginTarget) mk++; });
+    for (let m = ym; ; m = ymAdd(m, -1)) { const gg = goalOf(sp, m), g = gg.auto ? null : gg.v, r = (mon[sp] || {})[m]; if (g != null && r && Number(r.sales) >= g) streak++; else if (m === ym) continue; else break; if (streak > 36) break; }
+    life[sp] = pts; badges[sp] = { goal_crusher: hit, margin_keeper: mk, streak };
+  });
+  const lvl = (pts) => { let cur = cfg.levels[0], next = null; cfg.levels.forEach((l) => { if (pts >= l[1]) cur = l; }); next = cfg.levels.filter((l) => l[1] > pts)[0] || null; return { name: cur[0], pts, next: next ? next[0] : null, need: next ? next[1] - pts : 0, from: cur[1], to: next ? next[1] : null }; };
+  const dayB = board(dayR, 1 / md), weekB = board(weekR, 7 / md), monB = board(monR, 1);
+  const BDG = { goal_crusher: ['Goal crusher', 'Months with the goal reached'], margin_keeper: ['Margin keeper', 'Months at or above the margin target'], streak: ['On a streak', 'Months in a row with the goal reached'], hunter: ['Hunter', '3 or more new customers this month'], comeback: ['Comeback', '2 or more customers back after 90 days or more this month'], closer: ['Closer', '8 or more orders this week'] };
+  const mineName = sc.sp || null;
+  const shape = (rows, self) => rows.map((r) => { const own = isSuper || r.sp === mineName, b = badges[r.sp] || {}, mrow = monB.filter((x) => x.sp === r.sp)[0] || {}, wrow = weekB.filter((x) => x.sp === r.sp)[0] || {}, earned = [];
+    if (b.goal_crusher) earned.push(['goal_crusher', b.goal_crusher]); if (b.margin_keeper) earned.push(['margin_keeper', b.margin_keeper]); if (b.streak >= 2) earned.push(['streak', b.streak]);
+    if (mrow.newc >= 3) earned.push(['hunter', mrow.newc]); if (mrow.back >= 2) earned.push(['comeback', mrow.back]); if (wrow.orders >= 8) earned.push(['closer', wrow.orders]);
+    return Object.assign({}, r, { sales: own ? r.sales : null, goal: own ? r.goal : null, level: lvl(life[r.sp] || 0), life: life[r.sp] || 0, me: r.sp === mineName, badges: earned }); });
+  // past cycles: winners and who reached the goal
+  const wins = [], logK = {}; log.forEach((l) => { logK[l.cycle + '|' + l.salesperson + '|' + l.award] = l; });
+  const push = (cycle, label, aw, sp) => { const l = logK[cycle + '|' + sp + '|' + aw.id]; wins.push({ cycle, label, id: aw.id, award: aw.text, sp, delivered: !!(l && l.delivered), by: l && l.delivered_by }); };
+  const pastRows = (rows, scale, m) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; }); return people.map((sp) => { const g = goalOf(sp, m).v, sales = Number((by[sp] || {}).sales) || 0, gv = g != null ? g * scale : null; return { sp, sales, pct: gv ? sales / gv : null, hit: gv != null && sales >= gv && !goalOf(sp, m).auto }; }).filter((r) => r.sales > 0); };
+  cfg.awards.forEach((aw) => {
+    if (aw.cycle === 'week') weeks.forEach((wr, i) => { const m = wr[0].slice(0, 7), rows = pastRows(pastW[i], 7 / monthDays(m), m), label = 'Week of ' + wr[0];
+      if (aw.rule === 'top') { const t = rows.slice().sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales)[0]; if (t) push('w' + wr[0], label, aw, t.sp); } else rows.filter((r) => r.hit).forEach((r) => push('w' + wr[0], label, aw, r.sp)); });
+    else [1, 2, 3].forEach((i) => { const m = ymAdd(ym, -i), rows = people.map((sp) => { const r = (mon[sp] || {})[m], g = goalOf(sp, m), sales = r ? Number(r.sales) || 0 : 0; return { sp, sales, pct: g.v ? sales / g.v : null, hit: g.v != null && !g.auto && sales >= g.v }; }).filter((r) => r.sales > 0), label = m;
+      if (aw.rule === 'top') { const t = rows.slice().sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales)[0]; if (t) push('m' + m, label, aw, t.sp); } else rows.filter((r) => r.hit).forEach((r) => push('m' + m, label, aw, r.sp)); });
+  });
+  const visibleWins = isSuper ? wins : wins.filter((x) => x.sp === mineName);
+  const out = { today, week: wk, ym, daysInMonth: md, day: today.slice(8, 10) * 1, pace: (+today.slice(8, 10)) / md, boards: { day: shape(dayB), week: shape(weekB), month: shape(monB) }, wins: visibleWins, badges: BDG, role: w.role, me: mineName, none: !!sc.none,
+    levels: cfg.levels, pts: P, marginTarget: cfg.marginTarget };
+  const coSales = (m) => Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0);
+  const cg = goalOf('*', ym), peopleNow = people.map((sp) => goalOf(sp, ym).v).filter((v) => v != null);
+  out.company = { now: cg.v != null && !cg.auto ? cg.v : (peopleNow.length ? peopleNow.reduce((a, b) => a + b, 0) : null), sales: sumBy(monB, (r) => r.sales) };
+  if (isSuper) {
+    const Y = /^\d{4}$/.test(String(req.query.year || '')) ? +req.query.year : +ym.slice(0, 4);
+    out.cfg = { pts: P, marginTarget: cfg.marginTarget, autoGoalPct: cfg.autoGoalPct, levels: cfg.levels, awards: cfg.awards };
+    const rowFor = (sp) => { const months = Array.from({ length: 12 }, (_, i) => { const m = Y + '-' + pad2(i + 1), g = goalOf(sp, m), pm = (Y - 1) + '-' + pad2(i + 1);
+      return { ym: m, v: g.v, src: g.src, sales: sp === '*' ? coSales(m) : Number(((mon[sp] || {})[m] || {}).sales) || 0, last: sp === '*' ? coSales(pm) : Number(((mon[sp] || {})[pm] || {}).sales) || 0 }; });
+      const yg = goal[sp + '|' + Y + '-00'];
+      return { sp, annual: yg != null ? yg : null, seas: seas(sp, Y), months, lastYear: months.reduce((t, r) => t + r.last, 0), ytd: months.reduce((t, r) => t + r.sales, 0) }; };
+    out.goals = { year: Y, years: [Y - 1, Y, Y + 1], rows: [rowFor('*')].concat(people.map(rowFor)) };
+  }
+  // the race track: how close the month is to its goal and what that month is worth in the year (the company for a superadmin, the person otherwise)
+  { const key = isSuper ? '*' : mineName, Yr = +ym.slice(0, 4);
+    if (key) { const gOf = (m) => { const g = goalOf(key, m); if (key === '*' && g.auto) { const v = people.map((p) => goalOf(p, m).v).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; } return g.v; };
+      const sOf = (m) => key === '*' ? Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0) : Number(((mon[key] || {})[m] || {}).sales) || 0;
+      const months = Array.from({ length: 12 }, (_, i) => { const m = Yr + '-' + pad2(i + 1); return { ym: m, goal: gOf(m), sales: sOf(m) }; });
+      const yg = months.reduce((t, r) => t + (r.goal || 0), 0), ytd = months.reduce((t, r) => t + r.sales, 0), cur = months[+ym.slice(5, 7) - 1];
+      out.race = { who: key === '*' ? 'Team' : key, ym, year: Yr, pace: out.pace, month: { goal: cur.goal, sales: cur.sales }, yearGoal: yg || null, ytd, months, annualSet: goal[key + '|' + Yr + '-00'] != null }; } }
+  return res.json(out);
+};
+A['sales-program-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (w.role !== 'superadmin') return res.status(403).json({ error: 'Only a superadmin changes goals and the program.' });
+  const b = readBody(req), now = new Date().toISOString();
+  if (b.kind === 'goal') {
+    const sp = clean(b.salesperson, 120), m = String(b.ym || ''), t = Number(b.target);
+    if (!sp || !/^\d{4}-(00|0[1-9]|1[0-2])$/.test(m)) return res.status(400).json({ error: 'Pick a salesperson and a month.' });
+    if (b.target === '' || b.target === null) { await db.remove('sales_goals', 'salesperson=eq.' + encodeURIComponent(sp) + '&ym=eq.' + m); }
+    else { if (!Number.isFinite(t) || t < 0 || t > 1e9) return res.status(400).json({ error: 'Type a valid amount.' }); await db.insert('sales_goals', [{ salesperson: sp, ym: m, target: Math.round(t), updated_by: w.email, updated_at: now }], { onConflict: 'salesperson,ym' }); }
+    await PS.audit(w.email, 'goal.save', 'salesperson', sp, null, { ym: m, target: b.target }); return res.json({ ok: true });
+  }
+  if (b.kind === 'goals') {
+    const items = (Array.isArray(b.items) ? b.items : []).slice(0, 60), ups = [], dels = [];
+    for (const it of items) { const sp = clean(it.salesperson, 120), m = String(it.ym || ''), t = Number(it.target);
+      if (!sp || !/^\d{4}-(00|0[1-9]|1[0-2])$/.test(m)) return res.status(400).json({ error: 'Pick a salesperson and a month.' });
+      if (it.target === '' || it.target === null || it.target === undefined || t === 0) dels.push([sp, m]);
+      else { if (!Number.isFinite(t) || t < 0 || t > 1e9) return res.status(400).json({ error: 'Type a valid amount.' }); ups.push({ salesperson: sp, ym: m, target: Math.round(t), updated_by: w.email, updated_at: now }); } }
+    if (ups.length) await db.insert('sales_goals', ups, { onConflict: 'salesperson,ym' });
+    for (const d of dels) await db.remove('sales_goals', 'salesperson=eq.' + encodeURIComponent(d[0]) + '&ym=eq.' + d[1]);
+    await PS.audit(w.email, 'goal.save', 'salesperson', items[0] ? clean(items[0].salesperson, 120) : '', null, { set: ups.length, cleared: dels.length }); return res.json({ ok: true });
+  }
+  if (b.kind === 'deliver') {
+    const cycle = clean(b.cycle, 20), sp = clean(b.salesperson, 120), aw = clean(b.award, 40); if (!cycle || !sp || !aw) return res.status(400).json({ error: 'award' });
+    await db.insert('sales_award_log', [{ cycle, salesperson: sp, award: aw, delivered: !!b.delivered, delivered_by: b.delivered ? w.email : null, delivered_at: b.delivered ? now : null }], { onConflict: 'cycle,salesperson,award' });
+    await PS.audit(w.email, 'award.deliver', 'salesperson', sp, null, { cycle, award: aw, delivered: !!b.delivered }); return res.json({ ok: true });
+  }
+  if (b.kind === 'config') {
+    const c = b.config || {}, n = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) && v >= lo && v <= hi ? v : d; };
+    const pts = {}; Object.keys(PROG_DEFAULT.pts).forEach((k) => { pts[k] = n((c.pts || {})[k], 0, 100000, PROG_DEFAULT.pts[k]); });
+    const levels = (Array.isArray(c.levels) ? c.levels : []).slice(0, 10).map((l) => [clean(l[0], 30), n(l[1], 0, 1e7, 0)]).filter((l) => l[0]).sort((a, z) => a[1] - z[1]);
+    if (!levels.length || levels[0][1] !== 0) return res.status(400).json({ error: 'The first level must start at 0 points.' });
+    const awards = (Array.isArray(c.awards) ? c.awards : []).slice(0, 12).map((a, i) => ({ id: clean(a.id, 30) || 'award' + i, cycle: a.cycle === 'week' ? 'week' : 'month', rule: a.rule === 'goal' ? 'goal' : 'top', text: clean(a.text, 120) })).filter((a) => a.text);
+    await db.insert('sales_program', [{ id: 1, config: { pts, marginTarget: n(c.marginTarget, 0, 1, 0.15), autoGoalPct: n(c.autoGoalPct, 0, 100, 5), levels, awards }, updated_by: w.email, updated_at: now }], { onConflict: 'id' });
+    await PS.audit(w.email, 'program.save', 'program', '1'); return res.json({ ok: true });
+  }
+  return res.status(400).json({ error: 'kind' });
 };
 A['loyalty-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1416,11 +1971,29 @@ A.audit = async (req, res) => {
   return res.json({ rows: rows.map((r) => ({ ...r, label: names[r.entity_id] || null })), more: rows.length === 100 });
 };
 
+// ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
+const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
+const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
+  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
+  vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
+  loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
+  dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
+  events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
+  segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
+  prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
+const scrMemo = new Map();
+async function screensOf(email) {
+  const k = String(email).toLowerCase(), hit = scrMemo.get(k); if (hit && Date.now() - hit.t < 20000) return hit.v;
+  let v = null; try { const r = (await db.select('admins', 'select=role,screens&email=eq.' + encodeURIComponent(k) + '&limit=1'))[0]; if (r && r.role !== 'superadmin' && Array.isArray(r.screens)) v = r.screens; } catch (e) { v = null; }
+  scrMemo.set(k, { t: Date.now(), v }); return v;
+}
 module.exports = async (req, res) => {
   res.setHeader('Cache-Control', 'no-store'); res.setHeader('X-Robots-Tag', 'noindex');
   if (!PS.on()) return res.status(503).json({ error: 'database mode is off' });
   const fn = A[String(req.query.a || '')];
   if (!fn) return res.status(404).json({ error: 'not found' });
+  const need = API_SCREEN[String(req.query.a || '')];
+  if (need) { const s0 = await SDB.lookup(req, 'admin').catch(() => null), allow = s0 && s0.email ? await screensOf(s0.email) : null; if (allow && !need.some((x) => allow.includes(x))) return res.status(403).json({ error: 'This screen is not enabled for your login.' }); }
   try { return await fn(req, res); }
   catch (e) { console.error('admin', req.query.a, e.message); return res.status(500).json({ error: 'server' }); }
 };

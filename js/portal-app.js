@@ -52,6 +52,12 @@
     if (m[1] === 'p') Beacon.send('product', { code: a }); else if (m[1] === 's') Beacon.send('search', { query: a }); else if (m[1] === 'cart') Beacon.send('cart_view'); else Beacon.send('page', { path: m[1] });
   }
   window.addEventListener('hashchange', hashEvent); setTimeout(hashEvent, 600);
+  // marketing trail: searches with no result, list edits, abandoned lists, campaign landings
+  var EMPTYQ = {};
+  function mxEmpty(q) { q = String(q || '').trim().toLowerCase().slice(0, 80); if (q.length < 2 || EMPTYQ[q]) return; EMPTYQ[q] = 1; Beacon.send('search_empty', { query: q }); }
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState !== 'hidden') return; try { var ql = JSON.parse(localStorage.getItem(QK) || '[]'), cl = JSON.parse(localStorage.getItem(CK) || '[]'), n = ql.length || cl.length; if (n && !sessionStorage.getItem('mx-ab') && !sessionStorage.getItem('mx-done')) { sessionStorage.setItem('mx-ab', '1'); Beacon.send('quote_abandon', { qty: n, props: { flow: ql.length ? 'quote' : 'cart' } }); Beacon.flush(); } } catch (e) {} });
+  window.mxTrail = function (type, o) { Beacon.send(type, o); };
+  (function () { try { var sp = new URLSearchParams(location.search), k = sp.get('utm_campaign') || sp.get('gclid') || sp.get('fbclid') || sp.get('msclkid') || sp.get('ttclid'); if (k && !sessionStorage.getItem('mx-cc')) { sessionStorage.setItem('mx-cc', '1'); Beacon.send('campaign_click', { props: { campaign: sp.get('utm_campaign') || '', source: sp.get('utm_source') || '', medium: sp.get('utm_medium') || '', click: sp.get('gclid') ? 'gclid' : sp.get('fbclid') ? 'fbclid' : sp.get('msclkid') ? 'msclkid' : sp.get('ttclid') ? 'ttclid' : '' } }); } } catch (e) {} })();
   var TMAP = { add_to_cart: function (p) { return ['cart_add', { code: p.item_id, qty: p.quantity }]; }, quote_add_item: function (p) { return ['cart_add', { code: p.item_id, qty: p.quantity, props: { list: 'quote' } }]; }, login: function (p) { return ['login', { props: { method: p.method } }]; }, generate_lead: function (p) { return /order/.test(p.form || '') ? ['order', { props: { number: p.quote_id, items: p.items } }] : ['quote', { props: { id: p.quote_id, items: p.items } }]; } };
   function track(ev, p) {
     try { (window.dataLayer = window.dataLayer || []).push(Object.assign({ event: ev }, p || {})); } catch (e) {}
@@ -2532,7 +2538,7 @@
     baseCalc: function () {
       var r = this.route, a = this.arg, self = this, list = this.hideOut ? this.cat.filter(function (x) { return !self.hid(x[0]); }) : this.cat;
       if (r === 'g') return list.filter(function (x) { var f = self.fit.items[x[0]]; return f && f[0].indexOf(a) >= 0; });
-      if (r === 's') return matchSearch(list, a);
+      if (r === 's') { var sm = matchSearch(list, a); if (!sm.length) mxEmpty(a); return sm; }
       if (r === 'promo') { var cc = this.curCamp, set = {}; if (!cc) return []; cc.codes.forEach(function (k) { set[k] = 1; }); return list.filter(function (x) { return set[x[0]]; }); }
       return list;
     },
@@ -3135,7 +3141,7 @@
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },
     cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },
     inQuote: function (code) { return this.quote.some(function (x) { return x.id === code; }); },
-    qSet: function (i, n) { n = parseInt(n, 10) || 0; if (n <= 0) this.quote.splice(i, 1); else this.quote[i].qty = Math.min(9999, n); write(QK, this.quote); },
+    qSet: function (i, n) { n = parseInt(n, 10) || 0; var ql = this.quote[i]; if (ql) { if (n <= 0) Beacon.send('quote_remove', { code: ql.id, qty: ql.qty }); else if (Math.min(9999, n) !== ql.qty) Beacon.send('qty_change', { code: ql.id, qty: Math.min(9999, n), props: { flow: 'quote', from: ql.qty } }); } if (n <= 0) this.quote.splice(i, 1); else this.quote[i].qty = Math.min(9999, n); write(QK, this.quote); },
     // real Max Rewards numbers from the server (preview stays on while the program is off for customers)
     loadRewards: function () {
       var self = this;
@@ -3211,9 +3217,9 @@
       this.picks[code] = 1; this.save(); this.pop(); this.flash('Added to cart. ' + this.cart.length + (this.cart.length === 1 ? ' part' : ' parts') + ' in your cart', 'cart');
       track('add_to_cart', { item_id: code, quantity: n, source: 'store' });
     },
-    setQty: function (i, v) { var n = parseInt(v, 10) || 0; if (n <= 0) return this.remove(i); this.cart[i].qty = Math.min(9999, n); this.save(); },
+    setQty: function (i, v) { var n = parseInt(v, 10) || 0; if (n <= 0) return this.remove(i); var was = this.cart[i].qty; this.cart[i].qty = Math.min(9999, n); if (was !== this.cart[i].qty) Beacon.send('qty_change', { code: this.cart[i].code, qty: this.cart[i].qty, props: { flow: 'cart', from: was } }); this.save(); },
     remove: function (i) { var rl = this.cart[i]; if (rl) Beacon.send('cart_remove', { code: rl.code, qty: rl.qty }); this.cart.splice(i, 1); this.save(); },
-    clearCart: function () { this.cart.splice(0); this.save(); },
+    clearCart: function () { this.cart.splice(0); this.save(); try { sessionStorage.setItem('mx-done', '1'); } catch (e) {} },
     lineTotal: function (l) { var p = this.price(l.code); return p == null ? 0 : p * l.qty; },
     find: function (raw) {
       var n = norm(raw); if (n.length < 4) return null;
@@ -3337,7 +3343,7 @@
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: String(self.title(self.map[l.id]) || l.name || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
-      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', t: Date.now() - T0,
+      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
         customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, me ? this.qShip : { country: d.country, city: d.city }), lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (res) {
@@ -3346,6 +3352,7 @@
           self.busy = false; self.qSent = { id: number, email: d.email, from: snap ? snap.billTo : [d.name, d.company, d.email], ship: snap ? snap.shipTo : [], refs: snap ? snap.refs : [], notes: d.notes, lines: lines.map(function (l) { return { code: l.pn, name: l.name, qty: l.qty, price: null }; }) };
           self.qd.notes = ''; self.qd.po = ''; self.qd.needBy = '';
           if (self.me) self.myQuotes.unshift({ id: number, created: Date.now(), status: 'Sent', lines: lines });
+          try { sessionStorage.setItem('mx-done', '1'); } catch (e) {}
           setTimeout(function () { self.quote.splice(0); write(QK, []); }, 0); window.scrollTo({ top: 0, behavior: 'smooth' });
         })
         .catch(function () { self.busy = false; self.err = 'We could not send it right now. Try again, or e-mail the list to sales@maxzzdiesel.com.'; });

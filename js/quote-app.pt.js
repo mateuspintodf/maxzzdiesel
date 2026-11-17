@@ -282,7 +282,7 @@
       this.sending = true; this.err = '';
       var body = { number: this.number, customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes },
         shipping: { country: d.country, street: [d.street, d.num].filter(Boolean).join(' '), state: d.state, city: d.city, zip: d.zip, method: d.ship, needBy: d.needBy, po: d.po },
-        b2b: !!d.b2b, source: read(SK, ''), hp: val('qx-hp'), t: Date.now() - T0, lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
+        b2b: !!d.b2b, source: read(SK, ''), hp: val('qx-hp'), attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0, lines: this.lines.map(function (l) { return { pn: l.pn, name: l.name, qty: l.qty }; }) };
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function () { track('generate_lead', { form: 'quote', quote_id: self.number, items: self.lines.length, units: self.units, country: d.country, b2b_interest: !!d.b2b }); self.sending = false; self.phase = 3; self.b2bDone = !!d.b2b; if (d.b2b) { fetch('/api/portal/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(self.accessBody()) }).then(function () { track('b2b_access_request', { form: 'quote_checkbox' }); }).catch(function () {}); } self.sent = self.lines.slice(); write(QK, []); scrollTop(); })
