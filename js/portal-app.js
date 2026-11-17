@@ -73,6 +73,15 @@
   // catalog text from Unleashed comes in mixed shouting case; one consistent case for every title and application line
   var ACR = 'GMC CDI FTV HDI DCI MWM MBB CRIN DMAX TDCI UIS SN OE OEM HEUI EUI EUP PDE SLP PLD SCV ISX ISB ISC ISL ISM QSB QSC QSK QSL QSM QSX CAT STD DPF DEF EGR SCR HD GM CR VE USA ECM ECU VGT HPCR HP DAF MAN BMW PSG EDC NPT UI UP UPS RBD LML LMM LBZ LLY LB7 L5P CP1 CP2 CP3 CP4 VP29 VP30 VP44 DT466 DT530 VW JCB JD MTU DDC MBE OM IDI DI TDI CRDI PSI NBR FKM PTFE ISO SAE SST HPI PT IVECO DAF NV RPM ID OD TDC EPA UK EU USB LED NO NC DC AC II III IV'.split(' ');
   var SMALL = ['for', 'and', 'with', 'of', 'to', 'in', 'on', 'or', 'the', 'a', 'an', 'by', 'from'];
+  // tidy leftovers from Unleashed text: "for Suitable for:", " - 0445218015 - " codes in the middle, "(Right Side)" up front, repeated words
+  function tidy(t) {
+    var side = '';
+    t = String(t || '').replace(/\(\s*(right|left)(?:[\s-]*hand)?\s*side\s*\)\s*-?\s*/i, function (_, w) { side = w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() + ' side'; return ''; });
+    t = t.replace(/\bfor\s+suitable\s+for:?\s*/gi, 'fits ').replace(/\bsuitable\s+for:\s*/gi, 'fits ');
+    t = t.replace(/\s+-\s+[0-9][0-9.\s]{8,}\s+-\s+/g, ' ').replace(/(\bfor\s+)[0-9][0-9.]{7,}\s+-\s+/i, '$1').replace(/\b([A-Za-z]{2,})\s+\1\b/gi, '$1').replace(/\s{2,}/g, ' ').replace(/\s+([,:;])/g, '$1').trim();
+    if (side) t += ', ' + side.toLowerCase();
+    return t;
+  }
   function nice(t) {
     t = String(t || '').replace(/\s*\(=\s*[^)]*\)/g, '').replace(/\b(?:Category|Description)\s*:\s*/gi, '').replace(/\s*:\s*$/, '').replace(/\s+NEW\s*:?\s*$/i, '').trim();
     // units: "2,95MM" / "2.80 MM" -> "2.95 mm"
@@ -3063,7 +3072,7 @@
 
     // display helpers
     brandOf: function (r) { if (!r) return ''; if (r[4]) return r[4]; var m = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); return m && BRP[m[1]] || ''; },
-    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = nice(sp && sp.eng ? sp.eng : i.app); if (/^bench \/ shop use$/i.test(i.app)) i.app = ''; return i; },
+    info: function (r) { var i = parse(r && r[1]), sp = r && this.specs && this.specs[r[0]]; i.app = tidy(nice(sp && sp.eng ? sp.eng : i.app)); if (/^bench \/ shop use$/i.test(i.app)) i.app = ''; return i; },
     // has a photo on file (ignores load failures, so shelves do not reshuffle; failed photos show the placeholder)
     hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
@@ -3085,12 +3094,12 @@
     bench: function (code) { return !!BENCH[code]; },
     title: function (r) {
       if (!r || !r[0]) return '';
-      var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return nice(sp.title);
+      var sp = this.specs && this.specs[r[0]]; if (sp && sp.title) return tidy(nice(sp.title)).replace(/(\w)-(?=\w)/g, '$1\u2011');
       if (TFIX[r[0]]) return TFIX[r[0]];
       var t = nice(parse(r[1]).title), letters = '', up = 0;
       if (t.split(/\s+/).length <= 3) { var br = this.brandOf(r), mpn = r[0].replace(/^[A-Z]{2,4}[.\-]/, ''), ap = nice(parse(r[1]).app); t = [br && t.toLowerCase().indexOf(br.toLowerCase()) < 0 ? br : '', mpn, t].filter(Boolean).join(' ') + (ap && ap.length < 60 ? ' for ' + ap : ''); }
       if (false) t = t.toLowerCase().replace(/\b([a-z])/g, function (c) { return c.toUpperCase(); }).replace(/\b(Gm|Hd|Cr|Hp|Ve|Usa|Dpf|Def|Egr|Nox|Scr|Isx|Isb|Isc|Isl|Qsb|Lml|Lmm|Lbz|Lly|Lb7|L5p|Cp3|Cp4|Ecm|Oem)\b/g, function (w) { return w.toUpperCase(); });
-      return t.replace(/(\w)-(?=\w)/g, '$1\u2011');
+      return tidy(t).replace(/(\w)-(?=\w)/g, '$1\u2011');
     },
     icon: function (k) { return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || '') + '</svg>'; },
     cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },
