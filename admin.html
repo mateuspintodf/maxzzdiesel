@@ -846,8 +846,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       return api('crm-ai', {}).then(function (r) { S.caiBusy = false; if (!r.out) { fail(r); draw(); return; } S.cai = r; draw(); }); }
     if (act === 'crm-newc') { var R0 = S.dr || {}, D0 = R0.data || {}, sm0 = D0.sales && D0.sales.summary, C0 = D0.contact || {}; S.cd = { create: true, pre: { code: R0.code || '', name: (sm0 && sm0.n) || (D0.company && D0.company.name) || '', contact: C0.name || C0.contact_name || '', email: C0.email || '', phone: C0.phone || '' } }; if (!S.crm) crmLoad(true); return draw(); }
     if (act === 'crm-goto') { S.dr = null; S.vd = false; S.fd = null; S.tab = 'crm'; S.err = ''; window.scrollTo(0, 0); loadTab('crm'); S.cd = { id: t.dataset.id, loading: true, k: 'note' }; draw(); return crmDeal(); }
-    if (act === 'crm-stg') { S.cs = true; return draw(); }
-    if (act === 'crm-stx') return closeL('.drawer,.dscrim', function () { S.cs = null; });
+    if (act === 'crm-stg') { S.stgOpen = true; return draw(); }
+    if (act === 'crm-stx') return closeL('.drawer,.dscrim', function () { S.stgOpen = null; });
     if (/^crm-stg-/.test(act)) { var k = t.dataset.k, body = null;
       if (act === 'crm-stg-save') body = { kind: 'stage_edit', key: k, label: crmV('stg-l-' + k), prob: crmV('stg-p-' + k), color: crmV('stg-c-' + k) };
       if (act === 'crm-stg-mv') body = { kind: 'stage_move', key: k, dir: Number(t.dataset.d) };
@@ -898,7 +898,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (L.length > N) h += '<button class="btn ghost sm" data-act="tl-more">Show ' + Math.min(40, L.length - N) + ' more of ' + L.length + '</button>';
     return h;
   }
-  function drawDrawer() { if (S.cs) return drawStagesDrawer(); if (S.cd) return drawCrmDrawer(); if (S.vd) return drawVoucherDrawer(); if (S.fd && !S.dr) return drawFunnelDrawer(); return drawCustDrawer(); }
+  function drawDrawer() { if (S.stgOpen) return drawStagesDrawer(); if (S.cd) return drawCrmDrawer(); if (S.vd) return drawVoucherDrawer(); if (S.fd && !S.dr) return drawFunnelDrawer(); return drawCustDrawer(); }
   var FEV = { page: 'Opened', product: 'Viewed', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', quote_remove: 'Removed from the quote', qty_change: 'Changed a quantity', quote_abandon: 'Left with items in the list', campaign_click: 'Came from a campaign', search_empty: 'Searched, no result', cart_view: 'Opened the cart', checkout: 'Started checkout', order: 'Ordered', quote: 'Sent a quote', login: 'Signed in', voucher: 'Tried a voucher', filter: 'Filtered', click: 'Clicked' };
   function drawFunnelDrawer() {
     var F = S.fd, h = '<div class="dscrim" data-act="fd-x"></div><aside class="drawer" role="dialog" aria-label="' + esc(F.label) + '"><div class="dh"><div><small>Funnel step · last ' + esc(F.days) + ' days</small><h2>' + esc(F.label) + '</h2>';
@@ -1306,10 +1306,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   }
   function drawBComp() {
     if (!S.bc) return ld();
-    var q = String(S.bq || '').toLowerCase(), rows = sortRows(S.bc.filter(function (r) { return !q || qhas((r.n || '') + ' ' + (r.c || ''), q); }), 'bs');
+    var q = String(S.bq || '').toLowerCase(), rows = sortRows(S.bc.filter(function (r) { return !q || qhas((r.n || '') + ' ' + (r.c || ''), q); }), 'bcsort');
     var h = '<div class="kpis">' + tile('Companies active', n0(S.bc.length), 'signed in during the period', '', 'dark') + tile('Part views', n0(S.bc.reduce(function (a, r) { return a + r.pv; }, 0))) + tile('Cart adds', n0(S.bc.reduce(function (a, r) { return a + r.ca; }, 0))) + tile('Shopping without ordering', n0(S.bc.filter(function (r) { return (r.ca || r.pv >= 3) && !r.qu && !r.ord; }).length), 'worth a call', '', 'acc') + '</div>';
     h += '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="bq" value="' + esc(S.bq || '') + '" placeholder="Company or code"></label><span class="sp"></span><span class="muted">Click a company to see its timeline, sales and people</span></div>';
-    h += tbl([th('n', 'Company', 'bs'), th('last', 'Last seen', 'bs'), th('people', 'People', 'bs', 1), th('sessions', 'Sessions', 'bs', 1), th('pv', 'Views', 'bs', 1), th('se', 'Searches', 'bs', 1), th('ca', 'Cart', 'bs', 1), th('qu', 'Quotes', 'bs', 1), th('ord', 'Orders', 'bs', 1), h0('Looked at')],
+    h += tbl([th('n', 'Company', 'bcsort'), th('last', 'Last seen', 'bcsort'), th('people', 'People', 'bcsort', 1), th('sessions', 'Sessions', 'bcsort', 1), th('pv', 'Views', 'bcsort', 1), th('se', 'Searches', 'bcsort', 1), th('ca', 'Cart', 'bcsort', 1), th('qu', 'Quotes', 'bcsort', 1), th('ord', 'Orders', 'bcsort', 1), h0('Looked at')],
       rows.map(function (r) { var hot = (r.ca || r.pv >= 3) && !r.qu && !r.ord; return '<tr data-act="cust" data-code="' + esc(r.c || '') + '" data-cid="' + esc(r.cid) + '"><td><b>' + esc(r.n) + '</b> ' + (hot ? '<span class="st due">shopping</span>' : '') + '<small>' + esc(r.c || 'not linked') + '</small></td><td class="nw">' + esc(new Date(r.last).toLocaleString()) + '</td><td class="r">' + r.people + '</td><td class="r">' + r.sessions + '</td><td class="r">' + r.pv + '</td><td class="r">' + r.se + '</td><td class="r">' + r.ca + '</td><td class="r">' + r.qu + '</td><td class="r">' + r.ord + '</td><td><span class="mono">' + esc((r.codes || []).slice(0, 3).join(', ')) + '</span>' + (r.queries && r.queries.length ? '<small>searched ' + esc(r.queries.join(', ')) + '</small>' : '') + '</td></tr>'; }), 'click');
     return h + '</section>';
   }
@@ -1899,7 +1899,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (e.target.matches('input[type=checkbox]') && !e.target.dataset.act) return;
     var t = e.target.closest('[data-act],[data-tab]'); if (!t) return;
     S.err = ''; S.okMsg = '';
-    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; S.cd = null; S.cs = null; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw, ''); }
+    if (t.dataset.tab) { e.preventDefault(); S.tab = t.dataset.tab; S.err = ''; S.toastMsg = ''; S.lastBulk = null; S.fd = null; S.meOpen = false; S.pop = null; S.dr = null; S.vd = false; S.cd = null; S.stgOpen = null; if (S.tab === 'segments') S.segOpen = null; if (S.tab === 'campaigns') S.cp = null; window.scrollTo(0, 0); if (S.tab === 'prospects') loadProspects(); else if (S.tab !== 'dash' || !S.dash) loadTab(S.tab); return go(draw, ''); }
     var act = t.dataset.act, id = t.dataset.id;
     if (act === 'me') { if (S.meOpen) return closeL('.menu', function () { S.meOpen = false; }); S.meOpen = !S.meOpen; S.bfOpen = false; return draw(); }
     if (act === 'nf-kind') { S.nf = S.nf || {}; S.nf.kind = t.dataset.k; return draw(); }
