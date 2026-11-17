@@ -2364,7 +2364,7 @@
   function six(x) {
     var v = SIX && SIX.get(x); if (v) return v;
     var c = norm(x[0]), t = parse(x[1]);
-    v = { c: c, c2: c.replace(/^[A-Z]{2}(?=\d)/, ''), xr: t.xr.map(norm).filter(function (z) { return z.length >= 4; }), t: (t.title || '').toLowerCase(), hay: (x[1] + ' ' + x[0] + ' ' + (x[4] || '') + ' ' + (x[3] || '')).toLowerCase() };
+    v = { c: c, c2: norm(String(x[0]).replace(/^[A-Za-z]{2,4}[.\s]+/, '')) || c.replace(/^[A-Z]{2}(?=\d)/, ''), xr: t.xr.map(norm).filter(function (z) { return z.length >= 4; }), t: (t.title || '').toLowerCase(), hay: (x[1] + ' ' + x[0] + ' ' + (x[4] || '') + ' ' + (x[3] || '')).toLowerCase() };
     if (SIX) SIX.set(x, v); return v;
   }
   function matchSearch(list, a) {

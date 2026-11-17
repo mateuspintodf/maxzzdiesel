@@ -53,7 +53,9 @@
         if (out.length + extra.length > 400) break;
       }
       var nq = norm(this.q);
-      var exact = function (p) { return p.ncode.indexOf(nq) >= 0 ? 0 : 1; };
+      // a part number typed with or without dots, dashes or spaces: that part always comes first, even in a long list
+      if (nq.length >= 4) { var seen = {}; out.concat(extra).forEach(function (p) { seen[p.code] = 1; }); this.cat.forEach(function (p) { if (!seen[p.code] && p.ncode.indexOf(nq) >= 0) extra.push(p); }); }
+      var exact = function (p) { var c2 = p.ncode.replace(/^[a-z]{2,4}(?=\d)/, ''); return nq.length >= 4 && (p.ncode === nq || c2 === nq) ? 0 : p.ncode.indexOf(nq) >= 0 ? 1 : 2; };
       return out.concat(extra).sort(function (a, b) { return exact(a) - exact(b); });
     },
     get kindChips() {

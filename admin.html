@@ -417,7 +417,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   function drawDCust() {
     if (!S.dc) return syncNote(S.dash.sales || {}) + ld();
     var F = S.cf || {}, q = String(F.q || '').toLowerCase(), rows = S.dc.filter(function (r) {
-      if (q && (r.n + ' ' + r.c).toLowerCase().indexOf(q) < 0) return false;
+      if (q && !qhas(r.n + ' ' + r.c, q)) return false;
       if (F.st && !(F.st === 'due' ? r.status === 'due' || r.status === 'overdue' : r.status === F.st)) return false;
       if (F.sg && r.segment !== F.sg) return false; if (F.sp && r.sp !== F.sp) return false; if (F.co && r.country !== F.co) return false;
       if (F.pt === 'in' && !r.portal) return false; if (F.pt === 'out' && r.portal) return false; return true; });
@@ -435,7 +435,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   }
   function drawDParts() {
     var s = S.dash.sales || {}, F = S.pf || {}, q = String(F.q || '').toLowerCase();
-    var rows = sortRows((s.products || []).map(function (p) { p.chg = pct(p.q90, p.pq90); return p; }).filter(function (p) { return (!q || (p.code + ' ' + (p.t || '')).toLowerCase().indexOf(q) >= 0) && (!F.k || p.k === F.k); }), 'ps');
+    var rows = sortRows((s.products || []).map(function (p) { p.chg = pct(p.q90, p.pq90); return p; }).filter(function (p) { return (!q || qhas(p.code + ' ' + (p.t || ''), q)) && (!F.k || p.k === F.k); }), 'ps');
     var fb = '<div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="pf.q" value="' + esc(F.q || '') + '" placeholder="Part number or name"></label><select class="sel" data-chg="pf.k">' + opt('', 'Any type', F.k || '') + uniq(s.products || [], 'k').map(function (x) { return opt(x, x, F.k || ''); }).join('') + '</select><span class="sp"></span><span class="muted">Top 40 parts by revenue, last 12 months</span></div>';
     var h = '<section class="card flush">' + fb + tbl([th('code', 'Part', 'ps'), th('k', 'Type', 'ps'), th('r12', 'Revenue', 'ps', 1), th('q12', 'Units', 'ps', 1), th('cust12', 'Customers', 'ps', 1), th('q90', 'Units, 90 days', 'ps', 1), th('chg', 'vs 90 before', 'ps', 1)],
       rows.map(function (p) { return '<tr><td>' + pname(p) + '</td><td>' + esc(p.k || '') + '</td><td class="r b">' + k$(p.r12) + '</td><td class="r">' + n0(p.q12) + '</td><td class="r">' + p.cust12 + '</td><td class="r">' + n0(p.q90) + '</td><td class="r">' + delta(p.q90, p.pq90) + '</td></tr>'; })) + '</section>';
@@ -493,7 +493,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     h += '<div class="g21">' + sec('Visitors per day', bars(b.daily, 'v')) + sec('Funnel', '<div class="fun">' + fn.map(function (x, i) { var p = f.sessions ? Math.round((x[1] || 0) / f.sessions * 100) : 0; return '<div><span>' + x[0] + '</span><b>' + n0(x[1]) + '</b><i style="width:' + Math.max(2, p) + '%"></i><small>' + (i ? p + '%' : '') + '</small></div>'; }).join('') + '</div>') + '</div>';
     h += '<div class="g3">' + sec('Where they came from', barRows(b.sources, function (r) { return esc(r.k) + (r.cv ? ' <small>' + r.cv + ' converted</small>' : ''); }, 'c')) + sec('Searches', barRows((b.searches || []).slice(0, 12), function (r) { return esc(r.k); }, 'c')) + sec('Most viewed parts', barRows((b.viewed || []).slice(0, 12), function (r) { return '<span class="mono">' + esc(r.k) + '</span>' + (r.t ? ' <small>' + esc(r.t) + '</small>' : ''); }, 'c')) +
       sec('Most added to cart', barRows((b.carted || []).slice(0, 12), function (r) { return '<span class="mono">' + esc(r.k) + '</span>' + (r.t ? ' <small>' + esc(r.t) + '</small>' : ''); }, 'c')) + sec('Devices', barRows(b.devices, function (r) { return esc(r.k); }, 'c')) + sec('Regions', barRows(b.regions, function (r) { return esc(r.k); }, 'c')) + '</div>';
-    var us = sortRows((b.users || []).filter(function (u) { return (!q || ((u.company || '') + ' ' + (u.name || '') + ' ' + (u.email || '')).toLowerCase().indexOf(q) >= 0) && (!F.hot || u.hot); }), 'us');
+    var us = sortRows((b.users || []).filter(function (u) { return (!q || qhas((u.company || '') + ' ' + (u.name || '') + ' ' + (u.email || ''), q)) && (!F.hot || u.hot); }), 'us');
     h += '<section class="card flush"><div class="fbar"><h2>Person by person</h2><label class="srch">' + ic('search', 16) + '<input type="search" data-m="uf.q" value="' + esc(F.q || '') + '" placeholder="Company, name or e-mail"></label><select class="sel" data-chg="uf.hot">' + opt('', 'Everyone', F.hot || '') + opt('1', 'Shopping without ordering', F.hot || '') + '</select><span class="sp"></span><span class="muted">' + us.length + ' people</span></div>' +
       tbl([th('company', 'Person', 'us'), th('last', 'Last seen', 'us'), th('sessions', 'Sessions', 'us', 1), th('pv', 'Views', 'us', 1), th('ca', 'Cart', 'us', 1), th('qu', 'Quotes', 'us', 1), th('ord', 'Orders', 'us', 1), h0('Looked at')],
         us.map(function (u) { return '<tr' + (u.code ? ' data-act="cust" data-code="' + esc(u.code) + '"' : '') + '><td><b>' + esc(u.company || '') + '</b> ' + (u.hot ? st('due').replace('Due to reorder', 'Shopping') : '') + '<small>' + esc(u.name || '') + ' · ' + esc(u.email || '') + '</small></td><td>' + esc(new Date(u.last).toLocaleDateString()) + '</td><td class="r">' + u.sessions + '</td><td class="r">' + u.pv + '</td><td class="r">' + u.ca + '</td><td class="r">' + u.qu + '</td><td class="r">' + u.ord + '</td><td><span class="mono">' + esc((u.codes || []).slice(0, 3).join(', ')) + '</span>' + (u.queries && u.queries.length ? '<small>searched ' + esc(u.queries.join(', ')) + '</small>' : '') + '</td></tr>'; }), 'click') + '</section>';
@@ -648,7 +648,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   function dirFilter() {
     var F = S.df || {}, q = String(F.q || '').toLowerCase(), now = Date.now();
     return (S.dir ? S.dir.rows : []).filter(function (r) {
-      if (q && (r.n + ' ' + r.c + ' ' + (r.email || '') + ' ' + (r.contact || '') + ' ' + (r.city || '')).toLowerCase().indexOf(q) < 0) return false;
+      if (q && !qhas(r.n + ' ' + r.c + ' ' + (r.email || '') + ' ' + (r.contact || '') + ' ' + (r.city || ''), q)) return false;
       if (!has(F.tier, r.tier) || !has(F.type, r.type) || !has(F.country, r.country) || !has(F.state, r.state) || !has(F.sp, r.sp) || !has(F.status, r.status) || !has(F.rfm, r.segment) || !has(F.portal, r.portal)) return false;
       if (F.tags && F.tags.length && !F.tags.some(function (g) { return (r.tags || []).indexOf(g) >= 0; })) return false;
       if (F.inseg && F.inseg.length && !F.inseg.some(function (s) { return (r.segs || []).indexOf(s) >= 0; })) return false;
@@ -759,18 +759,23 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   function subLabel(cat, k) { var L = (window.MX_SUBS || {})[cat] || []; for (var i = 0; i < L.length; i++) if (L[i][0] === k) return L[i][1]; return k || 'Other'; }
   function brandOf(r) { if (r[3]) return r[3]; var m = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); return m && window.MX_BRP && window.MX_BRP[m[1]] || ''; }
   function ptitle(d) { d = String(d || '').split(' / ')[0].replace(/\s*\(=.*$/, ''); return d.length > 80 ? d.slice(0, 78) + '...' : d; }
+  // text search that also finds part numbers and codes typed without dots, dashes or spaces (0445120231 finds BO.0.445.120.231)
+  function qhas(hay, q) { hay = String(hay || '').toLowerCase(); q = String(q || '').toLowerCase().trim(); if (!q || hay.indexOf(q) >= 0) return true; var nh = hay.replace(/[^a-z0-9]/g, ''), nq = q.replace(/[^a-z0-9]/g, ''); if (nq.length >= 2 && nh.indexOf(nq) >= 0) return true;
+    var ws = q.split(/\s+/).filter(Boolean); return ws.length > 1 && ws.every(function (w) { var nw = w.replace(/[^a-z0-9]/g, ''); return hay.indexOf(w) >= 0 || (nw && nh.indexOf(nw) >= 0); }); }
   function prodFilter(g) {
     var F = S[g || 'pf2'] || {}, q = String(F.q || '').toLowerCase(), inc = g === 'cpf' && S.cp ? S.cp.items : null;
     return (S.cat ? S.cat.rows : []).filter(function (r) {
       if (inc && F.inc === 'in' && !(r[0] in inc)) return false; if (inc && F.inc === 'out' && (r[0] in inc)) return false;
       if (F.cat && r[2] !== F.cat) return false; if (F.sub && subOf(r) !== F.sub) return false;
-      if (q && (r[0] + ' ' + r[1]).toLowerCase().indexOf(q) < 0) return false;
+      if (q && !qhas(r[0] + ' ' + r[1], q)) return false;
       if (!has(F.brand, brandOf(r)) || !has(F.market, r[4])) return false;
       if (F.vis === 'hidden' && !r[8]) return false; if (F.vis === 'visible' && r[8]) return false;
       if (F.stock === 'in' && !(r[6] > 0)) return false; if (F.stock === 'out' && r[6] > 0) return false;
       if (F.sold === 'yes' && !r[7]) return false; if (F.sold === 'no' && r[7]) return false;
-      return true; });
+      return true; }).map(function (r, i) { return [r, i]; }).sort(function (a, b) { return codeRank(a[0][0], q) - codeRank(b[0][0], q) || a[1] - b[1]; }).map(function (x) { return x[0]; });
   }
+  // the part whose own number is the search comes first (typed with or without dots and with or without the brand prefix)
+  function codeRank(code, q) { var nq = String(q || '').toLowerCase().replace(/[^a-z0-9]/g, ''); if (nq.length < 4) return 1; var c = String(code).toLowerCase(), n = c.replace(/[^a-z0-9]/g, ''), n2 = c.replace(/^[a-z]{2,4}[.\s]+/, '').replace(/[^a-z0-9]/g, ''); return n === nq || n2 === nq ? 0 : n.indexOf(nq) >= 0 ? 0.5 : 1; }
   function treeHtml(g, extra) {
     var all = S.cat.rows, F = S[g] || {};
     var tree = '<section class="card"><div class="ch"><h2>Classification</h2></div><div class="tree"><button data-act="pcat" data-g="' + g + '" data-c="" class="' + (!F.cat ? 'on' : '') + '"><span>All products</span><small>' + n0(all.length) + '</small></button>';
@@ -895,7 +900,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   function drawVouchers() {
     if (!S.vouchers) return ld();
     var vs = S.vouchers.map(function (v) { v.state = vstate(v); return v; }), tab = S.vt || 'on', list = vs.filter(function (v) { return tab === 'all' || v.state === tab; }), q = String(S.vq || '').toLowerCase();
-    if (q) list = list.filter(function (v) { return (v.code + ' ' + (v.description || '') + ' ' + (v.company_name || '')).toLowerCase().indexOf(q) >= 0; });
+    if (q) list = list.filter(function (v) { return qhas(v.code + ' ' + (v.description || '') + ' ' + (v.company_name || ''), q); });
     var cnt = function (s) { return vs.filter(function (v) { return s === 'all' || v.state === s; }).length; };
     var uses = vs.reduce(function (a, v) { return a + (v.uses || 0); }, 0), disc = vs.reduce(function (a, v) { return a + Number(v.discount_total || 0); }, 0);
     var h = '<div class="kpis">' + tile('Live vouchers', n0(cnt('on')), n0(cnt('scheduled')) + ' scheduled', '', 'dark') + tile('Times used', n0(uses), 'all vouchers') + tile('Discount given', money2(disc), 'on placed orders') + tile('Max Rewards vouchers', n0(vs.filter(function (v) { return /^MXR-/.test(v.code); }).length), 'redeemed with points', '', 'acc') + '</div>';
@@ -909,7 +914,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     return Object.assign({ kind: 'percent', value: 5, min_subtotal: 300, max_uses_per_company: 1, max_uses: o && o.company_code ? 1 : 50, code: c, starts_at: d.toISOString().slice(0, 10), expires_at: e.toISOString().slice(0, 10) }, o || {}); }
   function drawVoucherDrawer() {
     var f = S.ex.v || {}, accs = (S.data ? S.data.accounts : []).filter(function (a) { return a.customerCode; }), q = String(S.vcq || '').toLowerCase();
-    var pick = q ? accs.filter(function (a) { return (a.company + ' ' + a.customerCode).toLowerCase().indexOf(q) >= 0; }).slice(0, 8) : [];
+    var pick = q ? accs.filter(function (a) { return qhas(a.company + ' ' + a.customerCode, q); }).slice(0, 8) : [];
     var gen = function () { return ''; };
     var h = '<div class="dscrim" data-act="vd-x"></div><aside class="drawer" role="dialog" aria-label="Voucher"><div class="dh"><div><small>' + (f.id ? 'Edit voucher' : 'New voucher') + '</small><h2>' + esc(f.code || 'Untitled voucher') + '</h2><p class="muted" style="margin:0">' + esc(vsentence(Object.assign({}, f, { value: f.value || 0 }))) + '</p></div><button class="ib" data-act="vd-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
     h += '<div class="dsec"><h3>Offer</h3><div class="fg"><div class="fl"><label>Code *</label><div class="row" style="flex-wrap:nowrap"><input type="text" data-g="v" data-k="code" data-m="ex.v.code" value="' + esc(f.code || '') + '" placeholder="BF27" style="text-transform:uppercase"><button class="ib" data-act="v-gen" title="Generate a code">' + ic('refresh', 16) + '</button></div></div><div class="fl"><label>Description</label><input type="text" data-g="v" data-k="description" data-m="ex.v.description" value="' + esc(f.description || '') + '" placeholder="Black Friday 2027"></div>' +
@@ -932,7 +937,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   }
   function drawBComp() {
     if (!S.bc) return ld();
-    var q = String(S.bq || '').toLowerCase(), rows = sortRows(S.bc.filter(function (r) { return !q || ((r.n || '') + ' ' + (r.c || '')).toLowerCase().indexOf(q) >= 0; }), 'bs');
+    var q = String(S.bq || '').toLowerCase(), rows = sortRows(S.bc.filter(function (r) { return !q || qhas((r.n || '') + ' ' + (r.c || ''), q); }), 'bs');
     var h = '<div class="kpis">' + tile('Companies active', n0(S.bc.length), 'signed in during the period', '', 'dark') + tile('Part views', n0(S.bc.reduce(function (a, r) { return a + r.pv; }, 0))) + tile('Cart adds', n0(S.bc.reduce(function (a, r) { return a + r.ca; }, 0))) + tile('Shopping without ordering', n0(S.bc.filter(function (r) { return (r.ca || r.pv >= 3) && !r.qu && !r.ord; }).length), 'worth a call', '', 'acc') + '</div>';
     h += '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="bq" value="' + esc(S.bq || '') + '" placeholder="Company or code"></label><span class="sp"></span><span class="muted">Click a company to see its timeline, sales and people</span></div>';
     h += tbl([th('n', 'Company', 'bs'), th('last', 'Last seen', 'bs'), th('people', 'People', 'bs', 1), th('sessions', 'Sessions', 'bs', 1), th('pv', 'Views', 'bs', 1), th('se', 'Searches', 'bs', 1), th('ca', 'Cart', 'bs', 1), th('qu', 'Quotes', 'bs', 1), th('ord', 'Orders', 'bs', 1), h0('Looked at')],
@@ -954,12 +959,12 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     else h += '<h1>Admin</h1><p class="muted">Enter your e-mail. We send a sign-in link.</p><p><input type="email" id="em" placeholder="name@maxzzdiesel.com" autocomplete="email"></p><button class="btn" data-act="send"' + (S.busy ? ' disabled' : '') + '>E-mail me a link</button>';
     app.innerHTML = h + (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') + '</div>';
   }
-  function accVisible() { var all = (S.data || {}).accounts || [], q = (S.q || '').toLowerCase(), cst = S.cst || ''; return all.filter(function (a) { return (!cst || a.status === cst) && (!q || (a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email + ' ' + (u.name || ''); }).join(' ')).toLowerCase().indexOf(q) >= 0); }); }
+  function accVisible() { var all = (S.data || {}).accounts || [], q = (S.q || '').toLowerCase(), cst = S.cst || ''; return all.filter(function (a) { return (!cst || a.status === cst) && (!q || qhas(a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email + ' ' + (u.name || ''); }).join(' '), q)); }); }
   function drawClients() {
     if (!S.data) return ld();
     var all = S.data.accounts, q = S.q.toLowerCase(), cst = S.cst || '';
     var cnt = function (s) { return all.filter(function (a) { return !s || a.status === s; }).length; };
-    var list = all.filter(function (a) { return (!cst || a.status === cst) && (!q || (a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email + ' ' + (u.name || ''); }).join(' ')).toLowerCase().indexOf(q) >= 0); });
+    var list = all.filter(function (a) { return (!cst || a.status === cst) && (!q || qhas(a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email + ' ' + (u.name || ''); }).join(' '), q)); });
     list = sortRows(list.map(function (a) { a.nUsers = a.users.length; a.loc = [a.city, a.state, a.country].filter(Boolean).join(', '); return a; }), 'as');
     var tabs = [['', 'All'], ['pending', 'Waiting'], ['approved', 'Approved'], ['prospect', 'Prospects'], ['invited', 'Invited'], ['rejected', 'Rejected']].filter(function (x) { return !x[0] || cnt(x[0]); });
     var h = '<div class="kpis k4">' + tile('Accounts', n0(all.length)) + tile('Waiting for approval', n0(cnt('pending')), cnt('pending') ? '<a data-act="cst" data-s="pending">Review now</a>' : 'nothing waiting') + tile('Approved', n0(cnt('approved'))) + tile('Open sessions', n0(Object.keys(S.data.openSessions || {}).length), 'people signed in now') + '</div>';
@@ -1002,7 +1007,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     return (name ? '<b>' + esc(name) + '</b>' : '<span class="muted">' + esc(r.entity || '') + '</span>') + (extra.length ? '<small>' + esc(extra.join(' · ')) + '</small>' : ''); }
   function drawAudit() {
     if (!S.audit) return ld();
-    var q = (S.audq || '').toLowerCase(), rows = S.audit.filter(function (r) { return !q || ((AUD[r.action] || r.action) + ' ' + r.admin_email + ' ' + (r.label || '') + ' ' + JSON.stringify(r.after || {}) + ' ' + (r.entity_id || '')).toLowerCase().indexOf(q) >= 0; }), day = '';
+    var q = (S.audq || '').toLowerCase(), rows = S.audit.filter(function (r) { return !q || qhas((AUD[r.action] || r.action) + ' ' + r.admin_email + ' ' + (r.label || '') + ' ' + JSON.stringify(r.after || {}) + ' ' + (r.entity_id || ''), q); }), day = '';
     var h = '<section class="card flush"><div class="fbar"><input type="search" class="srch" data-m="audq" value="' + esc(S.audq || '') + '" placeholder="Search who, what or which part" style="max-width:340px"><span class="sp"></span><span class="muted">' + n0(rows.length) + ' shown</span></div><table class="aud"><colgroup><col style="width:90px"><col style="width:190px"><col style="width:260px"><col></colgroup><tr><th>When</th><th>Who</th><th>What</th><th>Details</th></tr>';
     rows.forEach(function (r) { var d = new Date(r.at), dl = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
       if (dl !== day) { day = dl; h += '<tr class="aday"><td colspan="4">' + esc(dl) + '</td></tr>'; }
@@ -1253,7 +1258,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'fd-known') { S.fd.known = !!t.dataset.v; return draw(); }
     if (act === 'fd-open') { S.fd.open = S.fd.open || {}; S.fd.open[t.dataset.i] = !S.fd.open[t.dataset.i]; return draw(); }
     if (act === 'dr-voucher') { var vc = S.dr.code || ''; S.dr = null; S.tab = 'vouchers'; S.ex.v = vDefaults({ company_code: vc, company_name: (S.dr && S.dr.data && S.dr.data.company && S.dr.data.company.name) || '' }); S.vd = true; loadTab('vouchers'); return draw(); }
-    if (act === 'dc-csv') { var F = S.cf || {}; return csv('maxzz-customers', [['Code', 'Customer', 'Status', 'Segment', 'Last 12 months', 'Year before', 'Orders', 'Days since last order', 'Buys every (days)', 'Expected next', 'Salesperson', 'Country', 'In portal']].concat(S.dc.filter(function (r) { var q = String(F.q || '').toLowerCase(); return (!q || (r.n + ' ' + r.c).toLowerCase().indexOf(q) >= 0) && (!F.st || (F.st === 'due' ? r.status === 'due' || r.status === 'overdue' : r.status === F.st)) && (!F.sg || r.segment === F.sg) && (!F.sp || r.sp === F.sp) && (!F.co || r.country === F.co) && (F.pt !== 'in' || r.portal) && (F.pt !== 'out' || !r.portal); }).map(function (r) { return [r.c, r.n, r.status, r.segment, r.r12, r.p12, r.orders, r.since, r.med || '', r.next || '', r.sp || '', r.country || '', r.portal ? 'yes' : '']; }))); }
+    if (act === 'dc-csv') { var F = S.cf || {}; return csv('maxzz-customers', [['Code', 'Customer', 'Status', 'Segment', 'Last 12 months', 'Year before', 'Orders', 'Days since last order', 'Buys every (days)', 'Expected next', 'Salesperson', 'Country', 'In portal']].concat(S.dc.filter(function (r) { var q = String(F.q || '').toLowerCase(); return (!q || qhas(r.n + ' ' + r.c, q)) && (!F.st || (F.st === 'due' ? r.status === 'due' || r.status === 'overdue' : r.status === F.st)) && (!F.sg || r.segment === F.sg) && (!F.sp || r.sp === F.sp) && (!F.co || r.country === F.co) && (F.pt !== 'in' || r.portal) && (F.pt !== 'out' || !r.portal); }).map(function (r) { return [r.c, r.n, r.status, r.segment, r.r12, r.p12, r.orders, r.since, r.med || '', r.next || '', r.sp || '', r.country || '', r.portal ? 'yes' : '']; }))); }
     if (act === 'send') { var em = document.getElementById('em').value.trim(); if (!em) return; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
     if (act === 'confirm') { S.busy = true; draw(); api('confirm', { t: S.lt }).then(function (r) { S.busy = false; if (r._status === 200) { S.lt = ''; boot(); } else { S.lt = ''; S.err = 'That link expired or was already used. Ask for a new one.'; draw(); } }); }
     if (act === 'addp') { var f = {}; [].forEach.call(app.querySelectorAll('[data-f]'), function (i) { f[i.dataset.f] = i.value.trim(); }); S.form = f; S.busy = true; draw(); api('addprospect', f).then(function (r) { S.busy = false; if (r.ok) { S.form = {}; loadProspects(); } else fail(r); }); }
