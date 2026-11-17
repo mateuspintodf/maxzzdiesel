@@ -1794,7 +1794,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-rwhero-l">
 <span class="px-rwk">Max Rewards<span class="px-demo" v-if="REWARDS.demo">Preview, sample numbers</span></span>
 <h1><span v-text="REWARDS.points.toLocaleString('en-US')"></span> <small>points</small></h1>
-<p v-text="(firstName ? firstName + ', ' : '') + (me && me.account ? me.account.company + ' is ' : 'you are ') + 'at ' + rwLevel.n + ' level. ' + (rwNext ? (rwNext.at - REWARDS.points).toLocaleString('en-US') + ' points to ' + rwNext.n + '.' : 'Top level reached.')"></p>
+<p v-text="(firstName ? firstName + ', ' : '') + (me && me.account ? me.account.company + ' is ' : 'you are ') + 'at ' + rwLevel.n + ' level. ' + (rwNext ? (rwNext.at - rwYear).toLocaleString('en-US') + ' points to ' + rwNext.n + '.' : 'Top level reached.')"></p>
 </div>
 <div class="px-rwbadge"><span class="ic" v-html="rwIcon(rwLevel.k, 34)"></span><b v-text="rwLevel.n"></b><small v-text="rwLevel.perk"></small></div>
 </section>
@@ -1803,7 +1803,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-sh"><h2>Your path</h2><span class="px-muted">Points from the last 12 months of invoiced orders</span></div>
 <div class="px-path" :style="'--cl:' + rwLevel.c"><div class="px-path-in">
 <div class="px-path-bar"><i :style="'width:' + rwPathPct + '%'"></i></div>
-<div class="px-path-n" v-for="(l, i) in REWARDS.levels" :key="l.k" :class="[REWARDS.points >= l.at ? 'done' : '', rwLevel.k === l.k ? 'cur' : '']" :style="'--lc:' + l.c + ';left:' + (i * 100 / (REWARDS.levels.length - 1)) + '%'">
+<div class="px-path-n" v-for="(l, i) in REWARDS.levels" :key="l.k" :class="[rwYear >= l.at ? 'done' : '', rwLevel.k === l.k ? 'cur' : '']" :style="'--lc:' + l.c + ';left:' + (i * 100 / (REWARDS.levels.length - 1)) + '%'">
 <span class="dot" v-html="rwIcon(l.k, 22)"></span>
 <b v-text="l.n"></b>
 <small v-text="l.at ? l.at.toLocaleString('en-US') + ' pts' : 'Start'"></small>
@@ -1812,7 +1812,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div></div>
 <div class="px-lvls">
 <div class="px-lvl" v-for="l in REWARDS.levels" :key="l.k" :class="rwLevel.k === l.k ? 'cur' : ''" :style="'--lc:' + l.c">
-<div class="px-lvl-h"><span class="ic" v-html="rwIcon(l.k, 20)"></span><b v-text="l.n"></b><span class="tag" v-if="rwLevel.k === l.k">Current</span><span class="tag lock" v-else-if="REWARDS.points < l.at">Locked</span></div>
+<div class="px-lvl-h"><span class="ic" v-html="rwIcon(l.k, 20)"></span><b v-text="l.n"></b><span class="tag" v-if="rwLevel.k === l.k">Current</span><span class="tag lock" v-else-if="rwYear < l.at">Locked</span></div>
 <ul><li v-for="x in l.perks" v-text="x"></li></ul>
 </div>
 </div>
@@ -1830,17 +1830,24 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <section class="px-sec">
 <div class="px-sh"><h2>Redeem</h2><div class="px-rtabs"><button type="button" v-for="c in ['All', 'Savings', 'Shipping', 'Products', 'Training', 'Experiences']" :class="rwCat === c ? 'on' : ''" @click="rwCat = c" v-text="c"></button></div></div>
 <div class="px-rdms">
-<div class="px-rdm2" v-for="r in rwItems" :key="r.n" :class="REWARDS.points >= r.p ? 'ok' : ''">
+<div class="px-rdm2" v-for="r in rwItems" :key="r.id || r.n" :class="REWARDS.points >= r.p ? 'ok' : ''">
 <span class="ic" v-html="rwIcon(r.i, 22)"></span>
 <span class="cat" v-text="r.c"></span>
 <b v-text="r.n"></b>
 <p v-text="r.d"></p>
-<div class="ft"><span class="pts" v-text="r.p.toLocaleString('en-US') + ' pts'"></span><button type="button" class="px-btn px-sm" :class="!REWARDS.demo && REWARDS.points >= r.p ? 'px-dark' : 'px-ghost'" :disabled="REWARDS.demo || REWARDS.points < r.p" @click="flash('Redemption opens with the program launch')" v-text="REWARDS.demo ? 'At launch' : REWARDS.points >= r.p ? 'Redeem' : (r.p - REWARDS.points).toLocaleString('en-US') + ' to go'"></button></div>
+<div class="ft"><span class="pts" v-text="r.p.toLocaleString('en-US') + ' pts'"></span><button type="button" class="px-btn px-sm" :class="!REWARDS.demo && REWARDS.points >= r.p ? 'px-dark' : 'px-ghost'" :disabled="REWARDS.demo || REWARDS.points < r.p || !!rwBusy" @click="redeem(r)" v-text="REWARDS.demo ? 'At launch' : rwBusy === r.id ? 'Redeeming…' : REWARDS.points >= r.p ? 'Redeem' : (r.p - REWARDS.points).toLocaleString('en-US') + ' to go'"></button></div>
 <i class="bar"><i :style="'width:' + Math.min(100, REWARDS.points / r.p * 100) + '%'"></i></i>
 </div>
 </div>
 </section>
-<p class="px-note2">Levels, values and rewards here are a design preview. The real rules come from the Max Rewards program definition.</p>
+<section class="px-sec" v-if="!REWARDS.demo">
+<div class="px-sh"><h2>Points history</h2></div>
+<div class="px-card" v-if="rwCode" style="margin-bottom:12px"><b>Your voucher:</b> <span style="font-family:'JetBrains Mono',monospace;font-weight:600" v-text="rwCode"></span> <button type="button" class="px-btn px-sm px-ghost" @click="copy(rwCode)">Copy</button><span class="px-muted"> Use it at checkout. Valid 90 days.</span></div>
+<div class="px-card" v-if="!(REWARDS.history || []).length"><span class="px-muted">No points yet. Points arrive when an order placed in the store is invoiced.</span></div>
+<div class="px-card" v-else><div class="px-rwh" v-for="h in REWARDS.history" style="display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #eef0f2"><span><b v-text="h.reason"></b><small class="px-muted" style="display:block" v-text="date(h.at)"></small></span><b :style="'color:' + (h.points > 0 ? '#1f7a3f' : '#c0262f')" v-text="(h.points > 0 ? '+' : '') + h.points.toLocaleString('en-US')"></b></div></div>
+</section>
+<p class="px-note2" v-if="REWARDS.demo">Levels, values and rewards here are a design preview. Points start counting when Max Rewards opens.</p>
+<p class="px-note2" v-else-if="!REWARDS.live">Admin view: Max Rewards is still off for customers. Turn it on in the admin, Loyalty tab.</p>
 </div>
 
 <!-- CART -->
@@ -2079,7 +2086,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=83"></script>
+<script src="/js/portal-app.js?v=84"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

@@ -2433,7 +2433,7 @@
       { k: 'tech', n: 'Technician', at: 10000, c: '#c87533', perk: 'Free ground freight over US$ 1,500', perks: ['Everything in Apprentice', 'Free ground freight on orders over US$ 1,500', 'Early access to new part lines'] },
       { k: 'spec', n: 'Specialist', at: 25000, c: '#d32a37', perk: 'Priority review and a DTA seat a year', perks: ['Everything in Technician', 'Priority order review', '1 Diesel Tech Academy course seat a year'] },
       { k: 'master', n: 'Master', at: 50000, c: '#1d2126', perk: 'Account manager and a bench day', perks: ['Everything in Specialist', 'Dedicated account manager', 'Annual bench day at Maxzz Florida'] }] },
-    rwCat: 'All',
+    rwCat: 'All', rwBusy: '', rwCode: '',
     RWITEMS: [
       { c: 'Savings', i: 'off', n: 'US$ 50 off your next order', d: 'Applied by our sales team when the order is approved.', p: 5000 },
       { c: 'Savings', i: 'off', n: 'US$ 150 off your next order', d: 'For orders over US$ 1,000.', p: 14000 },
@@ -2602,9 +2602,10 @@
     get recentList() { var self = this, p = this.product; return this.recent.filter(function (c) { return !p || c !== p[0]; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 4); },
     get quoteN() { return this.quote.length; },
     get quoteUnits() { return this.quote.reduce(function (a, l) { return a + (l.qty || 1); }, 0); },
-    get rwLevel() { var p = this.REWARDS.points, L = this.REWARDS.levels, cur = L[0]; L.forEach(function (l) { if (p >= l.at) cur = l; }); return cur; },
-    get rwNext() { var p = this.REWARDS.points; return this.REWARDS.levels.filter(function (l) { return l.at > p; })[0] || null; },
-    get rwPct() { var n = this.rwNext, c = this.rwLevel; if (!n) return 100; return Math.min(100, Math.round((this.REWARDS.points - c.at) / (n.at - c.at) * 100)); },
+    get rwYear() { return this.REWARDS.year != null ? this.REWARDS.year : this.REWARDS.points; },
+    get rwLevel() { var p = this.REWARDS.year != null ? this.REWARDS.year : this.REWARDS.points, L = this.REWARDS.levels, cur = L[0]; L.forEach(function (l) { if (p >= l.at) cur = l; }); return cur; },
+    get rwNext() { var p = this.REWARDS.year != null ? this.REWARDS.year : this.REWARDS.points; return this.REWARDS.levels.filter(function (l) { return l.at > p; })[0] || null; },
+    get rwPct() { var n = this.rwNext, c = this.rwLevel; if (!n) return 100; return Math.min(100, Math.round(((this.REWARDS.year != null ? this.REWARDS.year : this.REWARDS.points) - c.at) / (n.at - c.at) * 100)); },
     get rwPathPct() { var L = this.REWARDS.levels, i = L.indexOf(this.rwLevel), seg = 100 / (L.length - 1); return Math.min(100, i * seg + (this.rwNext ? seg * this.rwPct / 100 : 0)); },
     get rwItems() { var c = this.rwCat, p = this.REWARDS.points; return this.RWITEMS.filter(function (r) { return c === 'All' || r.c === c; }).slice().sort(function (a, b) { return (b.p <= p) - (a.p <= p) || a.p - b.p; }); },
     rwIcon: function (k, s) { return '<svg width="' + (s || 22) + '" height="' + (s || 22) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (RWI[k] || '') + '</svg>'; },
@@ -2981,6 +2982,7 @@
           if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
+          self.loadRewards();
         } else if (me._status === 401) forget();
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
@@ -3105,6 +3107,31 @@
     cartQty: function (code) { var l = this.cart.filter(function (x) { return x.code === code; })[0]; return l ? l.qty : 0; },
     inQuote: function (code) { return this.quote.some(function (x) { return x.id === code; }); },
     qSet: function (i, n) { n = parseInt(n, 10) || 0; if (n <= 0) this.quote.splice(i, 1); else this.quote[i].qty = Math.min(9999, n); write(QK, this.quote); },
+    // real Max Rewards numbers from the server (preview stays on while the program is off for customers)
+    loadRewards: function () {
+      var self = this;
+      api('rewards').then(function (d) {
+        if (!d || d._status !== 200 || !d.catalog) return;
+        self.RWITEMS = d.catalog;
+        if (d.preview && !d.balance && !(self.me && self.me.admin)) return;
+        self.REWARDS.demo = false; self.REWARDS.points = d.balance || 0; self.REWARDS.year = d.year || 0; self.REWARDS.rate = d.rate || 1;
+        self.REWARDS.history = d.history || []; self.REWARDS.live = !d.preview;
+      });
+    },
+    redeem: function (r) {
+      var self = this;
+      if (this.REWARDS.demo || this.rwBusy) return;
+      if (!this.REWARDS.live) { this.flash('Max Rewards opens soon'); return; }
+      if (!confirm('Redeem ' + r.n + ' for ' + r.p.toLocaleString('en-US') + ' points?')) return;
+      this.rwBusy = r.id;
+      api('rewards-redeem', { body: { id: r.id } }).then(function (d) {
+        self.rwBusy = '';
+        if (d.error) { self.flash(d.error); return; }
+        self.flash(d.code ? 'Done. Your voucher ' + d.code + ' is ready for checkout' : 'Done. Our team will contact you to deliver it');
+        if (d.code) self.rwCode = d.code;
+        self.loadRewards();
+      }).catch(function () { self.rwBusy = ''; self.flash('Could not redeem now, try again'); });
+    },
     pts: function (code) { var p = this.price(code); return p == null ? 0 : Math.round(p * this.REWARDS.rate); },
     copy: function (txt) { var self = this; try { navigator.clipboard.writeText(txt).then(function () { self.flash('Part number copied'); }); } catch (e) {} },
     pick: function (code) { return this.picks[code] || 1; },

@@ -289,6 +289,25 @@ async function cartSubtotal(w, rawLines) {
   }
   return money(sub);
 }
+// Max Rewards: balance, level, history and the reward list. Real numbers for approved customers once the program is on; admins always see them.
+A.rewards = async (req, res) => {
+  if (!PS.on()) return res.json({ enabled: false, preview: true });
+  const w = await whoami(req);
+  if (!w) return res.status(401).json({ error: 'login' });
+  const rw = require('../lib/rewards');
+  const cid = w.account && w.account.status === 'approved' ? w.account.id : null;
+  const s = await rw.summary(cid);
+  if (!s.enabled && !w.admin) return res.json({ enabled: false, preview: true, catalog: s.catalog });
+  return res.json(Object.assign(s, { preview: !s.enabled, company: !!cid }));
+};
+A['rewards-redeem'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req) || !PS.on()) return res.status(405).json({ error: 'method' });
+  const w = await whoami(req);
+  if (!w || !w.account || w.account.status !== 'approved') return res.status(w ? 403 : 401).json({ error: 'login' });
+  if (await limited(req, 'redeem', 10, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const r = await require('../lib/rewards').redeem(w.account.id, clean(readBody(req).id, 20), w.email);
+  return res.status(r.error ? 400 : 200).json(r);
+};
 A['voucher-check'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req) || !PS.on()) return res.status(405).json({ error: 'method' });
   const w = await whoami(req);
