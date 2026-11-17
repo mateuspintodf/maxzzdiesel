@@ -556,6 +556,12 @@ A['voucher-save'] = async (req, res) => {
   if (!(value > 0) || (kind === 'percent' && value > 100)) return res.status(400).json({ error: kind === 'percent' ? 'Percent must be between 0 and 100.' : 'Value must be above zero.' });
   if (!expires || isNaN(expires) || isNaN(starts)) return res.status(400).json({ error: 'Set the start and the expiry dates.' });
   if (expires <= starts) return res.status(400).json({ error: 'Expiry must be after the start.' });
+  // above 15% (or a fixed amount over 15% of the minimum order) only a superadmin can create the voucher
+  const CAP = Number(process.env.VOUCHER_MAX_PCT) > 0 ? Number(process.env.VOUCHER_MAX_PCT) : 15;
+  if (w.role !== 'superadmin') {
+    if (kind === 'percent' && value > CAP) return res.status(403).json({ error: 'Vouchers above ' + CAP + '% need a superadmin. Ask Michael or Leise.' });
+    if (kind === 'fixed' && !(num(b.min_subtotal) > 0 && value <= num(b.min_subtotal) * CAP / 100)) return res.status(403).json({ error: 'A fixed voucher needs a minimum order, and the amount can be at most ' + CAP + '% of it (e.g. $' + Math.ceil(value * 100 / CAP) + ' minimum for $' + value + ' off). Above that, ask a superadmin.' });
+  }
   let companyId = clean(b.company_id, 60) || null;
   if (clean(b.company_code, 40)) {
     const co = (await db.select('companies', 'select=id&unleashed_code=eq.' + encodeURIComponent(clean(b.company_code, 40)) + '&limit=1'))[0];
@@ -698,6 +704,32 @@ A.campaign = async (req, res) => {
   } catch (e) { sold = []; }
   return res.json({ campaign: c, items, sold: { lines: sold.length, units: sold.reduce((a, l) => a + Number(l.qty || 0), 0), value: Math.round(sold.reduce((a, l) => a + Number(l.qty || 0) * Number(l.price || 0), 0)) } });
 };
+// cost floor per part: cost (average landed, else last) x (1 + margin). Admin only, never sent to the portal.
+const MIN_MARGIN = () => (Number(process.env.CAMPAIGN_MIN_MARGIN) >= 0 && process.env.CAMPAIGN_MIN_MARGIN !== undefined && process.env.CAMPAIGN_MIN_MARGIN !== '' ? Number(process.env.CAMPAIGN_MIN_MARGIN) : 10);
+async function floorsFor(list) {
+  const out = {}; if (!list.length) return out;
+  const [prod, costs] = await Promise.all([cached('portal/products.json', 10 * 60 * 1000), (async () => { const r = []; for (let i = 0; i < list.length; i += 150) r.push(...(await db.select('product_costs', 'select=code,avg_cost,last_cost&code=' + inList(list.slice(i, i + 150))))); return r; })()]);
+  const m = 1 + MIN_MARGIN() / 100;
+  costs.forEach((c) => { const cost = Number(c.avg_cost) > 0 ? Number(c.avg_cost) : Number(c.last_cost) > 0 ? Number(c.last_cost) : null; if (!cost) return;
+    const p = prod && prod.items && prod.items[c.code], tiers = ((p && p.t) || []).concat(p && p.d ? [p.d] : []).filter((x) => x > 0);
+    out[c.code] = { floor: Math.ceil(cost * m * 100) / 100, low: tiers.length ? Math.min.apply(null, tiers) : null }; });
+  return out;
+}
+async function belowFloor(codes, kind, value) {
+  const F = await floorsFor(codes.map((x) => x[0])), list = [];
+  codes.forEach(([code, v]) => { const f = F[code]; if (!f) return; const pv = v != null ? v : value; const price = kind === 'price' ? pv : f.low != null ? f.low * (1 - pv / 100) : null; if (price != null && price < f.floor) list.push({ code, floor: f.floor, price: Math.round(price * 100) / 100 }); });
+  return { list, pct: MIN_MARGIN() };
+}
+// floors for the campaign editor (min price and max % per part), from the same rule
+A['campaign-floors'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = req.method === 'POST' ? readBody(req) : {}, codes = (Array.isArray(b.codes) ? b.codes : []).map((c) => clean(c, 60)).filter(Boolean).slice(0, 6000);
+  const F = await floorsFor(codes), out = {};
+  Object.entries(F).forEach(([k, f]) => { out[k] = [f.floor, f.low != null && f.low > 0 ? Math.max(0, Math.floor((1 - f.floor / f.low) * 1000) / 10) : null]; });
+  const st = (await db.select('sales_sync', 'select=costs_at&id=eq.1'))[0];
+  return res.json({ pct: MIN_MARGIN(), floors: out, costsAt: st && st.costs_at });
+};
 A['campaign-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
@@ -711,6 +743,9 @@ A['campaign-save'] = async (req, res) => {
   const codes = [...new Map((Array.isArray(b.items) ? b.items : []).map((i) => [clean(i && i.code, 60), i && num(i.value) > 0 ? num(i.value) : null]).filter((x) => x[0])).entries()].slice(0, 6000);
   if (!codes.length) return res.status(400).json({ error: 'Add at least one product to the campaign.' });
   if (kind === 'price' && codes.some((x) => !(x[1] > 0)) && !(value > 0)) return res.status(400).json({ error: 'Fixed price campaigns need a price on every product.' });
+  // margin floor: the campaign price on the lowest tier must stay at or above cost + CAMPAIGN_MIN_MARGIN (10% by default)
+  const below = await belowFloor(codes, kind, value);
+  if (below.list.length && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.list.length + ' part' + (below.list.length === 1 ? '' : 's') + ' would sell under cost + ' + below.pct + '% on the lowest price tier: ' + below.list.slice(0, 8).map((x) => x.code + ' (min $' + x.floor + ')').join(', ') + (below.list.length > 8 ? '...' : '') + '. Lower the discount on those parts or remove them' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), below: below.list.slice(0, 200), canForce: w.role === 'superadmin' });
   const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: value || 0,
     color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
   let cid = id;
