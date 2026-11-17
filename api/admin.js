@@ -1505,7 +1505,9 @@ async function notifyMentions(req, w, d, kind, body, due) {
     const found = [...new Set((String(body).match(/(^|[^a-z0-9._-])@([a-z0-9._-]{2,40})/gi) || []).map((m) => m.replace(/^[^@]*@/, '').toLowerCase().replace(/[._-]+$/, '')))];
     if (!found.length) return;
     const team = await teamList(), me = String(w.email).toLowerCase(), mine = team.find((t) => t.email === me), from = (mine && mine.name) || w.email, sent = new Set();
-    for (const h of found) { const t = team.find((x) => x.handles.includes(h)); if (!t || t.email === me || sent.has(t.email)) continue; sent.add(t.email);
+    const everyone = found.includes('all') || found.includes('everyone') || found.includes('team');
+    const targets = everyone ? team.map((t) => t.handles[0]) : found;
+    for (const h of targets) { const t = everyone ? team.find((x) => x.handles[0] === h) : team.find((x) => x.handles.includes(h)); if (!t || t.email === me || sent.has(t.email)) continue; sent.add(t.email);
       const title = from + ' mentioned you in ' + (kind === 'task' ? 'a task' : 'a ' + kind) + ' on ' + (d.title || 'a deal');
       await db.insert('admin_notifications', [{ to_email: t.email, kind: 'mention', title, body: clean(body, 400), deal_id: d.id, from_email: me, from_name: from }]).catch(() => {});
       await send(t.email, title, 'You were mentioned', '<p><b>' + esc(from) + '</b> wrote on <b>' + esc(d.title || 'a deal') + '</b>:</p><p style="padding:10px 14px;background:#f3f4f6;border-radius:8px">' + esc(clean(body, 400)) + '</p>' + (due ? '<p>Due: <b>' + esc(due) + '</b></p>' : ''),
