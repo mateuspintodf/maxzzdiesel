@@ -278,6 +278,10 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 .age{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--soft);color:var(--ink2)}.age.amb{background:#fff1e0;color:#9a4b00}.age.red{background:#fdecee;color:var(--red)}
 .vrule{display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--ink2);background:var(--soft);border-radius:12px;padding:8px 10px;margin:10px 0 0}.vrule.bad{background:#fdecee;color:var(--red)}.vrule svg{flex:none;margin-top:1px}
 .ph .acts .sel{width:206px;min-height:38px;box-sizing:border-box}.per-fixed{display:inline-flex;align-items:center;justify-content:flex-start;color:var(--muted);cursor:default;background-image:none!important;padding-right:16px}.seg button:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
+
+@media(min-width:1201px){.kpis.k6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.sa-t td.r,.sa-t th.r{text-align:right;white-space:nowrap}.rl{display:flex;gap:6px;align-items:center;margin-top:6px}.rl input{width:70px;padding:7px 8px;border:1px solid var(--line,#d9dde2);border-radius:10px}.chk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;color:var(--ink2)}
+@media(max-width:700px){.sa-t{min-width:760px}.rl{flex-wrap:wrap}}
 </style>
 </head>
 <body>
@@ -312,6 +316,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   var NAV = [
     ['dash', 'Dashboard', [['dash', 'Overview']]],
     ['cust', 'Customers', [['dir', 'Unleashed customers'], ['pipe', 'Quotes & orders'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
+    ['sales', 'Sales', [['sa', 'Analytics']]],
     ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Product visibility']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
@@ -324,7 +329,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
       ((v === 'portal' || v === 'overview') ? '<select class="sel" data-act-change="days" aria-label="Period">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + (d === 365 ? '12 months' : d + ' days') + '</option>'; }).join('') + '</select>'
         : '<span class="sel per-fixed" data-tip="This view always uses the last 12 months, compared with the 12 before">Period: last 12 months</span>'); },
     clients: function () { return '<label class="srch">' + ic('search', 16) + '<input type="search" data-m="q" value="' + esc(S.q) + '" placeholder="Company, code or e-mail"></label>'; },
-    events: daysSel, bcomp: daysSel, stream: daysSel
+    events: daysSel, bcomp: daysSel, stream: daysSel, sa: slHead
   };
   function daysSel() { return '<select class="sel" data-act-change="bdays">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.bdays || 30) === d ? ' selected' : '') + '>Last ' + d + ' days</option>'; }).join('') + '</select>'; }
   function hello() { var h = new Date().getHours(), n = S.me.email.split('@')[0]; n = n.charAt(0).toUpperCase() + n.slice(1); return (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + n; }
@@ -346,10 +351,11 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
-  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream };
+  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
+    if (t === 'sa') return slLoad();
     if (t === 'prospects') return loadProspects();
     if (t === 'clients') return load();
     var M = { pipe: ['pipeline', 'pipe'], campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
@@ -984,6 +990,105 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
       rows.map(function (r) { var hot = (r.ca || r.pv >= 3) && !r.qu && !r.ord; return '<tr data-act="cust" data-code="' + esc(r.c || '') + '" data-cid="' + esc(r.cid) + '"><td><b>' + esc(r.n) + '</b> ' + (hot ? '<span class="st due">shopping</span>' : '') + '<small>' + esc(r.c || 'not linked') + '</small></td><td class="nw">' + esc(new Date(r.last).toLocaleString()) + '</td><td class="r">' + r.people + '</td><td class="r">' + r.sessions + '</td><td class="r">' + r.pv + '</td><td class="r">' + r.se + '</td><td class="r">' + r.ca + '</td><td class="r">' + r.qu + '</td><td class="r">' + r.ord + '</td><td><span class="mono">' + esc((r.codes || []).slice(0, 3).join(', ')) + '</span>' + (r.queries && r.queries.length ? '<small>searched ' + esc(r.queries.join(', ')) + '</small>' : '') + '</td></tr>'; }), 'click');
     return h + '</section>';
   }
+
+  // ---------------------------------------------------------------- Sales > Analytics
+  var SLP = [['today', 'Today'], ['yesterday', 'Yesterday'], ['7', 'Last 7 days'], ['30', 'Last 30 days'], ['90', 'Last 90 days'], ['mtd', 'This month'], ['lm', 'Last month'], ['qtd', 'This quarter'], ['ytd', 'This year'], ['ly', 'Last year'], ['365', 'Last 12 months'], ['all', 'All time'], ['custom', 'Custom range']];
+  function ymd(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function slRange(p) {
+    var t = new Date(), d0 = function (y, m, d) { return new Date(y, m, d); }, Y = t.getFullYear(), M = t.getMonth(), D = t.getDate(), a, b = t;
+    if (p === 'today') a = t; else if (p === 'yesterday') { a = b = d0(Y, M, D - 1); } else if (p === 'mtd') a = d0(Y, M, 1); else if (p === 'lm') { a = d0(Y, M - 1, 1); b = d0(Y, M, 0); }
+    else if (p === 'qtd') a = d0(Y, Math.floor(M / 3) * 3, 1); else if (p === 'ytd') a = d0(Y, 0, 1); else if (p === 'ly') { a = d0(Y - 1, 0, 1); b = d0(Y - 1, 11, 31); }
+    else if (p === 'all') a = d0(2015, 0, 1); else if (p === '365') a = d0(Y, M, D - 364); else a = d0(Y, M, D - ((+p || 30) - 1));
+    return { from: ymd(a), to: ymd(b) };
+  }
+  function slState() { if (!S.sl) { var r = slRange('30'); S.sl = { p: '30', from: r.from, to: r.to, cmp: 'prev', sp: 'all', v: 'customers', mon: false, q: '' }; } return S.sl; }
+  function slSet(k, v) {
+    var L = slState();
+    if (k === 'p') { L.p = v; if (v !== 'custom') { var r = slRange(v); L.from = r.from; L.to = r.to; } else return draw(); }
+    else L[k] = v;
+    S.sd = null; draw(); slLoad();
+  }
+  function slLoad() {
+    var L = slState();
+    api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
+  }
+  function slHead() {
+    var L = slState(), D = S.sd;
+    var h = '<select class="sel" data-chg="sl.p" aria-label="Period">' + SLP.map(function (x) { return opt(x[0], x[1], L.p); }).join('') + '</select>';
+    if (L.p === 'custom') h += '<input class="sel" type="date" data-chg="sl.from" value="' + esc(L.from) + '" aria-label="From"><input class="sel" type="date" data-chg="sl.to" value="' + esc(L.to) + '" aria-label="To">';
+    h += '<select class="sel" data-chg="sl.cmp" aria-label="Compare">' + opt('prev', 'vs previous period', L.cmp) + opt('year', 'vs same dates last year', L.cmp) + opt('none', 'No comparison', L.cmp) + '</select>';
+    if (D && D.everyone && D.everyone.length) h += '<select class="sel" data-chg="sl.sp" aria-label="Salesperson">' + opt('all', 'All salespeople', L.sp) + D.everyone.map(function (x) { return opt(x, x, L.sp); }).join('') + '</select>';
+    return h;
+  }
+  function m0(n) { n = Number(n) || 0; return (n < 0 ? '-' : '') + '$' + Math.abs(Math.round(n)).toLocaleString('en-US'); }
+  function pc1(n) { return n == null ? '-' : (Math.round(n * 1000) / 10) + '%'; }
+  function slBucket(days, pdays, n) {
+    var step = n > 400 ? 'month' : n > 92 ? 'week' : 'day';
+    function key(d) { if (step === 'day') return d; if (step === 'month') return d.slice(0, 7); var t = new Date(d + 'T00:00:00'); t.setDate(t.getDate() - ((t.getDay() + 6) % 7)); return ymd(t); }
+    function fold(a) { var o = {}, ks = []; (a || []).forEach(function (r) { var k = key(r[0]); if (!(k in o)) { o[k] = 0; ks.push(k); } o[k] += r[1]; }); return ks.map(function (k) { return [k, o[k]]; }); }
+    return { cur: fold(days), prv: fold(pdays), step: step };
+  }
+  function slChart(D) {
+    var n = Math.round((Date.parse(D.to) - Date.parse(D.from)) / 864e5) + 1, B = slBucket(D.days, D.pdays, n), cur = B.cur, prv = B.prv;
+    if (!cur.length) return '<div class="empty">No sales in this period.</div>';
+    var W = 760, H = 210, G = 52, len = Math.max(cur.length, prv.length), all = cur.concat(prv).map(function (x) { return x[1]; }), mx = Math.max.apply(null, all.concat([1]));
+    function path(a) { return a.map(function (r, i) { return (i ? 'L' : 'M') + (G + (len > 1 ? i / (len - 1) : 0.5) * (W - G - 8)).toFixed(1) + ' ' + (H - 6 - (r[1] / mx) * (H - 20)).toFixed(1); }).join(' '); }
+    var h = '<svg class="chart" viewBox="0 0 ' + W + ' ' + (H + 24) + '" role="img" aria-label="Sales over time">';
+    [0.25, 0.5, 0.75, 1].forEach(function (g) { var y = H - 6 - g * (H - 20); h += '<line x1="' + G + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" class="gl"/><text x="' + (G - 8) + '" y="' + (y + 4) + '" text-anchor="end" class="gt">' + k$(mx * g) + '</text>'; });
+    if (prv.length) h += '<path d="' + path(prv) + '" fill="none" stroke="#9aa1ab" stroke-width="2" stroke-dasharray="5 4"/>';
+    h += '<path d="' + path(cur) + '" fill="none" stroke="#f08a24" stroke-width="2.6" stroke-linejoin="round"/>';
+    cur.forEach(function (r, i) { var x = G + (len > 1 ? i / (len - 1) : 0.5) * (W - G - 8), y = H - 6 - (r[1] / mx) * (H - 20); h += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (len > 60 ? 6 : 4) + '" fill="#f08a24" fill-opacity="0"><title>' + r[0] + ': ' + m0(r[1]) + '</title></circle>'; });
+    [0, Math.floor((len - 1) / 2), len - 1].forEach(function (i) { if (cur[i]) h += '<text x="' + (G + (len > 1 ? i / (len - 1) : 0.5) * (W - G - 8)) + '" y="' + (H + 18) + '" text-anchor="' + (i === 0 ? 'start' : i === len - 1 ? 'end' : 'middle') + '" class="gt">' + esc(cur[i][0]) + '</text>'; });
+    return h + '</svg><div class="muted" style="font-size:12.5px;margin-top:6px">Per ' + B.step + (prv.length ? '. Solid: this period. Dashed: ' + (D.cmp === 'year' ? 'same dates last year' : 'previous period') + '.' : '.') + '</div>';
+  }
+  function slMonths(D) { var all = {}; D.customers.forEach(function (c) { Object.keys(c.months).forEach(function (m) { all[m] = 1; }); }); return Object.keys(all).sort().slice(-13); }
+  function drawSA() {
+    var D = S.sd, L = slState();
+    if (S.tabErr === 'sa') return ld();
+    if (!D) return '<div class="card"><p class="muted">Loading sales...</p></div>';
+    if (D.none) return '<div class="card"><h2>Your login is not linked to a salesperson yet</h2><p class="muted">Ask a superadmin to pick your name under Settings, Admin users. Until then there is nothing to show here.</p></div>';
+    var K = D.kpi, P = D.prev, own = D.role !== 'superadmin', who = D.scope && D.scope !== 'all' ? D.scope : '';
+    var h = who ? '<div class="note" style="margin-bottom:14px">' + (own ? 'Showing your sales: <b>' + esc(who) + '</b>.' : 'Filtered to <b>' + esc(who) + '</b>.') + '</div>' : '';
+    var cost = K.coverage != null && K.coverage > 0;
+    h += '<div class="kpis k6">' + tile('Sales', m0(K.sales), P ? delta(K.sales, P.sales) + ' <span class="muted">vs ' + m0(P.sales) + '</span>' : '', '', 'dark') +
+      tile('Profit', cost ? m0(K.profit) : '-', cost ? (P && P.coverage ? delta(K.profit, P.profit) + ' ' : '') + 'margin ' + pc1(K.margin) + ' on ' + pc1(K.coverage) + ' of sales' : 'Cost at the time of sale is still syncing') +
+      tile('Orders', n0(K.orders), P ? delta(K.orders, P.orders) : '') + tile('Customers', n0(K.customers), P ? delta(K.customers, P.customers) : '') +
+      tile('Average order', K.aov == null ? '-' : m0(K.aov), P ? delta(K.aov, P.aov) : '') + tile('Commission', m0(K.commission), P ? delta(K.commission, P.commission) : 'by the rule set for each salesperson') + '</div>';
+    h += '<section class="card"><h3 style="margin:0 0 10px">Sales over time</h3>' + slChart(D) + '</section>';
+    var tabs = [['customers', 'Customers'], ['people', 'Salespeople'], ['parts', 'Parts']];
+    h += '<div class="seg" style="margin:6px 0 14px">' + tabs.map(function (x) { return '<button data-act="sl-view" data-v="' + x[0] + '" class="' + (L.v === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>';
+    if (L.v === 'people') return h + slPeople(D, own);
+    if (L.v === 'parts') return h + slParts(D);
+    return h + slCustomers(D, L);
+  }
+  function slCustomers(D, L) {
+    var q = String(L.q || '').toLowerCase(), tot = D.kpi.sales || 0, ms = L.mon ? slMonths(D) : [];
+    var rows = sortRows(D.customers.map(function (c) { c.pro = c.cov ? c.profit : null; c.mg = c.cov ? c.profit / c.cov : null; c.sh = tot ? c.sales / tot : 0; c.dv = pct(c.sales, c.prev); return c; }).filter(function (c) { return !q || qhas((c.n || '') + ' ' + c.c, q); }), 'slc');
+    var h = '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="sl.q" value="' + esc(L.q || '') + '" placeholder="Customer or code"></label><span class="sp"></span>' +
+      '<label class="chk"><input type="checkbox" data-slmon="1"' + (L.mon ? ' checked' : '') + '> Show months</label><button class="btn sm" data-act="sl-csv">' + ic('dl', 14) + ' Export CSV</button></div>';
+    h += tbl([th('n', 'Customer', 'slc'), th('sales', 'Sales', 'slc', 1), th('sh', '% of total', 'slc', 1), th('pro', 'Profit', 'slc', 1), th('mg', 'Margin', 'slc', 1), th('orders', 'Orders', 'slc', 1), th('comm', 'Commission', 'slc', 1)]
+      .concat(D.prev ? [th('dv', 'vs before', 'slc', 1)] : []).concat(ms.map(function (m) { return '<th class="r">' + m.slice(2).replace('-', '/') + '</th>'; })),
+      rows.slice(0, 300).map(function (c) { return '<tr data-act="cust" data-code="' + esc(c.c || '') + '"><td><b>' + esc(c.n || c.c) + '</b><div class="muted" style="font-size:12px">' + esc(c.c || '') + (c.sp ? ' · ' + esc(c.sp) : '') + '</div></td><td class="r">' + m0(c.sales) + '</td><td class="r">' + pc1(c.sh) + '</td><td class="r">' + (c.pro == null ? '-' : m0(c.pro)) + '</td><td class="r">' + pc1(c.mg) + '</td><td class="r">' + n0(c.orders) + '</td><td class="r">' + (c.comm ? m0(c.comm) : '-') + '</td>' +
+        (D.prev ? '<td class="r">' + delta(c.sales, c.prev) + '</td>' : '') + ms.map(function (m) { return '<td class="r">' + (c.months[m] ? m0(c.months[m]) : '') + '</td>'; }).join('') + '</tr>'; }), 'sa-t');
+    return h + '<div class="muted" style="padding:10px 16px;font-size:12.5px">' + (rows.length > 300 ? 'Top 300 of ' + rows.length + '. Export the CSV for the full list. ' : '') + 'Profit and margin count only lines with the cost recorded at the time of the sale.</div></section>';
+  }
+  function slPeople(D, own) {
+    var h = '<section class="card flush">' + tbl([h0('Salesperson'), h0('Sales'), h0('Profit'), h0('Orders'), h0('Commission rule'), h0('Commission')].concat(D.prev ? [h0('vs before')] : []),
+      D.people.map(function (p, i) {
+        var rule = p.rule ? (p.rule.basis === 'sales' ? p.rule.pct + '% of sales' : p.rule.pct + '% of profit') : '<span class="muted">not set</span>';
+        var edit = own ? '' : '<div class="rl"><select class="sel" data-rb="' + i + '">' + opt('profit', 'of profit', p.rule ? p.rule.basis : 'profit') + opt('sales', 'of sales', p.rule ? p.rule.basis : 'profit') + '</select><input type="number" min="0" max="100" step="0.1" data-rp="' + i + '" value="' + (p.rule ? p.rule.pct : '') + '" placeholder="%"><button class="btn sm" data-act="sl-rule" data-i="' + i + '">Save</button></div>';
+        return '<tr><td><b>' + esc(p.sp) + '</b></td><td class="r">' + m0(p.sales) + '</td><td class="r">' + (p.cov ? m0(p.profit) : '-') + '</td><td class="r">' + n0(p.orders) + '</td><td>' + rule + edit + '</td><td class="r">' + (p.comm ? m0(p.comm) : '-') + '</td>' + (D.prev ? '<td class="r">' + delta(p.sales, p.prev) + '</td>' : '') + '</tr>'; }), 'sa-t') +
+      '<div class="muted" style="padding:10px 16px;font-size:12.5px">Commission follows the rule above on this period. Returns and credit notes reduce sales, profit and commission. Orders without a salesperson go to the salesperson set on the customer in Unleashed.</div></section>';
+    return h;
+  }
+  function slParts(D) {
+    return '<section class="card flush">' + tbl([h0('Part'), h0('Sales'), h0('Units'), h0('Profit')].concat(D.prev ? [h0('vs before')] : []),
+      D.parts.map(function (p) { return '<tr><td><b>' + esc(p.code) + '</b><div class="muted" style="font-size:12px">' + esc(p.name) + '</div></td><td class="r">' + m0(p.sales) + '</td><td class="r">' + n0(p.qty) + '</td><td class="r">' + (p.profit ? m0(p.profit) : '-') + '</td>' + (D.prev ? '<td class="r">' + delta(p.sales, p.prev) + '</td>' : '') + '</tr>'; }), 'sa-t') + '</section>';
+  }
+  function slCsv() {
+    var D = S.sd, ms = slMonths(D), tot = D.kpi.sales || 0;
+    csv('sales-by-customer-' + D.from + '-to-' + D.to + '.csv', [['Customer', 'Code', 'Salesperson', 'Sales', '% of total', 'Profit', 'Orders', 'Commission', 'Sales in the comparison period'].concat(ms)].concat(D.customers.map(function (c) {
+      return [c.n, c.c, c.sp, c.sales.toFixed(2), tot ? (c.sales / tot * 100).toFixed(2) : '', c.cov ? c.profit.toFixed(2) : '', c.orders, (c.comm || 0).toFixed(2), D.prev ? c.prev.toFixed(2) : ''].concat(ms.map(function (m) { return c.months[m] ? c.months[m].toFixed(2) : ''; })); }))); }
   var EVL = { product: 'Viewed a part', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', cart_view: 'Opened the cart', checkout: 'Checkout', order: 'Placed an order', quote: 'Sent a quote', login: 'Signed in', voucher: 'Used a voucher', filter: 'Filtered' };
   function drawStream() {
     if (!S.bs) return ld();
@@ -1343,6 +1448,10 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'nav') { S.navOpen = !S.navOpen; return draw(); }
     if (act === 'nav-x') { S.navOpen = false; return draw(); }
     if (act === 'dview') { S.dview = t.dataset.v; if (t.dataset.st || t.dataset.sg) { S.cf = { st: t.dataset.st || '', sg: t.dataset.sg || '' }; S.cn = 60; } if (S.dview === 'customers' && !S.dc) loadDc(); window.scrollTo(0, 0); return draw(); }
+    if (act === 'sl-view') { slState().v = t.dataset.v; return draw(); }
+    if (act === 'sl-csv') return slCsv();
+    if (act === 'sl-rule') { var ri = +t.dataset.i, rp = S.sd.people[ri], rb = app.querySelector('[data-rb="' + ri + '"]'), rv = app.querySelector('[data-rp="' + ri + '"]'); if (!rp || !rv || rv.value === '') { toast('Type the percentage first.'); return; }
+      return api('sales-commission', { salesperson: rp.sp, basis: rb.value, pct: parseFloat(rv.value) }).then(function (r) { if (r.ok) { toast('Commission saved for ' + rp.sp + '.'); slLoad(); } else fail(r); }); }
     if (act === 'sort') { var sk = t.dataset.sk, kk = t.dataset.k, cur = S[sk] || {}; S[sk] = { k: kk, d: cur.k === kk ? -cur.d : (['n', 'company', 'code', 'k', 'sp', 'status', 'segment', 'customerCode', 'tier', 'loc', 'next', 'since'].indexOf(kk) >= 0 ? 1 : -1) }; return draw(); }
     if (act === 'ach') { S.ach = t.dataset.c; return draw(); }
     if (act === 'cst') { S.cst = t.dataset.s; if (S.tab !== 'clients') S.tab = 'clients'; return draw(); }
@@ -1445,6 +1554,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (d.cpval) { var vv2 = parseFloat(e.target.value); S.cp.items[d.cpval] = vv2 > 0 ? vv2 : null; return; }
     if (d.cpactive) { S.cp.active = e.target.checked; return draw(); }
     if (d.cpstack) { S.cp.stack_vouchers = e.target.checked; return draw(); }
+    if (d.slmon) { slState().mon = e.target.checked; return draw(); }
     if (d.cpban) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) upBanner(f); return; }
     if (d.cptog) { var cpx = (S.cps || []).filter(function (x) { return x.id === d.cptog; })[0] || {}; if (!ok((e.target.checked ? 'Turn on ' : 'Turn off ') + (cpx.name || 'this campaign') + '? ' + (e.target.checked ? 'Its parts get the campaign price for every customer between the dates.' : 'Its parts go back to their normal price for every customer now.'))) { e.target.checked = !e.target.checked; return; } api('campaign-toggle', { id: d.cptog, active: e.target.checked }).then(function (r) { if (r.ok) { S.cps.forEach(function (x) { if (x.id === d.cptog) x.active = e.target.checked; }); draw(); } else fail(r); }); return; }
     if (d.pick) { S.pick = S.pick || {}; if (e.target.checked) S.pick[d.pick] = 1; else delete S.pick[d.pick]; return draw(); }
@@ -1455,6 +1565,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
       api('segment-create', { name: sg0.name, codes: Object.keys(S.sel || {}) }).then(function (r) { if (r.ok) { S.sel = {}; S.okMsg = 'Added to ' + sg0.name + '.'; loadTab('dir'); } else fail(r); }); return; }
     if (d.chg && d.chg.indexOf('sf.') === 0) { setM(d.chg, e.target.value); S.bs = null; draw(); return loadTab('stream'); }
     if (d.actChange === 'bdays') { S.bdays = +e.target.value; S.ev = S.bc = S.bs = null; draw(); return loadTab(S.tab); }
+    if (d.chg && d.chg.indexOf('sl.') === 0) return slSet(d.chg.slice(3), e.target.value);
     if (d.chg) { setM(d.chg, e.target.value); return draw(); } if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });
   (function () {
   })();
