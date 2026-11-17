@@ -284,6 +284,9 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 @media(max-width:700px){.sa-t{min-width:760px}.rl{flex-wrap:wrap}}
 
 .sigs{display:flex;flex-wrap:wrap;gap:8px}.sig{display:inline-flex;align-items:center;gap:8px;border:1px solid #e4e7eb;background:#fff;border-radius:999px;padding:8px 14px;font-size:13.5px;cursor:pointer;color:var(--ink)}.sig i{width:9px;height:9px;border-radius:50%;background:#9aa1ab}.sig.high i{background:#d32a37}.sig.med i{background:#f08a24}.sig.good i{background:#1f8a4c}.sig.info i{background:#3b6fe0}.sig b{font-weight:700}.sig.on{background:#16191d;color:#fff;border-color:#16191d}.sigp{margin-top:14px;border-top:1px solid #eceef1;padding-top:12px}.sigp p{margin:0 0 10px;max-width:70ch;color:var(--ink2)}
+
+.lb{display:flex;flex-direction:column;gap:10px}.lbr{display:grid;grid-template-columns:40px 1fr auto;gap:14px;align-items:center;padding:14px 16px;border:1px solid #eceef1;border-radius:18px;background:#fff}.lbr.me{border-color:#f08a24;background:#fff8f0}.rk{width:34px;height:34px;border-radius:50%;background:#16191d;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}.lbr:first-child .rk{background:#f08a24}.lvl{display:inline-block;font-size:11.5px;font-weight:600;color:#fff;background:var(--c,#9aa1ab);border-radius:999px;padding:2px 9px;margin-left:6px}.pbar{height:9px;border-radius:99px;background:#eceef1;margin:8px 0 6px;overflow:hidden}.pbar i{display:block;height:100%;background:#f08a24;border-radius:99px}.lbs{font-size:13px;color:var(--ink2)}.bds{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.bdg{font-size:11.5px;font-weight:600;background:#fff2e2;color:#9a4d08;border-radius:999px;padding:3px 10px}.pts{text-align:right}.pts b{font-size:22px;display:block}.pts small{color:var(--muted)}.gin{width:130px;padding:8px 10px;border:1px solid #d9dde2;border-radius:10px}
+@media(max-width:600px){.lbr{grid-template-columns:30px 1fr;gap:10px}.pts{grid-column:1/-1;text-align:left}.pts b{display:inline;margin-right:6px}}
 </style>
 </head>
 <body>
@@ -318,7 +321,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   var NAV = [
     ['dash', 'Dashboard', [['dash', 'Overview']]],
     ['cust', 'Customers', [['dir', 'Unleashed customers'], ['pipe', 'Quotes & orders'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
-    ['sales', 'Sales', [['sa', 'Analytics']]],
+    ['sales', 'Sales', [['sa', 'Analytics'], ['goals', 'Goals & rewards']]],
     ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Product visibility']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
@@ -353,11 +356,12 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
-  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA };
+  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
     if (t === 'sa') return slLoad();
+    if (t === 'goals') return pgLoad();
     if (t === 'prospects') return loadProspects();
     if (t === 'clients') return load();
     var M = { pipe: ['pipeline', 'pipe'], campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
@@ -1100,6 +1104,45 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     var D = S.sd, ms = slMonths(D), tot = D.kpi.sales || 0;
     csv('sales-by-customer-' + D.from + '-to-' + D.to + '.csv', [['Customer', 'Code', 'Salesperson', 'Sales', '% of total', 'Profit', 'Orders', 'Commission', 'Sales in the comparison period'].concat(ms)].concat(D.customers.map(function (c) {
       return [c.n, c.c, c.sp, c.sales.toFixed(2), tot ? (c.sales / tot * 100).toFixed(2) : '', c.cov ? c.profit.toFixed(2) : '', c.orders, (c.comm || 0).toFixed(2), D.prev ? c.prev.toFixed(2) : ''].concat(ms.map(function (m) { return c.months[m] ? c.months[m].toFixed(2) : ''; })); }))); }
+
+  // ---------------------------------------------------------------- Sales > Goals & rewards
+  function pgLoad() { S.tabErr = null; api('sales-program').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'goals'; draw(); } }); }
+  var LV = ['#9aa1ab', '#3b6fe0', '#1f8a4c', '#f08a24', '#d32a37'];
+  function pgBadge(b, BD) { var d = BD[b[0]] || [b[0], '']; return '<span class="bdg" data-tip="' + esc(d[0] + ': ' + d[1] + (b[1] > 1 || b[0] === 'hunter' || b[0] === 'comeback' || b[0] === 'closer' ? ' (' + b[1] + ')' : '')) + '">' + esc(d[0]) + (b[1] > 1 ? ' x' + b[1] : '') + '</span>'; }
+  function drawGoals() {
+    var G = S.pg; if (S.tabErr === 'goals') return ld();
+    if (!G) return '<div class="card"><p class="muted">Loading...</p></div>';
+    if (G.none) return '<div class="card"><h2>Your login is not linked to a salesperson yet</h2><p class="muted">Ask a superadmin to pick your name under Settings, Admin users.</p></div>';
+    var cyc = S.pgc || 'month', rows = G.boards[cyc] || [], sup = G.role === 'superadmin', me = rows.filter(function (r) { return r.me; })[0];
+    var CL = { day: 'Today', week: 'This week', month: 'This month' };
+    var h = '<div class="seg" style="margin-bottom:14px">' + ['day', 'week', 'month'].map(function (k) { return '<button data-act="pg-cycle" data-v="' + k + '" class="' + (cyc === k ? 'on' : '') + '">' + CL[k] + '</button>'; }).join('') + '</div>';
+    var pace = Math.round(G.pace * 100);
+    h += '<div class="kpis">' + (sup && G.company ? tile('Team this month', m0(G.company.sales), G.company.now ? Math.round(G.company.sales / G.company.now * 100) + '% of ' + m0(G.company.now) : 'No company goal set', '', 'dark') : tile('Month so far', pace + '%', 'Day ' + G.day + ' of ' + G.daysInMonth, '', 'dark')) +
+      (me ? tile('Your level', esc(me.level.name), me.level.next ? n0(me.level.need) + ' points to ' + esc(me.level.next) : 'Top level') + tile('Your points', n0(me.life), 'all time') : '') + '</div>';
+    h += '<section class="card"><h3 style="margin:0 0 4px">' + CL[cyc] + '</h3><div class="muted" style="font-size:13px;margin-bottom:14px">Ranked by % of goal, so a smaller account can lead. ' + (cyc === 'month' ? 'The month is ' + pace + '% done.' : '') + '</div>';
+    h += rows.length ? '<div class="lb">' + rows.map(function (r) {
+      var pc = r.pct == null ? 0 : r.pct, pr = Math.min(100, Math.round(pc * 100)), lvi = Math.max(0, G.levels.map(function (l) { return l[0]; }).indexOf(r.level.name));
+      return '<div class="lbr' + (r.me ? ' me' : '') + '"><div class="rk">' + r.rank + '</div><div class="lbn"><b>' + esc(r.sp) + (r.me ? ' (you)' : '') + '</b> <span class="lvl" style="--c:' + LV[Math.min(lvi, 4)] + '">' + esc(r.level.name) + '</span><div class="pbar" data-tip="' + (r.goal != null ? 'Goal ' + m0(r.goal) + (r.auto ? ' (set automatically from the last 3 months)' : '') : 'Goal visible only to the owner') + '"><i style="width:' + pr + '%"></i></div>' +
+        '<div class="lbs">' + (r.pct == null ? 'No goal yet' : Math.round(pc * 100) + '% of goal') + (r.sales != null ? ' · ' + m0(r.sales) : '') + ' · ' + r.orders + ' orders' + (r.newc ? ' · ' + r.newc + ' new' : '') + '</div>' + (r.badges.length ? '<div class="bds">' + r.badges.map(function (b) { return pgBadge(b, G.badges); }).join('') + '</div>' : '') + '</div><div class="pts"><b>' + n0(r.points) + '</b><small>points</small></div></div>'; }).join('') + '</div>' : '<div class="empty">No sales in this cycle yet.</div>';
+    h += '</section>';
+    h += '<section class="card"><h3 style="margin:0 0 10px">How points work</h3><div class="muted" style="font-size:13.5px;line-height:1.6">' + G.pts.per100 + ' point per $100 sold. +' + G.pts.goal + ' for reaching the goal. +' + G.pts.margin + ' for a margin of ' + Math.round(G.marginTarget * 100) + '% or more. +' + G.pts.newc + ' per new customer. +' + G.pts.back + ' per customer back after 90 days. Levels: ' + G.levels.map(function (l) { return esc(l[0]) + ' (' + n0(l[1]) + ')'; }).join(', ') + '.</div></section>';
+    h += '<section class="card"><h3 style="margin:0 0 10px">Recent winners</h3>' + ((G.wins || []).length ? tbl([h0('Cycle'), h0('Who'), h0('Prize'), h0('')], G.wins.map(function (x) { return '<tr><td>' + esc(x.label) + '</td><td><b>' + esc(x.sp) + '</b></td><td>' + esc(x.award) + '</td><td class="r">' + (sup ? '<label class="chk"><input type="checkbox" data-pgdel="1" data-cycle="' + esc(x.cycle) + '" data-sp="' + esc(x.sp) + '" data-aw="' + esc(x.id) + '"' + (x.delivered ? ' checked' : '') + '> Delivered</label>' : (x.delivered ? 'Delivered' : 'Pending')) + '</td></tr>'; }), 'sa-t') : '<div class="empty">Winners show here when a week or month closes.</div>') + '</section>';
+    if (sup) h += pgAdmin(G);
+    return h;
+  }
+  function pgAdmin(G) {
+    var C = G.cfg, h = '<section class="card"><h3 style="margin:0 0 4px">Goals</h3><div class="muted" style="font-size:13px;margin-bottom:12px">Monthly sales goal per salesperson. Leave a month empty to use the automatic goal (average of the last 3 months, plus ' + C.autoGoalPct + '%). Weekly and daily goals are derived from the month.</div>';
+    function row(label, sp, a, b) { return '<tr><td><b>' + esc(label) + '</b></td><td><input class="gin" type="number" min="0" step="500" data-gsp="' + esc(sp) + '" data-gym="' + G.ym + '" value="' + (a.set != null ? a.set : '') + '" placeholder="' + (a.auto != null ? 'auto ' + n0(a.auto) : 'no goal') + '"></td><td><input class="gin" type="number" min="0" step="500" data-gsp="' + esc(sp) + '" data-gym="' + nextYm(G.ym) + '" value="' + (b.set != null ? b.set : '') + '" placeholder="' + (b.auto != null ? 'auto ' + n0(b.auto) : 'no goal') + '"></td><td class="r"><button class="btn sm" data-act="pg-goal" data-sp="' + esc(sp) + '">Save</button></td></tr>'; }
+    var co = G.company || {};
+    h += tbl([h0('Salesperson'), h0('This month (' + G.ym + ')'), h0('Next month (' + nextYm(G.ym) + ')'), h0('')], [row('Whole company', '*', { set: co.now, auto: null }, { set: co.next, auto: null })].concat(G.goals.map(function (g) { return row(g.sp, g.sp, { set: g.now.auto ? null : g.now.v, auto: g.now.auto ? g.now.v : null }, { set: g.next.auto ? null : g.next.v, auto: g.next.auto ? g.next.v : null }); })), 'sa-t') + '</section>';
+    h += '<section class="card"><h3 style="margin:0 0 4px">Program settings</h3><div class="muted" style="font-size:13px;margin-bottom:12px">Points, levels and prizes. Prizes are only a name for the winners list: the system measures and records, the team delivers.</div><div class="fg">' +
+      [['per100', 'Points per $100 sold'], ['goal', 'Bonus for the goal'], ['margin', 'Bonus for the margin target'], ['newc', 'Per new customer'], ['back', 'Per customer back (90+ days)']].map(function (f) { return '<div class="fl"><label>' + f[1] + '</label><input type="number" min="0" data-pcf="pts.' + f[0] + '" value="' + C.pts[f[0]] + '"></div>'; }).join('') +
+      '<div class="fl"><label>Margin target (%)</label><input type="number" min="0" max="100" data-pcf="margin" value="' + Math.round(C.marginTarget * 100) + '"></div><div class="fl"><label>Automatic goal: growth over the last 3 months (%)</label><input type="number" min="0" max="100" data-pcf="auto" value="' + C.autoGoalPct + '"></div>' +
+      '<div class="fl full"><label>Levels (one per line: name, points)</label><textarea rows="5" data-pcf="levels">' + esc(C.levels.map(function (l) { return l[0] + ', ' + l[1]; }).join('\n')) + '</textarea></div>' +
+      '<div class="fl full"><label>Prizes (one per line: week or month, top or goal, text)</label><textarea rows="5" data-pcf="awards">' + esc(C.awards.map(function (a) { return a.cycle + ', ' + a.rule + ', ' + a.text; }).join('\n')) + '</textarea></div></div><div style="margin-top:12px"><button class="btn" data-act="pg-cfg">Save settings</button></div></section>';
+    return h;
+  }
+  function nextYm(ym) { var y = +ym.slice(0, 4), m = +ym.slice(5, 7); m++; if (m > 12) { m = 1; y++; } return y + '-' + ('0' + m).slice(-2); }
   var EVL = { product: 'Viewed a part', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', cart_view: 'Opened the cart', checkout: 'Checkout', order: 'Placed an order', quote: 'Sent a quote', login: 'Signed in', voucher: 'Used a voucher', filter: 'Filtered' };
   function drawStream() {
     if (!S.bs) return ld();
@@ -1459,6 +1502,13 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'nav') { S.navOpen = !S.navOpen; return draw(); }
     if (act === 'nav-x') { S.navOpen = false; return draw(); }
     if (act === 'dview') { S.dview = t.dataset.v; if (t.dataset.st || t.dataset.sg) { S.cf = { st: t.dataset.st || '', sg: t.dataset.sg || '' }; S.cn = 60; } if (S.dview === 'customers' && !S.dc) loadDc(); window.scrollTo(0, 0); return draw(); }
+    if (act === 'pg-cycle') { S.pgc = t.dataset.v; return draw(); }
+    if (act === 'pg-goal') { var gsp = t.dataset.sp, ins = [].slice.call(app.querySelectorAll('[data-gsp]')).filter(function (x) { return x.dataset.gsp === gsp; }), jobs = ins.map(function (x) { return api('sales-program-save', { kind: 'goal', salesperson: gsp, ym: x.dataset.gym, target: x.value === '' ? '' : x.value }); });
+      return Promise.all(jobs).then(function (rs) { var bad = rs.filter(function (r) { return !r.ok; })[0]; if (bad) return fail(bad); toast('Goals saved for ' + (gsp === '*' ? 'the company' : gsp) + '.', true); pgLoad(); }); }
+    if (act === 'pg-cfg') { var gv = function (k) { var el = app.querySelector('[data-pcf="' + k + '"]'); return el ? el.value : ''; }, pts = {}; ['per100', 'goal', 'margin', 'newc', 'back'].forEach(function (k) { pts[k] = +gv('pts.' + k); });
+      var lv = gv('levels').split('\n').map(function (l) { var p = l.split(','); return [(p[0] || '').trim(), +(p[1] || 0)]; }).filter(function (l) { return l[0]; });
+      var aw = gv('awards').split('\n').map(function (l, i) { var p = l.split(','); return { id: 'award' + i, cycle: (p[0] || '').trim() === 'week' ? 'week' : 'month', rule: (p[1] || '').trim() === 'goal' ? 'goal' : 'top', text: p.slice(2).join(',').trim() }; }).filter(function (a) { return a.text; });
+      return api('sales-program-save', { kind: 'config', config: { pts: pts, marginTarget: (+gv('margin')) / 100, autoGoalPct: +gv('auto'), levels: lv, awards: aw } }).then(function (r) { if (r.ok) { toast('Program saved.', true); pgLoad(); } else fail(r); }); }
     if (act === 'sig') { S.sigOpen = S.sigOpen === t.dataset.id ? null : t.dataset.id; return draw(); }
     if (act === 'sl-view') { slState().v = t.dataset.v; return draw(); }
     if (act === 'sl-csv') return slCsv();
@@ -1566,6 +1616,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (d.cpval) { var vv2 = parseFloat(e.target.value); S.cp.items[d.cpval] = vv2 > 0 ? vv2 : null; return; }
     if (d.cpactive) { S.cp.active = e.target.checked; return draw(); }
     if (d.cpstack) { S.cp.stack_vouchers = e.target.checked; return draw(); }
+    if (d.pgdel) { return api('sales-program-save', { kind: 'deliver', cycle: d.cycle, salesperson: d.sp, award: d.aw, delivered: e.target.checked }).then(function (r) { if (r.ok) pgLoad(); else fail(r); }); }
     if (d.slmon) { slState().mon = e.target.checked; return draw(); }
     if (d.cpban) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) upBanner(f); return; }
     if (d.cptog) { var cpx = (S.cps || []).filter(function (x) { return x.id === d.cptog; })[0] || {}; if (!ok((e.target.checked ? 'Turn on ' : 'Turn off ') + (cpx.name || 'this campaign') + '? ' + (e.target.checked ? 'Its parts get the campaign price for every customer between the dates.' : 'Its parts go back to their normal price for every customer now.'))) { e.target.checked = !e.target.checked; return; } api('campaign-toggle', { id: d.cptog, active: e.target.checked }).then(function (r) { if (r.ok) { S.cps.forEach(function (x) { if (x.id === d.cptog) x.active = e.target.checked; }); draw(); } else fail(r); }); return; }

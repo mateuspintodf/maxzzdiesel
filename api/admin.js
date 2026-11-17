@@ -1416,6 +1416,111 @@ A['sales-commission'] = async (req, res) => {
   await PS.audit(w.email, 'commission.save', 'salesperson', sp, null, { basis, pct });
   return res.json({ ok: true });
 };
+// ---- Sales > Goals & rewards: goals per salesperson and month, a points and levels program, badges, weekly and monthly awards.
+// Everything is worked out from the synced sales. Superadmin sets goals and the program; the sales role sees the ranking
+// (names, % of goal, points, level, badges) but dollar amounts only for itself.
+const PROG_DEFAULT = {
+  pts: { per100: 1, goal: 200, margin: 100, newc: 50, back: 75 }, marginTarget: 0.15, autoGoalPct: 5,
+  levels: [['Rookie', 0], ['Rising', 1000], ['Pro', 5000], ['Expert', 15000], ['Legend', 40000]],
+  awards: [
+    { id: 'week_top', cycle: 'week', rule: 'top', text: 'Top of the week: lunch on the team' },
+    { id: 'week_goal', cycle: 'week', rule: 'goal', text: 'Weekly goal reached: leave early on Friday' },
+    { id: 'month_top', cycle: 'month', rule: 'top', text: 'Top of the month: gift card' },
+    { id: 'month_goal', cycle: 'month', rule: 'goal', text: 'Monthly goal reached: bonus day off' }],
+};
+const isoDay = (d) => d.toISOString().slice(0, 10);
+const mondayOf = (iso) => { const t = new Date(iso + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return isoDay(t); };
+const monthDays = (ym) => new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).getUTCDate();
+const ymAdd = (ym, n) => { const d = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7) - 1 + n, 1)); return d.toISOString().slice(0, 7); };
+function progCfg(row) { const c = (row && row.config) || {}; return { pts: Object.assign({}, PROG_DEFAULT.pts, c.pts), marginTarget: c.marginTarget != null ? c.marginTarget : PROG_DEFAULT.marginTarget, autoGoalPct: c.autoGoalPct != null ? c.autoGoalPct : PROG_DEFAULT.autoGoalPct, levels: Array.isArray(c.levels) && c.levels.length ? c.levels : PROG_DEFAULT.levels, awards: Array.isArray(c.awards) ? c.awards : PROG_DEFAULT.awards }; }
+A['sales-program'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  const today = isoDay(new Date()), ym = today.slice(0, 7), wk = mondayOf(today), md = monthDays(ym), ms0 = ym + '-01';
+  const weeks = [1, 2, 3, 4].map((i) => { const a = isoDay(new Date(Date.parse(wk + 'T00:00:00Z') - i * 7 * 864e5)); return [a, isoDay(new Date(Date.parse(a + 'T00:00:00Z') + 6 * 864e5))]; });
+  const [dayR, weekR, monR, months, goalRows, cfgRow, log, ...pastW] = await Promise.all([
+    db.rpc('sales_sp_period', { p_from: today, p_to: today }), db.rpc('sales_sp_period', { p_from: wk, p_to: today }), db.rpc('sales_sp_period', { p_from: ms0, p_to: today }),
+    db.rpc('sales_sp_months'), db.select('sales_goals', 'select=salesperson,ym,target&limit=2000').catch(() => []), db.select('sales_program', 'select=config&id=eq.1').then((r) => r[0]).catch(() => null),
+    db.select('sales_award_log', 'select=*&order=cycle.desc&limit=400').catch(() => []), ...weeks.map((r) => db.rpc('sales_sp_period', { p_from: r[0], p_to: r[1] })),
+  ]);
+  const cfg = progCfg(cfgRow), P = cfg.pts;
+  const goal = {}; goalRows.forEach((g) => { goal[g.salesperson + '|' + g.ym] = Number(g.target); });
+  const mon = {}; (months || []).forEach((r) => { (mon[r.sp] = mon[r.sp] || {})[r.ym] = r; });
+  const recent = (sp) => ymAdd(ym, -1) in (mon[sp] || {}) || ym in (mon[sp] || {}) || ymAdd(ym, -2) in (mon[sp] || {});
+  const people = [...new Set([...Object.keys(mon).filter((k) => k !== 'Unassigned' && recent(k)), ...goalRows.map((g) => g.salesperson).filter((k) => k !== '*')])].sort();
+  // goal of one person for one month: the one set by the superadmin, else the average of the 3 months before plus a margin
+  const goalOf = (sp, m) => { const g = goal[sp + '|' + m]; if (g != null) return { v: g, auto: false }; const prev = [1, 2, 3].map((i) => Number(((mon[sp] || {})[ymAdd(m, -i)] || {}).sales) || 0); const avg = prev.reduce((a, b) => a + b, 0) / 3; return avg > 0 ? { v: Math.round(avg * (1 + cfg.autoGoalPct / 100)), auto: true } : { v: null, auto: true }; };
+  const pointsOf = (r, g) => { const sales = Number(r.sales) || 0, cov = Number(r.cov) || 0, margin = cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, cvg = sales > 0 ? cov / sales : 0;
+    return Math.max(0, Math.floor(sales / 100 * P.per100)) + (g && sales >= g ? P.goal : 0) + (margin != null && margin >= cfg.marginTarget && cvg >= 0.7 ? P.margin : 0) + (Number(r.newc) || 0) * P.newc + (Number(r.back) || 0) * P.back; };
+  const board = (rows, scale) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; });
+    const out = people.map((sp) => { const r = by[sp] || { sales: 0, cost: 0, cov: 0, orders: 0, newc: 0, back: 0 }, g = goalOf(sp, ym), gv = g.v != null ? g.v * scale : null, sales = Number(r.sales) || 0, cov = Number(r.cov) || 0;
+      return { sp, sales, goal: gv != null ? Math.round(gv) : null, auto: g.auto, pct: gv ? sales / gv : null, orders: Number(r.orders) || 0, newc: Number(r.newc) || 0, back: Number(r.back) || 0, margin: cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, points: pointsOf(r, gv) }; });
+    out.sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales); out.forEach((r, i) => { r.rank = i + 1; }); return out; };
+  // lifetime points and levels, streaks and badges from the monthly history
+  const life = {}, badges = {};
+  people.forEach((sp) => {
+    const all = Object.keys(mon[sp] || {}).sort(); let pts = 0, hit = 0, mk = 0, streak = 0;
+    all.forEach((m) => { const r = mon[sp][m], sales = Number(r.sales) || 0, g = goal[sp + '|' + m]; pts += Math.max(0, Math.floor(sales / 100 * P.per100)); if (g != null && sales >= g) { pts += P.goal; hit++; }
+      const cov = Number(r.cov) || 0; if (cov > 0 && sales > 0 && cov / sales >= 0.7 && (cov - (Number(r.cost) || 0)) / cov >= cfg.marginTarget) mk++; });
+    for (let m = ym; ; m = ymAdd(m, -1)) { const g = goal[sp + '|' + m], r = (mon[sp] || {})[m]; if (g != null && r && Number(r.sales) >= g) streak++; else if (m === ym) continue; else break; if (streak > 36) break; }
+    life[sp] = pts; badges[sp] = { goal_crusher: hit, margin_keeper: mk, streak };
+  });
+  const lvl = (pts) => { let cur = cfg.levels[0], next = null; cfg.levels.forEach((l) => { if (pts >= l[1]) cur = l; }); next = cfg.levels.filter((l) => l[1] > pts)[0] || null; return { name: cur[0], pts, next: next ? next[0] : null, need: next ? next[1] - pts : 0, from: cur[1], to: next ? next[1] : null }; };
+  const dayB = board(dayR, 1 / md), weekB = board(weekR, 7 / md), monB = board(monR, 1);
+  const BDG = { goal_crusher: ['Goal crusher', 'Months with the goal reached'], margin_keeper: ['Margin keeper', 'Months at or above the margin target'], streak: ['On a streak', 'Months in a row with the goal reached'], hunter: ['Hunter', '3 or more new customers this month'], comeback: ['Comeback', '2 or more customers back after 90 days or more this month'], closer: ['Closer', '8 or more orders this week'] };
+  const mineName = sc.sp || null;
+  const shape = (rows, self) => rows.map((r) => { const own = isSuper || r.sp === mineName, b = badges[r.sp] || {}, mrow = monB.filter((x) => x.sp === r.sp)[0] || {}, wrow = weekB.filter((x) => x.sp === r.sp)[0] || {}, earned = [];
+    if (b.goal_crusher) earned.push(['goal_crusher', b.goal_crusher]); if (b.margin_keeper) earned.push(['margin_keeper', b.margin_keeper]); if (b.streak >= 2) earned.push(['streak', b.streak]);
+    if (mrow.newc >= 3) earned.push(['hunter', mrow.newc]); if (mrow.back >= 2) earned.push(['comeback', mrow.back]); if (wrow.orders >= 8) earned.push(['closer', wrow.orders]);
+    return Object.assign({}, r, { sales: own ? r.sales : null, goal: own ? r.goal : null, level: lvl(life[r.sp] || 0), life: life[r.sp] || 0, me: r.sp === mineName, badges: earned }); });
+  // past cycles: winners and who reached the goal
+  const wins = [], logK = {}; log.forEach((l) => { logK[l.cycle + '|' + l.salesperson + '|' + l.award] = l; });
+  const push = (cycle, label, aw, sp) => { const l = logK[cycle + '|' + sp + '|' + aw.id]; wins.push({ cycle, label, id: aw.id, award: aw.text, sp, delivered: !!(l && l.delivered), by: l && l.delivered_by }); };
+  const pastRows = (rows, scale, m) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; }); return people.map((sp) => { const g = goalOf(sp, m).v, sales = Number((by[sp] || {}).sales) || 0, gv = g != null ? g * scale : null; return { sp, sales, pct: gv ? sales / gv : null, hit: gv != null && sales >= gv && !goalOf(sp, m).auto }; }).filter((r) => r.sales > 0); };
+  cfg.awards.forEach((aw) => {
+    if (aw.cycle === 'week') weeks.forEach((wr, i) => { const m = wr[0].slice(0, 7), rows = pastRows(pastW[i], 7 / monthDays(m), m), label = 'Week of ' + wr[0];
+      if (aw.rule === 'top') { const t = rows.slice().sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales)[0]; if (t) push('w' + wr[0], label, aw, t.sp); } else rows.filter((r) => r.hit).forEach((r) => push('w' + wr[0], label, aw, r.sp)); });
+    else [1, 2, 3].forEach((i) => { const m = ymAdd(ym, -i), rows = people.map((sp) => { const r = (mon[sp] || {})[m], g = goalOf(sp, m), sales = r ? Number(r.sales) || 0 : 0; return { sp, sales, pct: g.v ? sales / g.v : null, hit: g.v != null && !g.auto && sales >= g.v }; }).filter((r) => r.sales > 0), label = m;
+      if (aw.rule === 'top') { const t = rows.slice().sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales)[0]; if (t) push('m' + m, label, aw, t.sp); } else rows.filter((r) => r.hit).forEach((r) => push('m' + m, label, aw, r.sp)); });
+  });
+  const visibleWins = isSuper ? wins : wins.filter((x) => x.sp === mineName);
+  const out = { today, week: wk, ym, daysInMonth: md, day: today.slice(8, 10) * 1, pace: (+today.slice(8, 10)) / md, boards: { day: shape(dayB), week: shape(weekB), month: shape(monB) }, wins: visibleWins, badges: BDG, role: w.role, me: mineName, none: !!sc.none,
+    levels: cfg.levels, pts: P, marginTarget: cfg.marginTarget };
+  if (isSuper) {
+    const next = ymAdd(ym, 1); out.cfg = { pts: P, marginTarget: cfg.marginTarget, autoGoalPct: cfg.autoGoalPct, levels: cfg.levels, awards: cfg.awards };
+    out.goals = people.map((sp) => ({ sp, now: goalOf(sp, ym), next: goalOf(sp, next) })); out.company = { now: goal['*|' + ym] != null ? goal['*|' + ym] : null, next: goal['*|' + next] != null ? goal['*|' + next] : null, sales: sumBy(monB, (r) => r.sales) };
+  }
+  return res.json(out);
+};
+A['sales-program-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (w.role !== 'superadmin') return res.status(403).json({ error: 'Only a superadmin changes goals and the program.' });
+  const b = readBody(req), now = new Date().toISOString();
+  if (b.kind === 'goal') {
+    const sp = clean(b.salesperson, 120), m = String(b.ym || ''), t = Number(b.target);
+    if (!sp || !/^\d{4}-\d{2}$/.test(m)) return res.status(400).json({ error: 'Pick a salesperson and a month.' });
+    if (b.target === '' || b.target === null) { await db.remove('sales_goals', 'salesperson=eq.' + encodeURIComponent(sp) + '&ym=eq.' + m); }
+    else { if (!Number.isFinite(t) || t < 0 || t > 1e9) return res.status(400).json({ error: 'Type a valid amount.' }); await db.insert('sales_goals', [{ salesperson: sp, ym: m, target: Math.round(t), updated_by: w.email, updated_at: now }], { onConflict: 'salesperson,ym' }); }
+    await PS.audit(w.email, 'goal.save', 'salesperson', sp, null, { ym: m, target: b.target }); return res.json({ ok: true });
+  }
+  if (b.kind === 'deliver') {
+    const cycle = clean(b.cycle, 20), sp = clean(b.salesperson, 120), aw = clean(b.award, 40); if (!cycle || !sp || !aw) return res.status(400).json({ error: 'award' });
+    await db.insert('sales_award_log', [{ cycle, salesperson: sp, award: aw, delivered: !!b.delivered, delivered_by: b.delivered ? w.email : null, delivered_at: b.delivered ? now : null }], { onConflict: 'cycle,salesperson,award' });
+    await PS.audit(w.email, 'award.deliver', 'salesperson', sp, null, { cycle, award: aw, delivered: !!b.delivered }); return res.json({ ok: true });
+  }
+  if (b.kind === 'config') {
+    const c = b.config || {}, n = (v, lo, hi, d) => { v = Number(v); return Number.isFinite(v) && v >= lo && v <= hi ? v : d; };
+    const pts = {}; Object.keys(PROG_DEFAULT.pts).forEach((k) => { pts[k] = n((c.pts || {})[k], 0, 100000, PROG_DEFAULT.pts[k]); });
+    const levels = (Array.isArray(c.levels) ? c.levels : []).slice(0, 10).map((l) => [clean(l[0], 30), n(l[1], 0, 1e7, 0)]).filter((l) => l[0]).sort((a, z) => a[1] - z[1]);
+    if (!levels.length || levels[0][1] !== 0) return res.status(400).json({ error: 'The first level must start at 0 points.' });
+    const awards = (Array.isArray(c.awards) ? c.awards : []).slice(0, 12).map((a, i) => ({ id: clean(a.id, 30) || 'award' + i, cycle: a.cycle === 'week' ? 'week' : 'month', rule: a.rule === 'goal' ? 'goal' : 'top', text: clean(a.text, 120) })).filter((a) => a.text);
+    await db.insert('sales_program', [{ id: 1, config: { pts, marginTarget: n(c.marginTarget, 0, 1, 0.15), autoGoalPct: n(c.autoGoalPct, 0, 100, 5), levels, awards }, updated_by: w.email, updated_at: now }], { onConflict: 'id' });
+    await PS.audit(w.email, 'program.save', 'program', '1'); return res.json({ ok: true });
+  }
+  return res.status(400).json({ error: 'kind' });
+};
 A['loyalty-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
