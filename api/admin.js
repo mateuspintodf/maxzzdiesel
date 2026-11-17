@@ -1097,6 +1097,45 @@ A['funnel-step'] = async (req, res) => {
   (rows || []).forEach((r) => (r.trail || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; }));
   return res.json({ step, days, rows: rows || [] });
 };
+// quotes and portal orders waiting for the team: the Parked sales orders in Unleashed (website quotes, B2B store quotes,
+// portal orders and parked orders typed by hand), with their age and owner. Marked lost or handled ones are left out.
+let pipeMemo = { at: 0, rows: null };
+A.pipeline = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
+  if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || req.query.fresh === '1') {
+    const items = [];
+    for (let page = 1; page <= 3; page++) {
+      const d = await ul('SalesOrders/' + page, 'pageSize=200&orderStatus=Parked', { timeoutMs: 60000 });
+      items.push(...(d.Items || []));
+      if (!d.Pagination || page >= (d.Pagination.NumberOfPages || 1)) break;
+    }
+    const day = (v) => { const m = String(v || '').match(/\/Date\((-?\d+)/); const t = m ? +m[1] : Date.parse(v || ''); return Number.isFinite(t) ? new Date(t).toISOString() : null; };
+    pipeMemo = { at: Date.now(), rows: items.map((o) => { const c = String(o.Comments || '');
+      const kind = /^QUOTE REQUEST .*\(website\)/i.test(c) ? 'site_quote' : /^QUOTE REQUEST/i.test(c) ? 'portal_quote' : /^Portal B2B/i.test(c) ? 'portal_order' : 'parked';
+      return { number: o.OrderNumber, ref: o.CustomerRef || '', kind, code: o.Customer && o.Customer.CustomerCode, name: o.Customer && o.Customer.CustomerName, at: day(o.OrderDate) || day(o.CreatedOn),
+        value: Number(o.SubTotal || o.BCSubTotal || 0), lines: (o.SalesOrderLines || []).length, sp: o.SalesPerson && (o.SalesPerson.FullName || o.SalesPerson.Email) || null, note: c.replace(/^QUOTE REQUEST [^:]*:\s*/i, '').slice(0, 220), web: /WEB CUSTOMER/i.test(c) }; }) };
+  }
+  const marks = await db.selectAll('pipeline_marks', 'select=number,status').catch(() => []), gone = new Set(marks.map((m) => m.number));
+  const rows = pipeMemo.rows.filter((r) => !gone.has(r.number));
+  const codes = [...new Set(rows.map((r) => r.code).filter(Boolean))], sp = {};
+  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { sp[x.code] = x.salesperson; });
+  rows.forEach((r) => { if (!r.sp) r.sp = sp[r.code] || null; });
+  const me = (await db.select('admins', 'select=salesperson&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
+  return res.json({ rows, at: pipeMemo.at, mySp: me.salesperson || null });
+};
+A['pipeline-mark'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), number = clean(b.number, 40), status = b.status === 'handled' ? 'handled' : 'lost', code = clean(b.code, 60) || null;
+  if (!number) return res.status(400).json({ error: 'number' });
+  await db.insert('pipeline_marks', [{ number, status, reason: clean(b.reason, 300) || null, customer_code: code, marked_by: w.email }], { onConflict: 'number' });
+  if (code) await db.insert('customer_notes', [{ customer_code: code, customer_name: clean(b.name, 160) || null, kind: 'note', body: (status === 'lost' ? 'Lost ' : 'Handled ') + number + (b.reason ? ': ' + clean(b.reason, 300) : ''), outcome: status === 'lost' ? 'lost' : null, created_by: w.email }]).catch(() => {});
+  await PS.audit(w.email, 'pipeline.' + status, 'order', number, null, { reason: b.reason || null });
+  return res.json({ ok: true });
+};
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;

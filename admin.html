@@ -231,6 +231,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 @media(max-width:900px){.g12[style]{grid-template-columns:minmax(0,1fr)!important}.dt{min-width:0}table{max-width:100%}}
 .outc{display:flex;flex-wrap:wrap;gap:6px}.outc button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 11px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink2);transition:background .15s,border-color .15s,color .15s}.outc button.on{background:var(--ink);border-color:var(--ink);color:#fff}.outc button:hover:not(.on){border-color:var(--ink)}
 .oc{display:inline-block;font-size:11px;font-weight:600;border-radius:999px;padding:1px 8px;margin-left:6px;background:var(--soft);color:var(--ink2);vertical-align:1px}.oc.ordered,.oc.reached,.oc.quote_sent{background:var(--oks);color:var(--ok)}.oc.lost{background:#fdecee;color:var(--red)}
+.age{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px;background:var(--soft);color:var(--ink2)}.age.amb{background:#fff1e0;color:#9a4b00}.age.red{background:#fdecee;color:var(--red)}
 </style>
 </head>
 <body>
@@ -264,7 +265,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   // main sections (pills in the top bar) and their pages (pills under the title)
   var NAV = [
     ['dash', 'Dashboard', [['dash', 'Overview']]],
-    ['cust', 'Customers', [['dir', 'Unleashed customers'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
+    ['cust', 'Customers', [['dir', 'Unleashed customers'], ['pipe', 'Quotes & orders'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
     ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Product visibility']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
@@ -296,13 +297,13 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
-  var VIEWS = { dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream };
+  var VIEWS = { pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
     if (t === 'prospects') return loadProspects();
     if (t === 'clients') return load();
-    var M = { campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
+    var M = { pipe: ['pipeline', 'pipe'], campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
       stream: ['behavior-stream', 'bs', 'rows', bd + (sf.type ? '&type=' + encodeURIComponent(sf.type) : '') + (sf.signed ? '&signed=1' : '')], audit: ['audit', 'audit', 'rows'], terms: ['terms', 'terms', 'terms'], loyalty: ['loyalty', 'loy'], admins: ['admins', 'adm'] };
     var L = M[t]; if (!L) return;
     S.tabErr = null; api(L[0], null, L[3] || '').then(function (r) { if (r._status === 200) { S[L[1]] = L[2] ? (r[L[2]] || []) : r; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = t; draw(); } });
@@ -438,6 +439,24 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     return '<div class="fnl">' + steps.map(function (x, i) { var prev = i ? steps[i - 1][1] : 0, pct = i ? (prev ? Math.round(x[1] / prev * 100) + '%' : '-') : '', d = x[1] - x[2];
       return (i ? '<span class="fpa' + (i === worst ? ' bad' : '') + '">' + pct + '</span>' : '') + '<button class="fst' + (i === worst ? ' bad' : '') + '" data-act="fstep" data-k="' + x[4] + '" data-l="' + esc(x[0]) + '"' + (x[1] ? '' : ' disabled') + ' title="' + (x[1] ? 'See who' : 'Nobody in this step') + '"><small>' + x[0] + '</small><b>' + n0(x[1]) + '</b><span class="' + (d > 0 ? 'up' : d < 0 ? 'dn' : '') + '">' + (d ? (d > 0 ? '↑ ' : '↓ ') + n0(Math.abs(d)) + (x[2] ? ' (' + Math.round(Math.abs(d) / x[2] * 100) + '%)' : '') : 'same') + ' vs before</span>' + (x[3] ? '<em>' + x[3] + '</em>' : '') + (x[1] ? '<i class="fgo">See who ' + ic('arr', 12) + '</i>' : '') + '</button>'; }).join('') + '</div>' +
       (worst > 0 ? '<p class="muted fnote">Biggest drop: from <b>' + steps[worst - 1][0].toLowerCase() + '</b> to <b>' + steps[worst][0].toLowerCase() + '</b> (' + Math.round(wv * 100) + '% pass).</p>' : '');
+  }
+  // quotes and portal orders waiting in Unleashed (Parked), by age and owner
+  var PK = { site_quote: ['Website quote', 24, 72], portal_quote: ['Portal quote', 24, 72], portal_order: ['Portal order', 1, 2], parked: ['Parked order', 48, 120] };
+  function drawPipe() {
+    var P = S.pipe; if (!P) return ld();
+    var F = S.pf || {}, now = Date.now(), mySp = P.mySp;
+    var rows = (P.rows || []).map(function (r) { var k = PK[r.kind] || PK.parked, hrs = r.at ? (now - Date.parse(r.at)) / 36e5 : 0; r.hrs = hrs; r.lvl = hrs >= k[2] ? 'red' : hrs >= k[1] ? 'amb' : 'ok'; return r; });
+    var L = rows.filter(function (r) { return (!F.kind || r.kind === F.kind) && (!F.mine || !mySp || r.sp === mySp) && (!F.late || r.lvl !== 'ok'); }).sort(function (a, b) { return b.hrs - a.hrs; });
+    var cnt = function (k) { return rows.filter(function (r) { return r.kind === k; }).length; }, late = rows.filter(function (r) { return r.lvl === 'red'; }).length;
+    var age = function (h) { return h < 1 ? Math.max(1, Math.round(h * 60)) + ' min' : h < 48 ? Math.round(h) + ' h' : Math.round(h / 24) + ' days'; };
+    var h = '<div class="kpis">' + tile('Waiting', n0(rows.length), 'parked in Unleashed', '', 'dark') + tile('Late', n0(late), 'quotes over 3 days, portal orders over 2 hours', '', late ? 'acc' : '') + tile('Website quotes', n0(cnt('site_quote')), '') + tile('Portal orders', n0(cnt('portal_order')), n0(cnt('portal_quote')) + ' portal quotes') + '</div>';
+    h += '<section class="card flush"><div class="fbar"><div class="seg" style="background:var(--soft)">' + [['', 'All'], ['site_quote', 'Website quotes'], ['portal_quote', 'Portal quotes'], ['portal_order', 'Portal orders'], ['parked', 'Other parked']].map(function (x) { return '<button data-act="pf-kind" data-v="' + x[0] + '" class="' + ((F.kind || '') === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      (mySp ? '<label class="mck" style="margin:0"><input type="checkbox" class="ck" data-pfmine="1"' + (F.mine ? ' checked' : '') + '> My accounts</label>' : '') + '<label class="mck" style="margin:0"><input type="checkbox" class="ck" data-pflate="1"' + (F.late ? ' checked' : '') + '> Late only</label><span class="sp"></span><span class="muted">Updated ' + esc(fmtAt(new Date(P.at).toISOString())) + '</span><button class="ib" data-act="pf-fresh" title="Reload from Unleashed" aria-label="Reload from Unleashed">' + ic('refresh', 16) + '</button></div>';
+    if (!L.length) return h + '<div class="empty" style="padding:24px">' + (rows.length ? 'Nothing with these filters.' : 'Nothing waiting. Every quote and portal order has been released.') + '</div></section>';
+    h += tbl([h0('Age'), h0('What'), h0('Customer'), h0('Salesperson'), hr('Value'), h0('')], L.map(function (r) { var k = PK[r.kind] || PK.parked;
+      return '<tr><td class="nw"><span class="age ' + r.lvl + '">' + esc(age(r.hrs)) + '</span></td><td><b class="mono">' + esc(r.number) + '</b><small>' + esc(k[0]) + (r.ref ? ' · ' + esc(r.ref) : '') + ' · ' + r.lines + ' line' + (r.lines === 1 ? '' : 's') + '</small></td><td><a data-act="cust" data-code="' + esc(r.code || '') + '" style="cursor:pointer"><b>' + esc(r.name || r.code) + '</b></a><small>' + (r.web ? '<span class="hidx">New customer: link the real one in Unleashed</span> · ' : '') + esc(r.note.slice(0, 120)) + '</small></td><td>' + esc(r.sp || '-') + '</td><td class="r b">' + (r.value ? k$(r.value) : '-') + '</td>' +
+        '<td class="nw" data-stop="1"><button class="btn sm" data-act="pf-log" data-code="' + esc(r.code || '') + '" data-n="' + esc(r.number) + '">' + ic('phone', 14) + ' Log</button> <button class="btn ghost sm" data-act="pf-done" data-n="' + esc(r.number) + '" data-code="' + esc(r.code || '') + '" data-name="' + esc(r.name || '') + '" title="Released or answered: take it off the board">Handled</button> <button class="btn ghost sm dang" data-act="pf-lost" data-n="' + esc(r.number) + '" data-code="' + esc(r.code || '') + '" data-name="' + esc(r.name || '') + '">Lost</button></td></tr>'; }));
+    return h + '<p class="muted" style="padding:0 20px 16px;font-size:12.5px">Release, add freight or delete the order in Unleashed. "Handled" and "Lost" only take it off this board and log it on the customer.</p></section>';
   }
   function drawFollowups() {
     var F = S.fus; if (!F) return '';
@@ -1038,6 +1057,11 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'fu-done' || act === 'fu-snooze') { var body2 = { id: id }; if (act === 'fu-done') { var oc2 = pick('What happened? It is saved with the follow-up.', OUTC.map(function (x) { return [x[0], x[1]]; }), { title: 'Close this follow-up', ok: 'Mark done' }); if (oc2 === null) return; body2.outcome = oc2; } if (act === 'fu-snooze') body2.snooze = new Date(Date.now() + 3 * 864e5).toISOString().slice(0, 10);
       api('note-done', body2).then(function (r) { if (r.ok) { toast(act === 'fu-done' ? 'Follow-up marked done.' : 'Moved 3 days ahead.', act === 'fu-done'); S.lastBulk = null; api('followups').then(function (q) { if (q._status === 200) { S.fus = q; draw(); } }); if (S.dr) openCust(S.dr.code, S.dr.acc, true); } else fail(r); }); return; }
     if (act === 'funv') { S.funv = t.dataset.v; return draw(); }
+    if (act === 'pf-kind') { S.pf = S.pf || {}; S.pf.kind = t.dataset.v; return draw(); }
+    if (act === 'pf-fresh') { S.pipe = null; draw(); api('pipeline', null, '&fresh=1').then(function (r) { if (r._status === 200) { S.pipe = r; draw(); } else fail(r); }); return; }
+    if (act === 'pf-log') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call', body: 'About ' + t.dataset.n + ': ' }; return; }
+    if (act === 'pf-done' || act === 'pf-lost') { var lostR = null; if (act === 'pf-lost') { lostR = pick('Why was it lost? It is saved on the customer.', [['price', 'Price'], ['stock', 'No stock or lead time'], ['competitor', 'Bought elsewhere'], ['no_answer', 'Never answered'], ['not_needed', 'Not needed anymore'], ['other', 'Other']], { title: 'Mark ' + t.dataset.n + ' as lost', ok: 'Mark lost', danger: true }); if (lostR === null) return; }
+      api('pipeline-mark', { number: t.dataset.n, status: act === 'pf-lost' ? 'lost' : 'handled', code: t.dataset.code, name: t.dataset.name, reason: lostR || '' }).then(function (r) { if (r.ok) { S.pipe.rows = S.pipe.rows.filter(function (x) { return x.number !== t.dataset.n; }); toast(t.dataset.n + (act === 'pf-lost' ? ' marked lost.' : ' off the board.'), act !== 'pf-lost'); } else fail(r); }); return; }
     if (act === 'fu-scope') { S.fuScope = t.dataset.v; return draw(); }
     if (act === 'act-mine') { S.actMine = !S.actMine; return draw(); }
     if (act === 'logcall') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call' }; setTimeout(function () { var ta = document.querySelector('[data-m="nf.body"]'); if (ta) ta.focus(); }, 700); return; }
@@ -1197,6 +1221,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'ad-tog') { var ax = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; api('admin-save', { email: ax.email, name: ax.name, role: ax.role, salesperson: ax.salesperson, active: !ax.active }).then(function (r) { done(r, function () { loadTab('admins'); }); }); }
   });
   app.addEventListener('change', function (e) { var d = e.target.dataset || {}; if (!S.replaying) S.okKey = null; S.curEv = { type: 'change', sel: selOf(e.target), checked: e.target.type === 'checkbox' ? e.target.checked : null, value: e.target.type === 'checkbox' ? null : e.target.value };
+    if (d.pfmine || d.pflate) { S.pf = S.pf || {}; if (d.pfmine) S.pf.mine = e.target.checked; else S.pf.late = e.target.checked; return draw(); }
     if (d.mchk) { S.modal.chk = e.target.checked; return; }
     if (e.target.id === 'csvf') { var fl = e.target.files && e.target.files[0]; if (!fl) return; var rd = new FileReader(); rd.onload = function () { var rows = parseCsv(rd.result); S.csv.file = fl.name; S.csv.rows = rows; S.csv.map = csvGuess(rows[0] || []); S.csv.result = null; draw(); }; rd.readAsText(fl); return; }
     if (d.tlk) { S.tloff = S.tloff || {}; S.tloff[d.tlk] = !e.target.checked; S.tln = 40; return draw(); }
