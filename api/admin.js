@@ -1329,8 +1329,9 @@ async function crmSync() {
   const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
   const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
-  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; });
-  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
+  const ctOf = {};
+  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
   if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
   for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0, updated_at: new Date().toISOString() }).catch(() => {}); }
   // deals whose order left the Parked list: lost if marked, won if invoiced
@@ -1364,7 +1365,15 @@ A['crm-deal'] = async (req, res) => {
   const id = clean(req.query.id, 60), d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0];
   if (!d) return res.status(404).json({ error: 'deal' });
   const sc = await salesScope(w, { query: {} }); if (w.role !== 'superadmin' && d.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
-  return res.json({ deal: d, acts: await db.select('crm_activities', 'select=*&deal_id=eq.' + d.id + '&order=created_at.desc&limit=200') });
+  const code = d.customer_code, enc = code ? encodeURIComponent(code) : null;
+  const [acts, cust, orders, life, others] = await Promise.all([
+    db.select('crm_activities', 'select=*&deal_id=eq.' + d.id + '&order=created_at.desc&limit=200'),
+    enc ? db.select('ul_customers', 'select=code,name,tier,type,email,contact_name,phone,city,state,country,salesperson,payment_terms,stop_credit,created_on&code=eq.' + enc + '&limit=1').catch(() => []) : [],
+    enc ? db.select('sales_orders', 'select=number,order_date,completed_date,subtotal,status&is_return=eq.false&customer_code=eq.' + enc + '&order=order_date.desc&limit=6').catch(() => []) : [],
+    enc ? db.select('sales_orders', 'select=subtotal,order_date&is_return=eq.false&customer_code=eq.' + enc + '&limit=5000').catch(() => []) : [],
+    enc ? db.select('crm_deals', 'select=id,title,stage,value&customer_code=eq.' + enc + '&id=neq.' + d.id + '&order=updated_at.desc&limit=8').catch(() => []) : [] ]);
+  const tot = life.reduce((t, x) => t + (Number(x.subtotal) || 0), 0), last = life.reduce((m, x) => (x.order_date > m ? x.order_date : m), '');
+  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others });
 };
 A['crm-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1377,7 +1386,7 @@ A['crm-save'] = async (req, res) => {
   if (b.kind === 'create') {
     const title = clean(b.title, 160); if (!title) return res.status(400).json({ error: 'title' });
     const owner = isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp; if (!owner) return res.status(403).json({ error: 'scope' });
-    const row = (await db.insert('crm_deals', [{ title, stage: 'new', owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
+    const row = (await db.insert('crm_deals', [{ title, stage: 'new', owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, contact_name: clean(b.contact_name, 120) || null, contact_email: clean(b.contact_email, 160) || null, contact_phone: clean(b.contact_phone, 60) || null, expected_close: ISO10.test(b.expected_close || '') ? b.expected_close : null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
     if (row) await log(row.id, 'stage', 'Created by ' + w.email);
     return res.json({ ok: true, id: row && row.id });
   }
@@ -1395,11 +1404,14 @@ A['crm-save'] = async (req, res) => {
     if (b.title != null) p.title = clean(b.title, 160) || d.title;
     if (b.value != null) p.value = Math.max(0, Number(b.value) || 0);
     if (b.note != null) p.note = clean(b.note, 1000) || null;
+    ['contact_name', 'contact_phone'].forEach((k) => { if (b[k] != null) p[k] = clean(b[k], 120) || null; });
+    if (b.contact_email != null) p.contact_email = clean(b.contact_email, 160) || null;
+    if (b.expected_close != null) p.expected_close = ISO10.test(b.expected_close) ? b.expected_close : null;
     if (b.owner != null && isSuper && clean(b.owner, 120) !== d.owner) { p.owner = clean(b.owner, 120); await log(d.id, 'owner', 'Owner changed from ' + (d.owner || 'nobody') + ' to ' + p.owner); }
     await db.update('crm_deals', 'id=eq.' + d.id, p);
     return res.json({ ok: true });
   }
-  if (b.kind === 'note' || b.kind === 'task') {
+  if (['note', 'call', 'email', 'task'].includes(b.kind)) {
     const body = clean(b.body, 1000); if (!body) return res.status(400).json({ error: 'body' });
     const due = b.kind === 'task' && ISO10.test(b.due || '') ? b.due : null;
     await log(d.id, b.kind, body, due); await db.update('crm_deals', 'id=eq.' + d.id, { updated_at: now });

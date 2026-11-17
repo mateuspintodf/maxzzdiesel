@@ -320,6 +320,29 @@ tr[data-act="cust"]>td:last-child::after,tr[data-act="v-edit"]>td:last-child::af
 tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:last-child::after,.kd:hover::after,.tdi:hover::after,.kd:focus-visible::after,.tdi:focus-visible::after{opacity:1}
 .kd{position:relative;padding-right:36px}.kd::after{top:14px;margin-top:0}.tdi{position:relative;padding-right:40px}.tdi:focus-visible,.kd:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 @media(pointer:coarse){tr[data-act="cust"]>td:last-child::after,tr[data-act="v-edit"]>td:last-child::after,.kd::after,.tdi::after{opacity:.7;width:18px;height:18px}}
+
+.kpis.k5{grid-template-columns:repeat(5,minmax(0,1fr))}@media(max-width:1100px){.kpis.k5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kb{height:calc(100vh - 330px);min-height:460px;align-items:stretch}
+.kc{display:flex;flex-direction:column;min-height:0;padding:10px 10px 8px}.kl{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 2px 2px;scrollbar-width:thin}
+.kfoot{border-top:1px solid var(--line);margin-top:8px;padding-top:8px;font-size:12px;color:var(--ink2);display:flex;flex-direction:column;gap:3px}.kfoot b{color:var(--ink)}
+.kd.hot{box-shadow:inset 3px 0 0 var(--red)}.kd .krow{display:flex;gap:6px;align-items:center;margin-top:5px;font-size:12px;color:var(--ink2)}.kd .krow svg{flex:none;color:var(--muted)}.kd .krow span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kp{background:var(--soft);border-radius:999px;padding:1px 8px;font-size:11.5px;color:var(--ink2)}
+.kbar{display:flex;align-items:center;gap:4px;margin-top:10px;padding-top:8px;border-top:1px solid var(--line2)}.ksp{flex:1}.kact{font-size:11.5px;color:var(--ink2);background:var(--soft);border-radius:8px;padding:3px 8px}.kact.old{color:var(--red);background:#fdecee}
+.kq{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:8px;border:0;background:transparent;color:var(--ink2);cursor:pointer}.kq:hover{background:var(--soft);color:var(--ink)}
+.kd::after{display:none}.kd{padding-right:12px}
+.stp{display:flex;gap:4px;margin:0 0 14px;flex-wrap:wrap}.stp button{flex:1;min-width:84px;border:0;background:var(--soft);padding:9px 8px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink2);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%);transition:background .15s}.stp button.dn{background:#e1eee6;color:#1f6a40}.stp button.on{background:var(--c);color:#fff;font-weight:600}
+.dg2{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:16px;align-items:start}@media(max-width:900px){.dg2{grid-template-columns:1fr}}
+.dcol{display:flex;flex-direction:column;gap:12px;min-width:0}.cpn{background:var(--soft);border-radius:18px;padding:14px 16px}.cph{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.cph h3,.cpn>h3{margin:0;font-size:14px}
+.amt{font-size:26px;font-weight:700;letter-spacing:-.02em}.who2{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.ed{margin-top:10px}.ed summary{cursor:pointer;font-size:12.5px;color:var(--ink2)}.ed .fgrid{margin-top:10px}
+.cl{display:inline-flex;gap:6px;align-items:center;color:var(--ink);cursor:pointer;text-decoration:none}.cl:hover b{text-decoration:underline}
+.cl2{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line);cursor:pointer;font-size:13px}.cl2:first-of-type{border-top:0}.cl2 small{color:var(--muted)}
+.lrow{display:flex;gap:12px;align-items:flex-end;justify-content:space-between;margin-top:10px}.lrow input{width:auto}
+.cpn .fgrid{background:transparent}.cpn textarea{width:100%;box-sizing:border-box}
+.kpis.k5 .kpi{padding:16px 18px;min-height:96px}.kpis.k5 .kpi b{font-size:24px}
+.kact{white-space:nowrap}.kbar{flex-wrap:nowrap}.kq{width:26px;flex:none}
+.who2{justify-content:flex-start}.who2 .av{margin:0}
+.kb{height:max(480px,calc(100vh - 290px))}
 </style>
 </head>
 <body>
@@ -600,82 +623,116 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
         us.map(function (u) { return '<tr' + (u.code ? ' data-act="cust" data-code="' + esc(u.code) + '"' : '') + '><td><b>' + esc(u.company || '') + '</b> ' + (u.hot ? st('due').replace('Due to reorder', 'Shopping') : '') + '<small>' + esc(u.name || '') + ' · ' + esc(u.email || '') + '</small></td><td>' + esc(new Date(u.last).toLocaleDateString()) + '</td><td class="r">' + u.sessions + '</td><td class="r">' + u.pv + '</td><td class="r">' + u.ca + '</td><td class="r">' + u.qu + '</td><td class="r">' + u.ord + '</td><td><span class="mono">' + esc((u.codes || []).slice(0, 3).join(', ')) + '</span>' + (u.queries && u.queries.length ? '<small>searched ' + esc(u.queries.join(', ')) + '</small>' : '') + '</td></tr>'; }), 'click') + '</section>';
     return h;
   }
-  // ---------------------------------------------------------------- CRM: deals on a kanban, with a card for each deal
+  // ---------------------------------------------------------------- CRM: deals on a kanban, with a full card for each deal
   var CRMSRC = { site_quote: 'Website quote', portal_quote: 'Portal quote', portal_order: 'Portal order', parked: 'Parked order', manual: 'Added by hand' };
   var CRMLOST = [['Price', 'Price'], ['No stock or lead time', 'No stock or lead time'], ['Bought elsewhere', 'Bought elsewhere'], ['No answer', 'No answer'], ['Not a real request', 'Not a real request'], ['Other', 'Other']];
+  var CRMK = { note: ['Note', 'file'], call: ['Call', 'phone'], email: ['Email', 'mail'], task: ['Task', 'clock'], stage: ['Update', 'arr'], owner: ['Owner', 'user'] };
+  var CALLR = [['Reached them', 'Reached them'], ['No answer', 'No answer'], ['Left a message', 'Left a message'], ['Quote sent', 'Quote sent'], ['Not now', 'Not now']];
   function crmLoad(quiet) { if (!quiet) S.tabErr = null; api('crm').then(function (r) { if (r._status === 200) { S.crm = r; draw(); } else if (!quiet) { S.tabErr = 'crm'; draw(); } }); }
+  function crmAgo(d) { var m = Math.floor((Date.now() - Date.parse(d)) / 6e4); if (!(m >= 0)) return ''; if (m < 60) return Math.max(1, m) + ' min ago'; var h = Math.floor(m / 60); if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago'); var n = Math.floor(h / 24); return n < 45 ? n + (n === 1 ? ' day ago' : ' days ago') : Math.round(n / 30) + ' months ago'; }
   function crmAge(d) { var n = Math.floor((Date.now() - Date.parse(d)) / 864e5); return n < 1 ? 'today' : n + (n === 1 ? ' day' : ' days'); }
   function crmStage(k) { return ((S.crm && S.crm.stages) || []).filter(function (x) { return x.key === k; })[0]; }
+  function crmLate(d) { var td = new Date().toISOString().slice(0, 10), st = crmStage(d.stage); if (!st || st.kind !== 'open') return false; return !!(d.next && d.next.due <= td) || (d.stage === 'new' && Date.now() - Date.parse(d.stage_at) > 864e5 * 2) || (Date.now() - Date.parse(d.updated_at) > 864e5 * 7); }
   function crmDealCard(d, su) {
-    var today = new Date().toISOString().slice(0, 10), late = d.next && d.next.due <= today;
-    return '<div class="kd" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Open deal" draggable="true" data-act="crm-open" data-id="' + esc(d.id) + '"><b>' + esc(d.title) + '</b>' + (d.customer_name ? '<small>' + esc(d.customer_name) + '</small>' : '') +
-      '<div class="kf"><span class="kv2">' + (d.value ? k$(d.value) : '-') + '</span><span class="muted">' + esc(CRMSRC[d.source] || d.source) + '</span></div>' +
-      '<div class="kf"><span class="muted">' + (su && d.owner ? esc(d.owner) + ' · ' : '') + crmAge(d.stage_at) + ' here</span></div>' +
-      (d.next ? '<div class="kt' + (late ? ' late' : '') + '">' + ic('clock', 12) + ' ' + esc(fmtAt(d.next.due)) + ': ' + esc(String(d.next.body || '').slice(0, 40)) + '</div>' : '') + '</div>';
+    var today = new Date().toISOString().slice(0, 10), late = d.next && d.next.due <= today, st = crmStage(d.stage), q = function (k, ico, tip) { return '<button class="kq" data-act="crm-q" data-k="' + k + '" data-id="' + esc(d.id) + '" data-tip="' + tip + '" aria-label="' + tip + '">' + ic(ico, 14) + '</button>'; };
+    return '<div class="kd' + (crmLate(d) ? ' hot' : '') + '" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Open deal" draggable="true" data-act="crm-open" data-id="' + esc(d.id) + '"><b>' + esc(d.title) + '</b>' + (d.customer_name ? '<small>' + esc(d.customer_name) + '</small>' : '') +
+      '<div class="kf"><span class="kv2">' + (d.value ? m0(d.value) : 'No amount') + '</span>' + (st && st.kind === 'open' ? '<span class="kp">' + st.prob + '%</span>' : '') + '</div>' +
+      '<div class="krow">' + ic('user', 13) + '<span>' + (d.owner ? esc(d.owner) : 'No owner') + '</span></div>' +
+      (d.contact_name ? '<div class="krow">' + ic('users', 13) + '<span>' + esc(d.contact_name) + '</span></div>' : '') +
+      '<div class="krow">' + ic('clock', 13) + '<span>Created ' + esc(fmtAt(String(d.created_at).slice(0, 10)).replace(/, \d{4}$/, '')) + ' · ' + crmAge(d.stage_at).replace(' days', 'd').replace(' day', 'd') + ' in stage</span></div>' +
+      (d.next ? '<div class="kt' + (late ? ' late' : '') + '">' + ic('clock', 12) + ' ' + esc(fmtAt(d.next.due)) + ': ' + esc(String(d.next.body || '').slice(0, 44)) + '</div>' : '') +
+      '<div class="kbar"><span class="kact' + (Date.now() - Date.parse(d.updated_at) > 864e5 * 7 ? ' old' : '') + '">' + esc(crmAgo(d.updated_at)) + '</span><span class="ksp"></span>' + q('note', 'file', 'Add a note') + (d.contact_phone ? '<a class="kq" data-stop="1" href="tel:' + esc(d.contact_phone) + '" data-tip="Call ' + esc(d.contact_phone) + '" aria-label="Call">' + ic('phone', 14) + '</a>' : '') + (d.contact_email ? '<a class="kq" data-stop="1" href="mailto:' + esc(d.contact_email) + '" data-tip="Email ' + esc(d.contact_email) + '" aria-label="Email">' + ic('mail', 14) + '</a>' : '') + q('task', 'clock', 'Add a task') + '</div></div>';
   }
   function drawCrm() {
     var C = S.crm; if (S.tabErr === 'crm') return ld(); if (!C) return ld();
     if (!C.isSuper && !C.mySp) return '<div class="card"><h2>Your login is not linked to a salesperson yet</h2><p class="muted">Ask a superadmin to pick your name under Settings, Admin users.</p></div>';
-    var F = S.crmf || {}, q = F.q || '', deals = C.deals.filter(function (d) { return (!F.owner || d.owner === F.owner) && (!q || qhas(d.title + ' ' + (d.customer_name || '') + ' ' + (d.customer_code || ''), q)); });
+    var F = S.crmf || {}, q = F.q || '', deals = C.deals.filter(function (d) { return (!F.owner || d.owner === F.owner) && (!F.src || d.source === F.src) && (!q || qhas(d.title + ' ' + (d.customer_name || '') + ' ' + (d.contact_name || '') + ' ' + (d.customer_code || ''), q)); });
     var open = deals.filter(function (d) { var s = crmStage(d.stage); return s && s.kind === 'open'; }), won = deals.filter(function (d) { return d.stage === 'won'; }), lost = deals.filter(function (d) { return d.stage === 'lost'; });
-    var sum = function (L) { return L.reduce(function (t, d) { return t + (Number(d.value) || 0); }, 0); };
-    var h = '<div class="kpis">' + tile('Open deals', n0(open.length), k$(sum(open)) + ' in play', '', 'dark') + tile('Won, last 60 days', n0(won.length), k$(sum(won))) + tile('Lost, last 60 days', n0(lost.length), k$(sum(lost))) + '</div>';
-    h += '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="crmf.q" value="' + esc(q) + '" placeholder="Deal, customer or code"></label>' +
-      (C.isSuper ? '<select class="sel" data-chg="crmf.owner" aria-label="Owner"><option value="">Everyone</option>' + C.owners.map(function (o) { return opt(o, o, F.owner || ''); }).join('') + '</select>' : '') +
+    var sum = function (L) { return L.reduce(function (t, d) { return t + (Number(d.value) || 0); }, 0); }, wsum = function (L) { return L.reduce(function (t, d) { var s = crmStage(d.stage); return t + (Number(d.value) || 0) * ((s && s.prob) || 0) / 100; }, 0); };
+    var needs = open.filter(crmLate).length, wr = won.length + lost.length ? Math.round(won.length / (won.length + lost.length) * 100) : null;
+    var h = '<div class="kpis k5">' + tile('Open deals', n0(open.length), 'in ' + C.stages.filter(function (s) { return s.kind === 'open'; }).length + ' stages', '', 'dark') + tile('Pipeline', k$(sum(open)), 'total value of open deals') + tile('Forecast', k$(wsum(open)), 'weighted by stage chance') + tile('Won, 60 days', k$(sum(won)), n0(won.length) + (won.length === 1 ? ' deal' : ' deals') + (wr != null ? ' · ' + wr + '% win rate' : '')) + tile('Needs action', n0(needs), 'late task, no reply or idle 7 days', '', needs ? 'acc' : '') + '</div>';
+    var srcs = {}; C.deals.forEach(function (d) { srcs[d.source] = 1; });
+    h += '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="crmf.q" value="' + esc(q) + '" placeholder="Deal, company or contact"></label>' +
+      (C.isSuper ? '<select class="sel" data-chg="crmf.owner" aria-label="Owner"><option value="">All owners</option>' + C.owners.map(function (o) { return opt(o, o, F.owner || ''); }).join('') + '</select>' : '') +
+      '<select class="sel" data-chg="crmf.src" aria-label="Source"><option value="">All sources</option>' + Object.keys(srcs).map(function (k) { return opt(k, CRMSRC[k] || k, F.src || ''); }).join('') + '</select>' +
       '<span class="sp"></span><button class="btn sm" data-act="crm-new">' + ic('plus', 14) + ' New deal</button></div>' +
-      '<div class="kb">' + C.stages.map(function (s) { var L = deals.filter(function (d) { return d.stage === s.key; });
-        return '<div class="kc" data-stage="' + esc(s.key) + '"><div class="kh"><i style="background:' + esc(s.color || '#9aa1ab') + '"></i><b>' + esc(s.label) + '</b><span>' + L.length + '</span><em>' + k$(sum(L)) + '</em></div><div class="kl">' +
-          (L.length ? L.map(function (d) { return crmDealCard(d, C.isSuper); }).join('') : '<div class="ke">Drop a deal here</div>') + '</div></div>'; }).join('') + '</div>' +
-      '<p class="muted" style="padding:6px 20px 16px;font-size:12.5px">Website quotes, portal quotes and parked orders in Unleashed become deals by themselves. A deal is won when its order is invoiced, and lost when you mark it lost.</p></section>';
+      '<div class="kb">' + C.stages.map(function (s) { var L = deals.filter(function (d) { return d.stage === s.key; }), tot = sum(L), w = tot * (s.prob || 0) / 100;
+        return '<div class="kc" data-stage="' + esc(s.key) + '"><div class="kh"><i style="background:' + esc(s.color || '#9aa1ab') + '"></i><b>' + esc(s.label) + '</b><span>' + L.length + '</span></div><div class="kl">' +
+          (L.length ? L.map(function (d) { return crmDealCard(d, C.isSuper); }).join('') : '<div class="ke">Drop a deal here</div>') + '</div>' +
+          '<div class="kfoot"><div><b>' + m0(tot) + '</b> | Total value</div>' + (s.kind === 'open' ? '<div><b>' + m0(w) + '</b> (' + s.prob + '%) | Weighted value</div>' : '<div class="muted">' + (s.kind === 'won' ? 'Closed won, last 60 days' : 'Closed lost, last 60 days') + '</div>') + '</div></div>'; }).join('') + '</div>' +
+      '<p class="muted" style="padding:6px 20px 16px;font-size:12.5px">Website quotes, portal quotes and parked orders in Unleashed become deals by themselves, with the contact from the customer record. A deal is won when its order is invoiced, and lost when you mark it lost. Weighted value is the amount times the chance of each stage.</p></section>';
     return h;
   }
+  function crmField(l, v, id, type, ph) { return '<div><label class="l">' + l + '</label><input type="' + (type || 'text') + '" id="' + id + '" value="' + esc(v == null ? '' : v) + '"' + (ph ? ' placeholder="' + esc(ph) + '"' : '') + '></div>'; }
+  function crmPane(title, body, act) { return '<section class="cpn"><div class="cph"><h3>' + title + '</h3>' + (act || '') + '</div>' + body + '</section>'; }
+  function crmRow(l, v) { return v ? '<div class="kv"><small>' + l + '</small><span>' + v + '</span></div>' : ''; }
   function drawCrmDrawer() {
-    var Cd = S.cd, C = S.crm || { stages: [], owners: [] }, d = Cd.deal, h = '<div class="dscrim" data-act="crm-x"></div><aside class="drawer" role="dialog" aria-label="Deal"><div class="dh"><div><small>' + (Cd.create ? 'New deal' : 'Deal') + '</small><h2>' + esc(Cd.create ? 'Add a deal' : (d ? d.title : 'Loading')) + '</h2></div><button class="ib" data-act="crm-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
+    var Cd = S.cd, C = S.crm || { stages: [], owners: [] }, d = Cd.deal, h = '<div class="dscrim" data-act="crm-x"></div><aside class="drawer wide" role="dialog" aria-label="Deal"><div class="dh"><div><small>' + (Cd.create ? 'New deal' : 'Deal') + '</small><h2>' + esc(Cd.create ? 'Add a deal' : (d ? d.title : 'Loading')) + '</h2></div><button class="ib" data-act="crm-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
     if (Cd.create) {
-      return h + '<div class="fgrid">' + '<div><label class="l">Title</label><input type="text" id="crm-title" placeholder="What is this deal"></div><div><label class="l">Customer</label><input type="text" id="crm-cname" placeholder="Customer name"></div><div><label class="l">Customer code (optional)</label><input type="text" id="crm-ccode" placeholder="Unleashed code"></div><div><label class="l">Value ($)</label><input type="number" id="crm-value" min="0" step="1"></div>' +
+      return h + '<div class="fgrid">' + crmField('Title', '', 'crm-title', 'text', 'What is this deal') + crmField('Company', '', 'crm-cname', 'text', 'Company name') + crmField('Company code (optional)', '', 'crm-ccode', 'text', 'Unleashed code') + crmField('Contact name', '', 'crm-contact') + crmField('Contact email', '', 'crm-email', 'email') + crmField('Contact phone', '', 'crm-phone') + crmField('Value ($)', '', 'crm-value', 'number') + crmField('Expected close', '', 'crm-close', 'date') +
         (C.isSuper ? '<div><label class="l">Owner</label><select class="sel" id="crm-owner">' + C.owners.map(function (o) { return opt(o, o, 'Michael'); }).join('') + '</select></div>' : '') + '<div><label class="l">Note</label><textarea id="crm-note" rows="3"></textarea></div></div><div class="mact"><button class="btn" data-act="crm-create">Add deal</button></div></div></aside>';
     }
     if (Cd.loading || !d) return h + ld() + '</div></aside>';
-    var st = crmStage(d.stage);
-    h += '<div class="tags"><span class="st">' + esc(st ? st.label : d.stage) + '</span><span class="st">' + esc(CRMSRC[d.source] || d.source) + '</span>' + (d.ref ? '<span class="st mono">' + esc(d.ref) + '</span>' : '') + '</div>';
-    if (d.customer_code) h += '<p style="margin:10px 0"><a data-act="crm-cust" data-code="' + esc(d.customer_code) + '"><b>' + esc(d.customer_name || d.customer_code) + '</b></a> <span class="muted">' + esc(d.customer_code) + ' · open the customer</span></p>';
-    h += '<h3 style="margin:14px 0 8px">Move to</h3><div class="outc">' + C.stages.map(function (s) { return '<button data-act="crm-move" data-id="' + esc(d.id) + '" data-s="' + esc(s.key) + '" class="' + (s.key === d.stage ? 'on' : '') + '">' + esc(s.label) + '</button>'; }).join('') + '</div>';
-    if (d.stage === 'lost' && d.lost_reason) h += '<p class="muted" style="margin:8px 0 0">Lost: ' + esc(d.lost_reason) + '</p>';
-    h += '<div class="fgrid" style="margin-top:16px"><div><label class="l">Title</label><input type="text" id="crm-title" value="' + esc(d.title) + '"></div><div><label class="l">Value ($)</label><input type="number" id="crm-value" min="0" step="1" value="' + esc(d.value || 0) + '"></div>' +
-      (C.isSuper ? '<div><label class="l">Owner</label><select class="sel" id="crm-owner">' + C.owners.map(function (o) { return opt(o, o, d.owner || ''); }).join('') + '</select></div>' : '<div><label class="l">Owner</label><div>' + esc(d.owner || '') + '</div></div>') +
-      '<div><label class="l">Note</label><textarea id="crm-note" rows="3">' + esc(d.note || '') + '</textarea></div></div><div class="mact"><button class="btn sm" data-act="crm-edit" data-id="' + esc(d.id) + '">Save changes</button></div>';
-    h += '<h3 style="margin:20px 0 8px">Log a note or task</h3><div class="fgrid"><div><textarea id="crm-body" rows="2" placeholder="What happened, or what needs doing"></textarea></div><div><label class="l">Task date (leave empty for a plain note)</label><input type="date" id="crm-due"></div></div><div class="mact"><button class="btn sm" data-act="crm-log" data-id="' + esc(d.id) + '">Add</button></div>';
+    var st = crmStage(d.stage), cu = Cd.cust, L = Cd.life || {}, K = Cd.k || 'note', stages = C.stages, ci = stages.findIndex(function (x) { return x.key === d.stage; });
+    h += '<div class="stp">' + stages.map(function (s, i) { return '<button class="' + (s.key === d.stage ? 'on ' : '') + (st && st.kind === 'open' && i < ci ? 'dn' : '') + '" style="--c:' + esc(s.color || '#9aa1ab') + '" data-act="crm-move" data-id="' + esc(d.id) + '" data-s="' + esc(s.key) + '">' + esc(s.label) + '</button>'; }).join('') + '</div>';
+    if (d.stage === 'lost' && d.lost_reason) h += '<p class="muted" style="margin:0 0 10px">Lost: ' + esc(d.lost_reason) + '</p>';
+    h += '<div class="dg2"><div class="dcol">';
+    h += crmPane('About this deal', '<div class="amt">' + m0(d.value) + '</div>' + (st && st.kind === 'open' ? '<p class="muted" style="margin:2px 0 10px">' + st.prob + '% chance, weighted ' + m0((d.value || 0) * st.prob / 100) + '</p>' : '') +
+      crmRow('Stage', esc(st ? st.label : d.stage) + ' · ' + crmAge(d.stage_at)) + crmRow('Source', esc(CRMSRC[d.source] || d.source)) + (d.ref ? crmRow('Order', '<span class="mono">' + esc(d.ref) + '</span>') : '') + crmRow('Created', esc(fmtAt(String(d.created_at).slice(0, 10)))) + crmRow('Last activity', esc(crmAgo(d.updated_at))) +
+      '<details class="ed"><summary>Edit deal</summary><div class="fgrid">' + crmField('Title', d.title, 'crm-title') + crmField('Value ($)', d.value || 0, 'crm-value', 'number') + crmField('Expected close', d.expected_close, 'crm-close', 'date') +
+      (C.isSuper ? '<div><label class="l">Owner</label><select class="sel" id="crm-owner">' + C.owners.map(function (o) { return opt(o, o, d.owner || ''); }).join('') + '</select></div>' : '') + '<div><label class="l">Note</label><textarea id="crm-note" rows="3">' + esc(d.note || '') + '</textarea></div></div><div class="mact"><button class="btn sm" data-act="crm-edit" data-id="' + esc(d.id) + '" data-sec="deal">Save deal</button></div></details>');
+    h += crmPane('Owner', '<div class="who2"><span class="av sm">' + esc(initials(d.owner || '?')) + '</span><b>' + esc(d.owner || 'No owner') + '</b></div>');
+    h += crmPane('Contact', (d.contact_name ? '<div class="who2"><span class="av sm">' + esc(initials(d.contact_name)) + '</span><b>' + esc(d.contact_name) + '</b></div>' : '<p class="muted" style="margin:0 0 8px">No contact yet.</p>') +
+      (d.contact_email ? '<div class="kv"><small>Email</small><span><a href="mailto:' + esc(d.contact_email) + '" data-stop="1">' + esc(d.contact_email) + '</a></span></div>' : '') + (d.contact_phone ? '<div class="kv"><small>Phone</small><span><a href="tel:' + esc(d.contact_phone) + '" data-stop="1">' + esc(d.contact_phone) + '</a></span></div>' : '') +
+      '<details class="ed"><summary>Edit contact</summary><div class="fgrid">' + crmField('Name', d.contact_name, 'crm-contact') + crmField('Email', d.contact_email, 'crm-email', 'email') + crmField('Phone', d.contact_phone, 'crm-phone') + '</div><div class="mact"><button class="btn sm" data-act="crm-edit" data-id="' + esc(d.id) + '" data-sec="contact">Save contact</button></div></details>');
+    h += crmPane('Company', (d.customer_code ? '<a class="cl" data-act="crm-cust" data-code="' + esc(d.customer_code) + '"><b>' + esc((cu && cu.name) || d.customer_name || d.customer_code) + '</b> ' + ic('open', 14) + '</a><p class="muted" style="margin:2px 0 8px">' + esc(d.customer_code) + '</p>' : '<b>' + esc(d.customer_name || 'No company') + '</b><p class="muted" style="margin:2px 0 8px">Not linked to an Unleashed customer.</p>') +
+      (cu ? crmRow('Place', esc([cu.city, cu.state, cu.country].filter(Boolean).join(', '))) + crmRow('Account owner', esc(cu.salesperson || '')) + crmRow('Price tier', esc(cu.tier || '')) + crmRow('Terms', esc(cu.payment_terms || '') + (cu.stop_credit ? ' <span class="st lost">Credit stop</span>' : '')) : '') +
+      (L.orders ? crmRow('Lifetime sales', m0(L.sales) + ' · ' + n0(L.orders) + ' orders') + crmRow('Last order', esc(fmtAt(L.last))) : (d.customer_code ? '<p class="muted" style="margin:6px 0 0">No invoiced orders yet.</p>' : '')));
+    if ((Cd.others || []).length) h += crmPane('Other deals with this company', Cd.others.map(function (o) { var os = crmStage(o.stage); return '<a class="cl2" data-act="crm-open" data-id="' + esc(o.id) + '"><span>' + esc(o.title) + '</span><small>' + esc(os ? os.label : o.stage) + ' · ' + m0(o.value) + '</small></a>'; }).join(''));
+    h += '</div><div class="dcol">';
+    h += crmPane('Log activity', '<div class="seg" style="background:var(--soft);margin-bottom:10px">' + ['note', 'call', 'email', 'task'].map(function (k) { return '<button data-act="crm-k" data-v="' + k + '" class="' + (K === k ? 'on' : '') + '">' + CRMK[k][0] + '</button>'; }).join('') + '</div>' +
+      (K === 'call' ? '<div class="outc" style="margin-bottom:8px">' + CALLR.map(function (c) { return '<button data-act="crm-cr" data-v="' + esc(c[0]) + '" class="' + (Cd.cr === c[0] ? 'on' : '') + '">' + esc(c[1]) + '</button>'; }).join('') + '</div>' : '') +
+      '<textarea id="crm-body" rows="3" placeholder="' + (K === 'call' ? 'What was said on the call' : K === 'email' ? 'What you sent or received' : K === 'task' ? 'What needs doing' : 'What happened') + '"></textarea>' +
+      '<div class="lrow">' + (K === 'task' ? '<div><label class="l">Due date</label><input type="date" id="crm-due"></div>' : '<div><label class="l">Follow up on (optional)</label><input type="date" id="crm-due"></div>') + '<button class="btn sm" data-act="crm-log" data-id="' + esc(d.id) + '">' + (K === 'task' ? 'Add task' : 'Log ' + CRMK[K][0].toLowerCase()) + '</button></div>');
+    if ((Cd.orders || []).length) h += crmPane('Recent orders', tbl([h0('Order'), h0('Date'), hr('Subtotal')], Cd.orders.map(function (o) { return '<tr><td class="mono">' + esc(o.number) + '</td><td>' + esc(fmtAt(o.completed_date || o.order_date)) + '</td><td class="r">' + m0(o.subtotal) + '</td></tr>'; }), 'dt'));
     var acts = Cd.acts || [];
-    h += '<h3 style="margin:20px 0 8px">History</h3>' + (acts.length ? '<ol class="tl2">' + acts.map(function (a) { return '<li><span class="tli">' + ic(a.kind === 'task' ? 'clock' : a.kind === 'stage' ? 'arr' : 'phone', 16) + '</span><div class="tlb"><div class="tlh"><b>' + esc(a.kind === 'task' ? 'Task' + (a.due ? ' for ' + fmtAt(a.due) : '') : a.kind === 'note' ? 'Note' : 'Update') + '</b><time>' + esc(fmtAt(a.created_at)) + '</time></div><p>' + esc(a.body || '') + '</p><small class="muted">' + esc(a.created_by || '') + '</small>' +
-      (a.kind === 'task' && !a.done_at ? ' <button class="btn ghost sm" data-act="crm-done" data-id="' + esc(d.id) + '" data-a="' + esc(a.id) + '">Done</button>' : a.done_at ? ' <small class="muted">done</small>' : '') + '</div></li>'; }).join('') + '</ol>' : '<div class="empty">Nothing yet.</div>');
-    return h + '</div></aside>';
+    h += crmPane('Activity', acts.length ? '<ol class="tl2">' + acts.map(function (a) { var k = CRMK[a.kind] || CRMK.note; return '<li class="k-' + esc(a.kind) + '"><span class="tli">' + ic(k[1], 16) + '</span><div class="tlb"><div class="tlh"><b>' + esc(a.kind === 'task' ? 'Task' + (a.due ? ' for ' + fmtAt(a.due) : '') : k[0]) + '</b><time>' + esc(crmAgo(a.created_at)) + '</time></div><p>' + esc(a.body || '') + '</p><small class="muted">' + esc(a.created_by || '') + '</small>' +
+      (a.kind === 'task' && !a.done_at ? ' <button class="btn ghost sm" data-act="crm-done" data-id="' + esc(d.id) + '" data-a="' + esc(a.id) + '">Done</button>' : a.done_at ? ' <small class="muted">done</small>' : (a.due && a.kind !== 'task' && !a.done_at ? ' <small class="muted">follow up ' + esc(fmtAt(a.due)) + '</small>' : '')) + '</div></li>'; }).join('') + '</ol>' : '<div class="empty">Nothing yet. Log the first call or note above.</div>');
+    return h + '</div></div></div></aside>';
   }
-  function crmDeal() { var id = S.cd && S.cd.id; if (!id) return; api('crm-deal', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (!S.cd || S.cd.id !== id) return; S.cd.loading = false; if (r._status === 200) { S.cd.deal = r.deal; S.cd.acts = r.acts; } else { S.cd = null; fail(r); return; } draw(); }); }
+  function crmDeal() { var id = S.cd && S.cd.id; if (!id) return; api('crm-deal', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (!S.cd || S.cd.id !== id) return; S.cd.loading = false; if (r._status === 200) { S.cd.deal = r.deal; S.cd.acts = r.acts; S.cd.cust = r.cust; S.cd.orders = r.orders; S.cd.life = r.life; S.cd.others = r.others; } else { S.cd = null; fail(r); return; } draw(); }); }
   function crmPost(body, msg) { return api('crm-save', body).then(function (r) { if (!r.ok) { fail(r); crmLoad(true); return r; } if (msg) toast(msg, true); crmLoad(true); if (S.cd && S.cd.id) crmDeal(); return r; }); }
   function crmV(id) { var el = document.getElementById(id); return el ? el.value : ''; }
   function crmAct(act, t) {
-    if (act === 'crm-open') { S.cd = { id: t.dataset.id, loading: true }; draw(); crmDeal(); return; }
+    if (act === 'crm-open') { S.cd = { id: t.dataset.id, loading: true, k: 'note' }; draw(); crmDeal(); return; }
+    if (act === 'crm-q') { S.cd = { id: t.dataset.id, loading: true, k: t.dataset.k }; draw(); crmDeal(); setTimeout(function () { var b = document.getElementById('crm-body'); if (b) b.focus(); }, 500); return; }
+    if (act === 'crm-k') { S.cd.k = t.dataset.v; return draw(); }
+    if (act === 'crm-cr') { S.cd.cr = t.dataset.v; return draw(); }
     if (act === 'crm-x') return closeL('.drawer,.dscrim', function () { S.cd = null; });
     if (act === 'crm-new') { S.cd = { create: true }; return draw(); }
     if (act === 'crm-cust') { S.cd = null; return openCust(t.dataset.code, null); }
     if (act === 'crm-create') { var ti = crmV('crm-title').trim(); if (!ti) { toast('Give the deal a title.'); return; }
-      return api('crm-save', { kind: 'create', title: ti, customer_name: crmV('crm-cname'), customer_code: crmV('crm-ccode'), value: crmV('crm-value'), owner: crmV('crm-owner'), note: crmV('crm-note') }).then(function (r) { if (!r.ok) return fail(r); toast('Deal added.', true); S.cd = r.id ? { id: r.id, loading: true } : null; crmLoad(true); crmDeal(); }); }
+      return api('crm-save', { kind: 'create', title: ti, customer_name: crmV('crm-cname'), customer_code: crmV('crm-ccode'), contact_name: crmV('crm-contact'), contact_email: crmV('crm-email'), contact_phone: crmV('crm-phone'), expected_close: crmV('crm-close'), value: crmV('crm-value'), owner: crmV('crm-owner'), note: crmV('crm-note') }).then(function (r) { if (!r.ok) return fail(r); toast('Deal added.', true); S.cd = r.id ? { id: r.id, loading: true, k: 'note' } : null; crmLoad(true); crmDeal(); }); }
     if (act === 'crm-move') { var st = crmStage(t.dataset.s), why = ''; if (!st) return;
       if (st.kind === 'lost') { why = pick('Why was it lost?', CRMLOST, { title: 'Mark as lost', ok: 'Mark lost' }); if (!why) return; }
       var dl = S.crm && S.crm.deals.filter(function (x) { return x.id === t.dataset.id; })[0]; if (dl) { dl.stage = st.key; dl.stage_at = new Date().toISOString(); draw(); }
       return crmPost({ kind: 'move', id: t.dataset.id, stage: st.key, reason: why }, 'Moved to ' + st.label + '.'); }
-    if (act === 'crm-edit') return crmPost({ kind: 'edit', id: t.dataset.id, title: crmV('crm-title'), value: crmV('crm-value'), note: crmV('crm-note'), owner: crmV('crm-owner') || undefined }, 'Saved.');
-    if (act === 'crm-log') { var b = crmV('crm-body').trim(), due = crmV('crm-due'); if (!b) { toast('Write what happened or what needs doing.'); return; }
-      return crmPost({ kind: due ? 'task' : 'note', id: t.dataset.id, body: b, due: due }, due ? 'Task added.' : 'Note added.'); }
+    if (act === 'crm-edit') { var sec = t.dataset.sec, p = { kind: 'edit', id: t.dataset.id };
+      if (sec === 'contact') { p.contact_name = crmV('crm-contact'); p.contact_email = crmV('crm-email'); p.contact_phone = crmV('crm-phone'); } else { p.title = crmV('crm-title'); p.value = crmV('crm-value'); p.note = crmV('crm-note'); p.expected_close = crmV('crm-close'); if (crmV('crm-owner')) p.owner = crmV('crm-owner'); }
+      return crmPost(p, 'Saved.'); }
+    if (act === 'crm-log') { var b = crmV('crm-body').trim(), due = crmV('crm-due'), K = (S.cd && S.cd.k) || 'note'; if (!b) { toast('Write what happened or what needs doing.'); return; }
+      if (K === 'task' && !due) { toast('Pick a due date for the task.'); return; }
+      if (K === 'call' && S.cd.cr) b = S.cd.cr + ': ' + b;
+      S.cd.cr = null; return crmPost({ kind: K, id: t.dataset.id, body: b, due: due }, K === 'task' ? 'Task added.' : 'Logged.'); }
     if (act === 'crm-done') return crmPost({ kind: 'done', id: t.dataset.id, act: t.dataset.a }, 'Task done.');
   }
-  // drag a card to another column (touch screens use the Move to buttons in the card)
+  // drag a card to another column (touch screens use the stage bar in the card)
   app.addEventListener('dragstart', function (e) { var c = e.target.closest && e.target.closest('.kd'); if (!c) return; e.dataTransfer.setData('text/plain', c.dataset.id); e.dataTransfer.effectAllowed = 'move'; c.classList.add('drg'); });
   app.addEventListener('dragend', function () { [].forEach.call(app.querySelectorAll('.drg,.ov'), function (x) { x.classList.remove('drg', 'ov'); }); });
   app.addEventListener('dragover', function (e) { var c = e.target.closest && e.target.closest('.kc'); if (!c) return; e.preventDefault(); if (!c.classList.contains('ov')) { [].forEach.call(app.querySelectorAll('.ov'), function (x) { x.classList.remove('ov'); }); c.classList.add('ov'); } });
   app.addEventListener('drop', function (e) { var c = e.target.closest && e.target.closest('.kc'); if (!c) return; e.preventDefault(); [].forEach.call(app.querySelectorAll('.drg,.ov'), function (x) { x.classList.remove('drg', 'ov'); });
     var id = e.dataTransfer.getData('text/plain'), st = crmStage(c.dataset.stage), dl = S.crm && S.crm.deals.filter(function (x) { return x.id === id; })[0]; if (!st || !dl || dl.stage === st.key) return;
-    if (st.kind === 'lost') { S.cd = { id: id, loading: true }; draw(); crmDeal(); toast('Use "Move to" and pick Lost, so the reason is saved.'); return; }
+    if (st.kind === 'lost') { S.cd = { id: id, loading: true, k: 'note' }; draw(); crmDeal(); toast('Click Lost in the stage bar so the reason is saved.'); return; }
     dl.stage = st.key; dl.stage_at = new Date().toISOString(); draw(); crmPost({ kind: 'move', id: id, stage: st.key }, 'Moved to ' + st.label + '.'); });
   // ---------------------------------------------------------------- customer drawer (one place for everything about a customer)
   var OUTC = [['reached', 'Reached them', 0], ['no_answer', 'No answer', 2], ['left_message', 'Left a message', 2], ['quote_sent', 'Quote sent', 3], ['ordered', 'Ordered', 0], ['not_now', 'Not now', 30], ['lost', 'Lost', 0]], OUTL = {}; OUTC.forEach(function (x) { OUTL[x[0]] = x[1]; });
