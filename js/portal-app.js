@@ -2507,6 +2507,8 @@
     // live campaigns (Black Friday and the like): badge per part, and the campaign page #/promo/<slug>
     get campOf() { var m = {}; (this.camps || []).forEach(function (c) { c.codes.forEach(function (k) { if (!m[k]) m[k] = c; }); }); return m; },
     get curCamp() { var a = this.arg; return (this.camps || []).filter(function (c) { return c.slug === a; })[0] || null; },
+    // campaign background: the uploaded banner (darkened on the left so the text reads) or the campaign color
+    campBg: function (c) { var u = c && c.banner; if (!u || !/^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//.test(u)) return { background: c.color }; return { background: 'linear-gradient(90deg, rgba(10,12,14,.78) 0%, rgba(10,12,14,.5) 42%, rgba(10,12,14,.05) 72%), url("' + u.replace(/["\\]/g, '') + '") center / cover no-repeat, ' + c.color }; },
     campEnds: function (c) { var d = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5); return d <= 1 ? 'Ends today' : 'Ends in ' + d + ' days'; },
     was: function (code) { var p = this.book && this.book.items[code]; return p && p[4] ? p[4] : null; },
     get listTitle() {

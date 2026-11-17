@@ -76,6 +76,8 @@ svg.chart{width:100%;height:auto;display:block}.chart .b1{fill:url(#hatch)}.char
 .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;border-radius:999px;padding:3px 10px;background:var(--soft);color:var(--ink2);white-space:nowrap;--c:#9aa0a8}
 .st:before{content:'';width:6px;height:6px;border-radius:50%;background:var(--c)}
 .st.portal{--c:var(--acc);background:var(--accs);color:#8a3f0a}.st.live{--c:var(--ok);background:var(--oks);color:var(--ok)}
+.spec{display:grid;grid-template-columns:70px minmax(0,1fr);gap:6px 10px;margin:14px 0 0;font-size:12.5px}.spec dt{color:var(--muted)}.spec dd{margin:0;color:var(--ink2)}
+.cpban{aspect-ratio:4/1;border-radius:12px;background:#eef0f2 center/cover no-repeat}.cpdrop{display:flex;align-items:center;justify-content:center;gap:8px;aspect-ratio:4/1;border:1.5px dashed #c3c8cf;border-radius:12px;color:var(--ink2);cursor:pointer;font-weight:500}.cpdrop:hover{border-color:var(--ink);color:var(--ink)}.cpdrop.busy{cursor:progress}.cplink{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2);flex-wrap:wrap}.cplink .mono{color:var(--muted);font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;background:var(--soft)}.pill.pending{background:var(--warns);color:var(--warn)}.pill.approved{background:var(--oks);color:var(--ok)}.pill.rejected{background:#fdecee;color:var(--red)}
 .tag{display:inline-flex;align-items:center;gap:6px;background:var(--soft);border-radius:999px;padding:4px 6px 4px 12px;font-size:12.5px}.tag button{border:0;background:#fff;border-radius:50%;width:20px;height:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted)}
 /* tables */
@@ -789,7 +791,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     h += '<div class="g3">' + cs.map(function (c) { var days = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5);
       return '<section class="card cpc" data-act="cp-open" data-id="' + esc(c.id) + '" style="cursor:pointer"><div class="ch"><div>' + badgeHtml(c) + '<h2 style="margin-top:10px">' + esc(c.name) + '</h2><small>' + esc(cpRule(c)) + '</small></div><span data-stop="1"><label class="sw" title="On or off"><input type="checkbox" aria-label="Campaign ' + esc(c.name) + ' on or off" data-cptog="' + esc(c.id) + '"' + (c.active ? ' checked' : '') + '><span></span></label></span></div>' +
         '<div class="row" style="gap:6px">' + st(c.state) + '<span class="st">' + n0(c.products) + ' parts</span><span class="st">' + (c.stack_vouchers ? 'vouchers allowed' : 'no vouchers') + '</span><span class="st">' + esc(dstr(c.starts_at)) + ' to ' + esc(dstr(c.ends_at)) + '</span>' + (c.state === 'on' && days > 0 ? '<span class="st due">ends in ' + days + ' day' + (days > 1 ? 's' : '') + '</span>' : '') + '</div>' +
-        (c.description ? '<p class="muted" style="margin:12px 0 0">' + esc(String(c.description).slice(0, 140)) + '</p>' : '') + '<p class="muted" style="margin:10px 0 0">Portal link: <span class="mono">/portal#/promo/' + esc(c.slug) + '</span></p></section>'; }).join('') + '</div>';
+        (c.description ? '<p class="muted" style="margin:12px 0 0">' + esc(String(c.description).slice(0, 140)) + '</p>' : '') + '<div class="cplink" data-stop="1"><span class="mono">/portal#/promo/' + esc(c.slug) + '</span><button class="btn ghost sm" data-act="cp-copy" data-u="' + esc(location.origin + '/portal#/promo/' + c.slug) + '">' + ic('copy', 14) + ' Copy link</button></div></section>'; }).join('') + '</div>';
     return h;
   }
   function drawCampaign() {
@@ -804,7 +806,11 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     h += '<section class="card"><div class="ch"><h2>When and how it looks</h2></div><div class="fg"><div class="fl"><label>Starts</label><input type="date" data-m="cp.starts_at" value="' + esc((c.starts_at || '').slice(0, 10)) + '"></div><div class="fl"><label>Ends (end of day) *</label><input type="date" data-m="cp.ends_at" value="' + esc((c.ends_at || '').slice(0, 10)) + '"></div></div>' +
       '<div class="chips" style="margin:10px 0 14px">' + [[3, '3 days'], [7, '1 week'], [14, '2 weeks'], [30, '30 days']].map(function (d) { return '<button data-act="cp-dur" data-d="' + d[0] + '">' + d[1] + '</button>'; }).join('') + '</div><label class="l">Badge color</label><div class="row" style="gap:8px">' + PAL.map(function (p) { return '<button class="swc' + ((c.color || '#d32a37') === p[0] ? ' on' : '') + '" data-act="cp-color" data-c="' + p[0] + '" title="' + p[1] + '" style="background:' + p[0] + '"></button>'; }).join('') + '</div>' +
       '<div class="row" style="margin-top:14px;gap:10px"><label class="sw"><input type="checkbox" data-cpstack="1"' + (c.stack_vouchers ? ' checked' : '') + '><span></span></label><span>' + (c.stack_vouchers ? 'Vouchers also apply to these parts' : 'Vouchers do not apply to these parts') + '</span></div>' +
-      '<div class="row" style="margin-top:10px;gap:10px"><label class="sw"><input type="checkbox" data-cpactive="1"' + (c.active !== false ? ' checked' : '') + '><span></span></label><span>' + (c.active !== false ? 'On: shows in the portal between the dates' : 'Off: saved but not shown') + '</span></div></section>';
+      '<div class="row" style="margin-top:10px;gap:10px"><label class="sw"><input type="checkbox" data-cpactive="1"' + (c.active !== false ? ' checked' : '') + '><span></span></label><span>' + (c.active !== false ? 'On: shows in the portal between the dates' : 'Off: saved but not shown') + '</span></div></section>' +
+      '<section class="card"><div class="ch"><h2>Banner</h2><span class="muted">optional</span></div>' +
+      (c.banner_url ? '<div class="cpban" style="background-image:url(\'' + esc(c._banPrev || c.banner_url) + '\')"></div><div class="row" style="gap:8px;margin-top:10px"><label class="btn ghost sm">Replace<input type="file" accept="image/jpeg,image/png,image/webp" data-cpban="1" hidden></label><button class="btn ghost sm" data-act="cp-ban-rm">Remove</button></div>'
+        : '<label class="cpdrop' + (S.banBusy ? ' busy' : '') + '">' + (S.banBusy ? '<span class="spn"></span> Uploading...' : ic('plus', 16) + ' Upload a banner') + '<input type="file" accept="image/jpeg,image/png,image/webp" data-cpban="1" hidden' + (S.banBusy ? ' disabled' : '') + '></label>') +
+      '<dl class="spec"><dt>Size</dt><dd>2400 × 600 px (4:1)</dd><dt>Format</dt><dd>JPG, PNG or WebP, up to 1.5 MB</dd><dt>Layout</dt><dd>The name and dates go over the left side. Keep the main picture on the right.</dd><dt>Phones</dt><dd>The edges get cut. Keep the key part away from the borders.</dd></dl><p class="muted" style="margin:10px 0 0;font-size:12.5px">Shows at the top of the campaign page and on its card on the portal home.</p></section>';
     if (!S.thumbs && !S.thumbsBusy) { S.thumbsBusy = true; fetch('/data/thumbs.json?v=1').then(function (r) { return r.json(); }).then(function (t) { S.thumbs = t || {}; draw(); }).catch(function () { S.thumbs = {}; }); }
     var TH = S.thumbs || {}, ik = Object.keys(c.items), demo = !ik.length;
     var fkey = ik.slice().sort().join('|');
@@ -829,6 +835,16 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     t += (rows.length > lim ? '<div class="more"><button class="btn ghost" data-act="cpn-more">Show more (' + n0(rows.length - lim) + ' left)</button></div>' : '') + '</section>';
     return h + '<div>' + treeHtml('cpf') + t + '</div></div>';
   }
+  function upBanner(f) {
+    var bad = function (m) { S.err = m; S.banBusy = false; draw(); };
+    if (!/^image\/(jpeg|png|webp)$/.test(f.type)) return bad('Use a JPG, PNG or WebP image.');
+    if (f.size > 1.5 * 1024 * 1024) return bad('The image is ' + (f.size / 1048576).toFixed(1) + ' MB. The limit is 1.5 MB: export it again with a bit more compression.');
+    var rd = new FileReader(); rd.onload = function () { var img = new Image(); img.onload = function () { var w = img.naturalWidth, hh = img.naturalHeight, r = w / hh;
+        if (w < 1600 || r < 3.6 || r > 4.4) return bad('The image is ' + w + ' × ' + hh + ' px. Use 2400 × 600 px (4:1); at least 1600 px wide.');
+        S.banBusy = true; S.err = ''; draw();
+        api('campaign-banner', { id: S.cp.id || '', slug: S.cp.slug || S.cp.name || '', type: f.type, data: String(rd.result) }).then(function (x) { S.banBusy = false; if (!x.ok) return fail(x); S.cp.banner_url = x.url; S.cp._banPrev = String(rd.result); toast('Banner ready. Save the campaign to publish it.', true); }); };
+      img.onerror = function () { bad('Could not read that image.'); }; img.src = rd.result; };
+    rd.readAsDataURL(f); }
   function openCampaign(id) {
     S.cpf = {}; S.cpn = 100; if (!S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
     if (!id) { var d = new Date(); S.cp = { kind: 'percent', value: 10, color: '#d32a37', active: true, starts_at: d.toISOString().slice(0, 10), ends_at: new Date(d.getTime() + 7 * 864e5).toISOString().slice(0, 10), items: {} }; return draw(); }
@@ -1144,6 +1160,8 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'cp-back') { S.cp = null; loadTab('campaigns'); return go(draw, 'back'); }
     if (act === 'cp-kind') { S.cp.kind = t.dataset.k; return draw(); }
     if (act === 'cp-color') { S.cp.color = t.dataset.c; return draw(); }
+    if (act === 'cp-ban-rm') { S.cp.banner_url = ''; S.cp._banPrev = ''; return draw(); }
+    if (act === 'cp-copy') { var u = t.dataset.u, done = function () { toast('Link copied. Paste it in your post, e-mail or WhatsApp.', true); }; if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(u).then(done, function () { S.err = 'Could not copy. The link is ' + u; draw(); }); else { var ta = document.createElement('textarea'); ta.value = u; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (x) {} ta.remove(); } return; }
     if (act === 'cp-inc') { S.cpf = S.cpf || {}; S.cpf.inc = t.dataset.v; S.cpn = 100; return draw(); }
     if (act === 'cpn-more') { S.cpn = (S.cpn || 100) + 200; return draw(); }
     if (act === 'cp-dur') { var s0 = S.cp.starts_at ? new Date(S.cp.starts_at.slice(0, 10) + 'T12:00:00') : new Date(); S.cp.starts_at = s0.toISOString().slice(0, 10); S.cp.ends_at = new Date(s0.getTime() + (+t.dataset.d) * 864e5).toISOString().slice(0, 10); return draw(); }
@@ -1152,7 +1170,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'cp-rmall') { var rr = prodFilter('cpf').filter(function (r) { return r[0] in S.cp.items; }); if (rr.length > 20 && !ok('Remove ' + rr.length + ' parts from the campaign?')) return; rr.forEach(function (r) { delete S.cp.items[r[0]]; }); return draw(); }
     if (act === 'cp-del') { if (!ok('Delete the campaign "' + S.cp.name + '"? The parts go back to their normal price.')) return; api('campaign-toggle', { id: S.cp.id, remove: true }).then(function (r) { if (r.ok) { S.cp = null; S.okMsg = 'Campaign deleted.'; loadTab('campaigns'); } else fail(r); }); return; }
     if (act === 'cp-save') { var c = S.cp; S.busy = true; draw();
-      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.kind === 'price' ? 0 : c.value, color: c.color, active: c.active !== false, stack_vouchers: !!c.stack_vouchers,
+      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.kind === 'price' ? 0 : c.value, color: c.color, banner_url: c.banner_url || '', active: c.active !== false, stack_vouchers: !!c.stack_vouchers,
         starts_at: c.starts_at ? new Date(c.starts_at.slice(0, 10) + 'T00:00:00').toISOString() : '', ends_at: c.ends_at ? new Date(c.ends_at.slice(0, 10) + 'T23:59:59').toISOString() : '',
         items: Object.keys(c.items).map(function (k) { return { code: k, value: c.items[k] }; }), rules: S.cpf || {}, force: !!S.cpForce, force_reason: S.cpForceReason || '' }).then(function (r) { S.busy = false; var wasForce = S.cpForce; S.cpForce = false; if (wasForce) S.cpForceReason = ''; if (r._status === 409 && r.canForce) { S.curEv = { type: 'click', sel: 'button[data-act="cp-save"]' }; draw(); } var frs = (r._status === 409 && r.canForce) ? ask(r.error + ' Say why to save it anyway.', { title: 'Save under the margin floor?', placeholder: 'Reason, e.g. clearing old stock', label: 'Reason', ok: 'Save anyway', danger: true }) : null; if (frs !== null && !String(frs).trim()) { S.err = 'Give a reason to save under the floor.'; return draw(); } if (frs !== null) { S.cpForceReason = frs; S.cpForce = true; draw(); var sb = app.querySelector('[data-act=cp-save]'); if (sb) sb.click(); return; } if (r.ok) { toast('Campaign saved. Customers see it within a minute.', true); S.cp.id = r.id; S.cp.slug = r.slug; } else fail(r); }); return; }
     // vouchers
@@ -1243,6 +1261,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (d.cpval) { var vv2 = parseFloat(e.target.value); S.cp.items[d.cpval] = vv2 > 0 ? vv2 : null; return; }
     if (d.cpactive) { S.cp.active = e.target.checked; return draw(); }
     if (d.cpstack) { S.cp.stack_vouchers = e.target.checked; return draw(); }
+    if (d.cpban) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) upBanner(f); return; }
     if (d.cptog) { var cpx = (S.cps || []).filter(function (x) { return x.id === d.cptog; })[0] || {}; if (!ok((e.target.checked ? 'Turn on ' : 'Turn off ') + (cpx.name || 'this campaign') + '? ' + (e.target.checked ? 'Its parts get the campaign price for every customer between the dates.' : 'Its parts go back to their normal price for every customer now.'))) { e.target.checked = !e.target.checked; return; } api('campaign-toggle', { id: d.cptog, active: e.target.checked }).then(function (r) { if (r.ok) { S.cps.forEach(function (x) { if (x.id === d.cptog) x.active = e.target.checked; }); draw(); } else fail(r); }); return; }
     if (d.pick) { S.pick = S.pick || {}; if (e.target.checked) S.pick[d.pick] = 1; else delete S.pick[d.pick]; return draw(); }
     if (d.psel) { S.psel = S.psel || {}; if (e.target.checked) S.psel[d.psel] = 1; else delete S.psel[d.psel]; return draw(); }
