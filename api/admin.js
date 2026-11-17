@@ -1496,6 +1496,26 @@ A['crm-ai'] = async (req, res) => {
   } catch (e) { return res.status(504).json({ error: 'The AI service took too long. Try again.' }); } finally { clearTimeout(t); }
 };
 
+// ---- daily briefing: the same one the 7:00 and 18:00 e-mails carry, shown on the Dashboard; a test goes to the person asking only
+const digestMemo = {};
+A.digest = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const DG = require('../lib/digest'), now = new Date(), when = req.query.when === 'pm' ? 'pm' : req.query.when === 'am' ? 'am' : (DG.hourNY(now) >= 13 ? 'pm' : 'am');
+  const hit = digestMemo[when]; if (hit && Date.now() - hit.t < 300000) return res.json(hit.v);
+  const b = await DG.build(when, now), v = { when, title: b.title, html: b.html, ai: b.ai, at: Date.now() };
+  digestMemo[when] = { t: Date.now(), v }; return res.json(v);
+};
+A['digest-test'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  if (!internalTo(w.email)) return res.status(400).json({ error: 'Only team addresses can receive it.' });
+  const b = readBody(req), when = b.when === 'pm' ? 'pm' : 'am', bl = await require('../lib/digest').build(when, new Date());
+  const r = await send(w.email, '[Test] ' + bl.subject, bl.title, bl.html, { url: base(req) + '/admin', label: 'Open the admin' }, { internal: true, team: true });
+  return res.json({ ok: !!r.sent, sent: !!r.sent });
+};
+
 // ---- @mentions and the bell: notifications for the team (in the admin and by e-mail, team addresses only)
 const handlesOf = (a) => { const out = new Set(), e = String(a.email || '').toLowerCase(); out.add(e.split('@')[0]);
   [a.first_name, a.name, a.salesperson].forEach((x) => { const t = String(x || '').trim().split(/\s+/)[0]; if (t) out.add(t.toLowerCase().replace(/[^a-z0-9._-]/g, '')); }); out.delete(''); return [...out]; };
@@ -1505,7 +1525,9 @@ async function notifyMentions(req, w, d, kind, body, due) {
     const found = [...new Set((String(body).match(/(^|[^a-z0-9._-])@([a-z0-9._-]{2,40})/gi) || []).map((m) => m.replace(/^[^@]*@/, '').toLowerCase().replace(/[._-]+$/, '')))];
     if (!found.length) return;
     const team = await teamList(), me = String(w.email).toLowerCase(), mine = team.find((t) => t.email === me), from = (mine && mine.name) || w.email, sent = new Set();
-    for (const h of found) { const t = team.find((x) => x.handles.includes(h)); if (!t || t.email === me || sent.has(t.email)) continue; sent.add(t.email);
+    const everyone = found.includes('all') || found.includes('everyone') || found.includes('team');
+    const targets = everyone ? team.map((t) => t.handles[0]) : found;
+    for (const h of targets) { const t = everyone ? team.find((x) => x.handles[0] === h) : team.find((x) => x.handles.includes(h)); if (!t || t.email === me || sent.has(t.email)) continue; sent.add(t.email);
       const title = from + ' mentioned you in ' + (kind === 'task' ? 'a task' : 'a ' + kind) + ' on ' + (d.title || 'a deal');
       await db.insert('admin_notifications', [{ to_email: t.email, kind: 'mention', title, body: clean(body, 400), deal_id: d.id, from_email: me, from_name: from }]).catch(() => {});
       await send(t.email, title, 'You were mentioned', '<p><b>' + esc(from) + '</b> wrote on <b>' + esc(d.title || 'a deal') + '</b>:</p><p style="padding:10px 14px;background:#f3f4f6;border-radius:8px">' + esc(clean(body, 400)) + '</p>' + (due ? '<p>Due: <b>' + esc(due) + '</b></p>' : ''),

@@ -381,6 +381,16 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .kc{display:flex;flex-direction:column;min-height:0;height:100%}.kl{flex:1 1 auto;min-height:0;max-height:none}
 @media(max-width:760px){.kb{height:auto!important}.kc{height:auto}.kl{max-height:60vh}}
 .kb ~ .kfoot{display:none}.app:has(.kb){padding-bottom:20px}
+
+/* entry and period-change motion: the truck drives and the bar fills on open, bars grow or shrink when the period changes */
+@keyframes rgrow{from{width:0}}@keyframes rdrive{from{left:0}}@keyframes rrise{from{height:0}}
+.rfill{animation:rgrow 1.4s cubic-bezier(.25,.8,.25,1) backwards}.rcar{animation:rdrive 1.4s cubic-bezier(.25,.8,.25,1) backwards}
+.pbar i{transition:width .7s cubic-bezier(.25,.8,.25,1);animation:rgrow 1s cubic-bezier(.25,.8,.25,1) backwards}
+.ym i{transition:width .6s ease,height .6s ease}
+.mfill,.mbact{transition:height .6s cubic-bezier(.25,.8,.25,1),background .15s}.mfill{animation:rrise .9s cubic-bezier(.25,.8,.25,1) backwards}.mbact{animation:rrise 1.1s cubic-bezier(.25,.8,.25,1) .15s backwards}
+.mbact{width:auto!important;left:0;right:0;opacity:.8;z-index:1}.mfill{z-index:0}.mgoal{position:absolute;left:0;right:0;height:0;border-top:3px solid #f08a24;z-index:2;pointer-events:none;transition:bottom .6s cubic-bezier(.25,.8,.25,1)}.mlast{z-index:3}.mval{z-index:4}
+@media(prefers-reduced-motion:reduce){.rfill,.rcar,.pbar i,.mfill,.mbact{animation:none}.pbar i,.rfill,.rcar,.mfill,.mbact{transition:none}}
+.brief-b table{border-collapse:separate}.brief-b h3{font-size:14px}.brief-b ul{margin:0}
 </style>
 </head>
 <body>
@@ -441,6 +451,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function daysSel() { return '<select class="sel" data-act-change="bdays">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.bdays || 30) === d ? ' selected' : '') + '>Last ' + d + ' days</option>'; }).join('') + '</select>'; }
   function hello() { var h = new Date().getHours(), n = S.me.email.split('@')[0]; n = n.charAt(0).toUpperCase() + n.slice(1); return (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + n; }
   function draw() {
+    var mp = document.getElementById('mn-pop'); if (mp && !(document.activeElement && document.activeElement.id === 'crm-note')) mp.remove();
     ECS = {}; ECN = 0;
     if (!S.me) return drawLogin();
     document.body.classList.remove('is-login');
@@ -463,7 +474,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var VIEWS = { profile: drawProfile, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
-    if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
+    if (t === 'dash') { if (S.me && S.me.role === 'superadmin') api('digest', null, S.bfw ? '&when=' + S.bfw : '').then(function (r) { if (r._status === 200) { S.bf = r; draw(); } }); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
     if (t === 'sa') return slLoad();
     if (t === 'goals') return pgLoad();
     if (t === 'crm') return crmLoad();
@@ -555,6 +566,13 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function syncNote(s) { var sy = s.sync;
     if (sy && sy.done) return '';
     return '<div class="note">' + ic('refresh', 16) + '<span><b>Sales history is still loading.</b> ' + (sy ? 'Page ' + (sy.page || 1) + ' of ' + (sy.pages || '?') + ', ' + n0(sy.orders) + ' orders so far. It copies 24 months from Unleashed a little every hour; the numbers below grow until it finishes.' : 'The first copy starts at the next hourly run.') + '</span>' + (S.me.role === 'superadmin' ? '<button class="btn ghost sm" data-act="dash-sync"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Copying...' : 'Copy a batch now') + '</button>' : '') + '</div>'; }
+  function drawBrief() {
+    if (!S.me || S.me.role !== 'superadmin') return '';
+    var B = S.bf, w = S.bfw || (B && B.when) || 'am';
+    var h = '<section class="card brief"><div class="gh"><h2 style="margin:0">Daily briefing</h2><div class="seg">' + [['am', 'Morning'], ['pm', 'Evening']].map(function (x) { return '<button data-act="bf-when" data-v="' + x[0] + '" class="' + (w === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div></div>';
+    if (!B || B.when !== w) return h + '<p class="muted">Loading...</p></section>';
+    return h + '<p class="muted" style="margin:4px 0 10px">' + esc(B.title) + '. Sent by e-mail to the managers at 7:00 and 18:00 (Florida time).' + (B.ai ? '' : ' AI summary is off, so the priorities come from fixed rules.') + '</p><div class="brief-b">' + B.html + '</div><div class="row" style="margin-top:12px"><button class="btn ghost sm" data-act="bf-test"' + (S.busy ? ' disabled' : '') + '>E-mail this to me</button></div></section>';
+  }
   function drawDash() {
     var D = S.dash; if (!D) return ld();
     var v = S.dview || 'overview';
@@ -564,7 +582,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var s = D.sales || {}, k = s.kpi || {}, mo = s.months || [], rv = mo.map(function (x) { return +x.rev || 0; }).slice(-12), on = mo.map(function (x) { return +x.n || 0; }).slice(-12), cu = mo.map(function (x) { return +x.cust || 0; }).slice(-12);
     var due = (s.status || {}).due || {}, ov = (s.status || {}).overdue || {};
     var pe = D.period || { days: 30, r: k.r30, pr: k.p30, o: k.o30, po: k.po30, c: 0, pc: 0 }, pd = pe.days || 30, pl = pd === 365 ? '12 months' : pd + ' days';
-    var h = syncNote(s) + '<div class="kpis">' + tile('Revenue, last ' + pl, k$(pe.r), delta(pe.r, pe.pr) + ' vs the ' + pl + ' before', '', 'dark') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
+    var h = drawBrief() + syncNote(s) + '<div class="kpis">' + tile('Revenue, last ' + pl, k$(pe.r), delta(pe.r, pe.pr) + ' vs the ' + pl + ' before', '', 'dark') + tile('Last 12 months', k$(k.r365), delta(k.r365, k.p365) + ' vs year before', sparkPath(rv, 120, 34)) + tile('Year to date', k$(k.ytd), delta(k.ytd, k.pytd) + ' vs last year') +
       tile('Orders, last ' + pl, n0(pe.o), delta(pe.o, pe.po), sparkPath(on, 120, 34)) + tile('Average order, last ' + pl, k$(pe.o ? pe.r / pe.o : 0), delta(pe.o ? pe.r / pe.o : 0, pe.po ? pe.pr / pe.po : 0)) + tile('Buying customers, last ' + pl, n0(pe.c), delta(pe.c, pe.pc), sparkPath(cu, 120, 34)) +
       tile('To reorder now', n0((due.n || 0) + (ov.n || 0)), '<a data-act="dview" data-v="customers" data-st="due">' + k$((due.r12 || 0) + (ov.r12 || 0)) + ' a year, see list</a>', '', 'acc') + tile('Portal, last ' + pl, n0(D.portal.orders + D.portal.quotes), n0(D.portal.orders) + ' orders · ' + n0(D.portal.quotes) + ' quotes') + '</div>';
     h += '<div class="g21">' + sec('Revenue by month', months(mo) + '<p class="muted">Invoiced subtotals. Orange: last 12 months, grey: the 12 before.' + (k.last ? ' Latest invoice ' + esc(k.last) + '.' : '') + '</p>') +
@@ -1447,16 +1465,20 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function mnCheck(ta) {
     var v = ta.value, c = ta.selectionStart, m = v.slice(0, c).match(/(^|\s)@([a-z0-9._-]{0,30})$/i);
     if (!m || !S.crm || !(S.crm.team || []).length) return mnClose();
-    var q = m[2].toLowerCase(), L = S.crm.team.filter(function (t) { return !q || t.handle.indexOf(q) === 0 || String(t.name).toLowerCase().indexOf(q) >= 0; }).slice(0, 6);
+    var q = m[2].toLowerCase(), L = (!q || 'all'.indexOf(q) === 0 ? [{ handle: 'all', name: 'Everyone on the team', photo: null, all: true }] : []).concat(S.crm.team).filter(function (t) { return !q || t.handle.indexOf(q) === 0 || String(t.name).toLowerCase().indexOf(q) >= 0; }).slice(0, 6);
     if (!L.length) return mnClose();
     var p = document.getElementById('mn-pop') || document.body.appendChild(Object.assign(document.createElement('div'), { id: 'mn-pop' })), r = ta.getBoundingClientRect();
     p.style.cssText = 'position:fixed;z-index:9999;left:' + r.left + 'px;top:' + (r.bottom + 4) + 'px;width:' + Math.min(280, r.width) + 'px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.14);padding:4px';
-    p.innerHTML = L.map(function (t) { return '<button type="button" data-mn="' + esc(t.handle) + '" style="display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px"><span class="av" style="width:24px;height:24px;font-size:10px;margin:0">' + avIn({ name: t.name, photo: t.photo }) + '</span><b style="font-size:13px;margin:0">' + esc(t.name) + '</b><small class="muted">@' + esc(t.handle) + '</small></button>'; }).join('');
+    p.innerHTML = L.map(function (t) { return '<button type="button" data-mn="' + esc(t.handle) + '" style="display:flex;align-items:center;justify-content:flex-start;gap:8px;width:100%;padding:8px 10px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px"><span class="av" style="width:24px;height:24px;font-size:10px;margin:0">' + (t.all ? ic('users', 14) : avIn({ name: t.name, photo: t.photo })) + '</span><b style="font-size:13px;margin:0">' + esc(t.name) + '</b><small class="muted">@' + esc(t.handle) + '</small></button>'; }).join('');
     MN.ta = ta; MN.start = c - m[2].length - 1;
   }
   document.addEventListener('input', function (e) { if (e.target && e.target.id === 'crm-body') mnCheck(e.target); });
   document.addEventListener('mousedown', function (e) { var b = e.target.closest && e.target.closest('[data-mn]'); if (!b || !MN.ta) return; e.preventDefault(); var ta = MN.ta, v = ta.value, c = ta.selectionStart; ta.value = v.slice(0, MN.start) + '@' + b.dataset.mn + ' ' + v.slice(c); var pos = MN.start + b.dataset.mn.length + 2; ta.setSelectionRange(pos, pos); ta.focus(); mnClose(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') mnClose(); });
+  // the list belongs to the note box: any click elsewhere (a tab, a button), losing focus or a redraw without that box closes it
+  document.addEventListener('mousedown', function (e) { if (!(e.target.closest && (e.target.closest('#mn-pop') || e.target.closest('#crm-note')))) mnClose(); }, true);
+  document.addEventListener('focusout', function (e) { if (e.target && e.target.id === 'crm-note') setTimeout(function () { if (document.activeElement !== e.target) mnClose(); }, 150); });
+  document.addEventListener('scroll', mnClose, true);
   function crmContacts(q) {
     var K = S.ct, f = S.ctf;
     if (!K && !S.ctLoading) { S.ctLoading = true; api('crm-contacts').then(function (r) { S.ctLoading = false; S.ct = r._status === 200 ? r.contacts : []; draw(); }); }
@@ -1536,7 +1558,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var h = '<section class="card gcard" data-pgcard="' + esc(r.sp) + '"><div class="gh"><h3 style="margin:0">' + esc(name) + '</h3><span class="muted" style="font-size:13px">' + (r.lastYear ? 'Last year ' + m0(r.lastYear) : 'No sales last year') + (r.ytd ? ' · this year so far ' + m0(r.ytd) : '') + '</span></div>';
     h += '<div class="annr"><div class="annv"><small>Yearly goal</small><b data-pgav>' + (ann > 0 ? m0(ann) : 'Not set') + '</b><span class="muted" data-pgag>' + pgGrow(ann, r.lastYear) + '</span></div>' +
       '<input class="rng" type="range" min="0" max="' + rw.max.ann + '" step="5000" value="' + ann + '" data-pgann="' + esc(r.sp) + '" aria-label="Yearly goal for ' + esc(name) + '"></div>';
-    h += '<div class="mbars">' + r.months.map(function (m, i) { var mv = rw.months[i]; return '<div class="mc"><div class="mbar' + (mv.manual ? ' man' : '') + '" tabindex="0" role="slider" aria-label="' + MON3[i] + ' goal" aria-valuenow="' + mv.v + '" data-pgm="' + esc(r.sp) + '" data-i="' + i + '" data-tip="' + MON3[i] + ' ' + r.months[i].ym.slice(0, 4) + ': ' + (m.last ? 'last year ' + m0(m.last) : 'no sales last year') + (m.sales ? ', this year ' + m0(m.sales) : '') + '. Drag to change."><i class="mfill" style="height:' + Math.min(100, mv.v / rw.max.mon * 100) + '%"></i>' + (m.last ? '<s class="mlast" style="bottom:' + Math.min(100, m.last / rw.max.mon * 100) + '%"></s>' : '') + (m.sales ? '<em class="mbact" style="height:' + Math.min(100, m.sales / rw.max.mon * 100) + '%"></em>' : '') + '<span class="mval">' + kf(mv.v) + '</span></div><label>' + MON3[i] + '</label></div>'; }).join('') + '</div>';
+    h += '<div class="mbars">' + r.months.map(function (m, i) { var mv = rw.months[i]; return '<div class="mc"><div class="mbar' + (mv.manual ? ' man' : '') + '" tabindex="0" role="slider" aria-label="' + MON3[i] + ' goal" aria-valuenow="' + mv.v + '" data-pgm="' + esc(r.sp) + '" data-i="' + i + '" data-tip="' + MON3[i] + ' ' + r.months[i].ym.slice(0, 4) + ': ' + (m.last ? 'last year ' + m0(m.last) : 'no sales last year') + (m.sales ? ', this year ' + m0(m.sales) : '') + '. Drag to change."><i class="mfill" style="height:' + Math.min(100, mv.v / rw.max.mon * 100) + '%"></i>' + '<s class="mgoal" style="bottom:' + Math.min(100, mv.v / rw.max.mon * 100) + '%"></s>' + (m.last ? '<s class="mlast" style="bottom:' + Math.min(100, m.last / rw.max.mon * 100) + '%"></s>' : '') + (m.sales ? '<em class="mbact" style="height:' + Math.min(100, m.sales / rw.max.mon * 100) + '%"></em>' : '') + '<span class="mval">' + kf(mv.v) + '</span></div><label>' + MON3[i] + '</label></div>'; }).join('') + '</div>';
     h += '<div class="gleg"><span><i class="lg a"></i>Goal</span><span><i class="lg b"></i>Sold</span><span><i class="lg c"></i>Last year</span></div>';
     h += '<div class="gf"><div class="muted" style="font-size:13px" data-pgsum>' + pgSumTxt(rw, sum) + '</div><div class="gb"><button class="btn ghost sm" data-act="pg-greset" data-sp="' + esc(r.sp) + '">Reset months to the yearly split</button><button class="btn sm" data-act="pg-gsave" data-sp="' + esc(r.sp) + '">Save ' + (r.sp === '*' ? 'company' : esc(name)) + '</button></div></div></section>';
     return h;
@@ -1547,7 +1569,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var rw = S.pgd.rows[sp], card = [].slice.call(app.querySelectorAll('[data-pgcard]')).filter(function (x) { return x.dataset.pgcard === sp; })[0]; if (!card) return;
     var av = card.querySelector('[data-pgav]'); if (av) av.textContent = rw.annual > 0 ? m0(rw.annual) : 'Not set';
     var gr = S.pg.goals.rows.filter(function (x) { return x.sp === sp; })[0], ag = card.querySelector('[data-pgag]'); if (ag) ag.textContent = pgGrow(rw.annual, gr.lastYear);
-    [].slice.call(card.querySelectorAll('.mbar')).forEach(function (b) { var i = +b.dataset.i, mv = rw.months[i]; b.classList.toggle('man', mv.manual); b.setAttribute('aria-valuenow', mv.v); b.querySelector('.mfill').style.height = Math.min(100, mv.v / rw.max.mon * 100) + '%'; b.querySelector('.mval').textContent = kf(mv.v); });
+    [].slice.call(card.querySelectorAll('.mbar')).forEach(function (b) { var i = +b.dataset.i, mv = rw.months[i]; b.classList.toggle('man', mv.manual); b.setAttribute('aria-valuenow', mv.v); b.querySelector('.mfill').style.height = Math.min(100, mv.v / rw.max.mon * 100) + '%'; var gl = b.querySelector('.mgoal'); if (gl) gl.style.bottom = Math.min(100, mv.v / rw.max.mon * 100) + '%'; b.querySelector('.mval').textContent = kf(mv.v); });
     var sm = card.querySelector('[data-pgsum]'); if (sm) sm.innerHTML = pgSumTxt(rw, pgSum(rw));
   }
   function pgSetMonth(sp, i, frac) { var rw = S.pgd.rows[sp], v = Math.round(Math.max(0, Math.min(1, frac)) * rw.max.mon / 500) * 500; rw.months[i].v = v; rw.months[i].manual = true; rw.dirty = true; pgPaint(sp); }
@@ -1849,6 +1871,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'ct-edit') { S.ctf = ((S.ct || []).filter(function (c) { return c.id === t.dataset.id; })[0]) || null; if (S.ctf) S.ctf = Object.assign({}, S.ctf); return draw(); }
     if (act === 'ct-save') { var cf = grp('ct'); api('contact-save', Object.assign({ id: S.ctf && S.ctf.id }, cf)).then(function (r) { if (!r.ok) return fail(r); toast('Contact saved.', true); S.ctf = null; S.ct = null; draw(); }); return; }
     if (act === 'ct-del') { if (!ok('This removes the contact record. Deals keep their own contact details.', { title: 'Delete this contact?', ok: 'Delete' })) return; api('contact-save', { id: S.ctf.id, del: true }).then(function (r) { if (!r.ok) return fail(r); toast('Contact deleted.', true); S.ctf = null; S.ct = null; draw(); }); return; }
+    if (act === 'bf-when') { S.bfw = t.dataset.v; draw(); api('digest', null, '&when=' + S.bfw).then(function (r) { if (r._status === 200) { S.bf = r; draw(); } }); return; }
+    if (act === 'bf-test') { S.busy = true; draw(); api('digest-test', { when: S.bfw || (S.bf && S.bf.when) || 'am' }).then(function (r) { S.busy = false; draw(); if (r.ok) toast('Sent to your e-mail.'); else fail(r); }); return; }
     if (act.indexOf('crm-') === 0) return crmAct(act, t);
     if (act === 'pf-log') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call', body: 'About ' + t.dataset.n + ': ' }; return; }
     if (act === 'pf-done' || act === 'pf-lost') { var lostR = null; if (act === 'pf-lost') { lostR = pick('Why was it lost? It is saved on the customer.', [['price', 'Price'], ['stock', 'No stock or lead time'], ['competitor', 'Bought elsewhere'], ['no_answer', 'Never answered'], ['not_needed', 'Not needed anymore'], ['other', 'Other']], { title: 'Mark ' + t.dataset.n + ' as lost', ok: 'Mark lost', danger: true }); if (lostR === null) return; }
