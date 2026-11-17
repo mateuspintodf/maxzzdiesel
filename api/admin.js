@@ -1341,6 +1341,7 @@ async function salesScope(w, req) {
   const a = (await db.select('admins', 'select=salesperson&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
   return a.salesperson ? { sp: a.salesperson, all: false } : { sp: null, all: false, none: true };
 }
+const m$ = (n) => '$' + Math.round(Number(n) || 0).toLocaleString('en-US');
 const sumBy = (rows, f) => rows.reduce((t, r) => t + (Number(f(r)) || 0), 0);
 A['sales-data'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1374,11 +1375,35 @@ A['sales-data'] = async (req, res) => {
   const people = Object.values(su).sort((a, b) => b.sales - a.sales).map((g) => ({ sp: g.k, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: comOf(g.k, g.sales, g.cov - g.cost), prev: sp0[g.k] ? sp0[g.k].sales : 0, rule: rule[g.k] ? { basis: rule[g.k].basis, pct: Number(rule[g.k].pct) } : null }));
   const pp = {}; (prv.parts || []).forEach((r) => { pp[r.code] = r; });
   const parts = (cur.parts || []).slice(0, 120).map((r) => ({ code: r.code, name: (N[r.code] && N[r.code].t) || '', qty: r.qty, sales: r.sales, profit: (Number(r.cov) || 0) - (Number(r.cost) || 0), prev: pp[r.code] ? pp[r.code].sales : 0 }));
+  // signals: plain rules over the numbers above, each with the evidence behind it and what to do about it
+  const signals = [];
+  const ev = (arr, f) => arr.slice(0, 25).map(f);
+  const rowOf = (c, note) => ({ c: c.c, n: c.n, a: Math.round(c.sales), b: Math.round(c.prev), sp: c.sp, note: note || '' });
+  const prevOnly = Object.values(pc).filter((g) => g.sales > 0 && !cu[g.k]);
+  const named = {}; (cur.orders || []).concat(prv.orders || []).forEach((r) => { if (r.c && r.n) named[r.c] = r.n; });
+  if (cmp !== 'none') {
+    const gone = prevOnly.filter((g) => g.sales >= 3000).sort((a, b) => b.sales - a.sales).map((g) => ({ c: g.k, n: named[g.k] || g.k, a: 0, b: Math.round(g.sales), sp: '', note: 'Bought before, nothing in this period' }));
+    if (gone.length) signals.push({ id: 'quiet', sev: 'high', title: 'Customers gone quiet', n: gone.length, tip: gone.length + ' customers that bought ' + m$(sumBy(gone, (r) => r.b)) + ' in the comparison period have not bought in this one.', text: 'These customers bought in the comparison period and have not ordered since. Call them before they settle with another supplier: ask if something went wrong, offer a restock on their usual parts.', rows: gone.slice(0, 25) });
+    const down = customers.filter((c) => c.prev >= 5000 && c.sales > 0 && c.sales <= c.prev * 0.6).sort((a, b) => (b.prev - b.sales) - (a.prev - a.sales));
+    if (down.length) signals.push({ id: 'down', sev: 'high', title: 'Spending dropped', n: down.length, tip: down.length + ' customers are buying at least 40% less than in the comparison period.', text: 'Same customers, clearly smaller baskets. Check what changed: price, stock outs, a competitor, or a shop that slowed down. A quote on their usual parts is a good opener.', rows: ev(down, (c) => rowOf(c, Math.round((1 - c.sales / c.prev) * 100) + '% less')) });
+    const up = customers.filter((c) => c.sales >= 5000 && c.prev > 0 && c.sales >= c.prev * 1.5).sort((a, b) => (b.sales - b.prev) - (a.sales - a.prev));
+    if (up.length) signals.push({ id: 'up', sev: 'good', title: 'Growing accounts', n: up.length, tip: up.length + ' customers are buying at least 50% more than before.', text: 'Worth a thank you and a conversation about what else they could stock with you. Good candidates for a tier review.', rows: ev(up, (c) => rowOf(c, '+' + Math.round((c.sales / c.prev - 1) * 100) + '%')) });
+    const fresh = customers.filter((c) => c.prev === 0 && c.sales >= 1000).sort((a, b) => b.sales - a.sales);
+    if (fresh.length) signals.push({ id: 'new', sev: 'info', title: 'New or returning buyers', n: fresh.length, tip: fresh.length + ' customers bought in this period and not in the comparison one.', text: 'First orders and customers that came back. A call in the first 30 days decides whether they become regulars.', rows: ev(fresh, (c) => rowOf(c, 'No sales in the comparison period')) });
+  }
+  const low = customers.filter((c) => c.cov >= 3000 && c.profit / c.cov < 0.1).sort((a, b) => a.profit / a.cov - b.profit / b.cov);
+  if (low.length) signals.push({ id: 'margin', sev: 'high', title: 'Thin margin', n: low.length, tip: low.length + ' customers earn under 10% margin on the sales that have a recorded cost.', text: 'Margin is measured on lines with the cost recorded at the time of the sale. Review the tier and the discounts given to these accounts.', rows: ev(low, (c) => rowOf(c, 'Margin ' + Math.round(c.profit / c.cov * 100) + '%')) });
+  const topC = customers[0], totS = sumBy(customers, (c) => c.sales);
+  if (topC && totS > 0 && topC.sales / totS >= 0.25) signals.push({ id: 'conc', sev: 'med', title: 'One customer is a quarter of sales', n: 1, tip: topC.n + ' is ' + Math.round(topC.sales / totS * 100) + '% of the sales in this period.', text: 'A lot rides on one account. Protect it, and look for customers of similar profile to spread the risk.', rows: [rowOf(topC, Math.round(topC.sales / totS * 100) + '% of sales')] });
+  const unas = customers.filter((c) => c.sp === 'Unassigned');
+  if (unas.length) signals.push({ id: 'unas', sev: 'med', title: 'Sales without a salesperson', n: unas.length, tip: unas.length + ' customers have sales but no salesperson in Unleashed.', text: 'Set the salesperson on the customer in Unleashed so the sale and the commission land with the right person.', rows: ev(unas, (c) => rowOf(c, '')) });
+  const k0 = kpi(cur);
+  if (k0.sales > 0 && k0.coverage != null && k0.coverage < 0.7) signals.push({ id: 'cost', sev: 'info', title: 'Profit covers part of the sales', n: 1, tip: 'Only ' + Math.round(k0.coverage * 100) + '% of the sales in this period have a recorded cost.', text: 'The cost at the time of the sale is being loaded from Unleashed for older orders. Profit and margin firm up as the history load finishes.', rows: [] });
   let everyone = [];
   if (sc.all) everyone = [...new Set([...people.map((x) => x.sp), ...comm.map((x) => x.salesperson), ...(await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson)])].sort();
   return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
     days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
-    customers, people, parts, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
+    customers, people, parts, signals, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
 };
 A['sales-commission'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });

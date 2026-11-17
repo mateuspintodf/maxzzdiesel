@@ -282,6 +282,8 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 @media(min-width:1201px){.kpis.k6{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .sa-t td.r,.sa-t th.r{text-align:right;white-space:nowrap}.rl{display:flex;gap:6px;align-items:center;margin-top:6px}.rl input{width:70px;padding:7px 8px;border:1px solid var(--line,#d9dde2);border-radius:10px}.chk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;color:var(--ink2)}
 @media(max-width:700px){.sa-t{min-width:760px}.rl{flex-wrap:wrap}}
+
+.sigs{display:flex;flex-wrap:wrap;gap:8px}.sig{display:inline-flex;align-items:center;gap:8px;border:1px solid #e4e7eb;background:#fff;border-radius:999px;padding:8px 14px;font-size:13.5px;cursor:pointer;color:var(--ink)}.sig i{width:9px;height:9px;border-radius:50%;background:#9aa1ab}.sig.high i{background:#d32a37}.sig.med i{background:#f08a24}.sig.good i{background:#1f8a4c}.sig.info i{background:#3b6fe0}.sig b{font-weight:700}.sig.on{background:#16191d;color:#fff;border-color:#16191d}.sigp{margin-top:14px;border-top:1px solid #eceef1;padding-top:12px}.sigp p{margin:0 0 10px;max-width:70ch;color:var(--ink2)}
 </style>
 </head>
 <body>
@@ -1054,12 +1056,21 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
       tile('Profit', cost ? m0(K.profit) : '-', cost ? (P && P.coverage ? delta(K.profit, P.profit) + ' ' : '') + 'margin ' + pc1(K.margin) + ' on ' + pc1(K.coverage) + ' of sales' : 'Cost at the time of sale is still syncing') +
       tile('Orders', n0(K.orders), P ? delta(K.orders, P.orders) : '') + tile('Customers', n0(K.customers), P ? delta(K.customers, P.customers) : '') +
       tile('Average order', K.aov == null ? '-' : m0(K.aov), P ? delta(K.aov, P.aov) : '') + tile('Commission', m0(K.commission), P ? delta(K.commission, P.commission) : 'by the rule set for each salesperson') + '</div>';
+    h += slSignals(D);
     h += '<section class="card"><h3 style="margin:0 0 10px">Sales over time</h3>' + slChart(D) + '</section>';
     var tabs = [['customers', 'Customers'], ['people', 'Salespeople'], ['parts', 'Parts']];
     h += '<div class="seg" style="margin:6px 0 14px">' + tabs.map(function (x) { return '<button data-act="sl-view" data-v="' + x[0] + '" class="' + (L.v === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>';
     if (L.v === 'people') return h + slPeople(D, own);
     if (L.v === 'parts') return h + slParts(D);
     return h + slCustomers(D, L);
+  }
+  function slSignals(D) {
+    var g = D.signals || []; if (!g.length) return '';
+    var open = g.filter(function (x) { return x.id === S.sigOpen; })[0];
+    var h = '<section class="card"><h3 style="margin:0 0 4px">What needs attention</h3><div class="muted" style="font-size:13px;margin-bottom:12px">Worked out from the numbers on this page. Hover for the short version, click for who and what to do.</div><div class="sigs">' +
+      g.map(function (x) { return '<button class="sig ' + x.sev + (open && open.id === x.id ? ' on' : '') + '" data-act="sig" data-id="' + esc(x.id) + '" data-tip="' + esc(x.tip) + '"><i></i><b>' + (x.rows && x.rows.length ? x.n : '') + '</b>' + esc(x.title) + '</button>'; }).join('') + '</div>';
+    if (open) h += '<div class="sigp"><p>' + esc(open.text) + '</p>' + (open.rows.length ? tbl([h0('Customer'), '<th class="r">This period</th>', '<th class="r">Before</th>', h0('Note')], open.rows.map(function (r) { return '<tr data-act="cust" data-code="' + esc(r.c || '') + '"><td><b>' + esc(r.n || r.c) + '</b><div class="muted" style="font-size:12px">' + esc(r.c || '') + (r.sp ? ' · ' + esc(r.sp) : '') + '</div></td><td class="r">' + m0(r.a) + '</td><td class="r">' + m0(r.b) + '</td><td>' + esc(r.note || '') + '</td></tr>'; }), 'sa-t') : '') + '</div>';
+    return h + '</section>';
   }
   function slCustomers(D, L) {
     var q = String(L.q || '').toLowerCase(), tot = D.kpi.sales || 0, ms = L.mon ? slMonths(D) : [];
@@ -1448,6 +1459,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'nav') { S.navOpen = !S.navOpen; return draw(); }
     if (act === 'nav-x') { S.navOpen = false; return draw(); }
     if (act === 'dview') { S.dview = t.dataset.v; if (t.dataset.st || t.dataset.sg) { S.cf = { st: t.dataset.st || '', sg: t.dataset.sg || '' }; S.cn = 60; } if (S.dview === 'customers' && !S.dc) loadDc(); window.scrollTo(0, 0); return draw(); }
+    if (act === 'sig') { S.sigOpen = S.sigOpen === t.dataset.id ? null : t.dataset.id; return draw(); }
     if (act === 'sl-view') { slState().v = t.dataset.v; return draw(); }
     if (act === 'sl-csv') return slCsv();
     if (act === 'sl-rule') { var ri = +t.dataset.i, rp = S.sd.people[ri], rb = app.querySelector('[data-rb="' + ri + '"]'), rv = app.querySelector('[data-rp="' + ri + '"]'); if (!rp || !rv || rv.value === '') { toast('Type the percentage first.'); return; }
