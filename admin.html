@@ -377,6 +377,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .stg{display:flex;gap:8px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}.stg input[type=text]{flex:1;min-width:0}.stg input[type=color]{width:34px;height:34px;padding:2px;border:1px solid var(--line);border-radius:8px;background:#fff}.stgp{min-width:84px;display:flex;align-items:center;gap:4px;flex:none}.stgp input{width:64px;text-align:right}.dt td .av.xs{display:inline-flex;vertical-align:middle;margin-right:6px}.stg.add{border-top:1px solid var(--line);margin-top:6px}
 .nform .seg button svg{vertical-align:-2px}
 @media(max-width:700px){.vst i{display:none}.vst{gap:4px 14px}.vbar{gap:4px 12px}.vsep{display:none}}
+.kb{min-height:0;align-items:stretch;cursor:grab;padding-bottom:12px}.kb.pan{cursor:grabbing;user-select:none}.kb.pan .kd{pointer-events:none}
+.kc{display:flex;flex-direction:column;min-height:0;height:100%}.kl{flex:1 1 auto;min-height:0;max-height:none}
+@media(max-width:760px){.kb{height:auto!important}.kc{height:auto}.kl{max-height:60vh}}
+.kb ~ .kfoot{display:none}.app:has(.kb){padding-bottom:20px}
 </style>
 </head>
 <body>
@@ -420,7 +424,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Product visibility']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
-    ['set', 'Settings', [['sec', 'My sign-in'], ['terms', 'Terms of use'], ['admins', 'Admin users'], ['audit', 'Activity log']]]];
+    ['set', 'Settings', [['profile', 'My profile'], ['sec', 'My sign-in'], ['terms', 'Terms of use'], ['admins', 'Admin users'], ['audit', 'Activity log']]]];
   var PAGE = {}; NAV.forEach(function (g) { g[2].forEach(function (t) { PAGE[t[0]] = { g: g[0], gn: g[1], n: t[1] }; }); });
   var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer'], ['products', 'Parts'], ['portal', 'Portal']];
   var HEAD = {
@@ -441,7 +445,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="dash"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
     NAV.forEach(function (g) { h += '<button data-tab="' + g[2][0][0] + '" class="' + (P.g === g[0] ? 'on' : '') + '">' + g[1] + '</button>'; });
     h += '</nav><div class="tools"><button class="cb" data-act="cst" data-s="pending" title="Access requests waiting" aria-label="Access requests waiting">' + ic('bell') + (pend ? '<i></i>' : '') + '</button><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
-      (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="admins">' + ic('shield', 16) + 'Admin users</button><button data-tab="audit">' + ic('clock', 16) + 'Activity log</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></header>';
+      (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="profile">' + ic('user', 16) + 'My profile</button><button data-tab="admins">' + ic('shield', 16) + 'Admin users</button><button data-tab="audit">' + ic('clock', 16) + 'Activity log</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></header>';
     var title = S.tab === 'dash' ? hello() : P.n, sub = S.tab === 'dash' ? 'Maxzz Diesel · ' + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : P.gn;
     h += '<div class="ph"><div class="t"><small>' + esc(sub) + '</small><h1>' + esc(title) + '</h1></div><div class="acts">' + (HEAD[S.tab] ? HEAD[S.tab]() : '') + (grp && grp[2].length > 1 ? '<div class="seg">' + grp[2].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + (t[0] === 'clients' && pend ? ' (' + pend + ')' : '') + '</button>'; }).join('') + '</div>' : '') + '</div></div>';
     if (S.me && S.me.mailOn === 'pilot' && /segments|clients|prospects|dir/.test(S.tab)) h += '<div class="note warn">' + ic('shield', 18) + '<span><b>Pilot mode.</b> Only the addresses in the pilot list and @maxzzdiesel.com get e-mail. Invites to anyone else are skipped.</span></div>';
@@ -452,7 +456,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
-  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
+  var VIEWS = { profile: drawProfile, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
@@ -469,6 +473,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (t === 'campaigns' && !S.cat) api('catalog-all').then(function (r) { if (r._status === 200) { S.cat = r; draw(); } });
   }
   function ld() { if (S.tabErr && S.tabErr === S.tab) return '<div class="card"><h2>Could not load this page</h2><p class="muted">The server did not answer. Check your connection and try again.</p><button class="btn sm" data-act="retry">Try again</button></div>'; return '<div class="skel" aria-busy="true" aria-label="Loading"><i></i><i></i><i></i></div>'; }
+  function photoData(file, cb) { var im = new Image(), u = URL.createObjectURL(file); im.onload = function () { var z = 192, c = document.createElement('canvas'), m = Math.min(im.width, im.height); c.width = c.height = z; c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, z, z); URL.revokeObjectURL(u); cb(c.toDataURL('image/jpeg', 0.82)); }; im.onerror = function () { URL.revokeObjectURL(u); toast('Could not read that image.'); }; im.src = u; }
   function adPhoto(file) { var im = new Image(), u = URL.createObjectURL(file); im.onload = function () { var z = 192, c = document.createElement('canvas'), m = Math.min(im.width, im.height); c.width = c.height = z; c.getContext('2d').drawImage(im, (im.width - m) / 2, (im.height - m) / 2, m, m, 0, 0, z, z); URL.revokeObjectURL(u); S.adPhoto = c.toDataURL('image/jpeg', 0.82); S.ex.ad = Object.assign({}, grp('ad'), { photo: S.adPhoto }); draw(); }; im.onerror = function () { URL.revokeObjectURL(u); toast('Could not read that image.'); }; im.src = u; }
   function fld(g, k, label, v, type, ph) { return '<div><label class="l">' + label + '</label><input type="' + (type || 'text') + '" data-g="' + g + '" data-k="' + k + '" value="' + esc(v == null ? '' : v) + '" placeholder="' + esc(ph || '') + '"></div>'; }
   function grp(g) { var o = {}; [].forEach.call(app.querySelectorAll('[data-g="' + g + '"]'), function (i) { o[i.dataset.k] = i.type === 'checkbox' ? i.checked : i.value.trim(); }); return o; }
@@ -673,7 +678,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function crmStage(k) { return ((S.crm && S.crm.stages) || []).filter(function (x) { return x.key === k; })[0]; }
   function crmLate(d) { var td = new Date().toISOString().slice(0, 10), st = crmStage(d.stage); if (!st || st.kind !== 'open') return false; return !!(d.next && d.next.due <= td) || (d.stage === 'new' && Date.now() - Date.parse(d.stage_at) > 864e5 * 2) || (Date.now() - Date.parse(d.updated_at) > 864e5 * 7); }
   function crmHue(t) { var h = 0; String(t || '').split('').forEach(function (c) { h = (h * 31 + c.charCodeAt(0)) % 360; }); return h; }
-  function crmAv(name, cls, tip) { var h = crmHue(name); return '<span class="av ' + (cls || 'xs') + '" style="background:hsl(' + h + ',55%,86%);color:hsl(' + h + ',50%,26%)"' + (tip ? ' data-tip="' + esc(tip) + '"' : '') + '>' + esc(initials(name || '?')) + '</span>'; }
+  function crmAv(name, cls, tip) { var h = crmHue(name), ph = S.crm && S.crm.photos && S.crm.photos[name]; return '<span class="av ' + (cls || 'xs') + '" style="background:hsl(' + h + ',55%,86%);color:hsl(' + h + ',50%,26%)"' + (tip ? ' data-tip="' + esc(tip) + '"' : '') + '>' + (ph ? '<img alt="" src="' + esc(ph) + '">' : esc(initials(name || '?'))) + '</span>'; }
   function crmMin(d) { var m = Math.floor((Date.now() - Date.parse(d)) / 6e4); if (!(m >= 0)) return ''; if (m < 60) return Math.max(1, m) + 'm'; var h = Math.floor(m / 60); if (h < 24) return h + 'h'; var n = Math.floor(h / 24); return n < 60 ? n + 'd' : Math.round(n / 30) + 'mo'; }
   function crmNames(d) { var ord = /^(site_quote|portal_quote|portal_order|parked)$/.test(d.source); return { main: ord ? (d.customer_name || d.title) : d.title, sub: (ord ? [d.ref, d.place] : [d.customer_name, d.place]).filter(Boolean).join(' · ') }; }
   function crmCard(d) {
@@ -721,7 +726,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
           '<div class="kw">' + (s.kind === 'open' ? '<i style="background:' + esc(s.color || '#9aa1ab') + '"></i>' + s.prob + '% chance, weighted ' + m0(w) : (s.kind === 'won' ? 'Closed won, last 60 days' : 'Closed lost, last 60 days')) + '</div>' +
           '<div class="kl">' + (L.length ? L.map(crmCard).join('') : '<div class="ke">Drop a deal here</div>') + '</div></div>'; }).join('') + '</div>';
     }
-    return h + '<p class="muted" style="padding:2px 20px 16px;font-size:12.5px">Website quotes, portal quotes, parked orders in Unleashed and portal access requests become deals by themselves. A deal is won when its order is invoiced or the access is approved, and lost when you mark it lost.</p></section>';
+    return h + '<p class="muted kfoot" style="padding:2px 20px 16px;font-size:12.5px">Website quotes, portal quotes, parked orders in Unleashed and portal access requests become deals by themselves. A deal is won when its order is invoiced or the access is approved, and lost when you mark it lost.</p></section>';
   }
   function drawStagesDrawer() {
     var C = S.crm || { stages: [] }, h = '<div class="dscrim" data-act="crm-stx"></div><aside class="drawer" role="dialog" aria-label="Pipeline stages"><div class="dh"><div><small>CRM</small><h2>Pipeline stages</h2></div><button class="ib" data-act="crm-stx" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody"><p class="muted" style="margin-top:0">Name each stage, set the chance of closing and the order. Won and Lost always come last. A stage can only be removed when it has no deals.</p>';
@@ -830,7 +835,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     dl.stage = st.key; dl.stage_at = new Date().toISOString(); draw(); crmPost({ kind: 'move', id: id, stage: st.key }, 'Moved to ' + st.label + '.'); });
   // ---------------------------------------------------------------- customer drawer (one place for everything about a customer)
   var OUTC = [['reached', 'Reached them', 0], ['no_answer', 'No answer', 2], ['left_message', 'Left a message', 2], ['quote_sent', 'Quote sent', 3], ['ordered', 'Ordered', 0], ['not_now', 'Not now', 30], ['lost', 'Lost', 0]], OUTL = {}; OUTC.forEach(function (x) { OUTL[x[0]] = x[1]; });
-  var TLK = { note: ['Notes and calls', 'phone'], order: ['Orders', 'truck'], quote: ['Quotes', 'file'], visit: ['Portal visits', 'globe'], invite: ['Invites', 'mail'], account: ['Account', 'user'], segment: ['Segments', 'layers'] };
+  var TLK = { note: ['Notes and calls', 'phone'], order: ['Orders', 'cart'], quote: ['Quotes', 'file'], visit: ['Portal visits', 'globe'], invite: ['Invites', 'mail'], account: ['Account', 'user'], segment: ['Segments', 'layers'] };
   function fmtAt(a) { a = String(a || ''); if (/^\d{4}-\d{2}-\d{2}$/.test(a)) { var p = a.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); } var d = new Date(a); return isNaN(d) ? a : d.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' }); }
   function moOf(a) { a = String(a || ''); var d = /^\d{4}-\d{2}-\d{2}$/.test(a) ? new Date(+a.slice(0, 4), +a.slice(5, 7) - 1, 1) : new Date(a); return isNaN(d) ? '' : d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }
   function kv(label, val) { return val ? '<div class="kv"><small>' + label + '</small><span>' + val + '</span></div>' : ''; }
@@ -1372,13 +1377,25 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
         (D.prev ? '<td class="r">' + delta(c.sales, c.prev) + '</td>' : '') + ms.map(function (m) { return '<td class="r">' + (c.months[m] ? m0(c.months[m]) : '') + '</td>'; }).join('') + '</tr>'; }), 'sa-t');
     return h + '<div class="muted" style="padding:10px 16px;font-size:12.5px">' + (rows.length > 300 ? 'Top 300 of ' + rows.length + '. Export the CSV for the full list. ' : '') + 'Profit and margin count only lines with the cost recorded at the time of the sale.</div></section>';
   }
+  function ccMonths() { var o = [], d = new Date(); for (var i = 0; i < 13; i++) { var x = new Date(d.getFullYear(), d.getMonth() - i, 1); o.push(x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0')); } return o; }
+  function ccLoad(ym) { S.cc = { ym: ym, loading: true }; api('commission-close', null, '&ym=' + ym).then(function (r) { if (S.cc && S.cc.ym === ym) { S.cc = r._status === 200 ? Object.assign({ ym: ym }, r) : { ym: ym, err: r.error || 'Could not load.' }; draw(); } }); }
+  function ccCard(own) {
+    if (!S.cc) { var ms = ccMonths(); setTimeout(function () { if (!S.cc) { ccLoad(ms[1]); draw(); } }, 0); }
+    var C = S.cc || { ym: ccMonths()[1], loading: true }, sup = S.me && S.me.role === 'superadmin';
+    var h = '<section class="card flush"><div class="fbar"><h2>Monthly commission</h2><select class="sel" data-chg="cc.ym">' + ccMonths().map(function (m) { return opt(m, m, C.ym); }).join('') + '</select><span class="sp"></span>' + (C.closed ? '<span class="pill approved">' + ic('shield', 12) + ' Closed' + (C.closed.at ? ' ' + esc(new Date(C.closed.at).toLocaleDateString()) : '') + '</span>' + (sup ? ' <button class="btn ghost sm" data-act="cc-reopen">Reopen</button>' : '') : sup && C.canClose && !C.loading && !C.err ? '<button class="btn sm" data-act="cc-close">Close this month</button>' : C.loading ? '' : '<span class="muted">Open</span>') + '</div>';
+    if (C.loading) return h + '<div class="empty">Loading...</div></section>';
+    if (C.err) return h + '<div class="empty">' + esc(C.err) + '</div></section>';
+    var tot = (C.rows || []).reduce(function (t, r) { return t + r.commission; }, 0);
+    h += tbl([h0('Salesperson'), h0('Sales'), h0('Profit'), h0('Rule'), h0(C.closed ? 'Frozen commission' : 'Commission')].concat(C.closed ? [h0('Now')] : []), (C.rows || []).map(function (r) { return '<tr><td><b>' + esc(r.sp) + '</b></td><td class="r">' + m0(r.sales) + '</td><td class="r">' + m0(r.profit) + '</td><td>' + (r.basis ? r.pct + '% of ' + r.basis : '<span class="muted">not set</span>') + '</td><td class="r"><b>' + m0(r.commission) + '</b></td>' + (C.closed ? '<td class="r muted">' + (r.now != null && Math.abs(r.now - r.commission) >= 0.5 ? m0(r.now) : 'same') + '</td>' : '') + '</tr>'; }).concat((C.rows || []).length > 1 && !own ? ['<tr><td><b>Total</b></td><td></td><td></td><td></td><td class="r"><b>' + m0(tot) + '</b></td>' + (C.closed ? '<td></td>' : '') + '</tr>'] : []), 'sa-t');
+    return h + '<div class="muted" style="padding:10px 16px;font-size:12.5px">' + (C.closed ? 'This month is frozen: a later edit in Unleashed does not change these numbers. The Now column shows what the rule would give today.' : C.canClose ? 'Numbers follow the rules and Unleashed today. Closing freezes them.' : 'The month is still running. It can be closed after it ends.') + (C.closed && C.closed.by ? ' Closed by ' + esc(C.closed.by) + '.' : '') + '</div></section>';
+  }
   function slPeople(D, own) {
     var h = '<section class="card flush">' + tbl([h0('Salesperson'), h0('Sales'), h0('Profit'), h0('Orders'), h0('Commission rule'), h0('Commission')].concat(D.prev ? [h0('vs before')] : []),
       D.people.map(function (p, i) {
         var rule = p.rule ? (p.rule.basis === 'sales' ? p.rule.pct + '% of sales' : p.rule.pct + '% of profit') : '<span class="muted">not set</span>';
         var edit = own ? '' : '<div class="rl"><select class="sel" data-rb="' + i + '">' + opt('profit', 'of profit', p.rule ? p.rule.basis : 'profit') + opt('sales', 'of sales', p.rule ? p.rule.basis : 'profit') + '</select><input type="number" min="0" max="100" step="0.1" data-rp="' + i + '" value="' + (p.rule ? p.rule.pct : '') + '" placeholder="%"><button class="btn sm" data-act="sl-rule" data-i="' + i + '">Save</button></div>';
         return '<tr><td><b>' + esc(p.sp) + '</b></td><td class="r">' + m0(p.sales) + '</td><td class="r">' + (p.cov ? m0(p.profit) : '-') + '</td><td class="r">' + n0(p.orders) + '</td><td>' + rule + edit + '</td><td class="r">' + (p.comm ? m0(p.comm) : '-') + '</td>' + (D.prev ? '<td class="r">' + delta(p.sales, p.prev) + '</td>' : '') + '</tr>'; }), 'sa-t') +
-      '<div class="muted" style="padding:10px 16px;font-size:12.5px">Commission follows the rule above on this period. Returns and credit notes reduce sales, profit and commission. Orders without a salesperson go to the salesperson set on the customer in Unleashed.</div></section>';
+      '<div class="muted" style="padding:10px 16px;font-size:12.5px">Commission follows the rule above on this period. Returns and credit notes reduce sales, profit and commission. Orders without a salesperson go to the salesperson set on the customer in Unleashed.</div></section>' + ccCard(own);
     return h;
   }
   function slParts(D) {
@@ -1398,7 +1415,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function pgBadge(b, BD) { var d = BD[b[0]] || [b[0], '']; return '<span class="bdg" data-tip="' + esc(d[0] + ': ' + d[1] + (b[1] > 1 || b[0] === 'hunter' || b[0] === 'comeback' || b[0] === 'closer' ? ' (' + b[1] + ')' : '')) + '">' + esc(d[0]) + (b[1] > 1 ? ' x' + b[1] : '') + '</span>'; }
   function ini(n) { return String(n || '?').split(/\s+/).slice(0, 2).map(function (x) { return x.charAt(0); }).join('').toUpperCase(); }
   function ring(pct, big, small) { var p = Math.max(0, Math.min(1, pct || 0)), c = 2 * Math.PI * 52; return '<div class="ringw"><svg viewBox="0 0 120 120" width="150" height="150"><circle cx="60" cy="60" r="52" fill="none" stroke="#eceef1" stroke-width="12"></circle><circle cx="60" cy="60" r="52" fill="none" stroke="#f08a24" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + (c * p).toFixed(1) + ' ' + c.toFixed(1) + '" transform="rotate(-90 60 60)"></circle></svg><div class="ringt"><b>' + big + '</b><small>' + small + '</small></div></div>'; }
-  function pgCar() { return '<svg viewBox="0 0 40 20" width="38" height="19" aria-hidden="true"><path d="M3 14V10l4-1 4-5h14l6 5 7 1v4z" fill="#d32a37"/><path d="M12 5h6v4h-8zM20 5h5l4 4h-9z" fill="#fff" opacity=".85"/><circle cx="11" cy="15" r="3.3" fill="#16191d"/><circle cx="29" cy="15" r="3.3" fill="#16191d"/></svg>'; }
+  function pgCar() { return '<svg viewBox="0 0 345.53 208.72" width="46" height="28" aria-hidden="true"><path fill="#16191d" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="#16191d" cx="91.62" cy="180.66" r="28.06"/><path fill="#d32a37" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="#16191d" cx="271.95" cy="179.07" r="26.87"/></svg>'; }
   function pgRace(R) {
     if (!R) return '';
     var mg = R.month.goal, ms = R.month.sales, mp = mg ? ms / mg : 0, pc = Math.round(R.pace * 100), M3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], mi = +R.ym.slice(5, 7) - 1;
@@ -1639,6 +1656,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     h += '<div class="secrow"><span class="sic">' + ic('monitor', 20) + '</span><div><b>Trusted computers</b><small>Computers where you ticked "Trust this computer" skip the second step for 30 days.</small></div><span><button class="btn ghost sm" data-act="sec-forget">Forget all</button></span></div>';
     return h + '</section>';
   }
+  function drawProfile() {
+    var m = S.me, f = S.pf || (S.pf = { first_name: m.first_name || '', last_name: m.last_name || '', phone: m.phone || '' }), ph = S.pfPhoto === undefined ? m.photo : S.pfPhoto;
+    return '<section class="card" style="max-width:640px"><h2>My profile</h2><p class="muted">Your name and photo show in the top bar, in the CRM and in the sales race.</p><div class="grid">' + fld('pf', 'first_name', 'First name', f.first_name) + fld('pf', 'last_name', 'Last name', f.last_name) + fld('pf', 'phone', 'Phone', f.phone, 'tel', '+1 555 123 4567') +
+      '<div><label class="l">E-mail</label><input type="text" value="' + esc(m.email) + '" disabled></div></div><div class="pph" style="margin:14px 0"><span class="av">' + avIn({ photo: ph, name: [f.first_name, f.last_name].join(' '), email: m.email }) + '</span><label class="btn ghost sm" style="cursor:pointer">Choose photo<input type="file" accept="image/*" data-pfph="1" hidden></label>' + (ph ? '<button class="btn ghost sm" data-act="pf-ph-rm">Remove</button>' : '') + '</div><div class="row"><button class="btn" data-act="pf-save">Save profile</button></div></section>';
+  }
   function drawAdmins() {
     if (!S.adm) return ld();
     var f = S.ex.ad || {}, h = '<div class="card"><h2>Admin users</h2><p class="muted">Superadmin: everything. Sales: customers, invites, vouchers, products, behavior. Marketing: invites, import, vouchers, behavior. A role change takes effect at the next sign-in.</p><div class="grid">' + fld('ad', 'email', 'E-mail *', f.email, 'text') + fld('ad', 'first_name', 'First name', f.first_name) + fld('ad', 'last_name', 'Last name', f.last_name) + fld('ad', 'phone', 'Phone', f.phone, 'tel', '+1 555 123 4567') + '<div><label class="l">Photo</label><div class="pph"><span class="av">' + avIn(S.adPhoto === undefined ? f : { photo: S.adPhoto, name: f.name, email: f.email }) + '</span><label class="btn ghost sm" style="cursor:pointer">Choose photo<input type="file" accept="image/*" data-adph="1" hidden></label>' + ((S.adPhoto === undefined ? f.photo : S.adPhoto) ? '<button class="btn ghost sm" data-act="ad-ph-rm">Remove</button>' : '') + '</div></div>' +
@@ -1671,8 +1693,20 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     enhance();
   }
   var NUMSEL = '.kpi>b,.mk b,.fst b,.segn b,.stat b';
+  function fitBoard() {
+    var kb = app.querySelector('.kb'), wide = window.innerWidth > 760;
+    document.body.style.overflowY = document.documentElement.style.overflowY = kb && wide ? 'hidden' : '';
+    if (!kb) return;
+    kb.style.height = wide ? Math.max(320, Math.floor(window.innerHeight - kb.getBoundingClientRect().top - 20)) + 'px' : '';
+  }
+  window.addEventListener('resize', fitBoard);
+  (function () { var pan = null;
+    document.addEventListener('mousedown', function (e) { var kb = e.target.closest && e.target.closest('.kb'); if (!kb || e.button !== 0 || e.target.closest('.kd,button,a,input,select,textarea,.kl::-webkit-scrollbar')) return; pan = { kb: kb, x: e.clientX, l: kb.scrollLeft }; kb.classList.add('pan'); });
+    document.addEventListener('mousemove', function (e) { if (pan) { pan.kb.scrollLeft = pan.l - (e.clientX - pan.x); e.preventDefault(); } });
+    document.addEventListener('mouseup', function () { if (pan) { pan.kb.classList.remove('pan'); pan = null; } });
+  })();
   function enhance() {
-    ecMount();
+    ecMount(); fitBoard();
     [].forEach.call(app.querySelectorAll('.seg'), function (g) { var on = g.querySelector('button.on'); if (!on) { g.classList.remove('ind'); return; } var first = !g.classList.contains('ind'); if (first) g.classList.add('nofx'); g.style.setProperty('--ix', (on.offsetLeft - 0) + 'px'); g.style.setProperty('--iw', on.offsetWidth + 'px'); g.classList.add('ind'); if (first) requestAnimationFrame(function () { g.classList.remove('nofx'); }); });
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     [].forEach.call(app.querySelectorAll(NUMSEL), function (b) { var tx = b.textContent; if (b.__t === tx || b.querySelector('.drum')) { b.__t = tx; return; } var was = b.__t; b.__t = tx; if (b.children.length || !/\d/.test(tx) || tx.length > 14) return;
@@ -1956,6 +1990,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'hd-hide' || act === 'hd-show') { var hd = grp('hd'); S.ex.hd = hd; if (act === 'hd-hide' && !ok('Hide these products from every customer?')) return; api('hidden-set', { hide: act === 'hd-hide', codes: hd.codes, reason: hd.reason }).then(function (r) { done(r, function () { S.ex.hd = {}; loadTab('products'); }); }); }
     if (act === 'ly-save') { var ly = grp('ly'); api('loyalty-save', ly).then(function (r) { done(r, function () { loadTab('loyalty'); }); }); }
     if (act === 'ad-save') { var ad = grp('ad'); api('admin-save', Object.assign({ email: ad.email, first_name: ad.first_name, last_name: ad.last_name, phone: ad.phone, role: ad.role, salesperson: ad.salesperson, active: true }, S.adPhoto === undefined ? {} : { photo: S.adPhoto })).then(function (r) { done(r, function () { S.ex.ad = {}; S.adPhoto = undefined; loadTab('admins'); if (S.me && ad.email.toLowerCase() === S.me.email) api('me').then(function (m) { if (m._status === 200) { S.me = m; draw(); } }); }); }); }
+    if (act === 'cc-close') { if (!ok('Close ' + S.cc.ym + '? The commission numbers freeze at what you see now.')) return; api('commission-close', { ym: S.cc.ym, kind: 'close' }).then(function (r) { if (r.ok) { toast('Month closed.'); ccLoad(S.cc.ym); draw(); } else fail(r); }); return; }
+    if (act === 'cc-reopen') { if (!ok('Reopen ' + S.cc.ym + '? The frozen numbers are dropped and the month follows Unleashed again.')) return; api('commission-close', { ym: S.cc.ym, kind: 'reopen' }).then(function (r) { if (r.ok) { toast('Month reopened.'); ccLoad(S.cc.ym); draw(); } else fail(r); }); return; }
+    if (act === 'pf-ph-rm') { S.pf = Object.assign(S.pf || {}, grp('pf')); S.pfPhoto = ''; return draw(); }
+    if (act === 'pf-save') { var pf = grp('pf'); api('profile-save', Object.assign({ first_name: pf.first_name, last_name: pf.last_name, phone: pf.phone }, S.pfPhoto === undefined ? {} : { photo: S.pfPhoto })).then(function (r) { if (!r.ok) return fail(r); S.pf = null; S.pfPhoto = undefined; api('me').then(function (m) { if (m._status === 200) { S.me = m; toast('Profile saved.'); draw(); } }); }); return; }
     if (act === 'ad-ph-rm') { S.adPhoto = ''; return draw(); }
     if (act === 'ad-edit') { S.ex.ad = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; return draw(); }
     if (act === 'ad-tog') { var ax = S.adm.admins.filter(function (x) { return x.email === t.dataset.e; })[0]; api('admin-save', { email: ax.email, first_name: ax.first_name, last_name: ax.last_name, phone: ax.phone, name: ax.name, role: ax.role, salesperson: ax.salesperson, active: !ax.active }).then(function (r) { done(r, function () { loadTab('admins'); }); }); }
@@ -1974,6 +2012,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (d.cpstack) { S.cp.stack_vouchers = e.target.checked; return draw(); }
     if (d.pgdel) { return api('sales-program-save', { kind: 'deliver', cycle: d.cycle, salesperson: d.sp, award: d.aw, delivered: e.target.checked }).then(function (r) { if (r.ok) pgLoad(); else fail(r); }); }
     if (d.slmon) { slState().mon = e.target.checked; return draw(); }
+    if (d.pfph) { var qf = e.target.files && e.target.files[0]; e.target.value = ''; if (qf) photoData(qf, function (u) { S.pf = Object.assign(S.pf || {}, grp('pf')); S.pfPhoto = u; draw(); }); return; }
     if (d.adph) { var pf = e.target.files && e.target.files[0]; e.target.value = ''; if (pf) adPhoto(pf); return; }
     if (d.cpban) { var f = e.target.files && e.target.files[0]; e.target.value = ''; if (f) upBanner(f); return; }
     if (d.cptog) { var cpx = (S.cps || []).filter(function (x) { return x.id === d.cptog; })[0] || {}; if (!ok((e.target.checked ? 'Turn on ' : 'Turn off ') + (cpx.name || 'this campaign') + '? ' + (e.target.checked ? 'Its parts get the campaign price for every customer between the dates.' : 'Its parts go back to their normal price for every customer now.'))) { e.target.checked = !e.target.checked; return; } api('campaign-toggle', { id: d.cptog, active: e.target.checked }).then(function (r) { if (r.ok) { S.cps.forEach(function (x) { if (x.id === d.cptog) x.active = e.target.checked; }); draw(); } else fail(r); }); return; }
@@ -1985,6 +2024,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       api('segment-create', { name: sg0.name, codes: Object.keys(S.sel || {}) }).then(function (r) { if (r.ok) { S.sel = {}; S.okMsg = 'Added to ' + sg0.name + '.'; loadTab('dir'); } else fail(r); }); return; }
     if (d.chg && d.chg.indexOf('sf.') === 0) { setM(d.chg, e.target.value); S.bs = null; draw(); return loadTab('stream'); }
     if (d.actChange === 'bdays') { S.bdays = +e.target.value; S.ev = S.bc = S.bs = null; draw(); return loadTab(S.tab); }
+    if (d.chg === 'cc.ym') { ccLoad(e.target.value); return draw(); }
     if (d.chg && d.chg.indexOf('crmf.') === 0) { setM(d.chg, e.target.value); return draw(); }
     if (d.chg && d.chg.indexOf('sl.') === 0) return slSet(d.chg.slice(3), e.target.value);
     if (d.chg) { setM(d.chg, e.target.value); return draw(); } if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });

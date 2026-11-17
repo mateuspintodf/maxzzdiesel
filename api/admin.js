@@ -203,7 +203,7 @@ A['mfa-reset'] = async (req, res) => {
 };
 
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,photo&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, photo: a.photo || null })); };
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name,first_name,last_name,phone,photo&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null, first_name: a.first_name || null, last_name: a.last_name || null, phone: a.phone || null, photo: a.photo || null })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -349,6 +349,22 @@ A.admins = async (req, res) => {
   const mf = {}; (await db.select('admin_mfa', 'select=email,totp_on').catch(() => [])).forEach((m) => { mf[m.email] = { totp: !!m.totp_on, pk: 0 }; });
   (await db.select('admin_passkeys', 'select=email').catch(() => [])).forEach((p) => { (mf[p.email] = mf[p.email] || { totp: false, pk: 0 }).pk++; });
   return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps });
+};
+A['profile-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  const b = readBody(req);
+  const row = (await db.select('admins', 'select=email&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0];
+  if (!row) return res.status(400).json({ error: 'Your login comes from a server setting, so it has no profile row. Ask a superadmin to add you under Admin users.' });
+  const fn = clean(b.first_name, 60), ln = clean(b.last_name, 60), ph = clean(b.phone, 40);
+  const patch = { first_name: fn || null, last_name: ln || null, phone: ph || null, name: [fn, ln].filter(Boolean).join(' ') || null, updated_at: new Date().toISOString() };
+  if (typeof b.photo === 'string') {
+    if (b.photo !== '' && !(/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(b.photo) && b.photo.length <= 90000)) return res.status(400).json({ error: 'The photo is too big or not a JPG, PNG or WebP image.' });
+    patch.photo = b.photo || null;
+  }
+  await db.update('admins', 'email=eq.' + encodeURIComponent(w.email), patch);
+  await PS.audit(w.email, 'admin.profile', 'admin', w.email, null, { name: patch.name });
+  return res.json({ ok: true });
 };
 A['admin-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1407,7 +1423,8 @@ A.crm = async (req, res) => {
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,city,state&code=' + inList(codes.slice(i, i + 150))).catch(() => [])).forEach((x) => { pl[x.code] = [x.city, x.state].filter(Boolean).join(', '); });
   all.forEach((d) => { d.cnt = cnt[d.id] || { n: 0, c: 0, e: 0, t: 0 }; d.place = pl[d.customer_code] || null; });
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
-  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
+  const photos = {}; (await db.select('admins', 'select=salesperson,photo&photo=not.is.null&salesperson=not.is.null&active=eq.true').catch(() => [])).forEach((r) => { photos[r.salesperson] = r.photo; });
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
 A['crm-deal'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1636,6 +1653,50 @@ A['sales-data'] = async (req, res) => {
   return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
     days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
     customers, people, parts, signals, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
+};
+// ---- monthly commission close: a closed month keeps the numbers it had at closing, so a later edit in Unleashed does not change what was paid.
+A['commission-close'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const post = req.method === 'POST';
+  if (post && !originOk(req)) return res.status(405).json({ error: 'method' });
+  const b = post ? readBody(req) : req.query || {};
+  const ym = String(b.ym || '');
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(ym)) return res.status(400).json({ error: 'Pick a month.' });
+  const from = ym + '-01', to = ym + '-' + String(monthDays(ym)).padStart(2, '0');
+  const thisMonth = new Date().toISOString().slice(0, 7);
+  const sc = await salesScope(w, req);
+  const [agg, rules, closed] = await Promise.all([
+    sc.none ? [] : db.rpc('sales_agg', { p_from: from, p_to: to, p_sp: post ? null : sc.sp }).then((d) => d.orders || []),
+    db.select('sales_commission', 'select=*').catch(() => []),
+    db.select('commission_closes', 'select=*&ym=eq.' + ym).catch(() => []),
+  ]);
+  const rule = {}; rules.forEach((r) => { rule[r.salesperson] = r; });
+  const by = {}; agg.forEach((r) => { const k = r.sp || 'Unassigned'; const x = by[k] || (by[k] = { sales: 0, profit: 0 }); x.sales += Number(r.sales) || 0; x.profit += (Number(r.cov) || 0) - (Number(r.cost) || 0); });
+  const live = Object.keys(by).filter((k) => k !== 'Unassigned').sort((a, c) => by[c].sales - by[a].sales).map((sp) => {
+    const r = rule[sp], base = r ? (r.basis === 'sales' ? by[sp].sales : by[sp].profit) : 0;
+    return { sp, sales: by[sp].sales, profit: by[sp].profit, basis: r ? r.basis : null, pct: r ? Number(r.pct) : null, commission: r ? Math.round(base * Number(r.pct)) / 100 : 0 };
+  });
+  if (post) {
+    if (w.role !== 'superadmin') return res.status(403).json({ error: 'Only a superadmin closes or reopens a month.' });
+    if (b.kind === 'reopen') {
+      await db.remove('commission_closes', 'ym=eq.' + ym);
+      await PS.audit(w.email, 'commission.reopen', 'month', ym, null, null);
+      return res.json({ ok: true });
+    }
+    if (ym >= thisMonth) return res.status(400).json({ error: 'A month can be closed only after it ends.' });
+    if (closed.length) return res.status(400).json({ error: 'That month is already closed.' });
+    if (!live.length) return res.status(400).json({ error: 'No sales in that month.' });
+    await db.insert('commission_closes', live.map((x) => ({ ym, salesperson: x.sp, basis: x.basis, pct: x.pct, sales: x.sales, profit: x.profit, commission: x.commission, closed_by: w.email })));
+    await PS.audit(w.email, 'commission.close', 'month', ym, null, { total: live.reduce((t, x) => t + x.commission, 0) });
+    return res.json({ ok: true });
+  }
+  const frozen = {}; closed.forEach((c) => { frozen[c.salesperson] = c; });
+  const rows = (closed.length ? Object.keys(frozen).filter((k) => (sc.all && !sc.sp) || k === sc.sp) : live.map((x) => x.sp)).map((sp) => {
+    const l = live.find((x) => x.sp === sp) || { sales: 0, profit: 0, commission: 0 }, f = frozen[sp];
+    return { sp, sales: f ? Number(f.sales) : l.sales, profit: f ? Number(f.profit) : l.profit, basis: f ? f.basis : l.basis, pct: f ? (f.pct == null ? null : Number(f.pct)) : l.pct, commission: f ? Number(f.commission) : l.commission, now: f ? l.commission : null };
+  });
+  return res.json({ ym, closed: closed.length ? { by: closed[0].closed_by, at: closed[0].closed_at } : null, canClose: ym < thisMonth, rows });
 };
 A['sales-commission'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
