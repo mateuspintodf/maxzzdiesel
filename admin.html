@@ -441,6 +441,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function daysSel() { return '<select class="sel" data-act-change="bdays">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.bdays || 30) === d ? ' selected' : '') + '>Last ' + d + ' days</option>'; }).join('') + '</select>'; }
   function hello() { var h = new Date().getHours(), n = S.me.email.split('@')[0]; n = n.charAt(0).toUpperCase() + n.slice(1); return (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + n; }
   function draw() {
+    var mp = document.getElementById('mn-pop'); if (mp && !(document.activeElement && document.activeElement.id === 'crm-note')) mp.remove();
     ECS = {}; ECN = 0;
     if (!S.me) return drawLogin();
     document.body.classList.remove('is-login');
@@ -1457,6 +1458,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   document.addEventListener('input', function (e) { if (e.target && e.target.id === 'crm-body') mnCheck(e.target); });
   document.addEventListener('mousedown', function (e) { var b = e.target.closest && e.target.closest('[data-mn]'); if (!b || !MN.ta) return; e.preventDefault(); var ta = MN.ta, v = ta.value, c = ta.selectionStart; ta.value = v.slice(0, MN.start) + '@' + b.dataset.mn + ' ' + v.slice(c); var pos = MN.start + b.dataset.mn.length + 2; ta.setSelectionRange(pos, pos); ta.focus(); mnClose(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') mnClose(); });
+  // the list belongs to the note box: any click elsewhere (a tab, a button), losing focus or a redraw without that box closes it
+  document.addEventListener('mousedown', function (e) { if (!(e.target.closest && (e.target.closest('#mn-pop') || e.target.closest('#crm-note')))) mnClose(); }, true);
+  document.addEventListener('focusout', function (e) { if (e.target && e.target.id === 'crm-note') setTimeout(function () { if (document.activeElement !== e.target) mnClose(); }, 150); });
+  document.addEventListener('scroll', mnClose, true);
   function crmContacts(q) {
     var K = S.ct, f = S.ctf;
     if (!K && !S.ctLoading) { S.ctLoading = true; api('crm-contacts').then(function (r) { S.ctLoading = false; S.ct = r._status === 200 ? r.contacts : []; draw(); }); }
