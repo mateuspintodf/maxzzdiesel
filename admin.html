@@ -79,6 +79,33 @@ svg.chart{width:100%;height:auto;display:block}.chart .b1{fill:url(#hatch)}.char
 .aud{table-layout:fixed}.aud td{overflow-wrap:anywhere;vertical-align:top}.aud td small{display:block;color:var(--muted);font-size:12px;margin-top:2px}.aud .codes{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px}.aud .aday td{background:var(--soft);font-size:12px;font-weight:600;color:var(--ink2);padding:7px 12px}
 .prow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:12px 0;border-top:1px solid var(--line2)}.pinf small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}.pact{display:flex;align-items:center;gap:10px;justify-content:flex-end}.pact .btn{min-width:112px;justify-content:center}
 .tgl{display:flex;align-items:flex-start;gap:10px;margin-top:10px}.tgl .sw{flex:none}.tgl>span{flex:1;min-width:0;line-height:1.4;padding-top:2px}
+body.is-login{background:#0f1113}
+.lpage{min-height:100vh;display:flex;flex-direction:column;position:relative;isolation:isolate;color:#fff;padding:12px clamp(16px,4vw,48px) 40px}
+.lpage::before{content:"";position:fixed;inset:0;z-index:-2;background:url(/assets/mg/diesel-injection-parts-warehouse-south-florida.jpg) 50% 45%/cover no-repeat #121417}
+.lpage::after{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(12,14,16,.86) 0%,rgba(12,14,16,.6) 45%,rgba(12,14,16,.45) 100%),linear-gradient(0deg,rgba(12,14,16,.7),rgba(12,14,16,0) 40%)}
+.lbar{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:1320px;width:100%;margin:0 auto;padding:14px 22px;background:rgba(24,27,31,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:16px}
+.llogo{display:flex;align-items:center;gap:14px;text-decoration:none}.llogo img{height:34px;display:block}.llogo span{color:var(--orange);font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;padding-left:14px;border-left:1px solid rgba(255,255,255,.18)}
+.lback{color:#d7dade;text-decoration:none;font-weight:600;font-size:14px}.lback:hover{color:#fff}
+.lgrid{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);gap:clamp(24px,5vw,72px);align-items:center;max-width:1240px;width:100%;margin:0 auto;padding:clamp(32px,8vh,96px) 0}
+.lhero{background:rgba(22,25,29,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:clamp(28px,4vw,48px);max-width:620px}
+.lhero .leye{display:block;color:var(--orange);font-weight:600;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px}
+.lhero h1{font-size:clamp(36px,4.6vw,60px);line-height:1.02;letter-spacing:-.02em;margin:0 0 14px;font-weight:600}
+.lhero p{margin:0;color:#c9cdd2;font-size:18px}
+.lcard{background:#fff;color:var(--ink);border-radius:18px;padding:30px 28px 24px;box-shadow:0 30px 70px rgba(0,0,0,.35);animation:lin .45s cubic-bezier(.22,1,.36,1) both}
+@keyframes lin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.lcard h2{margin:0 0 8px;font-size:26px;letter-spacing:-.01em}.lsub{margin:0 0 20px;color:var(--ink2);line-height:1.5}
+.llab{display:block;font-size:13px;color:var(--ink2);margin-bottom:6px}
+.lin{display:flex;align-items:center;gap:10px;border:1px solid #d5d8dc;border-radius:12px;padding:0 14px;color:#9aa0a6;transition:border-color .15s,box-shadow .15s}
+.lin:focus-within{border-color:var(--ink);box-shadow:0 0 0 3px rgba(29,33,38,.08);color:var(--ink2)}.lin.bad{border-color:var(--red)}
+.lin input,.lin input:focus{flex:1;border:0!important;outline:0;box-shadow:none!important;border-radius:0;background:none;font:inherit;font-size:16px;padding:14px 0!important;margin:0;color:var(--ink);min-width:0;width:auto}
+.lbtn{display:block;width:100%;margin-top:14px;border:0;border-radius:999px;background:var(--red);color:#fff;font:inherit;font-weight:600;font-size:15px;padding:14px;cursor:pointer;transition:filter .15s,transform .1s}
+.lbtn:hover{filter:brightness(1.07)}.lbtn:active{transform:scale(.99)}.lbtn:disabled{background:#eceef0;color:#9aa0a6;cursor:default;filter:none}
+.lbtn.ghost{background:#fff;color:var(--ink);border:1px solid #d5d8dc}
+.lok{width:44px;height:44px;border-radius:50%;background:var(--oks);color:var(--ok);display:grid;place-items:center;margin-bottom:14px}
+.lerr{margin-top:12px;background:#fdeceb;color:#a3222c;border-radius:10px;padding:10px 12px;font-size:13px}
+.lfoot{margin-top:20px;padding-top:16px;border-top:1px solid var(--line2);color:var(--ink2);font-size:13.5px}.lfoot a{color:var(--red);font-weight:600;text-decoration:none}
+@media(max-width:860px){.lgrid{grid-template-columns:1fr;padding:28px 0;align-content:start}.lhero h1{font-size:34px}.lhero p{font-size:16px}.lback{display:none}.llogo img{height:28px}}
+@media(prefers-reduced-motion:reduce){.lcard{animation:none}}
 .spec{display:grid;grid-template-columns:70px minmax(0,1fr);gap:6px 10px;margin:14px 0 0;font-size:12.5px}.spec dt{color:var(--muted)}.spec dd{margin:0;color:var(--ink2)}
 .cpban{aspect-ratio:4/1;border-radius:12px;background:#eef0f2 center/cover no-repeat}.cpdrop{display:flex;align-items:center;justify-content:center;gap:8px;aspect-ratio:4/1;border:1.5px dashed #c3c8cf;border-radius:12px;color:var(--ink2);cursor:pointer;font-weight:500}.cpdrop:hover{border-color:var(--ink);color:var(--ink)}.cpdrop.busy{cursor:progress}.cplink{display:flex;align-items:center;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line2);flex-wrap:wrap}.cplink .mono{color:var(--muted);font-size:12.5px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pill{display:inline-block;border-radius:999px;padding:2px 10px;font-size:12px;background:var(--soft)}.pill.pending{background:var(--warns);color:var(--warn)}.pill.approved{background:var(--oks);color:var(--ok)}.pill.rejected{background:#fdecee;color:var(--red)}
@@ -291,6 +318,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   function hello() { var h = new Date().getHours(), n = S.me.email.split('@')[0]; n = n.charAt(0).toUpperCase() + n.slice(1); return (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + n; }
   function draw() {
     if (!S.me) return drawLogin();
+    document.body.classList.remove('is-login');
     var pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0, P = PAGE[S.tab] || PAGE.dash, grp = NAV.filter(function (g) { return g[0] === P.g; })[0];
     var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="dash"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
     NAV.forEach(function (g) { h += '<button data-tab="' + g[2][0][0] + '" class="' + (P.g === g[0] ? 'on' : '') + '">' + g[1] + '</button>'; });
@@ -953,11 +981,15 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     return h + '</section>';
   }
   function drawLogin() {
-    var h = '<div class="card login"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel">';
-    if (S.lt) h += '<h1>Confirm sign in</h1><p class="muted">One more click to finish signing in on this device.</p><button class="btn" data-act="confirm"' + (S.busy ? ' disabled' : '') + '>Sign in to admin</button>';
-    else if (S.sent) h += '<h1>Check your e-mail</h1><p class="muted">If the address is an admin, a sign-in link is on its way. It works once and expires in 20 minutes.</p>';
-    else h += '<h1>Admin</h1><p class="muted">Enter your e-mail. We send a sign-in link.</p><p><input type="email" id="em" placeholder="name@maxzzdiesel.com" autocomplete="email"></p><button class="btn" data-act="send"' + (S.busy ? ' disabled' : '') + '>E-mail me a link</button>';
-    app.innerHTML = h + (S.err ? '<div class="err">' + esc(S.err) + '</div>' : '') + '</div>';
+    document.body.classList.add('is-login');
+    var mail = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg>';
+    var card;
+    if (S.lt) card = '<h2>Confirm sign in</h2><p class="lsub">One more click to finish signing in on this device.</p><button class="lbtn" data-act="confirm"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Signing in...' : 'Sign in to the admin') + '</button>';
+    else if (S.sent) card = '<div class="lok">' + ic('check', 22) + '</div><h2>Check your e-mail</h2><p class="lsub">If <b>' + esc(S.lem || 'this address') + '</b> belongs to the Maxzz team, a sign-in link is on its way. It works once and expires in 20 minutes.</p><button class="lbtn ghost" data-act="login-again">Use another e-mail</button>';
+    else card = '<h2>Sign in</h2><p class="lsub">Enter your Maxzz e-mail. We send you a sign-in link, no password needed.</p><label class="llab" for="em">Work e-mail</label><div class="lin' + (S.err ? ' bad' : '') + '">' + mail + '<input type="email" id="em" value="' + esc(S.lem || '') + '" placeholder="name@maxzzdiesel.com" autocomplete="email" autofocus></div><button class="lbtn" data-act="send"' + (S.busy ? ' disabled' : '') + '>' + (S.busy ? 'Sending...' : 'E-mail me a sign-in link') + '</button>';
+    app.innerHTML = '<div class="lpage"><header class="lbar"><a href="/" class="llogo"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><span>Admin</span></a><a class="lback" href="/portal">Wholesale store</a></header>' +
+      '<main class="lgrid"><section class="lhero"><span class="leye">Maxzz admin</span><h1>Team workspace</h1><p>For the Maxzz Diesel team only.</p></section>' +
+      '<section class="lcard">' + card + (S.err ? '<div class="lerr" role="alert">' + esc(S.err) + '</div>' : '') + '<div class="lfoot">Customer? Sign in at the <a href="/portal#/login">wholesale store</a>.</div></section></main></div>';
   }
   function accVisible() { var all = (S.data || {}).accounts || [], q = (S.q || '').toLowerCase(), cst = S.cst || ''; return all.filter(function (a) { return (!cst || a.status === cst) && (!q || qhas(a.company + ' ' + (a.customerCode || '') + ' ' + a.users.map(function (u) { return u.email + ' ' + (u.name || ''); }).join(' '), q)); }); }
   function drawClients() {
@@ -1105,7 +1137,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Could not save. Check your connection and try again.'); if (r._status === 401) S.me = null; S.busy = false; var keep = {}; [].forEach.call(app.querySelectorAll('[data-g]'), function (x) { keep[x.dataset.g + '|' + x.dataset.k] = x.type === 'checkbox' ? x.checked : x.value; }); draw(); [].forEach.call(app.querySelectorAll('[data-g]'), function (x) { var k = x.dataset.g + '|' + x.dataset.k; if (k in keep) { if (x.type === 'checkbox') x.checked = keep[k]; else x.value = keep[k]; } }); }
   function setM(path, v) { var k = path.split('.'), o = S; for (var i = 0; i < k.length - 1; i++) { if (!o[k[i]] || typeof o[k[i]] !== 'object') o[k[i]] = {}; o = o[k[i]]; } o[k[k.length - 1]] = v; if (k[0] === 'cf') S.cn = 60; if (k[0] === 'df') S.dn = 80; if (k[0] === 'pf2') S.pn = 100; }
   app.addEventListener('input', function (e) { var m = e.target.dataset && e.target.dataset.m; if (!m) return; setM(m, e.target.value); var p = e.target.selectionStart; draw(); var n = app.querySelector('[data-m="' + m + '"]'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} } });
-  document.addEventListener('keydown', function (e) { if (S.modal) return; if (e.key === 'Escape' && (S.dr || S.vd || S.pop || S.meOpen)) { e.preventDefault(); if (S.pop || S.meOpen) { S.pop = null; S.meOpen = false; } else { S.dr = null; S.vd = false; } draw(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'em') { e.preventDefault(); var b = document.querySelector('[data-act=send]'); if (b && !b.disabled) b.click(); return; } if (S.modal) return; if (e.key === 'Escape' && (S.dr || S.vd || S.pop || S.meOpen)) { e.preventDefault(); if (S.pop || S.meOpen) { S.pop = null; S.meOpen = false; } else { S.dr = null; S.vd = false; } draw(); } });
   function openSeg(id, keepRun) { S.segOpen = id; S.tab = 'segments'; if (!keepRun) { S.sendRun = null; S.pvHtml = ''; S.tpl = {}; } api('segment', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (r._status === 200) { S.seg = r; if (!keepRun) { S.pick = {}; r.members.forEach(function (m) { if (m.c && m.email && m.status !== 'active' && !m.invited_at) S.pick[m.id] = 1; }); } draw(); } else fail(r); }); draw(); }
   function tplNow() { var g = (S.seg || {}).segment || {}, T = S.tpl || {}; return { subject: T.subject != null ? T.subject : g.subject, title: T.title != null ? T.title : g.title, body: T.body != null ? T.body : g.body, cta: T.cta != null ? T.cta : g.cta }; }
   function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
@@ -1259,7 +1291,8 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'fd-open') { S.fd.open = S.fd.open || {}; S.fd.open[t.dataset.i] = !S.fd.open[t.dataset.i]; return draw(); }
     if (act === 'dr-voucher') { var vc = S.dr.code || ''; S.dr = null; S.tab = 'vouchers'; S.ex.v = vDefaults({ company_code: vc, company_name: (S.dr && S.dr.data && S.dr.data.company && S.dr.data.company.name) || '' }); S.vd = true; loadTab('vouchers'); return draw(); }
     if (act === 'dc-csv') { var F = S.cf || {}; return csv('maxzz-customers', [['Code', 'Customer', 'Status', 'Segment', 'Last 12 months', 'Year before', 'Orders', 'Days since last order', 'Buys every (days)', 'Expected next', 'Salesperson', 'Country', 'In portal']].concat(S.dc.filter(function (r) { var q = String(F.q || '').toLowerCase(); return (!q || qhas(r.n + ' ' + r.c, q)) && (!F.st || (F.st === 'due' ? r.status === 'due' || r.status === 'overdue' : r.status === F.st)) && (!F.sg || r.segment === F.sg) && (!F.sp || r.sp === F.sp) && (!F.co || r.country === F.co) && (F.pt !== 'in' || r.portal) && (F.pt !== 'out' || !r.portal); }).map(function (r) { return [r.c, r.n, r.status, r.segment, r.r12, r.p12, r.orders, r.since, r.med || '', r.next || '', r.sp || '', r.country || '', r.portal ? 'yes' : '']; }))); }
-    if (act === 'send') { var em = document.getElementById('em').value.trim(); if (!em) return; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
+    if (act === 'login-again') { S.sent = false; S.err = ''; return draw(); }
+    if (act === 'send') { var em = document.getElementById('em').value.trim(); S.lem = em; if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) { S.err = 'Enter a full e-mail address, like name@maxzzdiesel.com.'; draw(); var f = document.getElementById('em'); if (f) f.focus(); return; } S.err = ''; S.busy = true; draw(); api('login', { email: em }).then(function (r) { S.busy = false; if (r._status === 200) { S.sent = true; draw(); } else fail(r); }); }
     if (act === 'confirm') { S.busy = true; draw(); api('confirm', { t: S.lt }).then(function (r) { S.busy = false; if (r._status === 200) { S.lt = ''; boot(); } else { S.lt = ''; S.err = 'That link expired or was already used. Ask for a new one.'; draw(); } }); }
     if (act === 'addp') { var f = {}; [].forEach.call(app.querySelectorAll('[data-f]'), function (i) { f[i.dataset.f] = i.value.trim(); }); S.form = f; S.busy = true; draw(); api('addprospect', f).then(function (r) { S.busy = false; if (r.ok) { S.form = {}; loadProspects(); } else fail(r); }); }
     if (act === 'out') api('logout', {}).then(function () { S.me = null; S.data = null; draw(); });
