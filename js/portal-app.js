@@ -2382,7 +2382,7 @@
       { c: 'Experiences', i: 'bench', n: 'Bench day at Maxzz Florida', d: 'A day at our Coconut Creek bench with our technicians.', p: 35000 },
       { c: 'Experiences', i: 'mic', n: 'Private technical session', d: 'One hour online with our senior instructor on your toughest case.', p: 30000 },
       { c: 'Experiences', i: 'people', n: 'Trade show meetup', d: 'Lunch with the Maxzz team at ADS or AAPEX.', p: 20000 }], sortBy: '', hsort: '', rank: null, specs: null, dtab: '', recent: read('mx-portal-recent', []), paste: '', pasteMsg: '',
-    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
+    vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], gen: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
 
@@ -2463,6 +2463,7 @@
       if (skip !== 'cat' && f.cat.length && f.cat.indexOf(x[3]) < 0) return false;
       if (skip !== 'brand' && f.brand.length && f.brand.indexOf(x[4] || 'Other') < 0) return false;
       if (skip !== 'eng' && f.eng.length && !f.eng.some(function (e) { return (x[6] || '').indexOf(e) >= 0; })) return false;
+      if (skip !== 'gen' && f.gen && f.gen.length) { var fi = this.fit.items[x[0]]; if (!fi || !f.gen.some(function (g) { return fi[0].indexOf(g) >= 0; })) return false; }
       if (skip !== 'photo' && f.photo && !this.img(x[0])) return false;
       if (skip !== 'stock' && f.stock && !(this.qty(x[0]) > 0)) return false;
       if (skip !== 'out' && f.out && !(this.qty(x[0]) != null && this.qty(x[0]) <= 0)) return false;
@@ -2560,6 +2561,7 @@
         if (g === 'cat') n[x[3]] = (n[x[3]] || 0) + 1;
         else if (g === 'brand') { var b = x[4] || 'Other'; n[b] = (n[b] || 0) + 1; }
         else if (g === 'eng') (x[6] || '').split('').forEach(function (e) { n[e] = (n[e] || 0) + 1; });
+        else if (g === 'gen') { var fi = self.fit.items[x[0]]; if (fi) fi[0].forEach(function (k) { n[k] = (n[k] || 0) + 1; }); }
         else if (g === 'photo') { if (self.img(x[0])) n.y = (n.y || 0) + 1; }
         else if (g === 'stock') { if (self.qty(x[0]) > 0) n.y = (n.y || 0) + 1; }
       });
@@ -2572,13 +2574,21 @@
       var list = all.map(function (b) { return { k: b, label: b, n: n[b] || 0 }; });
       return { more: list.length > 8, items: this.allBrands ? list : list.slice(0, 8) };
     },
+    // engines and years under a ticked vehicle in the side filter (same tree as Shop by vehicle)
+    fGens: function (k) {
+      var mk = { f: 'ford', c: 'ram', d: 'gm', h: 'hd' }[k], m = this.fit.tree.filter(function (t) { return t.key === mk; })[0];
+      if (!m) return [];
+      var n = this.facet('gen');
+      return m.engines.map(function (e) { return { label: e.label, gens: e.gens.map(function (g) { return { key: g.key, years: g.years || g.label, label: g.label, n: n[g.key] || 0 }; }) }; });
+    },
     get fEngs() { var n = this.facet('eng'); return ENG.map(function (e) { return { k: e.k, label: e.label, n: n[e.k] || 0 }; }); },
-    get fCount() { var f = this.f; return f.cat.length + f.brand.length + f.eng.length + (f.photo ? 1 : 0) + (f.stock ? 1 : 0) + (f.out ? 1 : 0); },
+    get fCount() { var f = this.f; return f.cat.length + f.brand.length + f.eng.length + (f.gen ? f.gen.length : 0) + (f.photo ? 1 : 0) + (f.stock ? 1 : 0) + (f.out ? 1 : 0); },
     get chips() {
       var f = this.f, out = [];
       f.cat.forEach(function (k) { var c = CATS.filter(function (x) { return x.k === k; })[0]; out.push({ g: 'cat', k: k, label: c ? c.label : k }); });
       f.brand.forEach(function (k) { out.push({ g: 'brand', k: k, label: k }); });
       f.eng.forEach(function (k) { out.push({ g: 'eng', k: k, label: ENG.filter(function (e) { return e.k === k; })[0].label }); });
+      var self = this; (f.gen || []).forEach(function (k) { var g = self.genOf(k); out.push({ g: 'gen', k: k, label: g ? g.label + ' ' + (g.years || '') : k }); });
       if (this.route === 'g') { var gg = this.genOf(this.arg); out.unshift({ g: 'veh', label: gg ? gg.label + ' ' + (gg.years || '') : 'Vehicle' }); }
       if (f.photo) out.push({ g: 'photo', label: 'With photo' });
       if (f.stock) out.push({ g: 'stock', label: 'In stock' });
@@ -2918,8 +2928,8 @@
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
-      if (r === 'c') this.f = { cat: [a], brand: [], eng: [], photo: false, stock: false, out: false };
-      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], photo: false, stock: false, out: false };
+      if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], photo: false, stock: false, out: false };
+      if (r === 's' || r === 'g' || r === 'all' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], photo: false, stock: false, out: false };
       if (r === 'orders' && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
@@ -2964,11 +2974,12 @@
       var f = this.f;
       if (g === 'photo' || g === 'stock' || g === 'out') f[g] = !f[g];
       else { var i = f[g].indexOf(k); if (i < 0) f[g].push(k); else f[g].splice(i, 1); }
+      if (g === 'eng' && i >= 0 && f.gen && f.gen.length) { var drop = []; this.fGens(k).forEach(function (e) { e.gens.forEach(function (x) { drop.push(x.key); }); }); f.gen = f.gen.filter(function (x) { return drop.indexOf(x) < 0; }); }
       this.limit = 24;
       if (this.route === 'home' || (this.route === 'c' && !(f.cat.length === 1 && f.cat[0] === this.arg))) { history.pushState(null, '', '#/all'); this.route = 'all'; this.arg = ''; window.scrollTo({ top: 0, behavior: 'smooth' }); }
     },
     on: function (g, k) { return g === 'photo' || g === 'stock' || g === 'out' ? this.f[g] : this.f[g].indexOf(k) >= 0; },
-    clearF: function () { this.f = { cat: [], brand: [], eng: [], photo: false, stock: false, out: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
+    clearF: function () { this.f = { cat: [], brand: [], eng: [], gen: [], photo: false, stock: false, out: false }; if (this.route === 'c') { history.replaceState(null, '', '#/all'); this.route = 'all'; } },
     genOf: function (key) { var out = null; this.fit.tree.forEach(function (m) { m.engines.forEach(function (e) { e.gens.forEach(function (g) { if (g.key === key) out = g; }); }); }); return out; },
     logos: function (k) { return { ford: ['ford.png'], ram: ['ram.png'], gm: ['chevrolet.svg', 'gmc.png'], nissan: ['nissan.svg'] }[k] || []; },
     pickMake: function (k) {

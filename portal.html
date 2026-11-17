@@ -22,7 +22,7 @@
 <meta name="twitter:image" content="https://www.maxzzdiesel.com/assets/mg/maxzz-b2b-portal-og.jpg">
 <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-<style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}.px-sh-r{display:flex;align-items:center;gap:14px}.px-sh-r .px-sort{height:38px}@media(max-width:560px){.px-sh{flex-wrap:wrap;gap:8px}.px-sh-r{width:100%;justify-content:space-between}}
+<style>.qb{bottom:100px !important}.qp{bottom:168px !important}@media (max-width:640px){.qb{bottom:92px !important}.qp{bottom:156px !important}}.px-fsub{margin:2px 0 10px 9px;padding:2px 0 2px 17px;border-left:2px solid #e6e8eb;animation:pxfsub .2s ease}@keyframes pxfsub{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}.px-fsub-e{padding:5px 0}.px-fsub-l{display:block;font-size:12px;font-weight:600;color:#5b626b;margin:0 0 5px}.px-fsub-g{display:flex;flex-wrap:wrap;gap:5px}.px-fy{display:inline-flex;align-items:center;gap:5px;border:1px solid #d5d9de;background:#fff;border-radius:50px;padding:3px 9px;font:inherit;font-size:12px;line-height:18px;color:#2b3036;cursor:pointer;transition:background-color .15s,border-color .15s,color .15s}.px-fy small{font-size:11px;color:#8a919a}.px-fy:hover{border-color:#9aa1a9}.px-fy.on{background:#1d2126;border-color:#1d2126;color:#fff}.px-fy.on small{color:#c9cdd2}.px-fy.dis{opacity:.45;cursor:default}.px-sh-r{display:flex;align-items:center;gap:14px}.px-sh-r .px-sort{height:38px}@media(max-width:560px){.px-sh{flex-wrap:wrap;gap:8px}.px-sh-r{width:100%;justify-content:space-between}}
 </style>
 <style>[v-cloak]{opacity:0}html,body{margin:0;background:#eef0f2}a{color:inherit;text-decoration:none}</style>
 
@@ -1276,7 +1276,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 <div class="px-fg">
 <h3>Vehicle</h3>
-<label class="px-fo" v-for="o in fEngs" :class="[on('eng', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('eng', o.k)" @change="toggle('eng', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+<template v-for="o in fEngs"><label class="px-fo" :class="[on('eng', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('eng', o.k)" @change="toggle('eng', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+<div class="px-fsub" v-if="on('eng', o.k) && fGens(o.k).length"><div class="px-fsub-e" v-for="e in fGens(o.k)"><span class="px-fsub-l" v-text="e.label"></span><span class="px-fsub-g"><button type="button" v-for="g in e.gens" class="px-fy" :class="[on('gen', g.key) ? 'on' : '', g.n || on('gen', g.key) ? '' : 'dis']" :disabled="!g.n && !on('gen', g.key)" :aria-pressed="on('gen', g.key) ? 'true' : 'false'" @click="toggle('gen', g.key)" :title="g.label + ' ' + g.years + ': ' + g.n + ' parts'"><span v-text="g.years"></span><small v-text="g.n"></small></button></span></div></div></template>
 </div>
 <div class="px-fg">
 <h3>Part brand</h3>
@@ -2077,7 +2078,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=79"></script>
+<script src="/js/portal-app.js?v=80"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
