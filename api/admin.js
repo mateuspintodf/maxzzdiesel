@@ -144,7 +144,32 @@ A.prospects = async (req, res) => {
   const cos = await db.select('companies', 'select=*&status=in.(prospect,ready,invited)&order=created_at.desc&limit=500');
   const us = cos.length ? await db.select('users', 'select=email,name,phone,company_id,status&company_id=in.(' + cos.map((c) => c.id).join(',') + ')') : [];
   return res.json({ prospects: cos.map((c) => ({ id: c.id, company: c.name, status: c.status, source: c.source, code: c.unleashed_code || '', city: c.city || '', state: c.state || '', country: c.country || '',
+    contact: [c.contact_name, c.contact_email, c.contact_phone].filter(Boolean).join(' · '),
     users: us.filter((u) => u.company_id === c.id).map((u) => ({ email: u.email, name: u.name, phone: u.phone, status: u.status })) })) });
+};
+// remove prospects from the admin: only companies that never got portal access (no people who signed in, no orders or quotes).
+// Their segment links and pending invite users go too. Nothing changes in Unleashed.
+A['company-remove'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const ids = (Array.isArray(readBody(req).ids) ? readBody(req).ids : []).filter((x) => /^[0-9a-f-]{36}$/i.test(String(x))).slice(0, 500);
+  if (!ids.length) return res.status(400).json({ error: 'ids' });
+  const cos = await db.select('companies', 'select=id,name,status&id=in.(' + ids.join(',') + ')');
+  const [us, ord, qts] = await Promise.all([db.select('users', 'select=company_id,last_login_at&company_id=in.(' + ids.join(',') + ')'), db.select('orders', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('quotes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000')]);
+  const removed = [], kept = [];
+  for (const c of cos) {
+    const busy = !['prospect', 'invited', 'ready', 'rejected'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id);
+    if (busy) { kept.push(c.name); continue; }
+    try {
+      await db.remove('company_segments', 'company_id=eq.' + c.id);
+      await db.remove('users', 'company_id=eq.' + c.id + '&last_login_at=is.null');
+      await db.remove('companies', 'id=eq.' + c.id);
+      removed.push(c.name);
+    } catch (e) { kept.push(c.name); console.error('company remove', e.message); }
+  }
+  await PS.audit(w.email, 'company.remove', 'company', String(removed.length), null, { removed: removed.slice(0, 50), kept: kept.slice(0, 50) });
+  return res.json({ ok: true, removed: removed.length, kept });
 };
 // Manual inclusion: a customer that is not in Unleashed yet (or that the team wants to invite first). Creates the company as a prospect
 // and, when an e-mail is given, its contact (pending: it only gets in after the team approves and links it to Unleashed).
@@ -449,7 +474,9 @@ A.invite = async (req, res) => {
 A.dir = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  const [rows, segs, st] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1')]);
+  const [rows, segs, st, tg] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => [])]);
+  const T = {}; tg.forEach((x) => { (T[x.code] = T[x.code] || []).push(x.tag); });
+  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; });
   return res.json({ rows: rows || [], segments: segs, synced: st[0] && st[0].customers_at });
 };
 A['dir-sync'] = async (req, res) => {
@@ -482,6 +509,18 @@ A['segment-create'] = async (req, res) => {
   for (let i = 0; i < links.length; i += 200) await db.insert('company_segments', links.slice(i, i + 200), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
   await PS.audit(w.email, 'segment.create', 'segment', seg.id, null, { name, members: links.length, created: missing.length });
   return res.json({ ok: true, id: seg.id, members: links.length, created: missing.length });
+};
+// free tags on a customer (by Unleashed code), used as filters in the customer list
+A['tags-set'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), codes = (Array.isArray(b.codes) ? b.codes : [b.code]).map((c) => clean(c, 60)).filter(Boolean).slice(0, 3000);
+  const tag = clean(b.tag, 40).replace(/\s+/g, ' ').trim();
+  if (!codes.length || !tag) return res.status(400).json({ error: 'tag' });
+  if (b.remove) for (let i = 0; i < codes.length; i += 150) await db.remove('customer_tags', 'tag=eq.' + encodeURIComponent(tag) + '&code=' + inList(codes.slice(i, i + 150)));
+  else for (let i = 0; i < codes.length; i += 500) await db.insert('customer_tags', codes.slice(i, i + 500).map((code) => ({ code, tag, added_by: w.email })), { onConflict: 'code,tag', ignoreDuplicates: true });
+  return res.json({ ok: true });
 };
 // one segment: members and the invite template
 A.segment = async (req, res) => {
@@ -973,6 +1012,8 @@ A.customer = async (req, res) => {
     type: (u && u.type) || (co && co.customer_type) || '', tier: (u && u.tier) || (co && co.tier) || '', terms: (u && u.payment_terms) || (co && co.payment_terms) || '', sp: (u && u.salesperson) || (co && co.salesperson) || '',
     city: (u && u.city) || (co && co.city) || '', state: (u && u.state) || (co && co.state) || '', country: (u && u.country) || (co && co.country) || '', since: (u && u.created_on) || '', stop: !!((u && u.stop_credit) || (co && co.stop_credit)), obsolete: !!(u && u.obsolete),
     segments: segl.map((x) => segN[x.segment_id]).filter(Boolean) };
+  contact.tags = c ? (await db.select('customer_tags', 'select=tag&code=eq.' + encodeURIComponent(c)).catch(() => [])).map((x) => x.tag) : [];
+  contact.allTags = [...new Set((await db.select('customer_tags', 'select=tag&limit=2000').catch(() => [])).map((x) => x.tag))].sort();
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
     contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, timeline: T.slice(0, 300) });
 };
