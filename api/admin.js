@@ -1363,6 +1363,14 @@ async function crmSync() {
     const sa = Date.parse(d.stage_at);
     if (Number.isFinite(cr) && Math.abs(sa - cr) < 5 * 60e3 && cr - Date.parse(r.at) > 864e5 && Date.now() - cr < 3 * 864e5) await db.update('crm_deals', 'id=eq.' + d.id, Math.abs(up - cr) < 5 * 60e3 ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : { created_at: r.at, stage_at: r.at }).catch(() => {}); }
   for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0 }).catch(() => {}); }
+  // completed orders that never passed through the Parked list (or were invoiced before the CRM saw them) are won deals too
+  const done = await db.select('sales_orders', 'select=number,customer_code,customer_name,order_date,completed_date,subtotal,salesperson&status=eq.Completed&or=(is_return.is.null,is_return.eq.false)&order_date=gte.' + new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10) + '&limit=2000').catch(() => []);
+  const wonNew = done.filter((o) => !by[o.number] && !mk[o.number]);
+  if (wonNew.length) {
+    const miss = [...new Set(wonNew.map((o) => o.customer_code).filter((c) => c && !spOf[c]))];
+    for (let i = 0; i < miss.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson&code=' + inList(miss.slice(i, i + 150))).catch(() => [])).forEach((x) => { spOf[x.code] = x.salesperson; });
+    await db.insert('crm_deals', wonNew.map((o) => { const t = o.completed_date || o.order_date; return { title: (o.customer_name || o.customer_code || 'Customer') + ' · ' + o.number, stage: 'won', owner: o.salesperson || spOf[o.customer_code] || CRM_OWNER, customer_code: o.customer_code || null, customer_name: o.customer_name || null, value: Number(o.subtotal) || 0, source: 'order', ref: o.number, created_by: 'auto', created_at: o.order_date, updated_at: t, stage_at: t, closed_at: t, note: 'Imported from Unleashed (completed order)' }; }), { onConflict: 'ref' }).catch(() => null);
+  }
   await crmSyncAccess().catch(() => {});
   // deals whose order left the Parked list: lost if marked, won if invoiced
   const gone = deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
@@ -1422,9 +1430,13 @@ A.crm = async (req, res) => {
   await crmSync().catch(() => {});
   const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
   if (!isSuper && sc.none) return res.json({ stages: [], deals: [], mySp: null, isSuper, owners: [] });
-  const since = new Date(Date.now() - 60 * 864e5).toISOString();
-  const [stages, all] = await Promise.all([db.select('crm_stages', 'select=*&order=pos.asc'), db.select('crm_deals', 'select=*&or=(closed_at.is.null,closed_at.gte.' + since + ')&order=updated_at.desc&limit=800' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)))]);
-  const ids = all.map((d) => d.id), next = {};
+  const since = new Date(Date.now() - 60 * 864e5).toISOString(), dOk = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')), q = req.query || {}, own = isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp);
+  // default: open deals plus what closed in the last 60 days. With a period (or all=1) the board holds every deal created in it, the imported Unleashed order history included.
+  const per = q.all === '1' ? '' : (dOk(q.from) ? '&created_at=gte.' + q.from : '') + (dOk(q.to) ? '&created_at=lte.' + q.to + 'T23:59:59' : '');
+  const [stages, all] = await Promise.all([db.select('crm_stages', 'select=*&order=pos.asc'), (q.all === '1' || per)
+    ? db.selectAll('crm_deals', 'select=*&order=updated_at.desc' + per + own).then((r) => r.slice(0, 6000))
+    : db.select('crm_deals', 'select=*&or=(closed_at.is.null,closed_at.gte.' + since + ')&order=updated_at.desc&limit=800' + own)]);
+  const ids = all.filter((d) => d.source !== 'order').map((d) => d.id), next = {};
   for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,body,due&done_at=is.null&due=not.is.null&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')&order=due.asc')).forEach((a) => { if (!next[a.deal_id]) next[a.deal_id] = a; });
   all.forEach((d) => { d.next = next[d.id] || null; });
   const cnt = {};

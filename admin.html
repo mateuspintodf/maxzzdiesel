@@ -708,11 +708,12 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     return h;
   }
   // ---------------------------------------------------------------- CRM: deals on a kanban, with a full card for each deal
-  var CRMSRC = { site_quote: 'Website quote', portal_quote: 'Portal quote', portal_order: 'Portal order', parked: 'Parked order', manual: 'Added by hand', access_request: 'Portal access request' };
+  var CRMSRC = { site_quote: 'Website quote', portal_quote: 'Portal quote', portal_order: 'Portal order', parked: 'Parked order', order: 'Unleashed order', manual: 'Added by hand', access_request: 'Portal access request' };
   var CRMLOST = [['Price', 'Price'], ['No stock or lead time', 'No stock or lead time'], ['Bought elsewhere', 'Bought elsewhere'], ['No answer', 'No answer'], ['Not a real request', 'Not a real request'], ['Other', 'Other']];
   var CRMK = { note: ['Note', 'file'], call: ['Call', 'phone'], email: ['Email', 'mail'], task: ['Task', 'clock'], stage: ['Update', 'arr'], owner: ['Owner', 'user'] };
   var CALLR = [['Reached them', 'Reached them'], ['No answer', 'No answer'], ['Left a message', 'Left a message'], ['Quote sent', 'Quote sent'], ['Not now', 'Not now']];
-  function crmLoad(quiet) { if (!quiet) S.tabErr = null; api('crm').then(function (r) { if (r._status === 200) { S.crm = r; draw(); } else if (!quiet) { S.tabErr = 'crm'; draw(); } }); }
+  function crmQs() { var F = S.crmf || {}, P = crmPer(F); return F.per === 'all' ? '&all=1' : (F.per ? (P.f ? '&from=' + P.f : '') + (P.t ? '&to=' + P.t : '') : ''); }
+  function crmLoad(quiet) { if (!quiet) S.tabErr = null; api('crm', null, crmQs()).then(function (r) { if (r._status === 200) { S.crm = r; draw(); } else if (!quiet) { S.tabErr = 'crm'; draw(); } }); }
   function crmAgo(d) { var m = Math.floor((Date.now() - Date.parse(d)) / 6e4); if (!(m >= 0)) return ''; if (m < 60) return Math.max(1, m) + ' min ago'; var h = Math.floor(m / 60); if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago'); var n = Math.floor(h / 24); return n < 45 ? n + (n === 1 ? ' day ago' : ' days ago') : Math.round(n / 30) + ' months ago'; }
   function crmAge(d) { var n = Math.floor((Date.now() - Date.parse(d)) / 864e5); return n < 1 ? 'today' : n + (n === 1 ? ' day' : ' days'); }
   function crmStage(k) { return ((S.crm && S.crm.stages) || []).filter(function (x) { return x.key === k; })[0]; }
@@ -754,7 +755,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     h += '<div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="crmf.q" value="' + esc(q) + '" placeholder="Deal, company or contact"></label>' +
       (C.isSuper ? '<select class="sel" data-chg="crmf.owner" aria-label="Owner"><option value="">All owners</option>' + C.owners.map(function (o) { return opt(o, o, F.owner || ''); }).join('') + '</select>' : '') +
       '<select class="sel" data-chg="crmf.src" aria-label="Source"><option value="">All sources</option>' + Object.keys(srcs).map(function (k) { return opt(k, CRMSRC[k] || k, F.src || ''); }).join('') + '</select>' +
-      '<select class="sel" data-chg="crmf.per" aria-label="Created date"><option value="">Created: any date</option>' + [['month', 'This month'], ['lastm', 'Last month'], ['30', 'Last 30 days'], ['90', 'Last 90 days'], ['year', 'This year'], ['custom', 'Custom range']].map(function (o) { return opt(o[0], o[1], F.per || ''); }).join('') + '</select>' +
+      '<select class="sel" data-chg="crmf.per" aria-label="Created date"><option value="">Created: any date</option>' + [['month', 'This month'], ['lastm', 'Last month'], ['30', 'Last 30 days'], ['90', 'Last 90 days'], ['year', 'This year'], ['ly', 'Last year'], ['all', 'All time'], ['custom', 'Custom range']].map(function (o) { return opt(o[0], o[1], F.per || ''); }).join('') + '</select>' +
       (F.per === 'custom' ? '<input type="date" class="sel" style="width:150px;flex:none" data-chg="crmf.from" value="' + esc(F.from || '') + '" aria-label="From"><input type="date" class="sel" style="width:150px;flex:none" data-chg="crmf.to" value="' + esc(F.to || '') + '" aria-label="To">' : '') +
       (F.ids || F.late ? '<button class="chip on" data-act="crm-clr">' + esc(F.ids ? (F.label || 'Filtered') : 'Needs action') + ' ' + ic('x', 12) + '</button>' : '') +
       '<span class="sp"></span>' + (C.isSuper ? '<button class="btn ghost sm" data-act="crm-stg">Stages</button>' : '') + '<button class="btn sm" data-act="crm-new">' + ic('plus', 14) + ' New deal</button></div>';
@@ -764,11 +765,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       h += '<div style="padding:0 12px 12px">' + tbl([h0('Deal'), h0('Stage'), h0('Owner'), h0('Contact'), hr('Amount'), hr('Weighted'), h0('Last activity'), h0('Next task')], ord.map(function (d) { var s = crmStage(d.stage) || {}, nm = crmNames(d);
         return '<tr data-act="crm-open" data-id="' + esc(d.id) + '" tabindex="0"><td><b>' + esc(nm.main) + '</b>' + (nm.sub ? '<br><small class="muted">' + esc(nm.sub) + '</small>' : '') + '</td><td><span class="stc"><i style="background:' + esc(s.color || '#9aa1ab') + '"></i>' + esc(s.label || d.stage) + '</span></td><td>' + (d.owner ? crmAv(d.owner) + ' ' + esc(d.owner) : '<span class="muted">None</span>') + '</td><td>' + esc(d.contact_name || '') + '</td><td class="r">' + (d.value ? m0(d.value) : '') + '</td><td class="r">' + (s.kind === 'open' && d.value ? m0(d.value * s.prob / 100) : '') + '</td><td>' + esc(crmAgo(d.updated_at)) + '</td><td>' + (d.next ? esc(fmtAt(d.next.due)) : '') + '</td></tr>'; }), 'dt') + '</div>';
     } else {
-      h += '<div class="kb">' + C.stages.map(function (s) { var L = deals.filter(function (d) { return d.stage === s.key; }), tot = sum(L), w = tot * (s.prob || 0) / 100;
+      h += '<div class="kb">' + C.stages.map(function (s) { var L = deals.filter(function (d) { return d.stage === s.key; }), tot = sum(L), w = tot * (s.prob || 0) / 100, lim = (S.crmMore || {})[s.key] || 100;
         return '<div class="kc" data-stage="' + esc(s.key) + '"><div class="kh2"><b>' + esc(String(s.label).toUpperCase()) + '</b><span class="khb"><button class="kmb" data-act="crm-add" data-s="' + esc(s.key) + '" data-tip="Add a deal here" aria-label="Add a deal here">' + ic('plus', 15) + '</button>' + (C.isSuper ? '<button class="kmb" data-act="crm-stg" data-tip="Edit stages" aria-label="Edit stages">' + ic('more', 16) + '</button>' : '') + '</span></div>' +
           '<div class="ktot"><b>' + m0(tot) + '</b><small>' + L.length + (L.length === 1 ? ' deal' : ' deals') + '</small></div>' +
-          '<div class="kw">' + (s.kind === 'open' ? '<i style="background:' + esc(s.color || '#9aa1ab') + '"></i>' + s.prob + '% chance, weighted ' + m0(w) : (s.kind === 'won' ? 'Closed won, last 60 days' : 'Closed lost, last 60 days')) + '</div>' +
-          '<div class="kl">' + (L.length ? L.map(crmCard).join('') : '<div class="ke">Drop a deal here</div>') + '</div></div>'; }).join('') + '</div>';
+          '<div class="kw">' + (s.kind === 'open' ? '<i style="background:' + esc(s.color || '#9aa1ab') + '"></i>' + s.prob + '% chance, weighted ' + m0(w) : 'Closed ' + s.kind + ', ' + (F.per ? crmPer(F).lab.toLowerCase() : 'last 60 days')) + '</div>' +
+          '<div class="kl">' + (L.length ? L.slice(0, lim).map(crmCard).join('') + (L.length > lim ? '<button class="btn ghost sm" style="width:100%;margin-top:8px" data-act="crm-more" data-s="' + esc(s.key) + '">Show ' + Math.min(100, L.length - lim) + ' more of ' + (L.length - lim) + '</button>' : '') : '<div class="ke">Drop a deal here</div>') + '</div></div>'; }).join('') + '</div>';
     }
     return h + '<p class="muted kfoot" style="padding:2px 20px 16px;font-size:12.5px">Website quotes, portal quotes, parked orders in Unleashed and portal access requests become deals by themselves. A deal is won when its order is invoiced or the access is approved, and lost when you mark it lost.</p></section>';
   }
@@ -846,6 +847,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       return api('crm-ai', {}).then(function (r) { S.caiBusy = false; if (!r.out) { fail(r); draw(); return; } S.cai = r; draw(); }); }
     if (act === 'crm-newc') { var R0 = S.dr || {}, D0 = R0.data || {}, sm0 = D0.sales && D0.sales.summary, C0 = D0.contact || {}; S.cd = { create: true, pre: { code: R0.code || '', name: (sm0 && sm0.n) || (D0.company && D0.company.name) || '', contact: C0.name || C0.contact_name || '', email: C0.email || '', phone: C0.phone || '' } }; if (!S.crm) crmLoad(true); return draw(); }
     if (act === 'crm-goto') { S.dr = null; S.vd = false; S.fd = null; S.tab = 'crm'; S.err = ''; window.scrollTo(0, 0); loadTab('crm'); S.cd = { id: t.dataset.id, loading: true, k: 'note' }; draw(); return crmDeal(); }
+    if (act === 'crm-more') { S.crmMore = S.crmMore || {}; S.crmMore[t.dataset.s] = (S.crmMore[t.dataset.s] || 100) + 100; return draw(); }
     if (act === 'crm-stg') { S.stgOpen = true; return draw(); }
     if (act === 'crm-stx') return closeL('.drawer,.dscrim', function () { S.stgOpen = null; });
     if (/^crm-stg-/.test(act)) { var k = t.dataset.k, body = null;
@@ -1522,6 +1524,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     else if (p === '30') { f = day(new Date(Date.now() - 30 * 864e5)); lab = 'Last 30 days'; }
     else if (p === '90') { f = day(new Date(Date.now() - 90 * 864e5)); lab = 'Last 90 days'; }
     else if (p === 'year') { f = y + '-01-01'; lab = 'This year'; }
+    else if (p === 'ly') { f = (y - 1) + '-01-01'; t = (y - 1) + '-12-31'; lab = 'Last year'; }
+    else if (p === 'all') { lab = 'All time'; }
     else if (p === 'custom') { f = F.from || ''; t = F.to || ''; lab = f || t ? (f || '...') + ' to ' + (t || 'today') : 'Custom range'; }
     return { f: f, t: t, lab: lab };
   }
@@ -2188,7 +2192,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (d.chg && d.chg.indexOf('sf.') === 0) { setM(d.chg, e.target.value); S.bs = null; draw(); return loadTab('stream'); }
     if (d.actChange === 'bdays') { S.bdays = +e.target.value; S.ev = S.bc = S.bs = null; draw(); return loadTab(S.tab); }
     if (d.chg === 'cc.ym') { ccLoad(e.target.value); return draw(); }
-    if (d.chg && d.chg.indexOf('crmf.') === 0) { setM(d.chg, e.target.value); return draw(); }
+    if (d.chg && d.chg.indexOf('crmf.') === 0) { setM(d.chg, e.target.value); draw(); return /^crmf\.(per|from|to)$/.test(d.chg) ? crmLoad(true) : undefined; }
     if (d.chg && d.chg.indexOf('sl.') === 0) return slSet(d.chg.slice(3), e.target.value);
     if (d.chg) { setM(d.chg, e.target.value); return draw(); } if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });
   (function () {
