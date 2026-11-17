@@ -49,9 +49,11 @@ A.login = async (req, res) => {
   if (!EMAIL.test(email)) return res.status(400).json({ error: 'email' });
   if (await adminRole(email)) {
     const nonce = await SDB.newLink(email, 'admin');
-    await send(email, 'Maxzz admin sign-in link', 'Sign in to Maxzz admin',
-      '<p>Use the button below. The link works once and expires in 20 minutes. The admin session ends after 1 hour without activity.</p>',
-      { url: base(req) + '/admin?lt=' + encodeURIComponent(nonce), label: 'Sign in' }, { greet: true, team: true });
+    const me = (await db.select('admins', 'select=first_name,name&email=eq.' + encodeURIComponent(email) + '&limit=1').catch(() => []))[0] || {};
+    const nm = String(me.first_name || me.name || '').trim();
+    await send(email, 'Your Maxzz admin sign-in link', 'Sign in to Maxzz admin',
+      '<p>Click the button below to sign in. The link works once and expires in 20 minutes. Once you are in, the session ends after 1 hour without activity.</p><p style="margin:14px 0 0;color:#6b6b74;font-size:13px">If you did not ask for this, you can ignore this e-mail. Nobody can sign in without it.</p>',
+      { url: base(req) + '/admin?lt=' + encodeURIComponent(nonce), label: 'Click to sign in' }, nm ? { name: nm, team: true } : { greet: true, team: true });
   }
   return res.json({ ok: true }); // same answer for everyone
 };
