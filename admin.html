@@ -300,6 +300,20 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 @media(max-width:700px){.mbars{gap:3px}.mbar{height:120px}.mval{font-size:9.5px}.annv{min-width:0}.podium{gap:6px}.pod .pn{font-size:13px}.ringw{margin:0 auto}}
 
 @media(max-width:600px){.lbr{grid-template-columns:30px 1fr;gap:10px}.pts{grid-column:1/-1;text-align:left}.pts b{display:inline;margin-right:6px}}
+.kb{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(240px,1fr);gap:12px;overflow-x:auto;padding:4px 20px 12px}
+.kc{background:var(--soft);border-radius:18px;padding:10px;min-height:260px;transition:outline-color .15s}.kc.ov{outline:2px dashed var(--ink);outline-offset:-2px}
+.kh{display:flex;align-items:center;gap:8px;padding:4px 6px 10px}.kh i{width:10px;height:10px;border-radius:50%}.kh b{font-size:14px}.kh span{color:var(--muted);font-size:12.5px}.kh em{margin-left:auto;font-style:normal;font-size:12.5px;color:var(--ink2)}
+.kl{display:flex;flex-direction:column;gap:8px}.ke{color:var(--muted);font-size:12.5px;text-align:center;padding:26px 8px;border:1px dashed var(--line);border-radius:14px}
+.kd{background:#fff;border-radius:14px;padding:11px 12px;cursor:pointer;box-shadow:0 1px 0 rgba(0,0,0,.04)}.kd:hover{box-shadow:0 2px 10px rgba(0,0,0,.09)}.kd.drg{opacity:.45}
+.kd b{display:block;font-size:13.5px;line-height:1.3;margin-bottom:2px}.kd small{display:block;color:var(--muted);font-size:12px}
+.kf{display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:12px}.kv2{font-weight:600}
+.kt{margin-top:8px;font-size:12px;color:var(--ink2);display:flex;gap:5px;align-items:center}.kt.late{color:var(--red)}
+.fgrid{display:grid;gap:12px}.fgrid input,.fgrid textarea,.fgrid select{width:100%;box-sizing:border-box}
+.satop{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:18px;align-items:start;margin-bottom:18px}.satop .kpis{margin:0;grid-template-columns:repeat(3,minmax(0,1fr))}.satop .today{margin:0;height:100%}
+@media(max-width:1180px){.satop{grid-template-columns:1fr}}
+.tdl{display:flex;flex-direction:column;gap:6px}.tdi{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--soft);border:0;border-radius:14px;padding:9px 12px;font:inherit;cursor:pointer;color:var(--ink)}.tdi:hover{background:#e8e8ea}
+.tdi i{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none;background:var(--warn)}.tdi.red i{background:var(--red)}.tdi b{display:block;font-size:13.5px}.tdi small{display:block;color:var(--muted);font-size:12px;margin-top:1px}
+.cnt.red{color:var(--red)}
 </style>
 </head>
 <body>
@@ -334,7 +348,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
   var NAV = [
     ['dash', 'Dashboard', [['dash', 'Overview']]],
     ['cust', 'Customers', [['dir', 'Unleashed customers'], ['pipe', 'Quotes & orders'], ['segments', 'Segments & invites'], ['clients', 'Portal accounts'], ['prospects', 'Add by hand']]],
-    ['sales', 'Sales', [['sa', 'Analytics'], ['goals', 'Goals & rewards']]],
+    ['sales', 'Sales', [['sa', 'Analytics'], ['crm', 'CRM'], ['goals', 'Goals & rewards']]],
     ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Product visibility']]],
     ['ins', 'Insights', [['events', 'Behavior'], ['bcomp', 'By customer'], ['stream', 'Event stream']]],
@@ -370,12 +384,13 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     paint(h + '</div>' + drawDrawer() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
   }
-  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals };
+  var VIEWS = { sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
     if (t === 'sa') return slLoad();
     if (t === 'goals') return pgLoad();
+    if (t === 'crm') return crmLoad();
     if (t === 'prospects') return loadProspects();
     if (t === 'clients') return load();
     var M = { pipe: ['pipeline', 'pipe'], campaigns: ['campaigns', 'cps', 'campaigns'], dir: ['dir', 'dir'], segments: ['segments', 'segs', 'segments'], import: ['segments', 'segs', 'segments'], products: ['catalog-all', 'cat'], vouchers: ['vouchers', 'vouchers', 'vouchers'], events: ['events', 'ev', null, bd], bcomp: ['behavior-companies', 'bc', 'rows', bd],
@@ -578,6 +593,83 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
         us.map(function (u) { return '<tr' + (u.code ? ' data-act="cust" data-code="' + esc(u.code) + '"' : '') + '><td><b>' + esc(u.company || '') + '</b> ' + (u.hot ? st('due').replace('Due to reorder', 'Shopping') : '') + '<small>' + esc(u.name || '') + ' · ' + esc(u.email || '') + '</small></td><td>' + esc(new Date(u.last).toLocaleDateString()) + '</td><td class="r">' + u.sessions + '</td><td class="r">' + u.pv + '</td><td class="r">' + u.ca + '</td><td class="r">' + u.qu + '</td><td class="r">' + u.ord + '</td><td><span class="mono">' + esc((u.codes || []).slice(0, 3).join(', ')) + '</span>' + (u.queries && u.queries.length ? '<small>searched ' + esc(u.queries.join(', ')) + '</small>' : '') + '</td></tr>'; }), 'click') + '</section>';
     return h;
   }
+  // ---------------------------------------------------------------- CRM: deals on a kanban, with a card for each deal
+  var CRMSRC = { site_quote: 'Website quote', portal_quote: 'Portal quote', portal_order: 'Portal order', parked: 'Parked order', manual: 'Added by hand' };
+  var CRMLOST = [['Price', 'Price'], ['No stock or lead time', 'No stock or lead time'], ['Bought elsewhere', 'Bought elsewhere'], ['No answer', 'No answer'], ['Not a real request', 'Not a real request'], ['Other', 'Other']];
+  function crmLoad(quiet) { if (!quiet) S.tabErr = null; api('crm').then(function (r) { if (r._status === 200) { S.crm = r; draw(); } else if (!quiet) { S.tabErr = 'crm'; draw(); } }); }
+  function crmAge(d) { var n = Math.floor((Date.now() - Date.parse(d)) / 864e5); return n < 1 ? 'today' : n + (n === 1 ? ' day' : ' days'); }
+  function crmStage(k) { return ((S.crm && S.crm.stages) || []).filter(function (x) { return x.key === k; })[0]; }
+  function crmDealCard(d, su) {
+    var today = new Date().toISOString().slice(0, 10), late = d.next && d.next.due <= today;
+    return '<div class="kd" draggable="true" data-act="crm-open" data-id="' + esc(d.id) + '"><b>' + esc(d.title) + '</b>' + (d.customer_name ? '<small>' + esc(d.customer_name) + '</small>' : '') +
+      '<div class="kf"><span class="kv2">' + (d.value ? k$(d.value) : '-') + '</span><span class="muted">' + esc(CRMSRC[d.source] || d.source) + '</span></div>' +
+      '<div class="kf"><span class="muted">' + (su && d.owner ? esc(d.owner) + ' · ' : '') + crmAge(d.stage_at) + ' here</span></div>' +
+      (d.next ? '<div class="kt' + (late ? ' late' : '') + '">' + ic('clock', 12) + ' ' + esc(fmtAt(d.next.due)) + ': ' + esc(String(d.next.body || '').slice(0, 40)) + '</div>' : '') + '</div>';
+  }
+  function drawCrm() {
+    var C = S.crm; if (S.tabErr === 'crm') return ld(); if (!C) return ld();
+    if (!C.isSuper && !C.mySp) return '<div class="card"><h2>Your login is not linked to a salesperson yet</h2><p class="muted">Ask a superadmin to pick your name under Settings, Admin users.</p></div>';
+    var F = S.crmf || {}, q = F.q || '', deals = C.deals.filter(function (d) { return (!F.owner || d.owner === F.owner) && (!q || qhas(d.title + ' ' + (d.customer_name || '') + ' ' + (d.customer_code || ''), q)); });
+    var open = deals.filter(function (d) { var s = crmStage(d.stage); return s && s.kind === 'open'; }), won = deals.filter(function (d) { return d.stage === 'won'; }), lost = deals.filter(function (d) { return d.stage === 'lost'; });
+    var sum = function (L) { return L.reduce(function (t, d) { return t + (Number(d.value) || 0); }, 0); };
+    var h = '<div class="kpis">' + tile('Open deals', n0(open.length), k$(sum(open)) + ' in play', '', 'dark') + tile('Won, last 60 days', n0(won.length), k$(sum(won))) + tile('Lost, last 60 days', n0(lost.length), k$(sum(lost))) + '</div>';
+    h += '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="crmf.q" value="' + esc(q) + '" placeholder="Deal, customer or code"></label>' +
+      (C.isSuper ? '<select class="sel" data-chg="crmf.owner" aria-label="Owner"><option value="">Everyone</option>' + C.owners.map(function (o) { return opt(o, o, F.owner || ''); }).join('') + '</select>' : '') +
+      '<span class="sp"></span><button class="btn sm" data-act="crm-new">' + ic('plus', 14) + ' New deal</button></div>' +
+      '<div class="kb">' + C.stages.map(function (s) { var L = deals.filter(function (d) { return d.stage === s.key; });
+        return '<div class="kc" data-stage="' + esc(s.key) + '"><div class="kh"><i style="background:' + esc(s.color || '#9aa1ab') + '"></i><b>' + esc(s.label) + '</b><span>' + L.length + '</span><em>' + k$(sum(L)) + '</em></div><div class="kl">' +
+          (L.length ? L.map(function (d) { return crmDealCard(d, C.isSuper); }).join('') : '<div class="ke">Drop a deal here</div>') + '</div></div>'; }).join('') + '</div>' +
+      '<p class="muted" style="padding:6px 20px 16px;font-size:12.5px">Website quotes, portal quotes and parked orders in Unleashed become deals by themselves. A deal is won when its order is invoiced, and lost when you mark it lost.</p></section>';
+    return h;
+  }
+  function drawCrmDrawer() {
+    var Cd = S.cd, C = S.crm || { stages: [], owners: [] }, d = Cd.deal, h = '<div class="dscrim" data-act="crm-x"></div><aside class="drawer" role="dialog" aria-label="Deal"><div class="dh"><div><small>' + (Cd.create ? 'New deal' : 'Deal') + '</small><h2>' + esc(Cd.create ? 'Add a deal' : (d ? d.title : 'Loading')) + '</h2></div><button class="ib" data-act="crm-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
+    if (Cd.create) {
+      return h + '<div class="fgrid">' + '<div><label class="l">Title</label><input type="text" id="crm-title" placeholder="What is this deal"></div><div><label class="l">Customer</label><input type="text" id="crm-cname" placeholder="Customer name"></div><div><label class="l">Customer code (optional)</label><input type="text" id="crm-ccode" placeholder="Unleashed code"></div><div><label class="l">Value ($)</label><input type="number" id="crm-value" min="0" step="1"></div>' +
+        (C.isSuper ? '<div><label class="l">Owner</label><select class="sel" id="crm-owner">' + C.owners.map(function (o) { return opt(o, o, 'Michael'); }).join('') + '</select></div>' : '') + '<div><label class="l">Note</label><textarea id="crm-note" rows="3"></textarea></div></div><div class="mact"><button class="btn" data-act="crm-create">Add deal</button></div></div></aside>';
+    }
+    if (Cd.loading || !d) return h + ld() + '</div></aside>';
+    var st = crmStage(d.stage);
+    h += '<div class="tags"><span class="st">' + esc(st ? st.label : d.stage) + '</span><span class="st">' + esc(CRMSRC[d.source] || d.source) + '</span>' + (d.ref ? '<span class="st mono">' + esc(d.ref) + '</span>' : '') + '</div>';
+    if (d.customer_code) h += '<p style="margin:10px 0"><a data-act="crm-cust" data-code="' + esc(d.customer_code) + '"><b>' + esc(d.customer_name || d.customer_code) + '</b></a> <span class="muted">' + esc(d.customer_code) + ' · open the customer</span></p>';
+    h += '<h3 style="margin:14px 0 8px">Move to</h3><div class="outc">' + C.stages.map(function (s) { return '<button data-act="crm-move" data-id="' + esc(d.id) + '" data-s="' + esc(s.key) + '" class="' + (s.key === d.stage ? 'on' : '') + '">' + esc(s.label) + '</button>'; }).join('') + '</div>';
+    if (d.stage === 'lost' && d.lost_reason) h += '<p class="muted" style="margin:8px 0 0">Lost: ' + esc(d.lost_reason) + '</p>';
+    h += '<div class="fgrid" style="margin-top:16px"><div><label class="l">Title</label><input type="text" id="crm-title" value="' + esc(d.title) + '"></div><div><label class="l">Value ($)</label><input type="number" id="crm-value" min="0" step="1" value="' + esc(d.value || 0) + '"></div>' +
+      (C.isSuper ? '<div><label class="l">Owner</label><select class="sel" id="crm-owner">' + C.owners.map(function (o) { return opt(o, o, d.owner || ''); }).join('') + '</select></div>' : '<div><label class="l">Owner</label><div>' + esc(d.owner || '') + '</div></div>') +
+      '<div><label class="l">Note</label><textarea id="crm-note" rows="3">' + esc(d.note || '') + '</textarea></div></div><div class="mact"><button class="btn sm" data-act="crm-edit" data-id="' + esc(d.id) + '">Save changes</button></div>';
+    h += '<h3 style="margin:20px 0 8px">Log a note or task</h3><div class="fgrid"><div><textarea id="crm-body" rows="2" placeholder="What happened, or what needs doing"></textarea></div><div><label class="l">Task date (leave empty for a plain note)</label><input type="date" id="crm-due"></div></div><div class="mact"><button class="btn sm" data-act="crm-log" data-id="' + esc(d.id) + '">Add</button></div>';
+    var acts = Cd.acts || [];
+    h += '<h3 style="margin:20px 0 8px">History</h3>' + (acts.length ? '<ol class="tl2">' + acts.map(function (a) { return '<li><span class="tli">' + ic(a.kind === 'task' ? 'clock' : a.kind === 'stage' ? 'arr' : 'phone', 16) + '</span><div class="tlb"><div class="tlh"><b>' + esc(a.kind === 'task' ? 'Task' + (a.due ? ' for ' + fmtAt(a.due) : '') : a.kind === 'note' ? 'Note' : 'Update') + '</b><time>' + esc(fmtAt(a.created_at)) + '</time></div><p>' + esc(a.body || '') + '</p><small class="muted">' + esc(a.created_by || '') + '</small>' +
+      (a.kind === 'task' && !a.done_at ? ' <button class="btn ghost sm" data-act="crm-done" data-id="' + esc(d.id) + '" data-a="' + esc(a.id) + '">Done</button>' : a.done_at ? ' <small class="muted">done</small>' : '') + '</div></li>'; }).join('') + '</ol>' : '<div class="empty">Nothing yet.</div>');
+    return h + '</div></aside>';
+  }
+  function crmDeal() { var id = S.cd && S.cd.id; if (!id) return; api('crm-deal', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (!S.cd || S.cd.id !== id) return; S.cd.loading = false; if (r._status === 200) { S.cd.deal = r.deal; S.cd.acts = r.acts; } else { S.cd = null; fail(r); return; } draw(); }); }
+  function crmPost(body, msg) { return api('crm-save', body).then(function (r) { if (!r.ok) { fail(r); crmLoad(true); return r; } if (msg) toast(msg, true); crmLoad(true); if (S.cd && S.cd.id) crmDeal(); return r; }); }
+  function crmV(id) { var el = document.getElementById(id); return el ? el.value : ''; }
+  function crmAct(act, t) {
+    if (act === 'crm-open') { S.cd = { id: t.dataset.id, loading: true }; draw(); crmDeal(); return; }
+    if (act === 'crm-x') return closeL('.drawer,.dscrim', function () { S.cd = null; });
+    if (act === 'crm-new') { S.cd = { create: true }; return draw(); }
+    if (act === 'crm-cust') { S.cd = null; return openCust(t.dataset.code, null); }
+    if (act === 'crm-create') { var ti = crmV('crm-title').trim(); if (!ti) { toast('Give the deal a title.'); return; }
+      return api('crm-save', { kind: 'create', title: ti, customer_name: crmV('crm-cname'), customer_code: crmV('crm-ccode'), value: crmV('crm-value'), owner: crmV('crm-owner'), note: crmV('crm-note') }).then(function (r) { if (!r.ok) return fail(r); toast('Deal added.', true); S.cd = r.id ? { id: r.id, loading: true } : null; crmLoad(true); crmDeal(); }); }
+    if (act === 'crm-move') { var st = crmStage(t.dataset.s), why = ''; if (!st) return;
+      if (st.kind === 'lost') { why = pick('Why was it lost?', CRMLOST, { title: 'Mark as lost', ok: 'Mark lost' }); if (!why) return; }
+      var dl = S.crm && S.crm.deals.filter(function (x) { return x.id === t.dataset.id; })[0]; if (dl) { dl.stage = st.key; dl.stage_at = new Date().toISOString(); draw(); }
+      return crmPost({ kind: 'move', id: t.dataset.id, stage: st.key, reason: why }, 'Moved to ' + st.label + '.'); }
+    if (act === 'crm-edit') return crmPost({ kind: 'edit', id: t.dataset.id, title: crmV('crm-title'), value: crmV('crm-value'), note: crmV('crm-note'), owner: crmV('crm-owner') || undefined }, 'Saved.');
+    if (act === 'crm-log') { var b = crmV('crm-body').trim(), due = crmV('crm-due'); if (!b) { toast('Write what happened or what needs doing.'); return; }
+      return crmPost({ kind: due ? 'task' : 'note', id: t.dataset.id, body: b, due: due }, due ? 'Task added.' : 'Note added.'); }
+    if (act === 'crm-done') return crmPost({ kind: 'done', id: t.dataset.id, act: t.dataset.a }, 'Task done.');
+  }
+  // drag a card to another column (touch screens use the Move to buttons in the card)
+  app.addEventListener('dragstart', function (e) { var c = e.target.closest && e.target.closest('.kd'); if (!c) return; e.dataTransfer.setData('text/plain', c.dataset.id); e.dataTransfer.effectAllowed = 'move'; c.classList.add('drg'); });
+  app.addEventListener('dragend', function () { [].forEach.call(app.querySelectorAll('.drg,.ov'), function (x) { x.classList.remove('drg', 'ov'); }); });
+  app.addEventListener('dragover', function (e) { var c = e.target.closest && e.target.closest('.kc'); if (!c) return; e.preventDefault(); if (!c.classList.contains('ov')) { [].forEach.call(app.querySelectorAll('.ov'), function (x) { x.classList.remove('ov'); }); c.classList.add('ov'); } });
+  app.addEventListener('drop', function (e) { var c = e.target.closest && e.target.closest('.kc'); if (!c) return; e.preventDefault(); [].forEach.call(app.querySelectorAll('.drg,.ov'), function (x) { x.classList.remove('drg', 'ov'); });
+    var id = e.dataTransfer.getData('text/plain'), st = crmStage(c.dataset.stage), dl = S.crm && S.crm.deals.filter(function (x) { return x.id === id; })[0]; if (!st || !dl || dl.stage === st.key) return;
+    if (st.kind === 'lost') { S.cd = { id: id, loading: true }; draw(); crmDeal(); toast('Use "Move to" and pick Lost, so the reason is saved.'); return; }
+    dl.stage = st.key; dl.stage_at = new Date().toISOString(); draw(); crmPost({ kind: 'move', id: id, stage: st.key }, 'Moved to ' + st.label + '.'); });
   // ---------------------------------------------------------------- customer drawer (one place for everything about a customer)
   var OUTC = [['reached', 'Reached them', 0], ['no_answer', 'No answer', 2], ['left_message', 'Left a message', 2], ['quote_sent', 'Quote sent', 3], ['ordered', 'Ordered', 0], ['not_now', 'Not now', 30], ['lost', 'Lost', 0]], OUTL = {}; OUTC.forEach(function (x) { OUTL[x[0]] = x[1]; });
   var TLK = { note: ['Notes and calls', 'phone'], order: ['Orders', 'cart'], quote: ['Quotes', 'file'], visit: ['Portal visits', 'globe'], invite: ['Invites', 'mail'], account: ['Account', 'user'], segment: ['Segments', 'layers'] };
@@ -598,7 +690,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (L.length > N) h += '<button class="btn ghost sm" data-act="tl-more">Show ' + Math.min(40, L.length - N) + ' more of ' + L.length + '</button>';
     return h;
   }
-  function drawDrawer() { if (S.vd) return drawVoucherDrawer(); if (S.fd && !S.dr) return drawFunnelDrawer(); return drawCustDrawer(); }
+  function drawDrawer() { if (S.cd) return drawCrmDrawer(); if (S.vd) return drawVoucherDrawer(); if (S.fd && !S.dr) return drawFunnelDrawer(); return drawCustDrawer(); }
   var FEV = { page: 'Opened', product: 'Viewed', search: 'Searched', cart_add: 'Added to cart', cart_remove: 'Removed from cart', cart_view: 'Opened the cart', checkout: 'Started checkout', order: 'Ordered', quote: 'Sent a quote', login: 'Signed in', voucher: 'Tried a voucher', filter: 'Filtered', click: 'Clicked' };
   function drawFunnelDrawer() {
     var F = S.fd, h = '<div class="dscrim" data-act="fd-x"></div><aside class="drawer" role="dialog" aria-label="' + esc(F.label) + '"><div class="dh"><div><small>Funnel step · last ' + esc(F.days) + ' days</small><h2>' + esc(F.label) + '</h2>';
@@ -1027,6 +1119,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     S.sd = null; draw(); slLoad();
   }
   function slLoad() {
+    crmLoad(true); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } });
     var L = slState(); api('sales-program').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
     api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
   }
@@ -1066,10 +1159,10 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     var K = D.kpi, P = D.prev, own = D.role !== 'superadmin', who = D.scope && D.scope !== 'all' ? D.scope : '';
     var h = who ? '<div class="note" style="margin-bottom:14px">' + (own ? 'Showing your sales: <b>' + esc(who) + '</b>.' : 'Filtered to <b>' + esc(who) + '</b>.') + '</div>' : '';
     var cost = K.coverage != null && K.coverage > 0;
-    h += '<div class="kpis k6">' + tile('Sales', m0(K.sales), P ? delta(K.sales, P.sales) + ' <span class="muted">vs ' + m0(P.sales) + '</span>' : '', '', 'dark') +
+    h += '<div class="satop"><div class="kpis k6">' + tile('Sales', m0(K.sales), P ? delta(K.sales, P.sales) + ' <span class="muted">vs ' + m0(P.sales) + '</span>' : '', '', 'dark') +
       tile('Profit', cost ? m0(K.profit) : '-', cost ? (P && P.coverage ? delta(K.profit, P.profit) + ' ' : '') + 'margin ' + pc1(K.margin) + ' on ' + pc1(K.coverage) + ' of sales' : 'Cost at the time of sale is still syncing') +
       tile('Orders', n0(K.orders), P ? delta(K.orders, P.orders) : '') + tile('Customers', n0(K.customers), P ? delta(K.customers, P.customers) : '') +
-      tile('Average order', K.aov == null ? '-' : m0(K.aov), P ? delta(K.aov, P.aov) : '') + tile('Commission', m0(K.commission), P ? delta(K.commission, P.commission) : 'by the rule set for each salesperson') + '</div>';
+      tile('Average order', K.aov == null ? '-' : m0(K.aov), P ? delta(K.aov, P.aov) : '') + tile('Commission', m0(K.commission), P ? delta(K.commission, P.commission) : 'by the rule set for each salesperson') + '</div>' + slToday(who) + '</div>';
     if (S.pg && S.pg.race) h = pgRace(S.pg.race) + h;
     h += slSignals(D);
     h += '<section class="card"><h3 style="margin:0 0 10px">Sales over time</h3>' + slChart(D) + '</section>';
@@ -1079,10 +1172,28 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (L.v === 'parts') return h + slParts(D);
     return h + slCustomers(D, L);
   }
+  // "Today": what the salesperson should do next, from the CRM deals and the follow-ups logged on customers
+  function slToday(who) {
+    var C = S.crm, F = S.fus, td = new Date().toISOString().slice(0, 10), it = [], day = 864e5;
+    ((C && C.deals) || []).forEach(function (d) { var st = crmStage(d.stage); if (!st || st.kind !== 'open' || (who && d.owner !== who)) return;
+      var since = Math.floor((Date.now() - Date.parse(d.stage_at)) / day), idle = Math.floor((Date.now() - Date.parse(d.updated_at)) / day);
+      if (d.next && d.next.due <= td) it.push({ lvl: d.next.due < td ? 'red' : 'amb', t: d.next.body || 'Task', s: d.title + ' · ' + (d.next.due < td ? 'overdue since ' : 'due ') + fmtAt(d.next.due), id: d.id, w: d.next.due < td ? 0 : 2 });
+      else if (d.stage === 'new' && since >= 1) it.push({ lvl: since >= 3 ? 'red' : 'amb', t: 'Reply to ' + (d.customer_name || d.title), s: (CRMSRC[d.source] || 'Deal') + ' waiting ' + crmAge(d.stage_at) + (d.value ? ' · ' + k$(d.value) : ''), id: d.id, w: since >= 3 ? 1 : 3 });
+      else if ((d.stage === 'quote' || d.stage === 'negotiation') && idle >= 3) it.push({ lvl: idle >= 7 ? 'red' : 'amb', t: 'Follow up on ' + (d.customer_name || d.title), s: 'No update for ' + crmAge(d.updated_at) + (d.value ? ' · ' + k$(d.value) : ''), id: d.id, w: idle >= 7 ? 1 : 4 }); });
+    ((F && F.rows) || []).forEach(function (r) { if (r.follow_up > td || (who && r.sp !== who)) return; it.push({ lvl: r.follow_up < td ? 'red' : 'amb', t: 'Call ' + (r.customer_name || r.customer_code), s: String(r.body || '').slice(0, 70) + ' · ' + (r.follow_up < td ? 'overdue since ' : 'due ') + fmtAt(r.follow_up), code: r.customer_code, cid: r.company_id, w: r.follow_up < td ? 0 : 2 }); });
+    it.sort(function (a, b) { return a.w - b.w; });
+    var late = it.filter(function (x) { return x.lvl === 'red'; }).length;
+    var h = '<section class="card today"><div class="ch"><h2>Today</h2>' + (it.length ? '<span class="cnt' + (late ? ' red' : '') + '">' + it.length + (late ? ' · ' + late + ' late' : '') + '</span>' : '') + '</div>';
+    if (!C && !F) return h + '<div class="empty">Loading...</div></section>';
+    if (!it.length) return h + '<div class="empty">Nothing waiting on you. New quotes and follow-ups show up here.</div></section>';
+    h += '<div class="tdl">' + it.slice(0, 7).map(function (x) { return '<button class="tdi ' + x.lvl + '" ' + (x.id ? 'data-act="crm-open" data-id="' + esc(x.id) + '"' : 'data-act="cust" data-code="' + esc(x.code || '') + '" data-cid="' + esc(x.cid || '') + '"') + '><i></i><span><b>' + esc(x.t) + '</b><small>' + esc(x.s) + '</small></span></button>'; }).join('') + '</div>';
+    if (it.length > 7) h += '<a class="lnk" data-tab="crm" style="display:inline-block;margin-top:8px">See all ' + it.length + ' in the CRM</a>';
+    return h + '</section>';
+  }
   function slSignals(D) {
     var g = D.signals || []; if (!g.length) return '';
     var open = g.filter(function (x) { return x.id === S.sigOpen; })[0];
-    var h = '<section class="card"><h3 style="margin:0 0 4px">What needs attention</h3><div class="muted" style="font-size:13px;margin-bottom:12px">Worked out from the numbers on this page. Hover for the short version, click for who and what to do.</div><div class="sigs">' +
+    var h = '<section class="card"><h3 style="margin:0 0 4px">Needs a call</h3><div class="muted" style="font-size:13px;margin-bottom:12px">Tap one to see who.</div><div class="sigs">' +
       g.map(function (x) { return '<button class="sig ' + x.sev + (open && open.id === x.id ? ' on' : '') + '" data-act="sig" data-id="' + esc(x.id) + '" data-tip="' + esc(x.tip) + '"><i></i><b>' + (x.rows && x.rows.length ? x.n : '') + '</b>' + esc(x.title) + '</button>'; }).join('') + '</div>';
     if (open) h += '<div class="sigp"><p>' + esc(open.text) + '</p>' + (open.rows.length ? tbl([h0('Customer'), '<th class="r">This period</th>', '<th class="r">Before</th>', h0('Note')], open.rows.map(function (r) { return '<tr data-act="cust" data-code="' + esc(r.c || '') + '"><td><b>' + esc(r.n || r.c) + '</b><div class="muted" style="font-size:12px">' + esc(r.c || '') + (r.sp ? ' · ' + esc(r.sp) : '') + '</div></td><td class="r">' + m0(r.a) + '</td><td class="r">' + m0(r.b) + '</td><td>' + esc(r.note || '') + '</td></tr>'; }), 'sa-t') : '') + '</div>';
     return h + '</section>';
@@ -1129,10 +1240,10 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (!R) return '';
     var mg = R.month.goal, ms = R.month.sales, mp = mg ? ms / mg : 0, pc = Math.round(R.pace * 100), M3 = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], mi = +R.ym.slice(5, 7) - 1;
     var yp = R.yearGoal ? R.ytd / R.yearGoal : 0, share = R.yearGoal && mg ? Math.round(mg / R.yearGoal * 100) : null;
-    var h = '<section class="card race1"><div class="rr"><div><div class="rl"><b>' + M3[mi] + '</b><span>' + (mg ? kf(ms) + ' of ' + kf(mg) + ' · ' + Math.round(mp * 100) + '%' : kf(ms) + ' sold, no goal') + '</span></div>' +
+    var h = '<section class="card race1"><div class="rr"><div><div class="rl"><b>' + (R.who && R.who !== '*' ? esc(R.who) : 'Team') + ' · ' + M3[mi] + '</b><span>' + (mg ? kf(ms) + ' of ' + kf(mg) + ' · ' + Math.round(mp * 100) + '% · ' + (mp >= 1 ? 'Goal hit' : mp * 100 >= pc ? 'On pace' : 'Behind') : kf(ms) + ' sold, no goal') + '</span></div>' +
       '<div class="trk" data-tip="' + (mg ? (mp * 100 >= pc ? 'Ahead of pace' : 'Behind pace') + ': the month is ' + pc + '% done, you are at ' + Math.round(mp * 100) + '%.' : 'No goal set for this month.') + (share ? ' This month is ' + share + '% of the year goal.' : '') + '"><div class="road"><i class="rfill" style="width:' + Math.min(100, mp * 100) + '%"></i><u class="rpace" style="left:' + pc + '%"></u></div><div class="rcar" style="left:' + Math.min(100, mp * 100) + '%">' + pgCar() + '</div><div class="rflag">&#9873;</div></div></div>';
     if (R.yearGoal) h += '<div><div class="rl"><b>' + R.year + '</b><span>' + kf(R.ytd) + ' of ' + kf(R.yearGoal) + ' · ' + Math.round(yp * 100) + '%' + (R.annualSet ? '' : ' (months added up)') + '</span></div><div class="ytrk">' + R.months.map(function (m, i) { var g = m.goal || 0, f = g ? Math.min(1, m.sales / g) : 0;
-      return '<div class="ym' + (i === mi ? ' cur' : '') + (i > mi ? ' fut' : '') + '" style="flex:' + Math.max(g, R.yearGoal * 0.01) + '" data-tip="' + M3[i] + ': ' + (g ? m0(m.sales) + ' of ' + m0(g) + ' (' + Math.round(f * 100) + '%)' : 'no goal') + '"><i style="width:' + Math.round(f * 100) + '%" class="' + (f >= 1 ? 'hit' : '') + '"></i></div>'; }).join('') + '</div><div class="ylab">' + R.months.map(function (m, i) { return '<span style="flex:' + Math.max(m.goal || 0, R.yearGoal * 0.01) + '"' + (i === mi ? ' class="cur"' : '') + '>' + M3[i].charAt(0) + '</span>'; }).join('') + '</div></div>';
+      return '<div class="ym' + (i === mi ? ' cur' : '') + (i > mi ? ' fut' : '') + '" style="flex:1" data-tip="' + M3[i] + ': ' + (g ? m0(m.sales) + ' of ' + m0(g) + ' (' + Math.round(f * 100) + '%)' + (f >= 1 ? ' · goal hit' : '') : 'no goal') + '"><i style="width:' + Math.round(f * 100) + '%" class="' + (f >= 1 ? 'hit' : '') + '"></i></div>'; }).join('') + '</div><div class="ylab">' + R.months.map(function (m, i) { return '<span style="flex:1"' + (i === mi ? ' class="cur"' : '') + '>' + M3[i].charAt(0) + '</span>'; }).join('') + '</div></div>';
     return h + '</div></section>';
   }
   function drawGoals() {
@@ -1435,7 +1546,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     document.addEventListener('pointerup', function () { drag = null; });
     app.addEventListener('keydown', function (e) { var el = e.target.closest && e.target.closest('.mbar'); if (!el || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return; e.preventDefault(); var rw = S.pgd.rows[el.dataset.pgm], i = +el.dataset.i; pgSetMonth(el.dataset.pgm, i, (rw.months[i].v + (e.key === 'ArrowUp' ? 500 : -500)) / rw.max.mon); }); })();
   document.addEventListener('keydown', function (e) { if (e.key === 'Enter' && e.target && e.target.id === 'mcode') { e.preventDefault(); var mb = document.querySelector('[data-act=mfa-code],[data-act=totp-confirm],[data-act=mfa-rec]'); if (mb && !mb.disabled) mb.click(); return; }
-    if (e.key === 'Enter' && e.target && e.target.id === 'em') { e.preventDefault(); var b = document.querySelector('[data-act=send]'); if (b && !b.disabled) b.click(); return; } if (S.modal) return; if (e.key === 'Escape' && (S.dr || S.vd || S.pop || S.meOpen)) { e.preventDefault(); if (S.pop || S.meOpen) { S.pop = null; S.meOpen = false; } else { S.dr = null; S.vd = false; } draw(); } });
+    if (e.key === 'Enter' && e.target && e.target.id === 'em') { e.preventDefault(); var b = document.querySelector('[data-act=send]'); if (b && !b.disabled) b.click(); return; } if (S.modal) return; if (e.key === 'Escape' && (S.dr || S.vd || S.pop || S.meOpen)) { e.preventDefault(); if (S.pop || S.meOpen) { S.pop = null; S.meOpen = false; } else { S.dr = null; S.cd = null; S.vd = false; } draw(); } });
   function openSeg(id, keepRun) { S.segOpen = id; S.tab = 'segments'; if (!keepRun) { S.sendRun = null; S.pvHtml = ''; S.tpl = {}; } api('segment', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (r._status === 200) { S.seg = r; if (!keepRun) { S.pick = {}; r.members.forEach(function (m) { if (m.c && m.email && m.status !== 'active' && !m.invited_at) S.pick[m.id] = 1; }); } draw(); } else fail(r); }); draw(); }
   function tplNow() { var g = (S.seg || {}).segment || {}, T = S.tpl || {}; return { subject: T.subject != null ? T.subject : g.subject, title: T.title != null ? T.title : g.title, body: T.body != null ? T.body : g.body, cta: T.cta != null ? T.cta : g.cta }; }
   function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
@@ -1461,6 +1572,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
     if (act === 'funv') { S.funv = t.dataset.v; return draw(); }
     if (act === 'pf-kind') { S.pf = S.pf || {}; S.pf.kind = t.dataset.v; return draw(); }
     if (act === 'pf-fresh') { S.pipe = null; draw(); api('pipeline', null, '&fresh=1').then(function (r) { if (r._status === 200) { S.pipe = r; draw(); } else fail(r); }); return; }
+    if (act.indexOf('crm-') === 0) return crmAct(act, t);
     if (act === 'pf-log') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call', body: 'About ' + t.dataset.n + ': ' }; return; }
     if (act === 'pf-done' || act === 'pf-lost') { var lostR = null; if (act === 'pf-lost') { lostR = pick('Why was it lost? It is saved on the customer.', [['price', 'Price'], ['stock', 'No stock or lead time'], ['competitor', 'Bought elsewhere'], ['no_answer', 'Never answered'], ['not_needed', 'Not needed anymore'], ['other', 'Other']], { title: 'Mark ' + t.dataset.n + ' as lost', ok: 'Mark lost', danger: true }); if (lostR === null) return; }
       api('pipeline-mark', { number: t.dataset.n, status: act === 'pf-lost' ? 'lost' : 'handled', code: t.dataset.code, name: t.dataset.name, reason: lostR || '' }).then(function (r) { if (r.ok) { S.pipe.rows = S.pipe.rows.filter(function (x) { return x.number !== t.dataset.n; }); toast(t.dataset.n + (act === 'pf-lost' ? ' marked lost.' : ' off the board.'), act !== 'pf-lost'); } else fail(r); }); return; }
@@ -1707,6 +1819,7 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
       api('segment-create', { name: sg0.name, codes: Object.keys(S.sel || {}) }).then(function (r) { if (r.ok) { S.sel = {}; S.okMsg = 'Added to ' + sg0.name + '.'; loadTab('dir'); } else fail(r); }); return; }
     if (d.chg && d.chg.indexOf('sf.') === 0) { setM(d.chg, e.target.value); S.bs = null; draw(); return loadTab('stream'); }
     if (d.actChange === 'bdays') { S.bdays = +e.target.value; S.ev = S.bc = S.bs = null; draw(); return loadTab(S.tab); }
+    if (d.chg && d.chg.indexOf('crmf.') === 0) { setM(d.chg, e.target.value); return draw(); }
     if (d.chg && d.chg.indexOf('sl.') === 0) return slSet(d.chg.slice(3), e.target.value);
     if (d.chg) { setM(d.chg, e.target.value); return draw(); } if (e.target.dataset.actChange === 'days') { S.days = +e.target.value; if (S.tab === 'dash') { S.dash = null; draw(); loadTab('dash'); } else { S.ev = null; draw(); loadTab('events'); } } });
   (function () {

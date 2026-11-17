@@ -1278,11 +1278,8 @@ A['funnel-step'] = async (req, res) => {
 // quotes and portal orders waiting for the team: the Parked sales orders in Unleashed (website quotes, B2B store quotes,
 // portal orders and parked orders typed by hand), with their age and owner. Marked lost or handled ones are left out.
 let pipeMemo = { at: 0, rows: null };
-A.pipeline = async (req, res) => {
-  const w = await who(req, res); if (!w) return;
-  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
-  if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || req.query.fresh === '1') {
+async function loadParked(fresh) {
+  if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || fresh) {
     const items = [];
     for (let page = 1; page <= 3; page++) {
       const d = await ul('SalesOrders/' + page, 'pageSize=200&orderStatus=Parked', { timeoutMs: 60000 });
@@ -1295,6 +1292,13 @@ A.pipeline = async (req, res) => {
       return { number: o.OrderNumber, ref: o.CustomerRef || '', kind, code: o.Customer && o.Customer.CustomerCode, name: o.Customer && o.Customer.CustomerName, at: day(o.OrderDate) || day(o.CreatedOn),
         value: Number(o.SubTotal || o.BCSubTotal || 0), lines: (o.SalesOrderLines || []).length, sp: o.SalesPerson && (o.SalesPerson.FullName || o.SalesPerson.Email) || null, note: c.replace(/^QUOTE REQUEST [^:]*:\s*/i, '').slice(0, 220), web: /WEB CUSTOMER/i.test(c) }; }) };
   }
+  return pipeMemo.rows;
+}
+A.pipeline = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (!configured()) return res.status(503).json({ error: 'Unleashed not configured' });
+  await loadParked(req.query.fresh === '1');
   const marks = await db.selectAll('pipeline_marks', 'select=number,status').catch(() => []), gone = new Set(marks.map((m) => m.number));
   const rows = pipeMemo.rows.filter((r) => !gone.has(r.number));
   const codes = [...new Set(rows.map((r) => r.code).filter(Boolean))], sp = {};
@@ -1313,6 +1317,96 @@ A['pipeline-mark'] = async (req, res) => {
   if (code) await db.insert('customer_notes', [{ customer_code: code, customer_name: clean(b.name, 160) || null, kind: 'note', body: (status === 'lost' ? 'Lost ' : 'Handled ') + number + (b.reason ? ': ' + clean(b.reason, 300) : ''), outcome: status === 'lost' ? 'lost' : null, created_by: w.email }]).catch(() => {});
   await PS.audit(w.email, 'pipeline.' + status, 'order', number, null, { reason: b.reason || null });
   return res.json({ ok: true });
+};
+// ---------------------------------------------------------------- CRM (Sales > CRM): deals on a kanban, fed by the parked orders in Unleashed
+const CRM_OWNER = 'Michael'; // a new customer with no Unleashed salesperson goes here until a distribution rule exists
+const crmStageOf = (kind) => (kind === 'site_quote' || kind === 'portal_quote' ? 'new' : 'quote');
+let crmSyncAt = 0;
+async function crmSync() {
+  if (Date.now() - crmSyncAt < 90e3 || !configured()) return;
+  crmSyncAt = Date.now();
+  const parked = await loadParked(false).catch(() => null); if (!parked) return;
+  const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
+  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
+  const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
+  for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; });
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
+  if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
+  for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0, updated_at: new Date().toISOString() }).catch(() => {}); }
+  // deals whose order left the Parked list: lost if marked, won if invoiced
+  const gone = deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
+  if (gone.length) {
+    const nums = gone.map((d) => d.ref), inv = new Set();
+    for (let i = 0; i < nums.length; i += 150) (await db.select('sales_orders', 'select=number&number=' + inList(nums.slice(i, i + 150)))).forEach((x) => inv.add(x.number));
+    for (const d of gone) { const m = mk[d.ref], to = m ? (m.status === 'lost' ? 'lost' : 'won') : inv.has(d.ref) ? 'won' : null; if (!to) continue;
+      const now = new Date().toISOString();
+      await db.update('crm_deals', 'id=eq.' + d.id, { stage: to, stage_at: now, closed_at: now, updated_at: now, lost_reason: to === 'lost' ? (m && m.reason) || null : null }).catch(() => {});
+      await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: to === 'won' ? 'Won: order left the Parked list' + (inv.has(d.ref) ? ' and is invoiced' : '') : 'Lost' + (m && m.reason ? ': ' + m.reason : ''), created_by: 'auto' }]).catch(() => {}); }
+  }
+}
+A.crm = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  await crmSync().catch(() => {});
+  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  if (!isSuper && sc.none) return res.json({ stages: [], deals: [], mySp: null, isSuper, owners: [] });
+  const since = new Date(Date.now() - 60 * 864e5).toISOString();
+  const [stages, all] = await Promise.all([db.select('crm_stages', 'select=*&order=pos.asc'), db.select('crm_deals', 'select=*&or=(closed_at.is.null,closed_at.gte.' + since + ')&order=updated_at.desc&limit=800' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)))]);
+  const ids = all.map((d) => d.id), next = {};
+  for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,body,due&done_at=is.null&due=not.is.null&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')&order=due.asc')).forEach((a) => { if (!next[a.deal_id]) next[a.deal_id] = a; });
+  all.forEach((d) => { d.next = next[d.id] || null; });
+  const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners });
+};
+A['crm-deal'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const id = clean(req.query.id, 60), d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0];
+  if (!d) return res.status(404).json({ error: 'deal' });
+  const sc = await salesScope(w, { query: {} }); if (w.role !== 'superadmin' && d.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
+  return res.json({ deal: d, acts: await db.select('crm_activities', 'select=*&deal_id=eq.' + d.id + '&order=created_at.desc&limit=200') });
+};
+A['crm-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), isSuper = w.role === 'superadmin', sc = await salesScope(w, { query: {} }), now = new Date().toISOString();
+  const st = await db.select('crm_stages', 'select=key,kind,label'), SK = {}; st.forEach((s) => { SK[s.key] = s; });
+  const log = (id, kind, body, due) => db.insert('crm_activities', [{ deal_id: id, kind, body: clean(body, 1000) || null, due: due || null, created_by: w.email }]);
+  const mine = async (id) => { const d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(clean(id, 60)) + '&limit=1'))[0]; if (!d) return null; return isSuper || d.owner === sc.sp ? d : false; };
+  if (b.kind === 'create') {
+    const title = clean(b.title, 160); if (!title) return res.status(400).json({ error: 'title' });
+    const owner = isSuper ? (clean(b.owner, 120) || CRM_OWNER) : sc.sp; if (!owner) return res.status(403).json({ error: 'scope' });
+    const row = (await db.insert('crm_deals', [{ title, stage: 'new', owner, customer_code: clean(b.customer_code, 60) || null, customer_name: clean(b.customer_name, 160) || null, value: Math.max(0, Number(b.value) || 0), source: 'manual', note: clean(b.note, 1000) || null, created_by: w.email }]))[0];
+    if (row) await log(row.id, 'stage', 'Created by ' + w.email);
+    return res.json({ ok: true, id: row && row.id });
+  }
+  const d = await mine(b.id); if (d === null) return res.status(404).json({ error: 'deal' }); if (d === false) return res.status(403).json({ error: 'scope' });
+  if (b.kind === 'move') {
+    const to = SK[b.stage]; if (!to) return res.status(400).json({ error: 'stage' });
+    if (to.kind === 'lost' && !clean(b.reason, 300)) return res.status(400).json({ error: 'reason' });
+    const closed = to.kind !== 'open';
+    await db.update('crm_deals', 'id=eq.' + d.id, { stage: to.key, stage_at: now, updated_at: now, closed_at: closed ? now : null, lost_reason: to.kind === 'lost' ? clean(b.reason, 300) : null });
+    await log(d.id, 'stage', 'Moved to ' + to.label + (to.kind === 'lost' ? ': ' + clean(b.reason, 300) : ''));
+    return res.json({ ok: true });
+  }
+  if (b.kind === 'edit') {
+    const p = { updated_at: now };
+    if (b.title != null) p.title = clean(b.title, 160) || d.title;
+    if (b.value != null) p.value = Math.max(0, Number(b.value) || 0);
+    if (b.note != null) p.note = clean(b.note, 1000) || null;
+    if (b.owner != null && isSuper && clean(b.owner, 120) !== d.owner) { p.owner = clean(b.owner, 120); await log(d.id, 'owner', 'Owner changed from ' + (d.owner || 'nobody') + ' to ' + p.owner); }
+    await db.update('crm_deals', 'id=eq.' + d.id, p);
+    return res.json({ ok: true });
+  }
+  if (b.kind === 'note' || b.kind === 'task') {
+    const body = clean(b.body, 1000); if (!body) return res.status(400).json({ error: 'body' });
+    const due = b.kind === 'task' && ISO10.test(b.due || '') ? b.due : null;
+    await log(d.id, b.kind, body, due); await db.update('crm_deals', 'id=eq.' + d.id, { updated_at: now });
+    return res.json({ ok: true });
+  }
+  if (b.kind === 'done') { await db.update('crm_activities', 'id=eq.' + encodeURIComponent(clean(b.act, 60)) + '&deal_id=eq.' + d.id, { done_at: now }); return res.json({ ok: true }); }
+  return res.status(400).json({ error: 'kind' });
 };
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
