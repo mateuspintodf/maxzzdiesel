@@ -1276,8 +1276,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 <div class="px-fg">
 <h3>Vehicle</h3>
-<template v-for="o in fEngs"><label class="px-fo" :class="[on('eng', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('eng', o.k)" @change="toggle('eng', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
-<div class="px-fsub" v-if="on('eng', o.k) && fGens(o.k).length"><div class="px-fsub-e" v-for="e in fGens(o.k)"><span class="px-fsub-l" v-text="e.label"></span><span class="px-fsub-g"><button type="button" v-for="g in e.gens" class="px-fy" :class="[on('gen', g.key) ? 'on' : '', g.n || on('gen', g.key) ? '' : 'dis']" :disabled="!g.n && !on('gen', g.key)" :aria-pressed="on('gen', g.key) ? 'true' : 'false'" @click="toggle('gen', g.key)" :title="g.label + ' ' + g.years + ': ' + g.n + ' parts'"><span v-text="g.years"></span><small v-text="g.n"></small></button></span></div></div></template>
+<div class="px-fow" v-for="o in fEngs"><label class="px-fo" :class="[on('eng', o.k) ? 'on' : '', o.n ? '' : 'dis']"><input type="checkbox" :checked="on('eng', o.k)" @change="toggle('eng', o.k)"><span class="bx"></span><span class="l" v-text="o.label"></span><span class="n" v-text="o.n"></span></label>
+<div class="px-fsub" v-if="on('eng', o.k) && fGens(o.k).length"><div class="px-fsub-e" v-for="e in fGens(o.k)"><span class="px-fsub-l" v-text="e.label"></span><span class="px-fsub-g"><button type="button" v-for="g in e.gens" class="px-fy" :class="[on('gen', g.key) ? 'on' : '', g.n || on('gen', g.key) ? '' : 'dis']" :disabled="!g.n && !on('gen', g.key)" :aria-pressed="on('gen', g.key) ? 'true' : 'false'" @click="toggle('gen', g.key)" :title="g.label + ' ' + g.years + ': ' + g.n + ' parts'"><span v-text="g.years"></span><small v-text="g.n"></small></button></span></div></div></div>
 </div>
 <div class="px-fg">
 <h3>Part brand</h3>
@@ -2078,7 +2078,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=80"></script>
+<script src="/js/portal-app.js?v=81"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
