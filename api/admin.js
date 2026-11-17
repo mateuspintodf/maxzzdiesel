@@ -1449,8 +1449,16 @@ A['sales-program'] = async (req, res) => {
   const mon = {}; (months || []).forEach((r) => { (mon[r.sp] = mon[r.sp] || {})[r.ym] = r; });
   const recent = (sp) => ymAdd(ym, -1) in (mon[sp] || {}) || ym in (mon[sp] || {}) || ymAdd(ym, -2) in (mon[sp] || {});
   const people = [...new Set([...Object.keys(mon).filter((k) => k !== 'Unassigned' && recent(k)), ...goalRows.map((g) => g.salesperson).filter((k) => k !== '*')])].sort();
-  // goal of one person for one month: the one set by the superadmin, else the average of the 3 months before plus a margin
-  const goalOf = (sp, m) => { const g = goal[sp + '|' + m]; if (g != null) return { v: g, auto: false }; const prev = [1, 2, 3].map((i) => Number(((mon[sp] || {})[ymAdd(m, -i)] || {}).sales) || 0); const avg = prev.reduce((a, b) => a + b, 0) / 3; return avg > 0 ? { v: Math.round(avg * (1 + cfg.autoGoalPct / 100)), auto: true } : { v: null, auto: true }; };
+  // seasonality: share of each month in last year's sales (the person's own, else the whole company's, else even)
+  const seasC = {}, pad2 = (i) => String(i).padStart(2, '0');
+  const seas = (sp, y) => { const k = sp + '|' + y; if (seasC[k]) return seasC[k]; const keys = Array.from({ length: 12 }, (_, i) => (y - 1) + '-' + pad2(i + 1));
+    const pick = (f) => keys.map((m) => Math.max(0, Number(f(m)) || 0)); const sum = (a) => a.reduce((x, z) => x + z, 0);
+    let w = sp === '*' ? [] : pick((m) => ((mon[sp] || {})[m] || {}).sales); if (!(sum(w) > 0)) w = pick((m) => Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0));
+    const t = sum(w); return (seasC[k] = t > 0 ? w.map((x) => x / t) : Array(12).fill(1 / 12)); };
+  // goal of one person for one month: set for that month, else the yearly goal split by seasonality, else the average of the 3 months before plus a margin
+  const goalOf = (sp, m) => { const g = goal[sp + '|' + m]; if (g != null) return { v: g, auto: false, src: 'month' };
+    const yg = goal[sp + '|' + m.slice(0, 4) + '-00']; if (yg != null) return { v: Math.round(yg * seas(sp, +m.slice(0, 4))[+m.slice(5, 7) - 1]), auto: false, src: 'annual' };
+    const prev = [1, 2, 3].map((i) => Number(((mon[sp] || {})[ymAdd(m, -i)] || {}).sales) || 0); const avg = prev.reduce((a, b) => a + b, 0) / 3; return avg > 0 ? { v: Math.round(avg * (1 + cfg.autoGoalPct / 100)), auto: true, src: 'auto' } : { v: null, auto: true, src: 'auto' }; };
   const pointsOf = (r, g) => { const sales = Number(r.sales) || 0, cov = Number(r.cov) || 0, margin = cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, cvg = sales > 0 ? cov / sales : 0;
     return Math.max(0, Math.floor(sales / 100 * P.per100)) + (g && sales >= g ? P.goal : 0) + (margin != null && margin >= cfg.marginTarget && cvg >= 0.7 ? P.margin : 0) + (Number(r.newc) || 0) * P.newc + (Number(r.back) || 0) * P.back; };
   const board = (rows, scale) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; });
@@ -1461,9 +1469,9 @@ A['sales-program'] = async (req, res) => {
   const life = {}, badges = {};
   people.forEach((sp) => {
     const all = Object.keys(mon[sp] || {}).sort(); let pts = 0, hit = 0, mk = 0, streak = 0;
-    all.forEach((m) => { const r = mon[sp][m], sales = Number(r.sales) || 0, g = goal[sp + '|' + m]; pts += Math.max(0, Math.floor(sales / 100 * P.per100)); if (g != null && sales >= g) { pts += P.goal; hit++; }
+    all.forEach((m) => { const r = mon[sp][m], sales = Number(r.sales) || 0, gg = goalOf(sp, m), g = gg.auto ? null : gg.v; pts += Math.max(0, Math.floor(sales / 100 * P.per100)); if (g != null && sales >= g) { pts += P.goal; hit++; }
       const cov = Number(r.cov) || 0; if (cov > 0 && sales > 0 && cov / sales >= 0.7 && (cov - (Number(r.cost) || 0)) / cov >= cfg.marginTarget) mk++; });
-    for (let m = ym; ; m = ymAdd(m, -1)) { const g = goal[sp + '|' + m], r = (mon[sp] || {})[m]; if (g != null && r && Number(r.sales) >= g) streak++; else if (m === ym) continue; else break; if (streak > 36) break; }
+    for (let m = ym; ; m = ymAdd(m, -1)) { const gg = goalOf(sp, m), g = gg.auto ? null : gg.v, r = (mon[sp] || {})[m]; if (g != null && r && Number(r.sales) >= g) streak++; else if (m === ym) continue; else break; if (streak > 36) break; }
     life[sp] = pts; badges[sp] = { goal_crusher: hit, margin_keeper: mk, streak };
   });
   const lvl = (pts) => { let cur = cfg.levels[0], next = null; cfg.levels.forEach((l) => { if (pts >= l[1]) cur = l; }); next = cfg.levels.filter((l) => l[1] > pts)[0] || null; return { name: cur[0], pts, next: next ? next[0] : null, need: next ? next[1] - pts : 0, from: cur[1], to: next ? next[1] : null }; };
@@ -1487,10 +1495,25 @@ A['sales-program'] = async (req, res) => {
   const visibleWins = isSuper ? wins : wins.filter((x) => x.sp === mineName);
   const out = { today, week: wk, ym, daysInMonth: md, day: today.slice(8, 10) * 1, pace: (+today.slice(8, 10)) / md, boards: { day: shape(dayB), week: shape(weekB), month: shape(monB) }, wins: visibleWins, badges: BDG, role: w.role, me: mineName, none: !!sc.none,
     levels: cfg.levels, pts: P, marginTarget: cfg.marginTarget };
+  const coSales = (m) => Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0);
+  const cg = goalOf('*', ym), peopleNow = people.map((sp) => goalOf(sp, ym).v).filter((v) => v != null);
+  out.company = { now: cg.v != null && !cg.auto ? cg.v : (peopleNow.length ? peopleNow.reduce((a, b) => a + b, 0) : null), sales: sumBy(monB, (r) => r.sales) };
   if (isSuper) {
-    const next = ymAdd(ym, 1); out.cfg = { pts: P, marginTarget: cfg.marginTarget, autoGoalPct: cfg.autoGoalPct, levels: cfg.levels, awards: cfg.awards };
-    out.goals = people.map((sp) => ({ sp, now: goalOf(sp, ym), next: goalOf(sp, next) })); out.company = { now: goal['*|' + ym] != null ? goal['*|' + ym] : null, next: goal['*|' + next] != null ? goal['*|' + next] : null, sales: sumBy(monB, (r) => r.sales) };
+    const Y = /^\d{4}$/.test(String(req.query.year || '')) ? +req.query.year : +ym.slice(0, 4);
+    out.cfg = { pts: P, marginTarget: cfg.marginTarget, autoGoalPct: cfg.autoGoalPct, levels: cfg.levels, awards: cfg.awards };
+    const rowFor = (sp) => { const months = Array.from({ length: 12 }, (_, i) => { const m = Y + '-' + pad2(i + 1), g = goalOf(sp, m), pm = (Y - 1) + '-' + pad2(i + 1);
+      return { ym: m, v: g.v, src: g.src, sales: sp === '*' ? coSales(m) : Number(((mon[sp] || {})[m] || {}).sales) || 0, last: sp === '*' ? coSales(pm) : Number(((mon[sp] || {})[pm] || {}).sales) || 0 }; });
+      const yg = goal[sp + '|' + Y + '-00'];
+      return { sp, annual: yg != null ? yg : null, seas: seas(sp, Y), months, lastYear: months.reduce((t, r) => t + r.last, 0), ytd: months.reduce((t, r) => t + r.sales, 0) }; };
+    out.goals = { year: Y, years: [Y - 1, Y, Y + 1], rows: [rowFor('*')].concat(people.map(rowFor)) };
   }
+  // the race track: how close the month is to its goal and what that month is worth in the year (the company for a superadmin, the person otherwise)
+  { const key = isSuper ? '*' : mineName, Yr = +ym.slice(0, 4);
+    if (key) { const gOf = (m) => { const g = goalOf(key, m); if (key === '*' && g.auto) { const v = people.map((p) => goalOf(p, m).v).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; } return g.v; };
+      const sOf = (m) => key === '*' ? Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0) : Number(((mon[key] || {})[m] || {}).sales) || 0;
+      const months = Array.from({ length: 12 }, (_, i) => { const m = Yr + '-' + pad2(i + 1); return { ym: m, goal: gOf(m), sales: sOf(m) }; });
+      const yg = months.reduce((t, r) => t + (r.goal || 0), 0), ytd = months.reduce((t, r) => t + r.sales, 0), cur = months[+ym.slice(5, 7) - 1];
+      out.race = { who: key === '*' ? 'Team' : key, ym, year: Yr, pace: out.pace, month: { goal: cur.goal, sales: cur.sales }, yearGoal: yg || null, ytd, months, annualSet: goal[key + '|' + Yr + '-00'] != null }; } }
   return res.json(out);
 };
 A['sales-program-save'] = async (req, res) => {
@@ -1500,10 +1523,20 @@ A['sales-program-save'] = async (req, res) => {
   const b = readBody(req), now = new Date().toISOString();
   if (b.kind === 'goal') {
     const sp = clean(b.salesperson, 120), m = String(b.ym || ''), t = Number(b.target);
-    if (!sp || !/^\d{4}-\d{2}$/.test(m)) return res.status(400).json({ error: 'Pick a salesperson and a month.' });
+    if (!sp || !/^\d{4}-(00|0[1-9]|1[0-2])$/.test(m)) return res.status(400).json({ error: 'Pick a salesperson and a month.' });
     if (b.target === '' || b.target === null) { await db.remove('sales_goals', 'salesperson=eq.' + encodeURIComponent(sp) + '&ym=eq.' + m); }
     else { if (!Number.isFinite(t) || t < 0 || t > 1e9) return res.status(400).json({ error: 'Type a valid amount.' }); await db.insert('sales_goals', [{ salesperson: sp, ym: m, target: Math.round(t), updated_by: w.email, updated_at: now }], { onConflict: 'salesperson,ym' }); }
     await PS.audit(w.email, 'goal.save', 'salesperson', sp, null, { ym: m, target: b.target }); return res.json({ ok: true });
+  }
+  if (b.kind === 'goals') {
+    const items = (Array.isArray(b.items) ? b.items : []).slice(0, 60), ups = [], dels = [];
+    for (const it of items) { const sp = clean(it.salesperson, 120), m = String(it.ym || ''), t = Number(it.target);
+      if (!sp || !/^\d{4}-(00|0[1-9]|1[0-2])$/.test(m)) return res.status(400).json({ error: 'Pick a salesperson and a month.' });
+      if (it.target === '' || it.target === null || it.target === undefined || t === 0) dels.push([sp, m]);
+      else { if (!Number.isFinite(t) || t < 0 || t > 1e9) return res.status(400).json({ error: 'Type a valid amount.' }); ups.push({ salesperson: sp, ym: m, target: Math.round(t), updated_by: w.email, updated_at: now }); } }
+    if (ups.length) await db.insert('sales_goals', ups, { onConflict: 'salesperson,ym' });
+    for (const d of dels) await db.remove('sales_goals', 'salesperson=eq.' + encodeURIComponent(d[0]) + '&ym=eq.' + d[1]);
+    await PS.audit(w.email, 'goal.save', 'salesperson', items[0] ? clean(items[0].salesperson, 120) : '', null, { set: ups.length, cleared: dels.length }); return res.json({ ok: true });
   }
   if (b.kind === 'deliver') {
     const cycle = clean(b.cycle, 20), sp = clean(b.salesperson, 120), aw = clean(b.award, 40); if (!cycle || !sp || !aw) return res.status(400).json({ error: 'award' });
