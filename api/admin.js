@@ -156,10 +156,10 @@ A['company-remove'] = async (req, res) => {
   const ids = (Array.isArray(readBody(req).ids) ? readBody(req).ids : []).filter((x) => /^[0-9a-f-]{36}$/i.test(String(x))).slice(0, 500);
   if (!ids.length) return res.status(400).json({ error: 'ids' });
   const cos = await db.select('companies', 'select=id,name,status&id=in.(' + ids.join(',') + ')');
-  const [us, ord, qts, vch] = await Promise.all([db.select('users', 'select=company_id,last_login_at&company_id=in.(' + ids.join(',') + ')'), db.select('orders', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('quotes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('vouchers', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000').catch(() => [])]);
+  const [us, ord, qts, vch, nts] = await Promise.all([db.select('users', 'select=company_id,last_login_at&company_id=in.(' + ids.join(',') + ')'), db.select('orders', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('quotes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000'), db.select('vouchers', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000').catch(() => []), db.select('customer_notes', 'select=company_id&company_id=in.(' + ids.join(',') + ')&limit=1000').catch(() => [])]);
   const removed = [], kept = [];
   for (const c of cos) {
-    const busy = !['prospect', 'invited', 'ready', 'rejected'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id) || vch.some((v) => v.company_id === c.id);
+    const busy = !['prospect', 'invited', 'ready', 'rejected'].includes(c.status) || us.some((u) => u.company_id === c.id && u.last_login_at) || ord.some((o) => o.company_id === c.id) || qts.some((q) => q.company_id === c.id) || vch.some((v) => v.company_id === c.id) || nts.some((n) => n.company_id === c.id);
     if (busy) { kept.push(c.name); continue; }
     try {
       await db.remove('company_segments', 'company_id=eq.' + c.id);
@@ -294,9 +294,9 @@ A.import = async (req, res) => {
 A.segments = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   const segs = await db.select('segments', 'select=*&order=name');
-  const links = await db.select('company_segments', 'select=segment_id,company_id');
+  const links = await db.selectAll('company_segments', 'select=segment_id,company_id');
   const ids = [...new Set(links.map((l) => l.company_id))];
-  const st = {}; if (ids.length) (await db.select('companies', 'select=id,status&id=in.(' + ids.join(',') + ')')).forEach((c) => { st[c.id] = c.status; });
+  const st = {}; for (let i = 0; i < ids.length; i += 150) (await db.select('companies', 'select=id,status&id=in.(' + ids.slice(i, i + 150).join(',') + ')')).forEach((c) => { st[c.id] = c.status; });
   return res.json({ segments: segs.map((g) => { const m = links.filter((l) => l.segment_id === g.id); const by = {}; m.forEach((l) => { const k = st[l.company_id] || '?'; by[k] = (by[k] || 0) + 1; });
     return { id: g.id, name: g.name, description: g.description || '', invite_subject: g.invite_subject || '', invite_body: g.invite_body || '', members: m.length, byStatus: by }; }) });
 };
@@ -356,23 +356,30 @@ A['segment-import'] = async (req, res) => {
   ul.forEach((c) => { ulByCode[String(c.code).toUpperCase()] = c; if (c.email) String(c.email).split(/[;,\s]+/).forEach((e) => { if (e) ulByMail[e.toLowerCase()] = c; }); });
   cos.forEach((c) => { if (c.unleashed_code) coByCode[String(c.unleashed_code).toUpperCase()] = c.id; if (c.contact_email) coByMail[c.contact_email.toLowerCase()] = c.id; coByName[String(c.name || '').toLowerCase()] = c.id; });
   us.forEach((u) => { if (u.email) coByMail[u.email.toLowerCase()] = u.company_id; });
-  const ids = new Set(), out = { matched: 0, created: 0, unmatched: [] };
+  // match first, then create in bulk (one insert per 200 companies) so a large file does not time out
+  const ids = new Set(), out = { matched: 0, created: 0, unmatched: [] }, needUl = new Map(), needNew = new Map(), later = [];
   for (const r of rows) {
     let id = (r.code && coByCode[r.code]) || (r.email && coByMail[r.email]) || null;
-    let u = !id ? ((r.code && ulByCode[r.code]) || (r.email && ulByMail[r.email]) || null) : null;
+    const u = !id ? ((r.code && ulByCode[r.code]) || (r.email && ulByMail[r.email]) || null) : null;
     if (!id && u && coByCode[String(u.code).toUpperCase()]) id = coByCode[String(u.code).toUpperCase()];
-    if (!id && u) {
-      id = (await db.insert('companies', [{ name: u.name || u.code, unleashed_code: u.code, unleashed_guid: u.guid, tier: u.tier, payment_terms: u.payment_terms, stop_credit: !!u.stop_credit, customer_type: u.type,
-        city: u.city, state: u.state, country: u.country, salesperson: u.salesperson, status: 'prospect', source: 'csv_import', contact_email: r.email || u.email, contact_name: r.contact || u.contact_name, contact_phone: r.phone || u.phone, tier_synced_at: new Date().toISOString() }]))[0].id;
-      coByCode[String(u.code).toUpperCase()] = id; out.created++;
-    }
-    if (!id && r.company && coByName[r.company.toLowerCase()]) id = coByName[r.company.toLowerCase()];
-    if (!id && r.company && (!r.email || EMAIL.test(r.email))) {
-      id = (await db.insert('companies', [{ name: r.company, status: 'prospect', source: 'csv_import', contact_email: r.email || null, contact_name: r.contact || null, contact_phone: r.phone || null, city: r.city || null, state: r.state || null }]))[0].id;
-      coByName[r.company.toLowerCase()] = id; if (r.email) coByMail[r.email] = id; out.created++;
-    }
-    if (id) { ids.add(id); out.matched++; } else if (out.unmatched.length < 50) out.unmatched.push(r.code || r.email || r.company);
+    if (!id && !u && r.company && coByName[r.company.toLowerCase()]) id = coByName[r.company.toLowerCase()];
+    if (id) { ids.add(id); out.matched++; continue; }
+    if (u) { const k = String(u.code).toUpperCase(); if (!needUl.has(k)) needUl.set(k, { u, r }); later.push(['ul', k]); out.matched++; continue; }
+    if (r.company && (!r.email || EMAIL.test(r.email))) { const k = r.company.toLowerCase(); if (!needNew.has(k)) needNew.set(k, r); later.push(['new', k]); out.matched++; continue; }
+    if (out.unmatched.length < 50) out.unmatched.push(r.code || r.email || r.company);
   }
+  const ulList = [...needUl.values()], newList = [...needNew.entries()];
+  for (let i = 0; i < ulList.length; i += 200) {
+    const made = await db.insert('companies', ulList.slice(i, i + 200).map(({ u, r }) => ({ name: u.name || u.code, unleashed_code: u.code, unleashed_guid: u.guid, tier: u.tier, payment_terms: u.payment_terms, stop_credit: !!u.stop_credit, customer_type: u.type,
+      city: u.city, state: u.state, country: u.country, salesperson: u.salesperson, status: 'prospect', source: 'csv_import', contact_email: r.email || u.email, contact_name: r.contact || u.contact_name, contact_phone: r.phone || u.phone, tier_synced_at: new Date().toISOString() })));
+    made.forEach((m) => { coByCode[String(m.unleashed_code).toUpperCase()] = m.id; }); out.created += made.length;
+  }
+  for (let i = 0; i < newList.length; i += 200) {
+    const part = newList.slice(i, i + 200);
+    const made = await db.insert('companies', part.map(([, r]) => ({ name: r.company, status: 'prospect', source: 'csv_import', contact_email: r.email || null, contact_name: r.contact || null, contact_phone: r.phone || null, city: r.city || null, state: r.state || null })));
+    made.forEach((m) => { coByName[String(m.name).toLowerCase()] = m.id; }); out.created += made.length;
+  }
+  later.forEach(([t, k]) => { const id = t === 'ul' ? coByCode[k] : coByName[k]; if (id) ids.add(id); });
   const links = [...ids].map((c) => ({ company_id: c, segment_id: seg.id, added_by: w.email }));
   for (let i = 0; i < links.length; i += 200) await db.insert('company_segments', links.slice(i, i + 200), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
   await PS.audit(w.email, 'segment.import', 'segment', seg.id, null, { name: seg.name, rows: rows.length, members: ids.size, created: out.created });
@@ -443,7 +450,7 @@ async function inviteOne(req, w, co, email, name, segId) {
   if (co.status === 'active') return { error: 'Already active.' };
   email = clean(email || co.contact_email, 160).toLowerCase(); name = clean(name || co.contact_name, 120);
   if (!EMAIL.test(email)) return { error: 'No e-mail to invite.' };
-  if (!customerMailOn() && !internalTo(email) && !pilotTo(email)) return { error: MAIL_OFF };
+  if (!customerMailOn() && !internalTo(email) && !pilotTo(email)) return { error: mailMode() === 'pilot' ? 'Not on the pilot list. Nothing was sent.' : MAIL_OFF };
   const owner = (await db.select('users', 'select=id,company_id&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0];
   if (owner && owner.company_id !== co.id) return { error: 'That e-mail belongs to another company.' };
   let uid = owner && owner.id;
@@ -580,7 +587,7 @@ A.vouchers = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const rows = await db.select('vouchers', 'select=*,companies(name)&order=created_at.desc&limit=300');
-  const red = await db.select('voucher_redemptions', 'select=voucher_id,discount&limit=20000');
+  const red = await db.selectAll('voucher_redemptions', 'select=voucher_id,discount');
   const by = {}; red.forEach((r) => { const x = by[r.voucher_id] || (by[r.voucher_id] = { n: 0, sum: 0 }); x.n++; x.sum += Number(r.discount); });
   return res.json({ vouchers: rows.map((v) => ({ ...v, company_name: v.companies && v.companies.name, uses: (by[v.id] || { n: 0 }).n, discount_total: (by[v.id] || { sum: 0 }).sum, companies: undefined })) });
 };
@@ -759,10 +766,11 @@ async function floorsFor(list) {
     out[c.code] = { floor: Math.ceil(cost * m * 100) / 100, low: tiers.length ? Math.min.apply(null, tiers) : null }; });
   return out;
 }
-async function belowFloor(codes, kind, value) {
-  const F = await floorsFor(codes.map((x) => x[0])), list = [];
-  codes.forEach(([code, v]) => { const f = F[code]; if (!f) return; const pv = v != null ? v : value; const price = kind === 'price' ? pv : f.low != null ? f.low * (1 - pv / 100) : null; if (price != null && price < f.floor) list.push({ code, floor: f.floor, price: Math.round(price * 100) / 100 }); });
-  return { list, pct: MIN_MARGIN() };
+async function belowFloor(codes, kind, value, stack) {
+  const F = await floorsFor(codes.map((x) => x[0])), list = [], vcap = stack ? (Number(process.env.VOUCHER_MAX_PCT) > 0 ? Number(process.env.VOUCHER_MAX_PCT) : 15) : 0;
+  const nocost = codes.filter((x) => !F[x[0]]).length;
+  codes.forEach(([code, v]) => { const f = F[code]; if (!f) return; const pv = v != null ? v : value; let price = kind === 'price' ? pv : f.low != null ? f.low * (1 - pv / 100) : null; if (price != null && vcap) price = price * (1 - vcap / 100); if (price != null && price < f.floor) list.push({ code, floor: f.floor, price: Math.round(price * 100) / 100 }); });
+  return { list, pct: MIN_MARGIN(), nocost, stacked: vcap };
 }
 // floors for the campaign editor (min price and max % per part), from the same rule
 A['campaign-floors'] = async (req, res) => {
@@ -788,8 +796,13 @@ A['campaign-save'] = async (req, res) => {
   if (!codes.length) return res.status(400).json({ error: 'Add at least one product to the campaign.' });
   if (kind === 'price' && codes.some((x) => !(x[1] > 0))) return res.status(400).json({ error: 'Fixed price campaigns need a price on every part (' + codes.filter((x) => !(x[1] > 0)).length + ' without one).' });
   // margin floor: the campaign price on the lowest tier must stay at or above cost + CAMPAIGN_MIN_MARGIN (10% by default)
-  const below = await belowFloor(codes, kind, value);
-  if (below.list.length && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.list.length + ' part' + (below.list.length === 1 ? '' : 's') + ' would sell under cost + ' + below.pct + '% on the lowest price tier: ' + below.list.slice(0, 8).map((x) => x.code + ' (min $' + x.floor + ')').join(', ') + (below.list.length > 8 ? '...' : '') + '. Lower the discount on those parts or remove them' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), below: below.list.slice(0, 200), canForce: w.role === 'superadmin' });
+  // only sales and superadmins can put hidden parts in a campaign (a live campaign shows them to customers)
+  if (w.role === 'marketing') { const hid = new Set((await db.selectAll('hidden_products', 'select=code')).map((r) => r.code)), hc = codes.filter((x) => hid.has(x[0])).map((x) => x[0]); if (hc.length) return res.status(403).json({ error: hc.length + ' hidden part' + (hc.length === 1 ? '' : 's') + ' in the list (' + hc.slice(0, 6).join(', ') + (hc.length > 6 ? '...' : '') + '). A live campaign shows them to customers, so only sales can add them. Remove them or ask sales.' }); }
+  // costs must have loaded at least once before anyone but a superadmin can save a campaign
+  const cst = (await db.select('sales_sync', 'select=costs_at&id=eq.1'))[0];
+  if (!(cst && cst.costs_at) && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: 'Costs from Unleashed have not loaded yet (first run takes up to an hour), so the margin cannot be checked. Try again later' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), canForce: w.role === 'superadmin' });
+  const below = await belowFloor(codes, kind, value, !!b.stack_vouchers);
+  if (below.list.length && !(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.list.length + ' part' + (below.list.length === 1 ? '' : 's') + ' would sell under cost + ' + below.pct + '% on the lowest price tier' + (below.stacked ? ' with a ' + below.stacked + '% voucher on top (vouchers are allowed on this campaign)' : '') + ': ' + below.list.slice(0, 8).map((x) => x.code + ' (min $' + x.floor + ')').join(', ') + (below.list.length > 8 ? '...' : '') + '. Lower the discount on those parts or remove them' + (w.role === 'superadmin' ? ', or save anyway.' : '.'), below: below.list.slice(0, 200), canForce: w.role === 'superadmin' });
   const rec = { name, slug: slugify(b.slug || name) || 'campaign', badge: clean(b.badge, 30) || name.slice(0, 30), description: String(b.description || '').slice(0, 1500) || null, kind, value: kind === 'price' ? 0 : value || 0,
     color: /^#[0-9a-f]{6}$/i.test(b.color || '') ? b.color : '#d32a37', starts_at: starts.toISOString(), ends_at: ends.toISOString(), active: b.active !== false, stack_vouchers: !!b.stack_vouchers, rules: b.rules && typeof b.rules === 'object' ? b.rules : null, updated_at: new Date().toISOString() };
   let cid = id;
@@ -886,7 +899,7 @@ A.dash = async (req, res) => {
   const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
   const [S, B, cos, N, ord, qts, PER] = await Promise.all([
     db.rpc('dash_sales'), db.rpc('dash_behavior', { p_days: days }),
-    db.select('companies', 'select=unleashed_code,status&unleashed_code=not.is.null'), names(),
+    db.selectAll('companies', 'select=unleashed_code,status&unleashed_code=not.is.null'), names(),
     db.select('orders', 'select=total,created_at,status&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
     db.select('quotes', 'select=created_at&created_at=gte.' + new Date(Date.now() - days * 864e5).toISOString() + '&limit=2000'),
     db.rpc('dash_period', { p_days: days }).catch(() => null),
@@ -955,7 +968,7 @@ A['dash-ai'] = async (req, res) => {
 A['dash-customers'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  const [rows, cos] = await Promise.all([db.rpc('dash_customers'), db.select('companies', 'select=unleashed_code,status&unleashed_code=not.is.null')]);
+  const [rows, cos] = await Promise.all([db.rpc('dash_customers'), db.selectAll('companies', 'select=unleashed_code,status&unleashed_code=not.is.null')]);
   const portal = {}; (cos || []).forEach((c) => { portal[c.unleashed_code] = c.status; });
   (rows || []).forEach((r) => { r.portal = portal[r.c] || null; });
   return res.json({ rows: rows || [] });
@@ -1018,7 +1031,7 @@ A.customer = async (req, res) => {
     city: (u && u.city) || (co && co.city) || '', state: (u && u.state) || (co && co.state) || '', country: (u && u.country) || (co && co.country) || '', since: (u && u.created_on) || '', stop: !!((u && u.stop_credit) || (co && co.stop_credit)), obsolete: !!(u && u.obsolete),
     segments: segl.map((x) => segN[x.segment_id]).filter(Boolean) };
   contact.tags = c ? (await db.select('customer_tags', 'select=tag&code=eq.' + encodeURIComponent(c)).catch(() => [])).map((x) => x.tag) : [];
-  contact.allTags = [...new Set((await db.select('customer_tags', 'select=tag&limit=2000').catch(() => [])).map((x) => x.tag))].sort();
+  contact.allTags = [...new Set((await db.selectAll('customer_tags', 'select=tag').catch(() => [])).map((x) => x.tag))].sort();
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
     contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, timeline: T.slice(0, 300) });
 };
