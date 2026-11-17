@@ -5,7 +5,8 @@ const db = require('../lib/db');
 const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
 const { ul, configured } = require('../lib/unleashed');
-const { send, esc, layout, customerMailOn, internalTo } = require('../lib/mail');
+const { send, esc, layout, customerMailOn, internalTo, pilotTo } = require('../lib/mail');
+const mailMode = () => (customerMailOn() ? true : String(process.env.CUSTOMER_MAIL || '').toLowerCase() === 'pilot' ? 'pilot' : false);
 const MAIL_OFF = 'Customer e-mails are turned off (safety switch). Nothing was sent.';
 const { EMAIL, clean, readBody } = require('../lib/validate');
 
@@ -55,7 +56,7 @@ A.confirm = async (req, res) => {
   return res.json({ ok: true });
 };
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
-A.me = async (req, res) => { const w = await who(req, res); if (!w) return; return res.json(Object.assign({}, w, { mailOn: customerMailOn() })); };
+A.me = async (req, res) => { const w = await who(req, res); if (!w) return; return res.json(Object.assign({}, w, { mailOn: mailMode() })); };
 
 // companies with their people, newest first, pending on top
 A.list = async (req, res) => {
@@ -417,7 +418,7 @@ async function inviteOne(req, w, co, email, name, segId) {
   if (co.status === 'active') return { error: 'Already active.' };
   email = clean(email || co.contact_email, 160).toLowerCase(); name = clean(name || co.contact_name, 120);
   if (!EMAIL.test(email)) return { error: 'No e-mail to invite.' };
-  if (!customerMailOn() && !internalTo(email)) return { error: MAIL_OFF };
+  if (!customerMailOn() && !internalTo(email) && !pilotTo(email)) return { error: MAIL_OFF };
   const owner = (await db.select('users', 'select=id,company_id&email=eq.' + encodeURIComponent(email) + '&limit=1'))[0];
   if (owner && owner.company_id !== co.id) return { error: 'That e-mail belongs to another company.' };
   let uid = owner && owner.id;
@@ -497,7 +498,7 @@ A.segment = async (req, res) => {
     users.push(...(await db.select('users', 'select=company_id,email,name,status,invited_at,last_login_at&company_id=in.(' + part + ')')));
   }
   const terms = (await db.select('terms_versions', 'select=version&status=eq.published&limit=1'))[0];
-  return res.json({ segment: { id: g.id, name: g.name, description: g.description || '', rules: g.rules || null, subject: g.invite_subject || '', title: g.invite_title || '', body: g.invite_body || '', cta: g.invite_cta || '' }, defaults: DEF_TPL, starters: STARTERS, termsPublished: !!terms, mailOn: customerMailOn(),
+  return res.json({ segment: { id: g.id, name: g.name, description: g.description || '', rules: g.rules || null, subject: g.invite_subject || '', title: g.invite_title || '', body: g.invite_body || '', cta: g.invite_cta || '' }, defaults: DEF_TPL, starters: STARTERS, termsPublished: !!terms, mailOn: mailMode(),
     members: cos.map((c) => { const u = users.filter((x) => x.company_id === c.id); const inv = u.map((x) => x.invited_at).filter(Boolean).sort().pop() || null;
       return { id: c.id, n: c.name, c: c.unleashed_code, status: c.status, tier: c.tier, city: c.city, state: c.state, country: c.country, email: (u[0] && u[0].email) || c.contact_email || '', contact: (u[0] && u[0].name) || c.contact_name || '', sp: c.salesperson, invited_at: inv, people: u.length, last_login: u.map((x) => x.last_login_at).filter(Boolean).sort().pop() || null }; }) });
 };
@@ -598,6 +599,7 @@ A['hidden-set'] = async (req, res) => {
   const b = readBody(req);
   const codes = [...new Set((Array.isArray(b.codes) ? b.codes : String(b.codes || '').split(/[\s,;]+/)).map((c) => clean(c, 60)).filter(Boolean))].slice(0, 8000);
   if (!codes.length) return res.status(400).json({ error: 'Add at least one product code.' });
+  if (b.hide && codes.length > 2500) return res.status(400).json({ error: 'Hide at most 2,500 parts at a time. Filter by brand or category first.' });
   for (let i = 0; i < codes.length; i += 200) {
     const part = codes.slice(i, i + 200);
     if (b.hide) await db.insert('hidden_products', part.map((code) => ({ code, reason: clean(b.reason, 200) || null, hidden_by: w.email })), { onConflict: 'code' });
@@ -890,7 +892,7 @@ A.customer = async (req, res) => {
   if (!code && !id) return res.status(400).json({ error: 'code' });
   const co = (await db.select('companies', 'select=*&' + (id ? 'id=eq.' + encodeURIComponent(id) : 'unleashed_code=eq.' + encodeURIComponent(code)) + '&limit=1'))[0] || null;
   const c = code || (co && co.unleashed_code) || '';
-  const [sales, N, users, ev, ord, qts, ulc, inv, aud, segl] = await Promise.all([
+  const [sales, N, users, ev, ord, qts, ulc, inv, aud, segl, notes] = await Promise.all([
     c ? db.rpc('dash_customer', { p_code: c }) : null, names(),
     co ? db.select('users', 'select=email,name,phone,status,role,last_login_at,invited_at,invited_by,terms_accepted_at,created_at&company_id=eq.' + co.id) : [],
     co ? db.select('events', 'select=at,type,code,qty,value,query,path,device,city,region,session_id,referrer,utm&company_id=eq.' + co.id + '&order=at.desc&limit=600') : [],
@@ -900,6 +902,7 @@ A.customer = async (req, res) => {
     c ? db.select('sales_orders', 'select=guid,number,order_date,completed_date,subtotal,salesperson&customer_code=eq.' + encodeURIComponent(c) + '&order=completed_date.desc.nullslast&limit=60') : [],
     co ? db.select('audit_log', 'select=at,admin_email,action,after&entity=eq.company&entity_id=eq.' + co.id + '&order=at.desc&limit=60') : [],
     co ? db.select('company_segments', 'select=segment_id,added_by,at&company_id=eq.' + co.id) : [],
+    (c || co) ? db.select('customer_notes', 'select=*&' + (c ? 'customer_code=eq.' + encodeURIComponent(c) : 'company_id=eq.' + co.id) + '&order=created_at.desc&limit=200').catch(() => []) : [],
   ]);
   if (sales) (sales.parts || []).forEach((p) => { p.t = N[p.code] ? N[p.code].t : ''; });
   (ev || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; });
@@ -925,6 +928,8 @@ A.customer = async (req, res) => {
   (aud || []).forEach((a) => { const m = AUD[a.action]; if (!m) return; push(a.at, m[0], m[1], [a.after && a.after.email, 'by ' + a.admin_email].filter(Boolean).join(' · ')); });
   users.forEach((u) => { if (u.terms_accepted_at) push(u.terms_accepted_at, 'account', 'Accepted the terms of use', u.email); if (u.created_at && !(aud || []).length) push(u.created_at, 'account', 'Person added: ' + (u.name || u.email), u.invited_by ? 'invited by ' + u.invited_by : ''); });
   segl.forEach((x) => push(x.at, 'segment', 'Added to segment ' + (segN[x.segment_id] || ''), x.added_by ? 'by ' + x.added_by : ''));
+  const NK = { call: 'Call', email: 'E-mail', meeting: 'Meeting', note: 'Note' };
+  (notes || []).forEach((n) => T.push({ at: n.created_at, kind: 'note', title: (NK[n.kind] || 'Note') + ' by ' + String(n.created_by).split('@')[0], desc: n.body, det: null, note: { id: n.id, follow_up: n.follow_up, done: !!n.done_at, done_by: n.done_by } }));
   const u = ulc[0] || null;
   if (u && u.created_on) push(u.created_on, 'account', 'Customer created in Unleashed', u.code);
   if (co && co.created_at) push(co.created_at, 'account', 'Added to the admin', co.source ? String(co.source).replace(/_/g, ' ') : '');
@@ -934,7 +939,37 @@ A.customer = async (req, res) => {
     city: (u && u.city) || (co && co.city) || '', state: (u && u.state) || (co && co.state) || '', country: (u && u.country) || (co && co.country) || '', since: (u && u.created_on) || '', stop: !!((u && u.stop_credit) || (co && co.stop_credit)), obsolete: !!(u && u.obsolete),
     segments: segl.map((x) => segN[x.segment_id]).filter(Boolean) };
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
-    contact, sales, users, events: ev.slice(0, 60), orders: ord, quotes: qts, timeline: T.slice(0, 300) });
+    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, timeline: T.slice(0, 300) });
+};
+// log a call, e-mail, meeting or note on a customer, with an optional follow-up date (shows on the dashboard until done)
+A['note-add'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), body = String(b.body || '').trim().slice(0, 4000), code = clean(b.code, 60) || null, cid = /^[0-9a-f-]{36}$/i.test(String(b.company || '')) ? b.company : null;
+  if (!body) return res.status(400).json({ error: 'Write what happened.' });
+  if (!code && !cid) return res.status(400).json({ error: 'customer' });
+  const fu = /^\d{4}-\d{2}-\d{2}$/.test(String(b.follow_up || '')) ? b.follow_up : null;
+  const r = await db.insert('customer_notes', [{ customer_code: code, company_id: cid, customer_name: clean(b.name, 160) || null, kind: ['call', 'email', 'meeting', 'note'].includes(b.kind) ? b.kind : 'note', body, follow_up: fu, created_by: w.email }]);
+  return res.json({ ok: true, id: r[0] && r[0].id });
+};
+A['note-done'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), id = clean(b.id, 60);
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: 'id' });
+  const patch = b.snooze && /^\d{4}-\d{2}-\d{2}$/.test(b.snooze) ? { follow_up: b.snooze } : { done_at: b.undo ? null : new Date().toISOString(), done_by: b.undo ? null : w.email };
+  await db.update('customer_notes', 'id=eq.' + id, patch);
+  return res.json({ ok: true });
+};
+// open follow-ups for the dashboard: overdue, today and the next 7 days
+A.followups = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const until = new Date(Date.now() + 7 * 864e5).toISOString().slice(0, 10);
+  const rows = await db.select('customer_notes', 'select=id,customer_code,company_id,customer_name,kind,body,follow_up,created_by,created_at&done_at=is.null&follow_up=lte.' + until + '&order=follow_up.asc&limit=200');
+  return res.json({ rows, me: w.email });
 };
 A['dash-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
