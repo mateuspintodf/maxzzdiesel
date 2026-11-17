@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const db = require('../lib/db');
 const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
+const MFA = require('../lib/admin-mfa');
 const { ul, configured } = require('../lib/unleashed');
 const { send, esc, layout, customerMailOn, internalTo, pilotTo } = require('../lib/mail');
 const mailMode = () => (customerMailOn() ? true : String(process.env.CUSTOMER_MAIL || '').toLowerCase() === 'pilot' ? 'pilot' : false);
@@ -25,7 +26,15 @@ async function who(req, res) {
   const s = await SDB.lookup(req, 'admin');
   const role = s && (await adminRole(s.email));
   if (!role) { res.status(401).json({ error: 'login' }); return null; }
-  return { email: s.email, role };
+  if (!s.mfaAt) { res.status(401).json({ error: 'mfa' }); return null; } // signed in by e-mail, second step still missing
+  return { email: s.email, role, sid: s.id };
+}
+// a session that passed the e-mail link, with or without the second step (only the sign-in steps accept it)
+async function whoPending(req, res) {
+  const s = await SDB.lookup(req, 'admin');
+  const role = s && (await adminRole(s.email));
+  if (!role) { res.status(401).json({ error: 'login' }); return null; }
+  return { email: s.email, role, sid: s.id, verified: !!s.mfaAt, challenge: s.challenge, challengeAt: s.challengeAt };
 }
 const can = (w, ...roles) => w.role === 'superadmin' || roles.includes(w.role);
 
@@ -51,10 +60,148 @@ A.confirm = async (req, res) => {
   if (await SDB.limited(req, 'admin-confirm', 20, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
   const link = await SDB.useLink(clean(readBody(req).t, 100));
   if (!link || link.kind !== 'admin' || !(await adminRole(link.email))) return res.status(400).json({ error: 'link' });
-  await SDB.create(req, res, 'admin', link.email, null);
-  await PS.audit(link.email, 'admin.login', 'admin', link.email);
+  // a computer the person chose to trust in the last 30 days skips the second step
+  const skip = await MFA.trusted(req, link.email).catch(() => false);
+  await SDB.create(req, res, 'admin', link.email, null, skip ? { mfa_at: new Date().toISOString() } : {});
+  await PS.audit(link.email, 'admin.login', 'admin', link.email, null, { second_step: skip ? 'trusted computer' : 'pending' });
   return res.json({ ok: true });
 };
+// ---------------------------------------------------------------- second sign-in step (authenticator app, passkey, recovery code)
+const WA = () => require('@simplewebauthn/server');
+const nowIso = () => new Date().toISOString();
+const origins = (req) => { const r = MFA.rp(req); return r.id === 'maxzzdiesel.com' ? ['https://www.maxzzdiesel.com', 'https://maxzzdiesel.com'] : [r.origin]; };
+async function passed(req, res, w, method, wantTrust) {
+  await db.update('sessions', 'id=eq.' + w.sid, { mfa_at: nowIso(), mfa_challenge: null, mfa_challenge_at: null });
+  if (wantTrust) res.setHeader('Set-Cookie', await MFA.trust(req, res, w.email));
+  await PS.audit(w.email, 'admin.second_step', 'admin', w.email, null, { method, trusted: !!wantTrust });
+}
+async function freshRecovery(email) { const r = MFA.newRecovery(); await MFA.saveRow(email, { recovery: r.hashes }); return r.codes; }
+const tooMany = (req, email) => SDB.limited(req, 'admin-mfa|' + email, 6, 15 * 60 * 1000);
+// adding or changing a method: allowed while setting up the first one, or once fully signed in
+const canEnroll = (w, st) => w.verified || (!st.totp && !st.passkeys.length);
+
+A.mfa = async (req, res) => {
+  const w = await whoPending(req, res); if (!w) return;
+  const st = await MFA.state(w.email);
+  return res.json({ email: w.email, verified: w.verified, totp: st.totp, passkeys: st.passkeys.map((p) => ({ id: p.id, name: p.name, created_at: p.created_at, last_used_at: p.last_used_at })), recoveryLeft: st.recoveryLeft, need: st.totp || st.passkeys.length ? 'verify' : 'setup' });
+};
+A['mfa-totp-start'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoPending(req, res); if (!w) return;
+  const st = await MFA.state(w.email); if (!canEnroll(w, st)) return res.status(403).json({ error: 'Sign in with your current method first.' });
+  const secret = MFA.newSecret(), uri = MFA.otpauth(secret, w.email);
+  await MFA.saveRow(w.email, { totp_pending_enc: MFA.seal(secret) });
+  const qr = await require('qrcode').toString(uri, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#1d2126', light: '#ffffff' } });
+  return res.json({ ok: true, secret: secret.replace(/(.{4})/g, '$1 ').trim(), uri, qr });
+};
+A['mfa-totp-confirm'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoPending(req, res); if (!w) return;
+  if (await tooMany(req, w.email)) return res.status(429).json({ error: 'Too many tries. Wait 15 minutes and try again.' });
+  const b = readBody(req), st = await MFA.state(w.email); if (!canEnroll(w, st)) return res.status(403).json({ error: 'Sign in with your current method first.' });
+  const secret = st.row && MFA.open(st.row.totp_pending_enc);
+  if (!secret) return res.status(400).json({ error: 'Start again: the setup expired.' });
+  if (!MFA.totpOk(secret, b.code)) return res.status(400).json({ error: 'That code did not match. Check the time on your phone and try the newest code.' });
+  await MFA.saveRow(w.email, { totp_enc: MFA.seal(secret), totp_pending_enc: null, totp_on: true });
+  const codes = st.recoveryLeft ? null : await freshRecovery(w.email);
+  if (!w.verified) await passed(req, res, w, 'authenticator (setup)', !!b.trust);
+  else await PS.audit(w.email, 'admin.mfa_totp_on', 'admin', w.email);
+  return res.json({ ok: true, recovery: codes });
+};
+A['mfa-verify'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoPending(req, res); if (!w) return;
+  if (await tooMany(req, w.email)) return res.status(429).json({ error: 'Too many tries. Wait 15 minutes and try again.' });
+  const b = readBody(req), st = await MFA.state(w.email);
+  if (b.method === 'recovery') {
+    if (!(await MFA.useRecovery(w.email, b.code))) return res.status(400).json({ error: 'That recovery code is not valid or was already used.' });
+    await passed(req, res, w, 'recovery code', !!b.trust);
+    return res.json({ ok: true, recoveryLeft: Math.max(0, st.recoveryLeft - 1) });
+  }
+  const secret = st.totp && MFA.open(st.row.totp_enc);
+  if (!secret || !MFA.totpOk(secret, b.code)) return res.status(400).json({ error: 'That code did not match. Use the newest code in your app.' });
+  await passed(req, res, w, 'authenticator', !!b.trust);
+  return res.json({ ok: true });
+};
+A['mfa-passkey-options'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoPending(req, res); if (!w) return;
+  const b = readBody(req), st = await MFA.state(w.email), rp = MFA.rp(req), wa = WA();
+  let opts;
+  if (b.mode === 'register') {
+    if (!canEnroll(w, st)) return res.status(403).json({ error: 'Sign in with your current method first.' });
+    opts = await wa.generateRegistrationOptions({ rpName: rp.name, rpID: rp.id, userName: w.email, userDisplayName: w.email, userID: Buffer.from(MFA.sha(w.email).slice(0, 32)), attestationType: 'none',
+      excludeCredentials: st.passkeys.map((p) => ({ id: p.id, transports: p.transports || undefined })), authenticatorSelection: { residentKey: 'preferred', userVerification: 'preferred' } });
+  } else {
+    if (!st.passkeys.length) return res.status(400).json({ error: 'No passkey on this account yet.' });
+    opts = await wa.generateAuthenticationOptions({ rpID: rp.id, userVerification: 'preferred', allowCredentials: st.passkeys.map((p) => ({ id: p.id, transports: p.transports || undefined })) });
+  }
+  await db.update('sessions', 'id=eq.' + w.sid, { mfa_challenge: opts.challenge, mfa_challenge_at: nowIso() });
+  return res.json({ ok: true, options: opts });
+};
+A['mfa-passkey-finish'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoPending(req, res); if (!w) return;
+  if (await tooMany(req, w.email)) return res.status(429).json({ error: 'Too many tries. Wait 15 minutes and try again.' });
+  const b = readBody(req), rp = MFA.rp(req), wa = WA();
+  if (!w.challenge || Date.now() - Date.parse(w.challengeAt) > 5 * 60e3) return res.status(400).json({ error: 'The request expired. Try again.' });
+  await db.update('sessions', 'id=eq.' + w.sid, { mfa_challenge: null, mfa_challenge_at: null }); // one use
+  const st = await MFA.state(w.email);
+  try {
+    if (b.mode === 'register') {
+      if (!canEnroll(w, st)) return res.status(403).json({ error: 'Sign in with your current method first.' });
+      const v = await wa.verifyRegistrationResponse({ response: b.response, expectedChallenge: w.challenge, expectedOrigin: origins(req), expectedRPID: rp.id, requireUserVerification: false });
+      if (!v.verified || !v.registrationInfo) return res.status(400).json({ error: 'The passkey could not be checked. Try again.' });
+      const c = v.registrationInfo.credential;
+      await db.insert('admin_passkeys', [{ id: c.id, email: w.email, public_key: Buffer.from(c.publicKey).toString('base64url'), counter: c.counter || 0, transports: c.transports || null, name: clean(b.name, 60) || 'Passkey' }]);
+      const codes = st.recoveryLeft ? null : await freshRecovery(w.email);
+      if (!w.verified) await passed(req, res, w, 'passkey (setup)', !!b.trust);
+      else await PS.audit(w.email, 'admin.mfa_passkey_on', 'admin', w.email, null, { name: clean(b.name, 60) || 'Passkey' });
+      return res.json({ ok: true, recovery: codes });
+    }
+    const pk = st.passkeys.find((p) => p.id === String((b.response || {}).id || ''));
+    const row = pk && (await db.select('admin_passkeys', 'select=*&id=eq.' + encodeURIComponent(pk.id) + '&limit=1'))[0];
+    if (!row) return res.status(400).json({ error: 'That passkey is not on this account.' });
+    const v = await wa.verifyAuthenticationResponse({ response: b.response, expectedChallenge: w.challenge, expectedOrigin: origins(req), expectedRPID: rp.id, requireUserVerification: false,
+      credential: { id: row.id, publicKey: new Uint8Array(Buffer.from(row.public_key, 'base64url')), counter: Number(row.counter) || 0, transports: row.transports || undefined } });
+    if (!v.verified) return res.status(400).json({ error: 'The passkey could not be checked. Try again.' });
+    await db.update('admin_passkeys', 'id=eq.' + encodeURIComponent(row.id), { counter: v.authenticationInfo.newCounter || 0, last_used_at: nowIso() });
+    await passed(req, res, w, 'passkey', !!b.trust);
+    return res.json({ ok: true });
+  } catch (e) { console.error('passkey', e.message); return res.status(400).json({ error: 'The passkey could not be checked. Try again.' }); }
+};
+// managing your own methods (fully signed in)
+A['mfa-manage'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  const b = readBody(req), st = await MFA.state(w.email), methods = (st.totp ? 1 : 0) + st.passkeys.length;
+  if (b.op === 'recovery') { const codes = await freshRecovery(w.email); await PS.audit(w.email, 'admin.mfa_recovery_new', 'admin', w.email); return res.json({ ok: true, recovery: codes }); }
+  if (b.op === 'forget-computers') { await MFA.forgetTrusted(w.email); await PS.audit(w.email, 'admin.mfa_trust_cleared', 'admin', w.email); return res.json({ ok: true }); }
+  if (b.op === 'remove-passkey') {
+    if (methods < 2) return res.status(409).json({ error: 'Add another method before removing your last one.' });
+    await db.remove('admin_passkeys', 'id=eq.' + encodeURIComponent(String(b.id || '')) + '&email=eq.' + encodeURIComponent(w.email));
+    await PS.audit(w.email, 'admin.mfa_passkey_off', 'admin', w.email); return res.json({ ok: true });
+  }
+  if (b.op === 'remove-totp') {
+    if (methods < 2) return res.status(409).json({ error: 'Add another method before removing your last one.' });
+    await MFA.saveRow(w.email, { totp_enc: null, totp_on: false, totp_pending_enc: null });
+    await PS.audit(w.email, 'admin.mfa_totp_off', 'admin', w.email); return res.json({ ok: true });
+  }
+  if (b.op === 'rename-passkey') { await db.update('admin_passkeys', 'id=eq.' + encodeURIComponent(String(b.id || '')) + '&email=eq.' + encodeURIComponent(w.email), { name: clean(b.name, 60) || 'Passkey' }); return res.json({ ok: true }); }
+  return res.status(400).json({ error: 'op' });
+};
+// a superadmin clears someone's second step (lost phone): they set it up again at the next sign-in
+A['mfa-reset'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (w.role !== 'superadmin') return res.status(403).json({ error: 'Only a superadmin can do this.' });
+  const email = clean(readBody(req).email, 160).toLowerCase(); if (!EMAIL.test(email)) return res.status(400).json({ error: 'email' });
+  await db.remove('admin_mfa', 'email=eq.' + encodeURIComponent(email)); await db.remove('admin_passkeys', 'email=eq.' + encodeURIComponent(email)); await MFA.forgetTrusted(email);
+  await SDB.revokeEmail(email, w.email, 'admin');
+  await PS.audit(w.email, 'admin.mfa_reset', 'admin', email);
+  return res.json({ ok: true });
+};
+
 A.logout = async (req, res) => { if (req.method !== 'POST') return res.status(405).json({ error: 'method' }); await SDB.end(req, res, 'admin'); return res.json({ ok: true }); };
 A.me = async (req, res) => { const w = await who(req, res); if (!w) return; const a = (await db.select('admins', 'select=salesperson,name&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {}; return res.json(Object.assign({}, w, { mailOn: mailMode(), salesperson: a.salesperson || null, name: a.name || null })); };
 
@@ -199,7 +346,9 @@ A.admins = async (req, res) => {
   const inTable = new Set(rows.map((r) => String(r.email).toLowerCase()));
   const boot = envAdmins().filter((e) => !inTable.has(e)).map((e) => ({ email: e, name: '', role: 'superadmin', active: true, bootstrap: true }));
   const sps = [...new Set((await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson))].sort();
-  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot), roles: ROLES, salespeople: sps });
+  const mf = {}; (await db.select('admin_mfa', 'select=email,totp_on').catch(() => [])).forEach((m) => { mf[m.email] = { totp: !!m.totp_on, pk: 0 }; });
+  (await db.select('admin_passkeys', 'select=email').catch(() => [])).forEach((p) => { (mf[p.email] = mf[p.email] || { totp: false, pk: 0 }).pk++; });
+  return res.json({ admins: rows.map((r) => Object.assign(r, { email: String(r.email).toLowerCase() })).concat(boot).map((r) => Object.assign(r, { mfa: mf[r.email] || { totp: false, pk: 0 } })), roles: ROLES, salespeople: sps });
 };
 A['admin-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
