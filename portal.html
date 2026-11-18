@@ -234,6 +234,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 .px-auth .px-btn{width:100%;margin-top:14px}
 .px-note{margin-top:14px;padding:12px 14px;border-radius:7px;background:#f4f5f6;font-size:14px;line-height:1.5}
 .px-err{color:#d32a37;font-size:14px;margin-top:10px}
+@media print{.pxh,.px-card,.qb,.qp,footer{display:none !important}.px-paper{box-shadow:none;border:0}}
 .px-search{display:flex;gap:10px}
 .px-search .px-in{height:52px;font-size:16px}
 .px-chips{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 4px}
@@ -1318,7 +1319,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1359,7 +1360,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1384,7 +1385,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1416,7 +1417,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1463,7 +1464,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1499,7 +1500,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-muted" v-if="canOrder && price(pr[0]) != null && !noBuy(pr[0])">In-stock parts ordered by 3 pm Eastern ship the same day from Coconut Creek, Florida. Backorders: lead time confirmed by sales within 1 business day.</div>
 </div>
 <div class="px-lockbox" v-else>
-<b>Wholesale price and stock are for approved customers.</b> Sign in to see your price and order online, or add it to a quote and our team replies within one business day.
+<b>Price on request.</b> Add it to a quote and our team replies with price and stock within one business day.
 <div class="px-qrow"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(pr[0], sq(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(pr[0])" @change="sqSet(pr[0], $event.target.value); $event.target.value = sq(pr[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(pr[0], sq(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" :class="inQuote(pr[0]) ? 'in' : ''" @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? 'In quote · View list' : 'Add to quote'"></button></div><div class="px-btns" style="margin-top:10px"><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
 </div>
 <div class="px-help" style="border-top:1px solid #eef0f2;padding-top:14px">Questions about this part? Call <a href="tel:+19545864158" style="white-space:nowrap">+1 (954) 586-4158</a> or WhatsApp <a :href="wa('us', pr[0])" target="_blank" rel="noopener">US</a> · <a :href="wa('latam', pr[0])" target="_blank" rel="noopener">Latin America</a>.</div>
@@ -1528,7 +1529,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <p class="px-note2" v-if="spec.ok">Part data under technical review. Confirm the fit with our team before installing.</p>
 </div>
 <div class="px-mbar" v-if="product" :class="[mbarOn ? 'on' : '', 'solo']">
-<span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-mb-l">Sign in for price</span>
+<span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-mb-l">Price on request</span>
 <button type="button" class="px-btn px-red" v-if="canOrder && price(pr[0]) != null && !noBuy(pr[0])" @click="inCart(pr[0]) ? nav('cart') : add(pr[0], cs(pr[0]))" v-text="inCart(pr[0]) ? cartQty(pr[0]) + ' in cart · View' : 'Add ' + cs(pr[0]) + ' to cart'"></button>
 <button type="button" class="px-btn px-red" v-else @click="inQuote(pr[0]) ? openQuote() : addQuote(pr[0], sq(pr[0]))" v-text="inQuote(pr[0]) ? quoteQty(pr[0]) + ' in quote · View' : 'Add ' + sq(pr[0]) + ' to quote'"></button>
 </div>
@@ -1550,7 +1551,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1574,7 +1575,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1599,7 +1600,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1623,7 +1624,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1647,7 +1648,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock" v-if="!pubP(r[0])">Price on request</span><span class="sc-prc" v-else><b class="px-deal" v-text="pubP(r[0])"></b><s class="sc-was" v-text="pubW(r[0])"></s></span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="sqSet(r[0], sq(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="sq(r[0])" @change="sqSet(r[0], $event.target.value); $event.target.value = sq(r[0])" aria-label="Quantity"><button type="button" aria-label="More" @click="sqSet(r[0], sq(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="inQuote(r[0]) ? openQuote() : addQuote(r[0], sq(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote · View' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1955,31 +1956,113 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 <!-- checkout -->
 <!-- orders -->
+<div v-if="route === 'proposal'" class="px-wrap" style="padding:28px 16px">
+<div class="px-card" v-if="!prop || prop.loading"><p class="px-muted">Loading your proposal...</p></div>
+<div class="px-card" v-if="prop && prop.missing"><h2>We could not open this proposal</h2><p class="px-muted">The link may be wrong or the proposal was replaced. Reply to our e-mail or write to <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a> and we will send it again.</p></div>
+<div v-if="prop && prop.v && !prop.missing">
+<div class="px-paper" id="px-prop">
+<div class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="prop.v.label"></b><span v-text="prop.v.number"></span></div></div>
+<div class="px-paper-meta"><div><b>Prepared for</b><span v-text="prop.v.customer || prop.v.contact"></span><span v-if="prop.v.contact && prop.v.customer" v-text="prop.v.contact"></span></div><div><b>Date</b><span v-text="date(prop.v.sentAt || Date.now())"></span></div><div><b>Valid until</b><span v-text="prop.v.validUntil ? date(prop.v.validUntil) : '-'"></span></div><div><b>Status</b><span v-text="prop.v.status === 'accepted' ? 'Accepted' : prop.v.status === 'expired' ? 'Expired' : 'Waiting for your acceptance'"></span></div></div>
+<div style="padding:8px 32px 24px;overflow-x:auto">
+<table class="px-qlt" style="width:100%"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead><tbody>
+<tr v-for="l in prop.v.lines"><td class="mono" v-text="l.code"></td><td v-text="l.name"></td><td class="r" v-text="l.qty"></td><td class="r" v-text="fmt(l.price)"></td><td class="r" v-text="fmt(l.amount)"></td></tr>
+</tbody><tfoot>
+<tr v-if="prop.v.discount"><td colspan="4" class="r">Discount ({{ prop.v.discountPct }}%)</td><td class="r" v-text="'-' + fmt(prop.v.discount)"></td></tr>
+<tr v-if="prop.v.freight"><td colspan="4" class="r">Freight</td><td class="r" v-text="fmt(prop.v.freight)"></td></tr>
+<tr><td colspan="4" class="r"><b>Total (USD)</b></td><td class="r"><b v-text="fmt(prop.v.total)"></b></td></tr>
+</tfoot></table>
+<p v-if="prop.v.notes" style="margin-top:14px;white-space:pre-line" v-text="prop.v.notes"></p>
+<p class="px-muted" style="margin-top:14px;font-size:12px">Prices in USD. Taxes, if any, are added at invoicing. Stock is confirmed when we process your order.</p>
+</div>
+</div>
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="prop.done"><h2>Thank you, we have your acceptance</h2><p class="px-muted">We are preparing your order and will confirm the ship date by e-mail. Questions: <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p><a class="px-btn px-ghost px-sm" :href="'/api/portal/proposal-pdf?t=' + encodeURIComponent(arg)">Download PDF</a></div>
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="!prop.done && prop.v.status === 'expired'"><h2>This proposal has expired</h2><p class="px-muted">Prices and stock change, so we need to refresh it. Reply to our e-mail and we will send you a new one.</p></div>
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="!prop.done && prop.v.status !== 'expired'">
+<h2>Accept and confirm delivery</h2>
+<div class="px-fg" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0">
+<label>Ship to (name)<input type="text" v-model="prop.ship.name" maxlength="120"></label>
+<label>Street address<input type="text" v-model="prop.ship.street" maxlength="160" autocomplete="street-address"></label>
+<label>City<input type="text" v-model="prop.ship.city" maxlength="80"></label>
+<label>State<input type="text" v-model="prop.ship.state" maxlength="60"></label>
+<label>ZIP<input type="text" v-model="prop.ship.zip" maxlength="20"></label>
+<label>Country<input type="text" v-model="prop.ship.country" maxlength="60"></label>
+<label>Shipping method<select v-model="prop.ship.method"><option>Ground</option><option>Express</option><option>Freight (LTL)</option><option>Will call (pick up)</option></select></label>
+</div>
+<label style="display:block;margin-bottom:12px">Note for us (optional)<textarea v-model="prop.note" rows="2" maxlength="600" style="width:100%"></textarea></label>
+<label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px"><input type="checkbox" v-model="prop.agree" style="margin-top:3px"><span>I have reviewed the parts, prices and delivery details above and I accept this proposal.</span></label>
+<p class="px-err" v-if="prop.err" v-text="prop.err" role="alert"></p>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="px-btn px-dark" :disabled="prop.busy" @click="propAccept()" v-text="prop.busy ? 'Sending...' : 'Accept proposal'"></button><a class="px-btn px-ghost" :href="'/api/portal/proposal-pdf?t=' + encodeURIComponent(arg)">Download PDF</a></div>
+</div>
+</div>
+</div>
 <div v-if="route === 'account' && me">
-<div class="px-fh"><div><h1>My account</h1><p class="px-muted">Your company, your contact details and where every request stands.</p></div></div>
+<div class="px-fh"><div><h1>My account</h1><p class="px-muted">Your company, contact, addresses and every request you have sent us.</p></div></div>
+<div class="px-card" style="margin-bottom:16px" v-if="canOrder">
+<dl class="px-qmeta">
+<div><dt>Orders</dt><dd v-text="orders.length"></dd></div>
+<div><dt>Total ordered</dt><dd v-text="fmt(acTotal)"></dd></div>
+<div><dt>Open quotes</dt><dd v-text="acOpenQuotes"></dd></div>
+<div v-if="ac.co && ac.co.since"><dt>Customer since</dt><dd v-text="date(ac.co.since)"></dd></div>
+</dl>
+</div>
 <div class="px-card" style="margin-bottom:16px">
 <h2>Company</h2>
 <dl class="px-qmeta">
 <div><dt>Company</dt><dd v-text="me.account ? (me.account.company || me.account.customer) : 'Maxzz Diesel team'"></dd></div>
 <div v-if="me.account && me.account.code"><dt>Customer number</dt><dd v-text="me.account.code"></dd></div>
 <div v-if="me.account"><dt>Account status</dt><dd v-text="me.account.status === 'approved' ? 'Approved' : (me.account.status || '')"></dd></div>
-<div v-if="me.account && me.account.ship && me.account.ship.street"><dt>Delivery address</dt><dd v-text="[me.account.ship.street, me.account.ship.city, [me.account.ship.state, me.account.ship.zip].filter(Boolean).join(' '), me.account.ship.country].filter(Boolean).join(', ')"></dd></div>
+<div v-if="ac.co && ac.co.tier"><dt>Price list</dt><dd v-text="ac.co.tier"></dd></div>
+<div v-if="ac.co && ac.co.terms"><dt>Payment terms</dt><dd v-text="ac.co.terms"></dd></div>
 </dl>
+<p class="px-muted" style="font-size:13px;margin-top:10px" v-if="me.account">Company name, price list and sign-in e-mail are managed by our team. <a href="#" style="color:#d32a37;font-weight:500" @click.prevent="ac.reqOpen = !ac.reqOpen" v-text="ac.reqOpen ? 'Close' : 'Request a change'"></a></p>
+<div v-if="ac.reqOpen && me.account" style="margin-top:12px">
+<div class="px-ok" v-if="ac.reqDone" style="padding:12px 14px;border-radius:8px;background:#eaf6ee;color:#1d6b3a;font-size:14px">Sent. Our team will update it and reply by e-mail.</div>
+<div v-if="!ac.reqDone">
+<label class="px-f">What should we change?<textarea class="px-in" v-model="ac.reqText" maxlength="1200" placeholder="New company name, new sign-in e-mail, another person to add..."></textarea></label>
+<div class="px-btns" style="margin-top:10px"><button type="button" class="px-btn px-red px-sm" :disabled="ac.reqBusy || ac.reqText.trim().length < 5" @click="acRequest" v-text="ac.reqBusy ? 'Sending...' : 'Send to the team'"></button></div>
+<p class="px-muted" style="color:#d32a37;font-size:13px" v-if="ac.reqErr" v-text="ac.reqErr"></p>
+</div>
+</div>
 </div>
 <div class="px-card" style="margin-bottom:16px">
 <h2>Contact</h2>
-<dl class="px-qmeta">
+<div v-if="ac.editable">
+<div class="px-g2"><label class="px-f">Name<input class="px-in" v-model="ac.f.name" maxlength="120" autocomplete="name"></label><label class="px-f">Phone or WhatsApp<input class="px-in" type="tel" v-model="ac.f.phone" @input="ac.f.phone = maskPhone(ac.f.phone, ac.f.ship.country)" autocomplete="tel" inputmode="tel" placeholder="(954) 555-0123"></label></div>
+<div style="height:12px"></div>
+<label class="px-f">Sign-in e-mail<input class="px-in" :value="me.email" disabled></label>
+</div>
+<dl class="px-qmeta" v-else>
 <div><dt>Name</dt><dd v-text="me.name || firstName"></dd></div>
 <div><dt>E-mail</dt><dd v-text="me.email"></dd></div>
 <div v-if="me.phone"><dt>Phone</dt><dd v-text="me.phone"></dd></div>
 </dl>
-<p class="px-muted" style="font-size:13px;margin-top:10px">To change your company data or contact, e-mail <a href="mailto:sales@maxzzdiesel.com?subject=Update%20my%20account" style="color:#d32a37;font-weight:500">sales@maxzzdiesel.com</a> and we update it for you.</p>
+</div>
+<div v-if="ac.editable">
+<div class="px-card" style="margin-bottom:16px">
+<h2>Delivery address</h2>
+<div class="px-g2"><label class="px-f">Contact or company name<input class="px-in" v-model="ac.f.ship.name" maxlength="120" autocomplete="shipping name"></label><label class="px-f">Country<input class="px-in" v-model="ac.f.ship.country" maxlength="60" autocomplete="shipping country-name"></label></div>
+<div style="height:12px"></div><label class="px-f">Street address<input class="px-in" v-model="ac.f.ship.street" maxlength="160" autocomplete="shipping street-address"></label>
+<div style="height:12px"></div><div class="px-g3"><label class="px-f">City<input class="px-in" v-model="ac.f.ship.city" maxlength="80" autocomplete="shipping address-level2"></label><label class="px-f">State<input class="px-in" v-model="ac.f.ship.state" maxlength="60" autocomplete="shipping address-level1"></label><label class="px-f">ZIP<input class="px-in" v-model="ac.f.ship.zip" maxlength="20" autocomplete="shipping postal-code"></label></div>
+</div>
+<div class="px-card" style="margin-bottom:16px">
+<h2>Billing address</h2>
+<label class="px-fo" style="margin-bottom:12px"><input type="checkbox" v-model="ac.f.billSame"><span class="bx"></span><span class="l">Same as delivery address</span></label>
+<div v-if="!ac.f.billSame">
+<div class="px-g2"><label class="px-f">Contact or company name<input class="px-in" v-model="ac.f.bill.name" maxlength="120" autocomplete="billing name"></label><label class="px-f">Country<input class="px-in" v-model="ac.f.bill.country" maxlength="60" autocomplete="billing country-name"></label></div>
+<div style="height:12px"></div><label class="px-f">Street address<input class="px-in" v-model="ac.f.bill.street" maxlength="160" autocomplete="billing street-address"></label>
+<div style="height:12px"></div><div class="px-g3"><label class="px-f">City<input class="px-in" v-model="ac.f.bill.city" maxlength="80" autocomplete="billing address-level2"></label><label class="px-f">State<input class="px-in" v-model="ac.f.bill.state" maxlength="60" autocomplete="billing address-level1"></label><label class="px-f">ZIP<input class="px-in" v-model="ac.f.bill.zip" maxlength="20" autocomplete="billing postal-code"></label></div>
+</div>
+</div>
+<div class="px-btns" style="margin:0 0 20px;align-items:center;gap:14px">
+<button type="button" class="px-btn px-red" :disabled="ac.busy" @click="acSave" v-text="ac.busy ? 'Saving...' : 'Save changes'"></button>
+<span style="font-size:14px;color:#1d6b3a" v-if="ac.msg" v-text="ac.msg"></span><span style="font-size:14px;color:#d32a37" v-if="ac.err" v-text="ac.err"></span>
+</div>
 </div>
 <div class="px-card" style="margin-bottom:16px" v-if="canOrder">
-<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Recent orders</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">See all</a></div>
+<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Order history</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">Open all</a></div>
 <div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a>.</div>
 <div class="px-list">
-<button type="button" class="px-ord" v-for="o in ordersSorted.slice(0, 5)" :key="o.id" @click="cur = o; nav('o', o.id)">
+<button type="button" class="px-ord" v-for="o in ordersSorted.slice(0, 15)" :key="o.id" @click="cur = o; nav('o', o.id)">
 <div><b v-text="o.number"></b><small class="px-meta"><span v-text="date(o.created)"></span><span v-if="o.po" v-text="'PO ' + o.po"></span></small></div>
 <span class="px-ord-t" v-text="fmt(o.total)"></span>
 <span class="px-st" :class="o.status" v-text="label(o.status)"></span>
@@ -1987,11 +2070,11 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 </div>
 <div class="px-card">
-<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Recent quote requests</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">See all</a></div>
+<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Quote history</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">Open all</a></div>
 <div class="px-empty" v-if="!myQuotes.length">No quote requests yet.</div>
 <div class="px-list">
-<a class="px-ord" v-for="q in myQuotes.slice(0, 5)" :key="q.id" href="#/orders" style="text-decoration:none;color:inherit">
-<div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></span></small></div>
+<a class="px-ord" v-for="q in myQuotes.slice(0, 15)" :key="q.id" href="#/orders" style="text-decoration:none;color:inherit">
+<div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></span><span v-if="q.prop && q.prop.detail" v-text="fmt(q.prop.detail.total)"></span></small></div>
 <span class="px-ord-t"></span>
 <span class="px-st" :class="qStat(q).c" v-text="qStat(q).t"></span>
 </a>
@@ -2029,9 +2112,12 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-qd" v-if="qOpenId === q.id">
 <ol class="px-qtl"><li v-for="(t, i) in ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Shipped']" :class="i < qStat(q).at ? 'on' : ''"><i></i><span v-text="t"></span></li></ol>
 <dl class="px-qmeta"><div><dt>Sent</dt><dd v-text="date(q.created)"></dd></div><div v-if="q.po"><dt>PO / reference</dt><dd v-text="q.po"></dd></div><div v-if="q.needBy"><dt>Needed by</dt><dd v-text="q.needBy"></dd></div><div v-if="q.ship"><dt>Deliver to</dt><dd v-text="q.ship"></dd></div><div v-if="q.expires"><dt>Quote valid until</dt><dd v-text="date(q.expires)"></dd></div></dl>
-<table class="px-qlt"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody><tr v-for="l in (q.lines || [])"><td class="mono"><a :href="'#/p/' + encodeURIComponent(l.pn)" v-text="l.pn"></a></td><td v-text="map[l.pn] ? title(map[l.pn]) : l.name"></td><td class="r" v-text="l.qty"></td></tr></tbody></table>
+<dl class="px-qmeta" v-if="q.who"><div v-if="q.who.name"><dt>Requested by</dt><dd v-text="q.who.name"></dd></div><div v-if="q.who.company"><dt>Company</dt><dd v-text="q.who.company + (q.who.code ? ' (' + q.who.code + ')' : '')"></dd></div><div v-if="q.who.email"><dt>E-mail</dt><dd v-text="q.who.email"></dd></div><div v-if="q.who.phone"><dt>Phone</dt><dd v-text="q.who.phone"></dd></div><div v-if="q.prop && q.prop.detail"><dt>{{ q.prop.detail.label }}</dt><dd v-text="q.prop.detail.number"></dd></div><div v-if="q.prop && q.prop.detail && q.prop.detail.sentAt"><dt>Sent to you</dt><dd v-text="date(q.prop.detail.sentAt)"></dd></div><div v-if="q.prop && q.prop.detail && q.prop.detail.validUntil && q.prop.status !== 'accepted'"><dt>Valid until</dt><dd v-text="date(q.prop.detail.validUntil)"></dd></div><div v-if="q.prop && q.prop.detail && q.prop.detail.acceptedAt"><dt>Accepted</dt><dd v-text="date(q.prop.detail.acceptedAt)"></dd></div></dl>
+<table class="px-qlt" v-if="q.prop && q.prop.detail"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead><tbody><tr v-for="l in q.prop.detail.lines"><td class="mono"><a :href="'#/p/' + encodeURIComponent(l.code)" v-text="l.code"></a></td><td v-text="map[l.code] ? title(map[l.code]) : l.name"></td><td class="r" v-text="l.qty"></td><td class="r" v-text="fmt(l.price)"></td><td class="r" v-text="fmt(l.amount)"></td></tr></tbody><tfoot><tr v-if="q.prop.detail.discount"><td colspan="4" class="r">Discount ({{ q.prop.detail.discountPct }}%)</td><td class="r" v-text="'-' + fmt(q.prop.detail.discount)"></td></tr><tr v-if="q.prop.detail.freight"><td colspan="4" class="r">Freight</td><td class="r" v-text="fmt(q.prop.detail.freight)"></td></tr><tr><td colspan="4" class="r"><b>Total (USD)</b></td><td class="r"><b v-text="fmt(q.prop.detail.total)"></b></td></tr></tfoot></table>
+<p class="px-qnt" v-if="q.prop && q.prop.detail && q.prop.detail.accepted && q.prop.detail.accepted.ship"><b>Delivery you confirmed</b><span v-text="[q.prop.detail.accepted.ship.street, q.prop.detail.accepted.ship.city, q.prop.detail.accepted.ship.state, q.prop.detail.accepted.ship.zip, q.prop.detail.accepted.ship.country].filter(Boolean).join(', ') + (q.prop.detail.accepted.ship.method ? ' · ' + q.prop.detail.accepted.ship.method : '')"></span></p>
+<table class="px-qlt" v-if="!(q.prop && q.prop.detail)"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody><tr v-for="l in (q.lines || [])"><td class="mono"><a :href="'#/p/' + encodeURIComponent(l.pn)" v-text="l.pn"></a></td><td v-text="map[l.pn] ? title(map[l.pn]) : l.name"></td><td class="r" v-text="l.qty"></td></tr></tbody></table>
 <p class="px-qnt" v-if="q.notes"><b>Your notes</b><span v-text="q.notes"></span></p>
-<div class="px-qact"><button type="button" class="px-btn px-dark px-sm" @click="requote(q)">Add these parts to my quote list</button><a class="px-btn px-ghost px-sm" :href="'mailto:sales@maxzzdiesel.com?subject=' + encodeURIComponent('About quote ' + q.id)">Ask about this quote</a></div>
+<div class="px-qact"><a class="px-btn px-dark px-sm" v-if="q.prop && q.prop.token" :href="'#/proposal/' + q.prop.token">View proposal</a><a class="px-btn px-ghost px-sm" v-if="q.prop && q.prop.token" :href="'/api/portal/proposal-pdf?t=' + encodeURIComponent(q.prop.token)">Download PDF</a><button type="button" class="px-btn px-ghost px-sm" @click="requote(q)">Add these parts to my quote list</button><a class="px-btn px-ghost px-sm" :href="'mailto:sales@maxzzdiesel.com?subject=' + encodeURIComponent('About quote ' + q.id)">Ask about this quote</a></div>
 </div>
 </div>
 </div>
@@ -2142,7 +2228,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <a href="#/rewards" v-if="REWARDS.on && (canOrder || me.admin)" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="m8.5 13.5-1.5 7 5-2.5 5 2.5-1.5-7"/></svg><span>Max Rewards</span><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
 <a href="#/admin" v-if="me.admin" @click="mOpen = false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6z"/></svg><span>Admin</span><em v-if="pendingCount" v-text="pendingCount"></em><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
 </div>
-<div class="px-msh-in" v-else><p>Sign in to see your prices, live stock and order online.</p><div class="px-btns"><a class="px-btn px-red" href="#/login" @click="mOpen = false">Sign in</a><a class="px-btn px-ghost" href="#/request" @click="mOpen = false">Request access</a></div></div>
+<div class="px-msh-in" v-else><p>Already a customer? Sign in to follow your quotes and orders.</p><div class="px-btns"><a class="px-btn px-red" href="#/login" @click="mOpen = false">Sign in</a><a class="px-btn px-ghost" href="#/request" @click="mOpen = false">Request access</a></div></div>
 <h3>Parts</h3>
 <div class="px-msh-g">
 <a v-for="c in camps" :key="'m' + c.slug" :href="'#/promo/' + c.slug" @click="mOpen = false"><span class="ci"><i class="px-mdot" :style="{ background: c.color }"></i></span><span v-text="c.name"></span><small v-text="campN(c)"></small><svg class="ar" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a>
@@ -2238,7 +2324,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=92"></script>
+<script src="/js/portal-app.js?v=100"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

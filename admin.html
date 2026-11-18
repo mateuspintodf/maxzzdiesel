@@ -340,6 +340,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .kd::after{display:none}.kd{padding-right:12px}
 .stp{display:flex;gap:4px;margin:0 0 14px;flex-wrap:wrap}.stp button{flex:1;min-width:84px;border:0;background:var(--soft);padding:9px 8px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink2);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%);transition:background .15s}.stp button.dn{background:#e1eee6;color:#1f6a40}.stp button.on{background:var(--c);color:#fff;font-weight:600}
 .dg2{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:16px;align-items:start}@media(max-width:900px){.dg2{grid-template-columns:1fr}}
+.pp-res{position:absolute;left:0;right:0;z-index:5;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);margin-top:4px;max-height:260px;overflow:auto}.pp-res:empty{display:none}.pp-hit{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;padding:9px 12px;cursor:pointer;font:inherit;color:inherit}.pp-hit:hover,.pp-hit:focus-visible{background:var(--soft)}.pp-hit em{margin-left:auto;font-style:normal;color:#8a9097;font-size:12px}.pp-tot{margin-top:12px;display:flex;flex-direction:column;gap:4px;max-width:320px;margin-left:auto}.pp-tot .row{display:flex;justify-content:space-between}.pp-warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fdecea;color:#7a1f16}.pp-msg{margin-top:10px;padding:10px 12px;border-radius:12px}.pp-msg.ok{background:#e7f6ec;color:#14532d}.pp-msg.bad{background:#fdecea;color:#7a1f16}
 .dcol{display:flex;flex-direction:column;gap:12px;min-width:0}.cpn{background:var(--soft);border-radius:18px;padding:14px 16px}.cph{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.cph h3,.cpn>h3{margin:0;font-size:14px}
 .amt{font-size:26px;font-weight:700;letter-spacing:-.02em}.who2{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .ed{margin-top:10px}.ed summary{cursor:pointer;font-size:12.5px;color:var(--ink2)}.ed .fgrid{margin-top:10px}
@@ -409,7 +410,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 @media(max-width:900px){.adr.adh{display:none}.adr{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}.adp{flex-basis:100%}.adr>.ada{flex-basis:100%;justify-self:auto;justify-content:flex-start;margin-top:4px}}
 @media(max-width:700px){.aud{min-width:0!important;display:block}.card:has(>table.aud){overflow:visible!important}.aud colgroup,.aud tr:first-child{display:none}.aud tbody,.aud tr{display:block}.aud tr:not(.aday){padding:12px 16px;border-top:1px solid var(--line2)}.aud tr.aday td{display:block;float:none!important;padding:8px 16px!important;font-size:12px}.aud td{display:block;padding:0!important;border:0!important}.aud td:nth-child(1){float:right;font-size:12px}.aud td:nth-child(3){font-weight:600;margin-top:6px}.aud td:nth-child(4){margin-top:4px;font-size:13px}.aud .codes{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}.audw{display:inline-flex;align-items:center;gap:9px}.audw .av{margin:0}.fbar select{padding:9px 12px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit}/* the global .sm padding was squeezing photos into a 6px strip */
 .cdm .mk{margin:0 0 12px}.cdm>.seg{margin-bottom:12px}.cdc .cph{display:flex;justify-content:space-between;align-items:center;margin:0 0 10px}.cdc .cph h3{margin:0}.cdc .cph .lnk{padding:0;line-height:1}.nform .row>label{display:flex;align-items:center;gap:8px;white-space:nowrap}.nform .row{align-items:center}
-.segsel{border:0;border-radius:999px;background:var(--soft);padding:3px 8px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer;align-self:center}
+.segw{position:relative;display:inline-flex;align-self:center}.segbtn{border:0;cursor:pointer;font:inherit;font-size:12px;font-weight:500;color:var(--ink)}.segbtn:hover{background:var(--line)}.segm{position:absolute;top:calc(100% + 6px);left:0;z-index:30;min-width:190px;background:var(--bg,#fff);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.14);padding:4px;display:flex;flex-direction:column}.segm button{border:0;background:none;text-align:left;padding:8px 10px;border-radius:7px;font:inherit;font-size:13px;color:var(--ink);cursor:pointer}.segm button:hover{background:var(--soft)}.segm button.on{font-weight:600}.segm small{color:var(--muted);margin-left:4px}.segsel{border:0;border-radius:999px;background:var(--soft);padding:3px 8px;font:inherit;font-size:12px;color:var(--ink);cursor:pointer;align-self:center}
 </style>
 </head>
 <body>
@@ -821,6 +822,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       (K === 'call' ? '<div class="outc" style="margin-bottom:8px">' + CALLR.map(function (c) { return '<button data-act="crm-cr" data-v="' + esc(c[0]) + '" class="' + (Cd.cr === c[0] ? 'on' : '') + '">' + esc(c[1]) + '</button>'; }).join('') + '</div>' : '') +
       '<textarea id="crm-body" rows="3" placeholder="' + (K === 'call' ? 'What was said on the call. Type @ to mention a teammate' : K === 'email' ? 'What you sent or received' : K === 'task' ? 'What needs doing' : 'What happened') + '"></textarea>' +
       '<div class="lrow">' + (K === 'task' ? '<div><label class="l">Due date</label><input type="date" id="crm-due"></div>' : '<div><label class="l">Follow up on (optional)</label><input type="date" id="crm-due"></div>') + '<button class="btn sm" data-act="crm-log" data-id="' + esc(d.id) + '">' + (K === 'task' ? 'Add task' : 'Log ' + CRMK[K][0].toLowerCase()) + '</button></div>');
+    h += ppPane(d);
     if (Cd.lines && Cd.lines.length) h += crmPane('Products in this deal', tbl([h0('Part'), hr('Qty'), hr('Price'), hr('Total')], Cd.lines.map(function (l) { return '<tr><td><b class="mono">' + esc(l.code) + '</b><br><small class="muted">' + esc(l.desc) + '</small></td><td class="r">' + n0(l.qty) + '</td><td class="r">' + m0(l.price) + '</td><td class="r">' + m0(l.total) + '</td></tr>'; }).concat(['<tr><td colspan="3" class="r"><b>Total</b></td><td class="r"><b>' + m0(Cd.lines.reduce(function (t, l) { return t + l.total; }, 0)) + '</b></td></tr>']), 'dt'));
     else if (d.ref && /^(site_quote|portal_quote|portal_order|parked)$/.test(d.source)) h += crmPane('Products in this deal', '<p class="muted" style="margin:0">' + (Cd.lines === null ? 'The lines could not be loaded from Unleashed right now.' : 'This order has no lines yet.') + '</p>');
     if ((Cd.orders || []).length) h += crmPane('Recent orders', tbl([h0('Order'), h0('Date'), hr('Subtotal')], Cd.orders.map(function (o) { return '<tr><td class="mono">' + esc(o.number) + '</td><td>' + esc(fmtAt(o.completed_date || o.order_date)) + '</td><td class="r">' + m0(o.subtotal) + '</td></tr>'; }), 'dt'));
@@ -829,10 +831,109 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       (a.kind === 'task' && !a.done_at ? ' <button class="btn ghost sm" data-act="crm-done" data-id="' + esc(d.id) + '" data-a="' + esc(a.id) + '">Done</button>' : a.done_at ? ' <small class="muted">done</small>' : (a.due && a.kind !== 'task' && !a.done_at ? ' <small class="muted">follow up ' + esc(fmtAt(a.due)) + '</small>' : '')) + '</div></li>'; }).join('') + '</ol>' : '<div class="empty">Nothing yet. Log the first call or note above.</div>');
     return h + '</div></div></div></aside>';
   }
+  // ---- Proposal editor inside the deal drawer
+  function ppMoney(n) { return '$' + (Math.round((+n || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function ppTot(P) { var sub = 0; P.lines.forEach(function (l) { sub += (+l.qty || 0) * (+l.price || 0); }); sub = Math.round(sub * 100) / 100; var d = Math.round(sub * Math.min(100, Math.max(0, +P.discount_pct || 0)) / 100 * 100) / 100, f = Math.max(0, +P.freight || 0); return { sub: sub, disc: d, fr: f, total: Math.round((sub - d + f) * 100) / 100 }; }
+  function ppBelow(P) { var k = 1 - Math.min(100, Math.max(0, +P.discount_pct || 0)) / 100, out = {}; P.lines.forEach(function (l) { var f = P.floors && P.floors[l.code]; if (f && (+l.price || 0) * k < f - 0.004) out[l.code] = f; }); return out; }
+  function ppPane(d) {
+    var P = S.cd && S.cd.pp;
+    if (!P) return crmPane('Proposal', '<p class="muted" style="margin:0 0 8px">Edit prices and items, then send the customer a proposal they can accept online.</p><button class="btn sm" data-act="pp-open" data-id="' + esc(d.id) + '">' + ic('file', 14) + ' Open proposal</button>');
+    if (P.loading) return crmPane('Proposal', '<p class="muted" style="margin:0">Loading...</p>');
+    var T = ppTot(P), B = ppBelow(P), nb = Object.keys(B).length, ro = P.status === 'accepted',
+      h = '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="st">' + esc(P.status === 'sent' ? 'Sent' : P.status === 'accepted' ? 'Accepted' : 'Draft') + '</span><b class="mono">' + esc(P.number) + '</b><span class="sp"></span>' +
+        '<select class="sel" data-pp="doc_type" style="width:auto"' + (ro ? ' disabled' : '') + '><option value="quote"' + (P.doc_type === 'quote' ? ' selected' : '') + '>Quote</option><option value="invoice"' + (P.doc_type === 'invoice' ? ' selected' : '') + '>Invoice</option></select>' +
+        '<label class="muted" style="display:flex;align-items:center;gap:6px">Valid for <input type="number" min="1" max="365" data-pp="valid_days" value="' + esc(P.valid_days) + '" style="width:64px"' + (ro ? ' disabled' : '') + '> days</label></div>';
+    h += '<div style="overflow-x:auto"><table class="dt"><thead><tr><th>Part</th><th class="r" style="width:84px">Qty</th><th class="r" style="width:120px">Unit price</th><th class="r">Amount</th><th style="width:34px"></th></tr></thead><tbody id="pp-rows">';
+    P.lines.forEach(function (l, i) {
+      var low = B[l.code];
+      h += '<tr><td><b class="mono">' + esc(l.code) + '</b><br><small class="muted">' + esc(l.name || '') + '</small>' + (low ? '<br><small style="color:#c0392b">Under the margin floor, minimum ' + ppMoney(low) + '</small>' : '') + '</td>' +
+        '<td class="r"><input type="number" min="1" step="1" data-pp="l.' + i + '.qty" value="' + esc(l.qty) + '" style="width:72px;text-align:right"' + (ro ? ' disabled' : '') + '></td>' +
+        '<td class="r"><input type="number" min="0" step="0.01" data-pp="l.' + i + '.price" value="' + esc(l.price) + '" style="width:104px;text-align:right' + (low ? ';border-color:#c0392b' : '') + '"' + (ro ? ' disabled' : '') + '></td>' +
+        '<td class="r" id="pp-am-' + i + '">' + ppMoney((+l.qty || 0) * (+l.price || 0)) + '</td><td>' + (ro ? '' : '<button class="kq" data-act="pp-rm" data-i="' + i + '" aria-label="Remove ' + esc(l.code) + '" data-tip="Remove">' + ic('trash', 14) + '</button>') + '</td></tr>';
+    });
+    if (!P.lines.length) h += '<tr><td colspan="5" class="muted">No items yet. Search a part number below to add one.</td></tr>';
+    h += '</tbody></table></div>';
+    if (!ro) h += '<div style="margin-top:10px;position:relative"><label class="l">Add a part (part number with or without dots, or words from the name)</label><input type="search" id="pp-q" data-pp="q" placeholder="e.g. 5471504 or 5.471.504 or pump" autocomplete="off"><div id="pp-res" class="pp-res"></div></div>';
+    h += '<div class="fgrid" style="margin-top:12px"><div><label class="l">Discount %</label><input type="number" min="0" max="100" step="0.1" data-pp="discount_pct" value="' + esc(P.discount_pct) + '"' + (ro ? ' disabled' : '') + '></div>' +
+      '<div><label class="l">Freight (USD)</label><input type="number" min="0" step="0.01" data-pp="freight" value="' + esc(P.freight) + '"' + (ro ? ' disabled' : '') + '></div>' +
+      '<div><label class="l">Customer</label><input type="text" data-pp="customer_name" value="' + esc(P.customer_name || '') + '"' + (ro ? ' disabled' : '') + '></div>' +
+      '<div><label class="l">Contact name</label><input type="text" data-pp="contact_name" value="' + esc(P.contact_name || '') + '"' + (ro ? ' disabled' : '') + '></div>' +
+      '<div><label class="l">Contact e-mail</label><input type="email" data-pp="contact_email" value="' + esc(P.contact_email || '') + '"' + (ro ? ' disabled' : '') + '></div>' +
+      '<div><label class="l">Contact phone</label><input type="text" data-pp="contact_phone" value="' + esc(P.contact_phone || '') + '"' + (ro ? ' disabled' : '') + '></div></div>' +
+      '<div style="margin-top:8px"><label class="l">Note for the customer (shown on the proposal)</label><textarea rows="3" data-pp="notes"' + (ro ? ' disabled' : '') + '>' + esc(P.notes || '') + '</textarea></div>' +
+      '<div class="pp-tot" id="pp-tot">' + ppTotHtml(T) + '</div>';
+    if (nb && !ro) h += '<div class="pp-warn" id="pp-warn"><b>' + nb + ' part' + (nb === 1 ? ' is' : 's are') + ' under the margin floor (cost + ' + esc(P.pct) + '%).</b> ' + (P.canBelow ? 'You can go under it as superadmin: tick the box and say why.' : 'Raise the price, or ask a superadmin to approve it.') +
+      (P.canBelow ? '<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" data-pp="force"' + (P.force ? ' checked' : '') + '> Go under the floor</label>' + (P.force ? '<input type="text" data-pp="force_reason" placeholder="Reason (recorded)" value="' + esc(P.force_reason || '') + '" style="margin-top:6px;width:100%">' : '') : '') + '</div>';
+    if (P.msg) h += '<div class="pp-msg ' + (P.msgOk ? 'ok' : 'bad') + '">' + esc(P.msg) + '</div>';
+    if (P.url) h += '<div style="margin-top:10px"><label class="l">Customer link</label><div class="row" style="gap:6px"><input type="text" readonly value="' + esc(P.url) + '" id="pp-url" style="flex:1"><button class="btn ghost sm" data-act="pp-copy">Copy</button><a class="btn ghost sm" href="' + esc(P.url) + '" target="_blank" rel="noopener">Preview</a></div></div>';
+    if (!ro) h += '<div class="mact" style="margin-top:12px;gap:8px"><button class="btn ghost sm" data-act="pp-save"' + (P.busy ? ' disabled' : '') + '>Save draft</button><button class="btn sm" data-act="pp-send"' + (P.busy ? ' disabled' : '') + '>' + (P.status === 'sent' ? 'Save and send again' : 'Save and send to customer') + '</button></div>';
+    else h += '<p class="muted" style="margin-top:10px">The customer accepted this proposal' + (P.accepted_at ? ' on ' + esc(fmtAt(P.accepted_at)) : '') + '.</p>';
+    return crmPane('Proposal', h);
+  }
+  function ppTotHtml(T) { return '<div class="row"><span>Subtotal</span><span>' + ppMoney(T.sub) + '</span></div>' + (T.disc ? '<div class="row"><span>Discount</span><span>-' + ppMoney(T.disc) + '</span></div>' : '') + (T.fr ? '<div class="row"><span>Freight</span><span>' + ppMoney(T.fr) + '</span></div>' : '') + '<div class="row"><b>Total</b><b>' + ppMoney(T.total) + '</b></div>'; }
+  function ppOpen(id) {
+    S.cd.pp = { loading: true }; draw();
+    api('proposal-get', null, '&id=' + encodeURIComponent(id)).then(function (r) {
+      if (!S.cd || S.cd.id !== id) return;
+      if (r._status !== 200) { S.cd.pp = null; return fail(r); }
+      var p = r.proposal; S.cd.pp = { id: id, status: p.status, number: p.number, doc_type: p.doc_type, valid_days: p.valid_days || 30, lines: (p.lines || []).map(function (l) { return { code: l.code, name: l.name, qty: l.qty, price: l.price }; }), discount_pct: +p.discount_pct || 0, freight: +p.freight || 0, notes: p.notes || '',
+        customer_name: p.customer_name, contact_name: p.contact_name, contact_email: p.contact_email, contact_phone: p.contact_phone, floors: r.floors || {}, pct: r.pct, canBelow: !!r.canBelow, url: r.url, accepted_at: p.accepted_at };
+      draw();
+    });
+  }
+  function ppField(path, v) {
+    var P = S.cd && S.cd.pp; if (!P) return false;
+    var m = /^l\.(\d+)\.(qty|price)$/.exec(path);
+    if (m) { var l = P.lines[+m[1]]; if (!l) return false; l[m[2]] = v === '' ? '' : +v; return 'line'; }
+    if (path === 'force') { P.force = !!v; return 'redraw'; }
+    if (/^(discount_pct|freight|valid_days)$/.test(path)) { P[path] = v === '' ? '' : +v; return 'tot'; }
+    if (path === 'doc_type' || /^(notes|customer_name|contact_name|contact_email|contact_phone|force_reason)$/.test(path)) { P[path] = v; return 'plain'; }
+    return false;
+  }
+  function ppPaint() {
+    var P = S.cd && S.cd.pp; if (!P) return;
+    P.lines.forEach(function (l, i) { var el = document.getElementById('pp-am-' + i); if (el) el.textContent = ppMoney((+l.qty || 0) * (+l.price || 0)); });
+    var t = document.getElementById('pp-tot'); if (t) t.innerHTML = ppTotHtml(ppTot(P));
+    var nb = Object.keys(ppBelow(P)).length, w = document.getElementById('pp-warn'); if ((nb > 0) !== !!w) { var keep = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.pp; draw(); if (keep) { var n = app.querySelector('[data-pp="' + keep + '"]'); if (n) n.focus(); } }
+  }
+  var ppT = null;
+  function ppSearch(q) {
+    clearTimeout(ppT); var box = document.getElementById('pp-res'); if (!box) return;
+    if (String(q).replace(/[^a-z0-9]/gi, '').length < 2) { box.innerHTML = ''; return; }
+    ppT = setTimeout(function () {
+      api('proposal-search', null, '&q=' + encodeURIComponent(q)).then(function (r) {
+        var b = document.getElementById('pp-res'); if (!b || !S.cd || !S.cd.pp) return; S.cd.pp.found = r.rows || [];
+        b.innerHTML = (r.rows || []).length ? r.rows.map(function (x, i) { return '<button type="button" class="pp-hit" data-act="pp-add" data-i="' + i + '"><b class="mono">' + esc(x.code) + '</b> <span>' + esc(x.name) + '</span>' + (x.price ? '<em>list ' + ppMoney(x.price) + '</em>' : '') + '</button>'; }).join('') : '<div class="muted" style="padding:8px">No part found.</div>';
+      });
+    }, 220);
+  }
+  function ppSave(send) {
+    var P = S.cd && S.cd.pp; if (!P || P.busy) return;
+    if (!P.lines.length) { P.msg = 'Add at least one part first.'; P.msgOk = false; return draw(); }
+    P.busy = true; P.msg = ''; draw();
+    var body = { id: P.id, send: !!send, doc_type: P.doc_type, valid_days: P.valid_days, lines: P.lines, discount_pct: P.discount_pct, freight: P.freight, notes: P.notes, customer_name: P.customer_name, contact_name: P.contact_name, contact_email: P.contact_email, contact_phone: P.contact_phone, force: !!P.force, force_reason: P.force_reason || '' };
+    api('proposal-save', body).then(function (r) {
+      P = S.cd && S.cd.pp; if (!P) return; P.busy = false;
+      if (!r.ok) { P.msg = r.error || 'Could not save.'; P.msgOk = false; if (r.below && r.canBelow) P.force = P.force || false; return draw(); }
+      P.status = r.proposal.status; P.number = r.proposal.number; P.url = r.url || P.url;
+      P.msgOk = true; P.msg = send ? ('Proposal sent. The deal moved to Quote sent.' + (r.mail === 'sent' ? ' E-mail delivered to ' + (P.contact_email || 'the customer') + '.' : r.mail === 'blocked' ? ' Customer e-mail is switched off for now, so nothing went to the customer. Copy the link below to test it.' : ' The e-mail could not be sent, use the link below.')) : 'Draft saved.';
+      crmLoad(true); crmDeal(); draw();
+    });
+  }
+  app.addEventListener('input', function (e) { var t = e.target, k = t.dataset && t.dataset.pp; if (k == null) return;
+    if (k === 'q') return ppSearch(t.value);
+    var r = ppField(k, t.type === 'checkbox' ? t.checked : t.value); if (r === 'line' || r === 'tot') ppPaint(); });
+  app.addEventListener('change', function (e) { var t = e.target, k = t.dataset && t.dataset.pp; if (k == null || k === 'q') return; var r = ppField(k, t.type === 'checkbox' ? t.checked : t.value); if (r === 'redraw') draw(); else if (r === 'plain' && k === 'doc_type') draw(); });
   function crmDeal() { var id = S.cd && S.cd.id; if (!id) return; api('crm-deal', null, '&id=' + encodeURIComponent(id)).then(function (r) { if (!S.cd || S.cd.id !== id) return; S.cd.loading = false; if (r._status === 200) { S.cd.deal = r.deal; S.cd.acts = r.acts; S.cd.cust = r.cust; S.cd.orders = r.orders; S.cd.life = r.life; S.cd.others = r.others; S.cd.lines = r.lines; } else { S.cd = null; fail(r); return; } draw(); }); }
   function crmPost(body, msg) { return api('crm-save', body).then(function (r) { if (!r.ok) { fail(r); crmLoad(true); return r; } if (msg) toast(msg, true); crmLoad(true); if (S.cd && S.cd.id) crmDeal(); return r; }); }
   function crmV(id) { var el = document.getElementById(id); return el ? el.value : ''; }
   function crmAct(act, t) {
+    if (act === 'pp-open') return ppOpen(t.dataset.id);
+    if (act === 'pp-rm') { S.cd.pp.lines.splice(+t.dataset.i, 1); return draw(); }
+    if (act === 'pp-add') { var P0 = S.cd.pp, x = (P0.found || [])[+t.dataset.i]; if (!x) return; var ex = P0.lines.filter(function (l) { return l.code === x.code; })[0]; if (ex) ex.qty = (+ex.qty || 0) + 1; else P0.lines.push({ code: x.code, name: x.name, qty: 1, price: x.price || 0 }); P0.found = []; return draw(); }
+    if (act === 'pp-save') return ppSave(false);
+    if (act === 'pp-send') return ppSave(true);
+    if (act === 'pp-copy') { var u = document.getElementById('pp-url'); if (u) { u.select(); try { navigator.clipboard.writeText(u.value); toast('Link copied.', true); } catch (x) { document.execCommand('copy'); } } return; }
     if (act === 'crm-open') { S.cd = { id: t.dataset.id, loading: true, k: 'note' }; draw(); crmDeal(); return; }
     if (act === 'crm-q') { S.cd = { id: t.dataset.id, loading: true, k: t.dataset.k }; draw(); crmDeal(); setTimeout(function () { var b = document.getElementById('crm-body'); if (b) b.focus(); }, 500); return; }
     if (act === 'crm-k') { S.cd.k = t.dataset.v; return draw(); }
@@ -928,7 +1029,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var acc = R.acc && S.data ? (S.data.accounts.filter(function (a) { return a.id === R.acc; })[0] || null) : null, d = R.data, sm = d && d.sales && d.sales.summary, C = (d && d.contact) || {};
     var name = (sm && sm.n) || (acc && acc.company) || (d && d.company && d.company.name) || R.code || 'Customer';
     var h = '<div class="dscrim" data-act="dr-x"></div><aside class="drawer' + (R.loading && !acc ? '' : ' wide') + '" role="dialog" aria-label="Customer"><div class="dh"><div>';
-    h += '<small>' + esc(R.code || (acc && acc.customerCode) || 'Not linked to Unleashed') + '</small><h2>' + esc(name) + '</h2><div class="tags">' + (sm ? '<span class="tgl">Buying</span>' + st(sm.status) + '<span class="tgl">Activity</span>' + st(sm.segment) : '') + (R.code && ['sales', 'marketing', 'superadmin'].indexOf(S.me.role) >= 0 ? '<span class="tgl">Segment</span><select class="segsel" data-chg="drSeg" aria-label="Segment">' + (C.seg ? '' : '<option value="">Not set</option>') + SEGS.map(function (x) { return '<option value="' + esc(x) + '"' + (C.seg && C.seg.segment === x ? ' selected' : '') + '>' + esc(x) + (C.seg && C.seg.status === 'suggested' && C.seg.segment === x ? ' (suggested)' : '') + '</option>'; }).join('') + '</select>' + (C.seg && C.seg.status === 'suggested' ? '<button class="lnk" style="padding:0 2px" data-act="drseg-ok">Confirm</button>' : '') : C.seg ? '<span class="tgl">Segment</span><span class="st">' + esc(C.seg.segment) + (C.seg.status === 'suggested' ? ' (suggested)' : '') + '</span>' : '') + ((acc || (d && d.company)) ? '<span class="tgl">Portal</span>' + (acc ? st(acc.status) : st(d.company.status)) : '') + (C.tier || (acc && acc.tier) ? '<span class="st">' + esc(C.tier || acc.tier) + '</span>' : '') + (C.stop ? '<span class="st lost">Stop credit</span>' : '') + (C.segments || []).map(function (g) { return '<span class="st seg">' + esc(g) + '</span>'; }).join('') + '</div></div><button class="ib" data-act="dr-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
+    h += '<small>' + esc(R.code || (acc && acc.customerCode) || 'Not linked to Unleashed') + '</small><h2>' + esc(name) + '</h2><div class="tags">' + (sm ? '<span class="tgl">Buying</span>' + st(sm.status) + '<span class="tgl">Activity</span>' + st(sm.segment) : '') + (R.code && ['sales', 'marketing', 'superadmin'].indexOf(S.me.role) >= 0 ? '<span class="tgl">Segment</span><span class="segw"><button type="button" class="st segbtn" data-act="seg-menu" aria-haspopup="menu" aria-expanded="' + (S.segMenu ? 'true' : 'false') + '">' + esc(C.seg ? C.seg.segment + (C.seg.status === 'suggested' ? ' (suggested)' : '') : 'Not set') + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>' + (S.segMenu ? '<div class="segm" role="menu">' + SEGS.map(function (x) { return '<button type="button" role="menuitem" data-act="seg-pick" data-v="' + esc(x) + '"' + (C.seg && C.seg.segment === x ? ' class="on"' : '') + '>' + esc(x) + (C.seg && C.seg.status === 'suggested' && C.seg.segment === x ? ' <small>suggested</small>' : '') + '</button>'; }).join('') + '</div>' : '') + '</span>' + (C.seg && C.seg.status === 'suggested' ? '<button class="lnk" style="padding:0 2px" data-act="drseg-ok">Confirm</button>' : '') : C.seg ? '<span class="tgl">Segment</span><span class="st">' + esc(C.seg.segment) + (C.seg.status === 'suggested' ? ' (suggested)' : '') + '</span>' : '') + ((acc || (d && d.company)) ? '<span class="tgl">Portal</span>' + (acc ? st(acc.status) : st(d.company.status)) : '') + (C.tier || (acc && acc.tier) ? '<span class="st">' + esc(C.tier || acc.tier) + '</span>' : '') + (C.stop ? '<span class="st lost">Stop credit</span>' : '') + (C.segments || []).map(function (g) { return '<span class="st seg">' + esc(g) + '</span>'; }).join('') + '</div></div><button class="ib" data-act="dr-x" aria-label="Close">' + ic('x', 20) + '</button></div><div class="dbody">';
     if (acc) {
       h += '<div class="dsec" style="border-top:0;padding-top:4px"><h3>Portal access request</h3><p class="muted">' + esc([acc.type, acc.city, acc.state, acc.country].filter(Boolean).join(' · ')) + (acc.customerNumber ? ' · says Unleashed: ' + esc(acc.customerNumber) : '') + (acc.notes ? '<br>' + esc(acc.notes) : '') + '</p>';
       acc.users.forEach(function (u) { var n = (S.data.openSessions || {})[u.email.toLowerCase()] || 0;
@@ -1197,6 +1298,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       (c.kind !== 'price' ? '<div class="fl"><label>Discount on every part (%)</label><input type="number" data-m="cp.value" value="' + esc(c.value || '') + '" placeholder="15"><div class="hint">Taken off each customer’s own tier price. You can set a different % on single parts in the list.</div></div>' : '<div class="fl"><div class="hint" style="margin:0">Type the campaign price on each part in the list. Parts without a price are not discounted.</div></div>') + '</section>';
     h += '<section class="card"><div class="ch"><h2>When and how it looks</h2></div><div class="fg"><div class="fl"><label>Starts</label><input type="date" data-m="cp.starts_at" value="' + esc((c.starts_at || '').slice(0, 10)) + '"></div><div class="fl"><label>Ends (end of day) *</label><input type="date" data-m="cp.ends_at" value="' + esc((c.ends_at || '').slice(0, 10)) + '"></div></div>' +
       '<div class="chips" style="margin:10px 0 14px">' + [[3, '3 days'], [7, '1 week'], [14, '2 weeks'], [30, '30 days']].map(function (d) { return '<button data-act="cp-dur" data-d="' + d[0] + '">' + d[1] + '</button>'; }).join('') + '</div><label class="l">Badge color</label><div class="row" style="gap:8px">' + PAL.map(function (p) { return '<button class="swc' + ((c.color || '#d32a37') === p[0] ? ' on' : '') + '" data-act="cp-color" data-c="' + p[0] + '" title="' + p[1] + '" style="background:' + p[0] + '"></button>'; }).join('') + '</div>' +
+      '<div class="tgl" style="margin-top:14px"><label class="sw"><input type="checkbox" data-cpall="1"' + (c.show_all ? ' checked' : '') + '><span></span></label><span>' + (c.show_all ? 'Everyone sees the campaign price, signed in or not' : 'Only customers cleared for prices see the campaign price') + '</span></div>' +
       '<div class="tgl" style="margin-top:14px"><label class="sw"><input type="checkbox" data-cpstack="1"' + (c.stack_vouchers ? ' checked' : '') + '><span></span></label><span>' + (c.stack_vouchers ? 'Vouchers also apply to these parts' : 'Vouchers do not apply to these parts') + '</span></div>' +
       '<div class="tgl"><label class="sw"><input type="checkbox" data-cpactive="1"' + (c.active !== false ? ' checked' : '') + '><span></span></label><span>' + cpOnText(c) + '</span></div></section>' +
       '<section class="card"><div class="ch"><h2>Banner</h2><span class="muted">optional</span></div>' +
@@ -1902,6 +2004,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
   app.addEventListener('click', function (e) {
     if (!S.replaying) S.okKey = null; var t0 = e.target.closest('[data-act],[data-tab]'); if (t0 && !/^m-/.test(t0.dataset.act || '')) S.curEv = { type: 'click', sel: selOf(t0) };
+    if (S.segMenu && !e.target.closest('.segw')) { S.segMenu = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
     var inPop = e.target.closest('.ms, .menu, .who, .cb');
     if (!inPop && !(e.target.closest && e.target.closest('[data-act=pf-ph-menu]')) && S.pfMenu) { S.pfMenu = false; if (!e.target.closest('[data-act],[data-tab],.menu')) return draw(); }
     if (!inPop && (S.pop || S.meOpen || S.nfOpen || S.bfOpen)) { S.pop = null; S.meOpen = false; S.nfOpen = false; S.bfOpen = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
@@ -1936,7 +2039,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'ct-del') { if (!ok('This removes the contact record. Deals keep their own contact details.', { title: 'Delete this contact?', ok: 'Delete' })) return; api('contact-save', { id: S.ctf.id, del: true }).then(function (r) { if (!r.ok) return fail(r); toast('Contact deleted.', true); S.ctf = null; S.ct = null; draw(); }); return; }
     if (act === 'bf-when') { S.bfw = t.dataset.v; draw(); api('digest', null, '&when=' + S.bfw).then(function (r) { if (r._status === 200) { S.bf = r; draw(); } }); return; }
     if (act === 'bf-test') { S.busy = true; draw(); api('digest-test', { when: S.bfw || (S.bf && S.bf.when) || 'am' }).then(function (r) { S.busy = false; draw(); if (r.ok) toast('Sent to your e-mail.'); else fail(r); }); return; }
-    if (act.indexOf('crm-') === 0) return crmAct(act, t);
+    if (act.indexOf('crm-') === 0 || act.indexOf('pp-') === 0) return crmAct(act, t);
     if (act === 'pf-log') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call', body: 'About ' + t.dataset.n + ': ' }; return; }
     if (act === 'pf-done' || act === 'pf-lost') { var lostR = null; if (act === 'pf-lost') { lostR = pick('Why was it lost? It is saved on the customer.', [['price', 'Price'], ['stock', 'No stock or lead time'], ['competitor', 'Bought elsewhere'], ['no_answer', 'Never answered'], ['not_needed', 'Not needed anymore'], ['other', 'Other']], { title: 'Mark ' + t.dataset.n + ' as lost', ok: 'Mark lost', danger: true }); if (lostR === null) return; }
       api('pipeline-mark', { number: t.dataset.n, status: act === 'pf-lost' ? 'lost' : 'handled', code: t.dataset.code, name: t.dataset.name, reason: lostR || '' }).then(function (r) { if (r.ok) { S.pipe.rows = S.pipe.rows.filter(function (x) { return x.number !== t.dataset.n; }); toast(t.dataset.n + (act === 'pf-lost' ? ' marked lost.' : ' off the board.'), act !== 'pf-lost'); } else fail(r); }); return; }
@@ -2035,7 +2138,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'cp-rmall') { var rr = prodFilter('cpf').filter(function (r) { return r[0] in S.cp.items; }); if (rr.length > 20 && !ok('Remove ' + rr.length + ' parts from the campaign?')) return; rr.forEach(function (r) { delete S.cp.items[r[0]]; }); return draw(); }
     if (act === 'cp-del') { if (!ok('Delete the campaign "' + S.cp.name + '"? The parts go back to their normal price.')) return; api('campaign-toggle', { id: S.cp.id, remove: true }).then(function (r) { if (r.ok) { S.cp = null; S.okMsg = 'Campaign deleted.'; loadTab('campaigns'); } else fail(r); }); return; }
     if (act === 'cp-save') { var c = S.cp; S.busy = true; draw();
-      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.kind === 'price' ? 0 : c.value, color: c.color, banner_url: c.banner_url || '', active: c.active !== false, stack_vouchers: !!c.stack_vouchers,
+      api('campaign-save', { id: c.id || '', name: c.name, badge: c.badge, slug: c.slug, description: c.description, kind: c.kind, value: c.kind === 'price' ? 0 : c.value, color: c.color, banner_url: c.banner_url || '', active: c.active !== false, stack_vouchers: !!c.stack_vouchers, show_all: !!c.show_all,
         starts_at: c.starts_at ? new Date(c.starts_at.slice(0, 10) + 'T00:00:00').toISOString() : '', ends_at: c.ends_at ? new Date(c.ends_at.slice(0, 10) + 'T23:59:59').toISOString() : '',
         items: Object.keys(c.items).map(function (k) { return { code: k, value: c.items[k] }; }), rules: S.cpf || {}, force: !!S.cpForce, force_reason: S.cpForceReason || '' }).then(function (r) { S.busy = false; var wasForce = S.cpForce; S.cpForce = false; if (wasForce) S.cpForceReason = ''; if (r._status === 409 && r.canForce) { S.curEv = { type: 'click', sel: 'button[data-act="cp-save"]' }; draw(); } var frs = (r._status === 409 && r.canForce) ? ask(r.error + ' Say why to save it anyway.', { title: 'Save under the margin floor?', placeholder: 'Reason, e.g. clearing old stock', label: 'Reason', ok: 'Save anyway', danger: true }) : null; if (frs !== null && !String(frs).trim()) { S.err = 'Give a reason to save under the floor.'; return draw(); } if (frs !== null) { S.cpForceReason = frs; S.cpForce = true; draw(); var sb = app.querySelector('[data-act=cp-save]'); if (sb) sb.click(); return; } if (r.ok) { toast('Campaign saved. Customers see it within a minute.', true); S.cp.id = r.id; S.cp.slug = r.slug; } else fail(r); }); return; }
     // vouchers
@@ -2122,6 +2225,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'p-rm' || act === 'p-rm-all') { var rids = act === 'p-rm' ? [id] : S.prospects.map(function (p) { return p.id; });
       if (act === 'p-rm' ? !ok(t.dataset.n + ' leaves the admin and any list. Nothing changes in Unleashed.', { title: 'Remove this prospect?', ok: 'Remove', danger: true }) : ask('All ' + rids.length + ' prospects leave the admin and their lists. Companies that used the portal, or have vouchers, are kept. Nothing changes in Unleashed. Type ' + rids.length + ' to confirm.', { title: 'Remove ' + rids.length + ' prospects?', must: rids.length, placeholder: String(rids.length), ok: 'Remove', danger: true }) === null) return;
       api('company-remove', { ids: rids }).then(function (r) { if (r.ok) { toast(r.removed + ' removed' + (r.kept.length ? ', ' + r.kept.length + ' kept because they already used the portal' : '') + '.'); S.lastBulk = null; loadProspects(); load(); } else fail(r); }); return; }
+    if (act === 'seg-menu') { S.segMenu = !S.segMenu; return draw(); }
+    if (act === 'seg-pick') { S.segMenu = false; var dv0 = t.dataset.v, dc0 = S.dr && S.dr.code; if (!dv0 || !dc0) return draw(); api('cseg-set', { codes: [dc0], segment: dv0 }).then(function (r) { if (r.ok) { var C5 = S.dr.data && S.dr.data.contact; if (C5) C5.seg = { segment: dv0, status: 'confirmed' }; if (S.dir) S.dir.rows.forEach(function (x) { if (x.c === dc0) { x.sg = dv0; x.sgs = 'confirmed'; x.sgc = null; x.sge = null; } }); toast('Segment set to ' + dv0 + '.'); draw(); } else fail(r); }); return draw(); }
     if (act === 'drseg-ok') { var dc2 = S.dr && S.dr.code; if (!dc2) return; api('cseg-set', { codes: [dc2] }).then(function (r) { if (r.ok) { var C4 = S.dr.data && S.dr.data.contact; if (C4 && C4.seg) C4.seg.status = 'confirmed'; if (S.dir) S.dir.rows.forEach(function (x) { if (x.c === dc2) x.sgs = 'confirmed'; }); toast('Segment confirmed.'); draw(); } else fail(r); }); return; }
     if (act === 'ce-open') { var Cc = S.dr && S.dr.data && S.dr.data.contact; if (!Cc) return; S.ce = { code: S.dr.code, name: Cc.cname || '', contact: Cc.name || '', email: Cc.email || '', phone: Cc.phone || '', city: Cc.city || '', state: Cc.state || '', country: Cc.country || '' }; return draw(); }
     if (act === 'ce-x') { S.ce = null; return draw(); }
@@ -2191,6 +2296,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (d.cpval) { var vv2 = parseFloat(e.target.value); S.cp.items[d.cpval] = vv2 > 0 ? vv2 : null; return; }
     if (d.cpactive) { S.cp.active = e.target.checked; return draw(); }
     if (d.cpstack) { S.cp.stack_vouchers = e.target.checked; return draw(); }
+    if (d.cpall) { S.cp.show_all = e.target.checked; return draw(); }
     if (d.pgdel) { return api('sales-program-save', { kind: 'deliver', cycle: d.cycle, salesperson: d.sp, award: d.aw, delivered: e.target.checked }).then(function (r) { if (r.ok) pgLoad(); else fail(r); }); }
     if (d.slmon) { slState().mon = e.target.checked; return draw(); }
     if (d.pfph) { var qf = e.target.files && e.target.files[0]; e.target.value = ''; S.pfMenu = false; if (qf) photoData(qf, function (u) { S.pf = Object.assign(S.pf || {}, grp('pf')); S.pfPhoto = u; draw(); }); return; }

@@ -2426,11 +2426,11 @@
   // longest national number per country (digits after the country code), to tell a local number from a full one
   var NAT = { Brazil: 11, Mexico: 10, Colombia: 10, Chile: 9, Peru: 9, Ecuador: 9, Argentina: 11, Uruguay: 9, Paraguay: 9, Bolivia: 8, Venezuela: 10, Panama: 8, 'Costa Rica': 8, Guatemala: 8, Honduras: 8, 'El Salvador': 8, Nicaragua: 8 };
   var NANP = /United States|Puerto Rico|Canada|Dominican Republic/;
-  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'account', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
+  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'account', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards', 'proposal'];
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', camps: [], mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', prop: null, camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -2457,6 +2457,7 @@
     vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
+    ac: { editable: false, loaded: false, busy: false, msg: '', err: '', co: null, f: { name: '', phone: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, bill: { name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, billSame: true }, reqOpen: false, reqText: '', reqBusy: false, reqDone: false, reqErr: '' },
 
     get cats() { var self = this; return CATS.map(function (c) { return Object.assign({ n: self.cat.filter(function (r) { return r[3] === c.k && !(self.hideOut && self.hid(r[0])); }).length }, c); }).filter(function (c) { return c.n; }); },
     get logged() { return !!(this.me && (this.me.admin || (this.me.account && this.me.account.status === 'approved'))); },
@@ -2519,6 +2520,8 @@
     // campaign background: the uploaded banner (darkened on the left so the text reads) or the campaign color
     campBg: function (c) { var u = c && c.banner; if (!u || !/^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//.test(u)) return { background: c.color }; return { background: 'linear-gradient(90deg, rgba(10,12,14,.78) 0%, rgba(10,12,14,.5) 42%, rgba(10,12,14,.05) 72%), url("' + u.replace(/["\\]/g, '') + '") center / cover no-repeat, ' + c.color }; },
     campEnds: function (c) { if (!c || !c.ends_at) return ''; var d = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5); return d <= 1 ? 'Ends today' : 'Ends in ' + d + ' days'; },
+    pubP: function (code) { var x = this.pub[code]; return x ? this.fmt(x[0]) : ''; },
+    pubW: function (code) { var x = this.pub[code]; return x ? this.fmt(x[1]) : ''; },
     was: function (code) { var p = this.book && this.book.items[code]; return p && p[4] ? p[4] : null; },
     get listTitle() {
       var r = this.route, a = this.arg, f = this.f;
@@ -2747,6 +2750,8 @@
       if (this.me && sv && d.dest !== 'other') return { street: sv.street || '', city: sv.city || '', state: sv.state || '', zip: sv.zip || '', country: sv.country || d.country };
       return { street: d.street, city: d.city, state: d.state || '', zip: d.zip || '', country: d.country };
     },
+    get acTotal() { return (this.orders || []).reduce(function (a, o) { return a + (Number(o.total) || 0); }, 0); },
+    get acOpenQuotes() { return (this.myQuotes || []).filter(function (q) { var s = q.prop ? q.prop.status : ''; return s !== 'accepted' && s !== 'closed' && s !== 'expired' && !(q.ulStatus && q.ulStatus !== 'Parked' && q.ulStatus !== 'Draft'); }).length; },
     get ordersSorted() { return (this.orders || []).slice().sort(function (a, b) { return (b.created || 0) - (a.created || 0); }); },
     get relShown() { var r = this.related, n = r.length >= 8 ? 8 : r.length >= 4 ? 4 : r.length; return r.slice(0, n); },
     get buyAgain() {
@@ -2772,7 +2777,7 @@
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
     // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
     qUnits: function (q) { return (q.lines || []).reduce(function (a, l) { return a + (l.qty || 0); }, 0); },
-    qStat: function (q) { var m = { Parked: ['In review', 'Parked', 2], Placed: ['Accepted', 'Accepted', 4], Backordered: ['Accepted', 'Accepted', 4], Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Shipped', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
+    qStat: function (q) { if (q.prop) { var ps = q.prop.status; if (ps === 'sent') return { t: 'Quote sent', c: 'Quoted', at: 3 }; if (ps === 'accepted') return { t: 'Accepted', c: 'Accepted', at: 4 }; if (ps === 'closed') return { t: 'Closed', c: 'Closed', at: 1 }; if (ps === 'expired') return { t: 'Quote expired', c: 'Closed', at: 3 }; } var m = { Parked: ['In review', 'Parked', 2], Placed: ['Accepted', 'Accepted', 4], Backordered: ['Accepted', 'Accepted', 4], Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Shipped', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
     requote: function (q) { var self = this; (q.lines || []).forEach(function (l) { if (self.map[l.pn]) self.addQuote(l.pn, l.qty); }); this.flash('Parts added to your quote list', 'quote'); },
     // print the document only, with a file name the PDF dialog uses: "Maxzz Diesel Quote request MXQ-10005 Company 2026-11-15"
     printDoc: function () {
@@ -2995,7 +3000,7 @@
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) self.buy = j.rel; }).catch(function () {}); }
-      fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; }).catch(function () {});
+      fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; if (d && d.prices) self.pub = d.prices; }).catch(function () {});
       fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
@@ -3007,7 +3012,7 @@
           if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
-          try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
+          if (self.route === 'account') self.acLoad(); try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
           self.loadRewards();
@@ -3036,15 +3041,18 @@
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
       track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
-      if (r && ['login', 'request', 'sent', 'invite'].indexOf(r) < 0) { try { localStorage.setItem('px-ret', JSON.stringify({ h: location.hash.slice(0, 200), t: Date.now() })); } catch (e) {} }
+      if (r && ['login', 'request', 'sent', 'invite', 'proposal'].indexOf(r) < 0) { try { localStorage.setItem('px-ret', JSON.stringify({ h: location.hash.slice(0, 200), t: Date.now() })); } catch (e) {} }
       this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false; this.mOpen = false; document.documentElement.classList.remove('px-lock');
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
+      if (r === 'account' && this.me) this.acLoad();
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
+      if (r === 'proposal') { var sp = this; this.prop = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
+        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.prop.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.prop.ship, pv.ship); sp.prop.done = pv.status === 'accepted'; sp.prop.v = pv; sp.prop.loading = false; } else { sp.prop.loading = false; sp.prop.missing = true; } }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }
@@ -3128,7 +3136,14 @@
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return this.hideOut ? 'Unavailable, ask us' : 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },
     name: function (code) { var r = this.map[code]; return r ? this.title(r) : code; },
     qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; var f = document.querySelector('.px-fab-b.red'); if (f) f.focus(); }, 210); },
-    fmt: function (n) { return n == null ? (this.logged ? 'Price on request' : 'Ask us') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+    propAccept: function () {
+      var self = this, P = this.prop; if (!P || P.busy) return; P.err = '';
+      if (!P.agree) { P.err = 'Please tick the box to accept.'; return; }
+      P.busy = true;
+      api('proposal-accept', { body: { t: this.arg, ship: P.ship, note: P.note, agree: true } }).then(function (r) { P.busy = false; if (r.ok) { P.done = true; P.v.status = 'accepted'; window.scrollTo({ top: 0, behavior: 'smooth' }); } else P.err = r.error || 'Something went wrong. Please try again or call us.'; });
+    },
+    propPrint: function () { window.print(); },
+    fmt: function (n) { return n == null ? 'Price on request' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
@@ -3371,6 +3386,33 @@
     reject: function (a) { var reason = prompt('Reason (optional, sent to the customer):'); if (reason === null) return; var self = this; api('admin-reject', { body: { account: a.id, reason: reason, notify: true } }).then(function () { self.flash('Declined'); self.loadAdmin(); }); },
     moveInd: function (nav) { var a = nav && nav.querySelector('a.on'), i = nav && nav.querySelector('.px-dind'); if (!a || !i) return; i.style.width = a.offsetWidth + 'px'; i.style.transform = 'translateX(' + a.offsetLeft + 'px)'; },
     pop: function () { try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; requestAnimationFrame(function () { document.querySelectorAll('.px-fab-b .n, .pxh-ic .pxh-n, .px-kpis b').forEach(function (e) { e.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(.3,1.4,.5,1)' }); }); }); } catch (e) {} },
+    acLoad: function () {
+      var self = this; this.ac.msg = ''; this.ac.err = '';
+      api('account').then(function (r) {
+        if (r._status !== 200) return; var ac = self.ac; ac.editable = !!r.editable; ac.co = r.company || null; ac.loaded = true;
+        if (r.editable) { ac.f.name = r.profile.name || ''; ac.f.phone = r.profile.phone || ''; ac.f.ship = Object.assign({ name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, r.ship); if (!ac.f.ship.country) ac.f.ship.country = 'United States'; ac.f.bill = Object.assign({ name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, r.bill); if (!ac.f.bill.country) ac.f.bill.country = 'United States'; ac.f.billSame = !!r.billSame; }
+      });
+    },
+    acSave: function () {
+      var self = this, ac = this.ac; ac.msg = ''; ac.err = '';
+      if (!ac.f.name.trim()) { ac.err = 'Please enter your name.'; return; }
+      if (!ac.f.ship.street.trim() || !ac.f.ship.city.trim()) { ac.err = 'Delivery address needs a street and a city.'; return; }
+      if (!ac.f.billSame && (!ac.f.bill.street.trim() || !ac.f.bill.city.trim())) { ac.err = 'Billing address needs a street and a city.'; return; }
+      ac.busy = true; ac.f.phone = this.maskPhone(ac.f.phone, ac.f.ship.country, true);
+      api('account-save', { body: { name: ac.f.name, phone: ac.f.phone, ship: ac.f.ship, bill: ac.f.bill, billSame: ac.f.billSame } }).then(function (r) {
+        ac.busy = false;
+        if (r._status === 200) { ac.msg = 'Saved.'; if (self.me) { self.me.name = ac.f.name; self.me.phone = ac.f.phone; } setTimeout(function () { ac.msg = ''; }, 3000); }
+        else ac.err = r._status === 429 ? 'Too many changes. Try again in a few minutes.' : (r.error || 'Could not save. Try again.');
+      });
+    },
+    acRequest: function () {
+      var self = this, ac = this.ac; ac.reqBusy = true; ac.reqErr = '';
+      api('account-request', { body: { text: ac.reqText } }).then(function (r) {
+        ac.reqBusy = false;
+        if (r._status === 200) { ac.reqDone = true; ac.reqText = ''; setTimeout(function () { ac.reqDone = false; ac.reqOpen = false; }, 4000); }
+        else ac.reqErr = r._status === 429 ? 'Too many requests. Try again later.' : (r.error || 'Could not send. Try again.');
+      });
+    },
     flash: function (m, kind) { var self = this; this.toast = m; this.toastKind = kind || ''; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
   });
 

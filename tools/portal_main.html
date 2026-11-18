@@ -803,7 +803,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -834,7 +834,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -875,7 +875,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -908,7 +908,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="px-muted" v-if="canOrder">In-stock parts ordered by 3 pm Eastern ship the same day from Coconut Creek, Florida. You get an e-mail at every step.</div>
 </div>
 <div class="px-lockbox" v-else>
-<b>Wholesale price and stock are for approved customers.</b> Sign in to see your price and order online, or add it to a quote and our team replies within one business day.
+<b>Price on request.</b> Add it to a quote and our team replies with price and stock within one business day.
 <div class="px-qrow"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(pr[0], pick(pr[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(pr[0])" @change="setPick(pr[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(pr[0], pick(pr[0]) + 1)">+</button></div><button type="button" class="px-btn px-red" :class="inQuote(pr[0]) ? 'in' : ''" @click="addQuote(pr[0], pick(pr[0]))" v-text="inQuote(pr[0]) ? 'In your quote (' + quoteQty(pr[0]) + ')' : 'Add to quote'"></button></div><div class="px-btns" style="margin-top:10px"><a class="px-btn px-ghost px-sm" href="#/login">Sign in</a><a class="px-btn px-ghost px-sm" href="#/request">Request access</a></div>
 </div>
 <div class="px-help" style="border-top:1px solid #eef0f2;padding-top:14px">Questions about this part? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or <a href="https://wa.me/19543716996" target="_blank" rel="noopener">chat on WhatsApp</a>.</div>
@@ -937,7 +937,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <p class="px-note2" v-if="spec.ok">Part data under technical review. Confirm the fit with our team before installing.</p>
 </div>
 <div class="px-mbar" v-if="product">
-<span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-muted" style="color:#b9b9be">Sign in for price</span>
+<span v-if="logged"><b :class="price(pr[0]) == null ? 'px-por' : ''" v-text="fmt(price(pr[0]))"></b></span><span v-else class="px-muted" style="color:#b9b9be">Price on request</span>
 <button type="button" class="px-btn px-red" v-if="canOrder" :disabled="price(pr[0]) == null" @click="add(pr[0], pick(pr[0]))" v-text="cartQty(pr[0]) ? 'In cart (' + cartQty(pr[0]) + ')' : 'Add to cart'"></button>
 <button type="button" class="px-btn px-red" v-else @click="addQuote(pr[0], pick(pr[0]))" v-text="'Add ' + pick(pr[0]) + ' to quote'"></button>
 </div>
@@ -958,7 +958,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -981,7 +981,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1005,7 +1005,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>
@@ -1028,7 +1028,7 @@ textarea.px-in{height:96px;padding:12px 14px;resize:vertical}
 <div class="sc-act" v-else><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 <div class="sc-buy" v-else>
-<a class="sc-lock" href="#/login"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Sign in for price</a>
+<span class="sc-lock">Price on request</span>
 <div class="sc-act"><div class="px-qty"><button type="button" aria-label="Less" @click="setPick(r[0], pick(r[0]) - 1)">&minus;</button><input type="number" min="1" :value="pick(r[0])" @change="setPick(r[0], $event.target.value)" aria-label="Quantity"><button type="button" aria-label="More" @click="setPick(r[0], pick(r[0]) + 1)">+</button></div><button type="button" class="px-btn px-ghost px-sm" @click="addQuote(r[0], pick(r[0]))" :class="inQuote(r[0]) ? 'in' : ''" v-text="inQuote(r[0]) ? 'In quote (' + quoteQty(r[0]) + ')' : 'Add to quote'"></button></div>
 </div>
 </article>

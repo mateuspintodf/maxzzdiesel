@@ -12,6 +12,8 @@ const { loginToken, verify, setSession, clearSession } = require('../lib/session
 const { authenticate } = require('../lib/auth');
 const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
+const sdb = require('../lib/db');
+const PROP = require('../lib/proposal');
 const dbm = require('../lib/db');
 const { hiddenSet } = require('../lib/hidden');
 const vouchers = require('../lib/vouchers');
@@ -82,7 +84,20 @@ const A = {};
 // public: live campaigns (name, badge, which parts), no prices
 A.campaigns = async (req, res) => {
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-  return res.json({ campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []) });
+  // a campaign marked "show to everyone" (Black Friday) also shows its price to visitors, worked out from the default sell price
+  const out = { campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []), prices: {} };
+  try {
+    const open = (await CAMP.live()).filter((c) => c.show_all);
+    if (open.length) {
+      const hid = await hiddenSet(), prod = await cached('portal/products.json', 10 * 60 * 1000);
+      for (const [code, p] of Object.entries((prod && prod.items) || {})) {
+        if (hid.has(code) || !(p.d > 0)) continue;
+        const deal = CAMP.bestFor(open, code, money(p.d));
+        if (deal) out.prices[code] = [deal.price, money(p.d)];
+      }
+    }
+  } catch (e) { console.error('public campaign prices', e.message); }
+  return res.json(out);
 };
 // public: product image URLs only (no prices), for the open storefront
 A.images = async (req, res) => {
@@ -394,8 +409,128 @@ A.quotes = async (req, res) => {
     }))]);
     if (changed && !PS.on()) await writeJson(key, list).catch(() => {});
   }
+  try { // a proposal the team sent for this request decides what the customer sees
+    const ids = list.map((q) => q.id).filter((x) => /^[A-Za-z0-9-]+$/.test(String(x || '')));
+    if (ids.length && PS.on()) {
+      const ps = await sdb.select('proposals', 'select=*&ref=in.(' + ids.join(',') + ')'), by = {}; ps.forEach((p) => { by[p.ref] = p; });
+      list.forEach((q) => { const p = by[q.id]; if (p && p.status !== 'draft') q.prop = { status: p.status === 'sent' && p.valid_until && Date.parse(p.valid_until) < Date.now() ? 'expired' : p.status, token: p.token, doc: p.doc_type, detail: PROP.view(p) }; });
+    }
+    // no proposal: a manual move of the CRM deal still moves what the customer sees (Unleashed status stays the floor, nothing is written there)
+    const open = list.filter((q) => !q.prop && /^[A-Za-z0-9-]+$/.test(String(q.id || '')) && /^(Parked|Draft)$/.test(String(q.ulStatus || ''))).map((q) => q.id);
+    if (open.length && PS.on()) {
+      const ds = await sdb.select('crm_deals', 'select=ref,stage&ref=in.(' + open.join(',') + ')'), st = {}; ds.forEach((d) => { st[d.ref] = d.stage; });
+      list.forEach((q) => { const g = st[q.id]; if (q.prop || !g) return; if (g === 'quote' || g === 'negotiation') q.prop = { status: 'sent' }; else if (g === 'won') q.prop = { status: 'accepted' }; else if (g === 'lost') q.prop = { status: 'closed' }; });
+    }
+  } catch (e) { console.error('quote proposals', e.message); }
+  const acc = w.account || {}, usr = w.user || {};
+  list.forEach((q) => { q.who = { name: usr.name || '', email: w.email, phone: usr.phone || acc.phone || '', company: acc.company || acc.name || '', code: acc.customerCode || '' }; });
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ quotes: list });
+};
+
+// ---- proposals: the customer opens the link from the e-mail (a long random token is the key), reviews, confirms delivery and accepts
+const tokenOk = (t) => /^[A-Za-z0-9_-]{20,64}$/.test(String(t || ''));
+A.proposal = async (req, res) => {
+  const t = String(req.query.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
+  if (await limited(req, 'proposal', 60, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
+  if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ proposal: PROP.view(row) });
+};
+A['proposal-pdf'] = async (req, res) => {
+  const t = String(req.query.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
+  if (await limited(req, 'proposal-pdf', 30, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
+  if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
+  const buf = await require('../lib/proposal-pdf').build(PROP.view(row));
+  res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', 'attachment; filename="' + String(row.number).replace(/[^A-Za-z0-9._-]/g, '') + '.pdf"'); res.setHeader('Cache-Control', 'private, no-store');
+  return res.status(200).end(buf);
+};
+A['proposal-accept'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const b = readBody(req), t = String(b.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
+  if (await limited(req, 'proposal-accept', 10, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
+  if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
+  if (row.status === 'accepted') return res.json({ ok: true, already: true });
+  if (row.status !== 'sent' || (row.valid_until && Date.parse(row.valid_until) < Date.now())) return res.status(410).json({ error: 'This proposal is no longer open. Contact us and we will send an updated one.' });
+  const s = b.ship || {}, ship = { name: clean(s.name, 120) || row.customer_name || '', street: clean(s.street, 160), city: clean(s.city, 80), state: clean(s.state, 60), zip: clean(s.zip, 20), country: clean(s.country, 60) || 'United States', method: clean(s.method, 60) };
+  const pickup = /will call|pick/i.test(ship.method);
+  if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
+  if (!b.agree) return res.status(400).json({ error: 'Please confirm that you accept the proposal.' });
+  const now = new Date().toISOString(), acc = { at: now, ship, note: clean(b.note, 600) };
+  await sdb.update('proposals', 'id=eq.' + row.id, { status: 'accepted', accepted: acc, accepted_at: now, ship, updated_at: now });
+  const view = PROP.view(Object.assign({}, row, { ship }));
+  let un = null; try { un = await PROP.placeInUnleashed(row, ship); } catch (e) { console.error('proposal unleashed', e.message); un = { error: e.message }; }
+  try {
+    const d = row.deal_id && (await sdb.select('crm_deals', 'select=id,owner&id=eq.' + row.deal_id + '&limit=1'))[0];
+    if (d) {
+      await sdb.update('crm_deals', 'id=eq.' + d.id, { stage: 'won', stage_at: now, updated_at: now, closed_at: now, value: view.total });
+      await sdb.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: 'Customer accepted ' + row.number + ' online. ' + (un && un.placed ? 'Unleashed order is now Placed.' : 'Unleashed was NOT updated (' + ((un && (un.reason || un.error)) || 'unknown') + '): place the order in Unleashed by hand.'), created_by: 'customer' }]).catch(() => {});
+    }
+  } catch (e) { console.error('proposal deal', e.message); }
+  try { if (PS.on()) await PS.updateQuoteStatus(row.number, 'Accepted'); } catch (e) {}
+  const where = [ship.street, ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
+  send('sales@maxzzdiesel.com', 'Proposal ' + row.number + ' accepted', 'Proposal accepted', PROP.emailTable(view) + '<p>Ship to: ' + esc(where || 'will call') + (ship.method ? ' · ' + esc(ship.method) : '') + '</p>' + (acc.note ? '<p>Customer note: ' + esc(acc.note) + '</p>' : '') + '<p><b>Unleashed:</b> ' + (un && un.placed ? 'order placed.' : 'not updated, place the order by hand.') + '</p>', null, { internal: true }).catch(() => {});
+  if (row.contact_email) send(row.contact_email, 'We received your acceptance of ' + row.number, 'Thank you', PROP.emailTable(view) + '<p>We are preparing your order and will confirm the ship date.</p>', null, { name: row.contact_name }).catch(() => {});
+  return res.json({ ok: true, placed: !!(un && un.placed) });
+};
+
+// ---- My account: the customer sees and edits their own contact, delivery and billing address.
+// Company name, customer number, price list and sign-in e-mail stay with the team (a change request goes to them).
+// Nothing is written to Unleashed from here: the team gets an e-mail when an address changes and updates the customer there.
+const ADR = (a) => ({ name: clean(a && a.name, 120), street: clean(a && a.street, 160), city: clean(a && a.city, 80), state: clean(a && a.state, 60), zip: clean(a && a.zip, 20), country: clean(a && a.country, 60) });
+const adrKey = (a) => [a.name, a.street, a.city, a.state, a.zip, a.country].map((x) => String(x || '').trim().toLowerCase()).join('|');
+const adrRow = (a) => (a ? { name: a.name || '', street: a.street || '', city: a.city || '', state: a.state || '', zip: a.zip || '', country: a.country || '' } : { name: '', street: '', city: '', state: '', zip: '', country: '' });
+async function addrOf(companyId) {
+  const rows = await sdb.select('addresses', 'select=*&company_id=eq.' + companyId + '&is_default=eq.true&order=updated_at.desc');
+  return { ship: rows.find((r) => r.kind === 'shipping') || null, bill: rows.find((r) => r.kind === 'billing') || null };
+}
+A.account = async (req, res) => {
+  const w = await whoami(req); if (!w) return res.status(401).json({ error: 'login' });
+  const acc = w.account;
+  if (!acc || !w.user || !PS.on()) return res.json({ editable: false, profile: { name: (w.user && w.user.name) || '', email: w.email, phone: (w.user && w.user.phone) || '' } });
+  const ad = await addrOf(acc.id);
+  const ship = adrRow(ad.ship), bill = adrRow(ad.bill);
+  return res.json({ editable: true, profile: { name: w.user.name || '', email: w.email, phone: w.user.phone || '', since: w.user.created || 0 },
+    company: { name: acc.company, code: acc.customerCode || '', status: acc.status, tier: acc.tier || '', terms: acc.terms || '', since: acc.created || 0 },
+    ship, bill, billSame: !ad.bill || adrKey(ship) === adrKey(bill) });
+};
+A['account-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoami(req); if (!w) return res.status(401).json({ error: 'login' });
+  if (!w.account || !w.user || !PS.on()) return res.status(400).json({ error: 'This account is managed by the team.' });
+  if (await limited(req, 'account-save', 30, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const b = readBody(req), name = clean(b.name, 120), phone = clean(b.phone, 40);
+  if (!name) return res.status(400).json({ error: 'Please enter your name.' });
+  const ship = ADR(b.ship); if (!ship.street || !ship.city) return res.status(400).json({ error: 'Delivery address needs a street and a city.' });
+  const bill = b.billSame ? ship : ADR(b.bill); if (!b.billSame && (!bill.street || !bill.city)) return res.status(400).json({ error: 'Billing address needs a street and a city.' });
+  const acc = w.account, before = await addrOf(acc.id), now = new Date().toISOString();
+  const put = async (kind, a, old) => {
+    if (old) return sdb.update('addresses', 'id=eq.' + old.id, Object.assign({}, a, { updated_at: now, confirmed_at: now }));
+    return sdb.insert('addresses', [Object.assign({ company_id: acc.id, kind, is_default: true, origin: 'portal', confirmed_at: now }, a)]);
+  };
+  await sdb.update('users', 'id=eq.' + w.user.id, { name, phone: phone || null, updated_at: now });
+  await put('shipping', ship, before.ship); await put('billing', bill, before.bill);
+  const shipChanged = adrKey(adrRow(before.ship)) !== adrKey(ship), billChanged = adrKey(adrRow(before.bill)) !== adrKey(bill);
+  await PS.audit(w.email, 'customer.account.save', 'company', acc.id, { name: w.user.name, phone: w.user.phone, ship: adrRow(before.ship), bill: adrRow(before.bill) }, { name, phone, ship, bill });
+  if (shipChanged || billChanged) {
+    const line = (a) => [a.name, a.street, a.city, [a.state, a.zip].filter(Boolean).join(' '), a.country].filter(Boolean).join(', ');
+    notifyTeam('Customer updated an address · ' + acc.company, 'Address updated in the portal',
+      [['Company', acc.company], ['Customer', acc.customerCode || ''], ['By', name + ' · ' + w.email], shipChanged ? ['New delivery address', line(ship)] : null, billChanged ? ['New billing address', line(bill)] : null,
+        ['Next step', 'Update the customer in Unleashed.']], []).catch(() => {});
+  }
+  return res.json({ ok: true, profile: { name, phone } });
+};
+A['account-request'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoami(req); if (!w) return res.status(401).json({ error: 'login' });
+  if (await limited(req, 'account-request', 6, 60 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const text = clean(readBody(req).text, 1200); if (text.length < 5) return res.status(400).json({ error: 'Tell us what to change.' });
+  await notifyTeam('Account change request · ' + ((w.account && w.account.company) || w.email), 'Change request from the customer area',
+    [['Company', (w.account && w.account.company) || ''], ['Customer', (w.account && w.account.customerCode) || ''], ['From', ((w.user && w.user.name) || '') + ' · ' + w.email], ['Request', text]], []);
+  return res.json({ ok: true });
 };
 
 A.order = async (req, res) => {
