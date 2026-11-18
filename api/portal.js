@@ -412,8 +412,8 @@ A.quotes = async (req, res) => {
   try { // a proposal the team sent for this request decides what the customer sees
     const ids = list.map((q) => q.id).filter((x) => /^[A-Za-z0-9-]+$/.test(String(x || '')));
     if (ids.length && PS.on()) {
-      const ps = await sdb.select('proposals', 'select=ref,status,token,valid_until,doc_type&ref=in.(' + ids.join(',') + ')'), by = {}; ps.forEach((p) => { by[p.ref] = p; });
-      list.forEach((q) => { const p = by[q.id]; if (p && p.status !== 'draft') q.prop = { status: p.status === 'sent' && p.valid_until && Date.parse(p.valid_until) < Date.now() ? 'expired' : p.status, token: p.token, doc: p.doc_type }; });
+      const ps = await sdb.select('proposals', 'select=*&ref=in.(' + ids.join(',') + ')'), by = {}; ps.forEach((p) => { by[p.ref] = p; });
+      list.forEach((q) => { const p = by[q.id]; if (p && p.status !== 'draft') q.prop = { status: p.status === 'sent' && p.valid_until && Date.parse(p.valid_until) < Date.now() ? 'expired' : p.status, token: p.token, doc: p.doc_type, detail: PROP.view(p) }; });
     }
     // no proposal: a manual move of the CRM deal still moves what the customer sees (Unleashed status stays the floor, nothing is written there)
     const open = list.filter((q) => !q.prop && /^[A-Za-z0-9-]+$/.test(String(q.id || '')) && /^(Parked|Draft)$/.test(String(q.ulStatus || ''))).map((q) => q.id);
@@ -422,6 +422,8 @@ A.quotes = async (req, res) => {
       list.forEach((q) => { const g = st[q.id]; if (q.prop || !g) return; if (g === 'quote' || g === 'negotiation') q.prop = { status: 'sent' }; else if (g === 'won') q.prop = { status: 'accepted' }; else if (g === 'lost') q.prop = { status: 'closed' }; });
     }
   } catch (e) { console.error('quote proposals', e.message); }
+  const acc = w.account || {}, usr = w.user || {};
+  list.forEach((q) => { q.who = { name: usr.name || '', email: w.email, phone: usr.phone || acc.phone || '', company: acc.company || acc.name || '', code: acc.customerCode || '' }; });
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ quotes: list });
 };
