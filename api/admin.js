@@ -661,9 +661,10 @@ A.invite = async (req, res) => {
 A.dir = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  const [rows, segs, st, tg] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => [])]);
+  const [rows, segs, st, tg, cs] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => []), db.selectAll('customer_segments', 'select=code,segment,status,confidence,evidence').catch(() => [])]);
   const T = {}; tg.forEach((x) => { (T[x.code] = T[x.code] || []).push(x.tag); });
-  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; });
+  const G = {}; cs.forEach((x) => { G[x.code] = x; });
+  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; const g = G[r.c]; if (g) { r.sg = g.segment; r.sgs = g.status; r.sgc = g.confidence; r.sge = g.evidence; } });
   return res.json({ rows: rows || [], segments: segs, synced: st[0] && st[0].customers_at });
 };
 A['dir-sync'] = async (req, res) => {
@@ -696,6 +697,22 @@ A['segment-create'] = async (req, res) => {
   for (let i = 0; i < links.length; i += 200) await db.insert('company_segments', links.slice(i, i + 200), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
   await PS.audit(w.email, 'segment.create', 'segment', seg.id, null, { name, members: links.length, created: missing.length });
   return res.json({ ok: true, id: seg.id, members: links.length, created: missing.length });
+};
+// company segment (Distributor, Rebuilder, Reseller...): set by hand, or confirm what the rules and the web research suggested
+const CUST_SEGS = ['Distributor', 'Rebuilder', 'Reseller', 'Repair shop', 'Individual', 'Group company', 'OEM', 'Online marketplace', 'Unclassified'];
+A['cseg-set'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map((c) => clean(c, 60)).filter(Boolean))].slice(0, 3000);
+  if (!codes.length) return res.status(400).json({ error: 'codes' });
+  const now = new Date().toISOString();
+  if (b.segment) {
+    if (CUST_SEGS.indexOf(b.segment) < 0) return res.status(400).json({ error: 'segment' });
+    for (let i = 0; i < codes.length; i += 200) await db.insert('customer_segments', codes.slice(i, i + 200).map((code) => ({ code, segment: b.segment, status: 'confirmed', source: 'manual', confidence: null, evidence: null, confirmed_by: w.email, confirmed_at: now })), { onConflict: 'code' });
+  } else for (let i = 0; i < codes.length; i += 150) await db.update('customer_segments', 'status=eq.suggested&code=' + inList(codes.slice(i, i + 150)), { status: 'confirmed', confirmed_by: w.email, confirmed_at: now });
+  await PS.audit(w.email, 'company.segment', 'company', null, null, { segment: b.segment || 'confirmed suggestions', n: codes.length });
+  return res.json({ ok: true });
 };
 // free tags on a customer (by Unleashed code), used as filters in the customer list
 A['tags-set'] = async (req, res) => {
