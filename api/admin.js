@@ -1557,14 +1557,22 @@ async function moveDeal(d, stage, body, by, value) {
   await db.update('crm_deals', 'id=eq.' + d.id, Object.assign({ stage, stage_at: now, updated_at: now }, won ? { closed_at: now } : {}, value != null ? { value } : {}));
   await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body, created_by: by }]).catch(() => {});
 }
+// proposal number: the Unleashed order number when the deal comes from one, otherwise the next quote number (MXQ-n), never an internal ref like access:<id>
+const goodNo = (n) => /^(SO-\d+|MXQ-\d+|P-[A-Z0-9]+)$/i.test(String(n || ''));
+async function propNumber(d) {
+  if (/^SO-\d+$/i.test(d.ref || '')) return d.ref;
+  try { if (PS.on()) return await PS.nextNumber('quote'); } catch (e) {}
+  return 'P-' + String(d.id).slice(0, 6).toUpperCase();
+}
 A['proposal-get'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
   const d = await dealFor(req, res, w, clean(req.query.id, 60)); if (!d) return;
   let p = (await db.select('proposals', 'select=*&deal_id=eq.' + d.id + '&limit=1'))[0], fresh = false;
+  if (p && p.status === 'draft' && !goodNo(p.number)) p.number = 'Not numbered yet';
   if (!p) {
     fresh = true;
-    p = { deal_id: d.id, ref: d.ref, number: d.ref || ('P-' + String(d.id).slice(0, 6).toUpperCase()), doc_type: process.env.PROPOSAL_DOC === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines: await orderLinesOf(d.ref), discount_pct: 0, freight: 0, notes: '', valid_days: 30,
+    p = { deal_id: d.id, ref: d.ref, number: /^SO-\d+$/i.test(d.ref || '') ? d.ref : 'Not numbered yet', doc_type: process.env.PROPOSAL_DOC === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines: await orderLinesOf(d.ref), discount_pct: 0, freight: 0, notes: '', valid_days: 30,
       customer_name: d.customer_name || '', contact_name: d.contact_name || '', contact_email: d.contact_email || '', contact_phone: d.contact_phone || '', ship: null };
   }
   const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code));
@@ -1623,7 +1631,7 @@ A['proposal-save'] = async (req, res) => {
   }
   const now = new Date(), cur = (await db.select('proposals', 'select=*&deal_id=eq.' + d.id + '&limit=1'))[0];
   if (cur && cur.status === 'accepted') return res.status(409).json({ error: 'The customer already accepted this proposal. Open a new deal for changes.' });
-  const rec = { deal_id: d.id, ref: d.ref || null, number: (cur && cur.number) || d.ref || ('P-' + String(d.id).slice(0, 6).toUpperCase()), doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', lines, discount_pct: pct, freight: Math.round(freight * 100) / 100,
+  const rec = { deal_id: d.id, ref: d.ref || null, number: (cur && goodNo(cur.number) && cur.number) || await propNumber(d), doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', lines, discount_pct: pct, freight: Math.round(freight * 100) / 100,
     notes: String(b.notes || '').slice(0, 1500), valid_days: days, customer_name: clean(b.customer_name, 160) || d.customer_name || null, contact_name: clean(b.contact_name, 120) || d.contact_name || null,
     contact_email: clean(b.contact_email, 160).toLowerCase() || d.contact_email || null, contact_phone: clean(b.contact_phone, 40) || d.contact_phone || null, below_floor: below.length ? { by: w.email, reason: clean(b.force_reason, 300), parts: below } : null,
     created_by: (cur && cur.created_by) || w.email, updated_at: now.toISOString() };
