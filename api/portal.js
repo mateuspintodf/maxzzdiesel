@@ -82,7 +82,20 @@ const A = {};
 // public: live campaigns (name, badge, which parts), no prices
 A.campaigns = async (req, res) => {
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-  return res.json({ campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []) });
+  // a campaign marked "show to everyone" (Black Friday) also shows its price to visitors, worked out from the default sell price
+  const out = { campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []), prices: {} };
+  try {
+    const open = (await CAMP.live()).filter((c) => c.show_all);
+    if (open.length) {
+      const hid = await hiddenSet(), prod = await cached('portal/products.json', 10 * 60 * 1000);
+      for (const [code, p] of Object.entries((prod && prod.items) || {})) {
+        if (hid.has(code) || !(p.d > 0)) continue;
+        const deal = CAMP.bestFor(open, code, money(p.d));
+        if (deal) out.prices[code] = [deal.price, money(p.d)];
+      }
+    }
+  } catch (e) { console.error('public campaign prices', e.message); }
+  return res.json(out);
 };
 // public: product image URLs only (no prices), for the open storefront
 A.images = async (req, res) => {

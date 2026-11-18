@@ -138,11 +138,13 @@ function partPage(p, db) {
   const engKey = sp.engHub ? slug(sp.engHub) : '', makeKey = sp.make && sp.make !== 'Rebuilder Supply' ? slug(sp.make) : '';
   const digits = String(p.oem).replace(/[^0-9a-z]/gi, '');
   const spaced = /^\d{10}$/.test(digits) ? digits.replace(/^(\d)(\d{3})(\d{3})(\d{3})$/, '$1 $2 $3 $4') : '';
-  const aka = [...new Set([p.oem, digits, spaced, p.code].filter(Boolean))];
+  const codeDigits = String(p.code).replace(/[^0-9a-z]/gi, ''), codeBare = codeDigits.replace(/^[a-z]{2,4}(?=\d)/i, '');
+  const aka = [...new Set([p.oem, digits, spaced, p.code, codeDigits, codeBare.length >= 5 ? codeBare : ''].filter(Boolean))];
   const answer = sp.fit ? `${p.oem} is a ${String(sp.cond || 'new').toLowerCase()} ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()} for ${sp.fit}. Maxzz Diesel stocks it in Coconut Creek, Florida, and in-stock orders placed by 3 pm Eastern ship the same day.`
     : `${p.oem} is a ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()}. Maxzz Diesel stocks it in Coconut Creek, Florida, and in-stock orders placed by 3 pm Eastern ship the same day.`;
   const crumbs = [['Home', '/'], ['Parts catalog', '/parts'], [cat.l, '/parts/c/' + cat.s], [p.code, '/parts/' + p.slug]];
   const product = { '@type': 'Product', '@id': SITE + '/parts/' + p.slug + '#product', name: p.title, sku: p.code, mpn: p.oem, description: desc, category: typ, url: SITE + '/parts/' + p.slug };
+  if (aka.length > 1) product.alternateName = aka.filter((x) => x !== p.title);
   if (p.brand) { product.brand = { '@type': 'Brand', name: p.brand }; product.manufacturer = { '@type': 'Organization', name: p.brand }; }
   if (sp.cond) product.itemCondition = /reman/i.test(sp.cond) ? 'https://schema.org/RefurbishedCondition' : 'https://schema.org/NewCondition';
   const props = [sp.eng && { '@type': 'PropertyValue', name: 'Engine', value: sp.eng }, sp.y0 && { '@type': 'PropertyValue', name: 'Years', value: sp.y0 + '–' + sp.y1 }, sp.models && { '@type': 'PropertyValue', name: 'Vehicles', value: sp.models }].filter(Boolean);

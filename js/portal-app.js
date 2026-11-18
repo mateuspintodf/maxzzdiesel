@@ -2430,7 +2430,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', camps: [], mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -2519,6 +2519,8 @@
     // campaign background: the uploaded banner (darkened on the left so the text reads) or the campaign color
     campBg: function (c) { var u = c && c.banner; if (!u || !/^https:\/\/[a-z0-9]+\.public\.blob\.vercel-storage\.com\//.test(u)) return { background: c.color }; return { background: 'linear-gradient(90deg, rgba(10,12,14,.78) 0%, rgba(10,12,14,.5) 42%, rgba(10,12,14,.05) 72%), url("' + u.replace(/["\\]/g, '') + '") center / cover no-repeat, ' + c.color }; },
     campEnds: function (c) { if (!c || !c.ends_at) return ''; var d = Math.ceil((Date.parse(c.ends_at) - Date.now()) / 864e5); return d <= 1 ? 'Ends today' : 'Ends in ' + d + ' days'; },
+    pubP: function (code) { var x = this.pub[code]; return x ? this.fmt(x[0]) : ''; },
+    pubW: function (code) { var x = this.pub[code]; return x ? this.fmt(x[1]) : ''; },
     was: function (code) { var p = this.book && this.book.items[code]; return p && p[4] ? p[4] : null; },
     get listTitle() {
       var r = this.route, a = this.arg, f = this.f;
@@ -2995,7 +2997,7 @@
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) self.buy = j.rel; }).catch(function () {}); }
-      fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; }).catch(function () {});
+      fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; if (d && d.prices) self.pub = d.prices; }).catch(function () {});
       fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
       api('me').then(function (me) {
@@ -3128,7 +3130,7 @@
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return this.hideOut ? 'Unavailable, ask us' : 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },
     name: function (code) { var r = this.map[code]; return r ? this.title(r) : code; },
     qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; var f = document.querySelector('.px-fab-b.red'); if (f) f.focus(); }, 210); },
-    fmt: function (n) { return n == null ? (this.logged ? 'Price on request' : 'Ask us') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+    fmt: function (n) { return n == null ? 'Price on request' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
     label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
