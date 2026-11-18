@@ -1382,6 +1382,13 @@ A['funnel-step'] = async (req, res) => {
 // quotes and portal orders waiting for the team: the Parked sales orders in Unleashed (website quotes, B2B store quotes,
 // portal orders and parked orders typed by hand), with their age and owner. Marked lost or handled ones are left out.
 let pipeMemo = { at: 0, rows: null };
+// the quote comment ends with: company · name · e-mail · phone ... so a web quote keeps who asked for it
+function commentContact(c) {
+  const parts = String(c || '').split(' · '), i = parts.findIndex((x) => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(x.trim()));
+  if (i < 0) return null;
+  const ph = parts[i + 1] && /^[\d()+\-.\s]{7,}$/.test(parts[i + 1].trim()) ? parts[i + 1].trim() : null;
+  return { name: i > 0 ? parts[i - 1].trim().slice(0, 120) : null, email: parts[i].trim().toLowerCase(), phone: ph };
+}
 async function loadParked(fresh) {
   if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || fresh) {
     const items = [];
@@ -1394,7 +1401,7 @@ async function loadParked(fresh) {
     pipeMemo = { at: Date.now(), rows: items.map((o) => { const c = String(o.Comments || '');
       const kind = /^QUOTE REQUEST .*\(website\)/i.test(c) ? 'site_quote' : /^QUOTE REQUEST/i.test(c) ? 'portal_quote' : /^Portal B2B/i.test(c) ? 'portal_order' : 'parked';
       return { number: o.OrderNumber, ref: o.CustomerRef || '', kind, code: o.Customer && o.Customer.CustomerCode, name: o.Customer && o.Customer.CustomerName, at: day(o.OrderDate) || day(o.CreatedOn),
-        value: Number(o.SubTotal || o.BCSubTotal || 0), lines: (o.SalesOrderLines || []).length, sp: o.SalesPerson && (o.SalesPerson.FullName || o.SalesPerson.Email) || null, note: c.replace(/^QUOTE REQUEST [^:]*:\s*/i, '').slice(0, 220), web: /WEB CUSTOMER/i.test(c) }; }) };
+        value: Number(o.SubTotal || o.BCSubTotal || 0), lines: (o.SalesOrderLines || []).length, sp: o.SalesPerson && (o.SalesPerson.FullName || o.SalesPerson.Email) || null, note: c.replace(/^QUOTE REQUEST [^:]*:\s*/i, '').slice(0, 220), web: /WEB CUSTOMER/i.test(c), ct: commentContact(c) }; }) };
   }
   return pipeMemo.rows;
 }
@@ -1435,7 +1442,7 @@ async function crmSync() {
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
   const ctOf = {};
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
-  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.name) : null) || (ctOf[r.code] || {}).contact_name || null, contact_email: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.email) : null) || (ctOf[r.code] || {}).email || null, contact_phone: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.phone) : null) || (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
   if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
   // a deal is as old as its order in Unleashed, not as the moment the CRM first saw it. Deals made by an earlier sync that nobody touched since get their order date back.
   for (const r of parked) { const d = by[r.number]; if (!d || !r.at || d.stage === 'won' || d.stage === 'lost') continue; const cr = Date.parse(d.created_at), up = Date.parse(d.updated_at);
