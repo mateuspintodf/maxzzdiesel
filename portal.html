@@ -97,6 +97,7 @@ h1,h2,h3{letter-spacing:-0.02em}
 .kb{animation:kb 14s ease-in-out infinite alternate}@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
 @media (max-width:1280px){.nav-links{display:none !important}.nav-phone{display:none !important}}.lang-menu{opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .3s,transform .35s,visibility .3s}.lang:hover .lang-menu,.lang:focus-within .lang-menu{opacity:1;visibility:visible;transform:none}.lang-opt:hover{background:rgba(255,255,255,0.07);color:#ffffff !important}.lang button:hover{color:#ffffff !important}
 @media (max-width:640px){.nav-cta-text{display:none !important}.nav-cta{padding:5px !important;gap:0 !important}nav[aria-label="Main"]{padding:0 10px 0 20px !important;gap:10px !important}}
+.px-acgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}@media (max-width:860px){.px-acgrid{grid-template-columns:1fr}}
 @media (max-width:860px){.cart{height:auto !important;position:relative !important;top:auto !important}.cart-img{position:relative !important;height:300px !important}.cart-panel{position:relative !important;right:auto !important;bottom:auto !important;width:auto !important;margin:-40px 14px 14px !important}.sup-col{padding:0 0 40px 0 !important;border-right:0 !important}.acct-form{border-radius:25px !important}}
 
 @media (max-width:860px){
@@ -2014,6 +2015,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div v-if="ac.co && ac.co.since"><dt>Customer since</dt><dd v-text="date(ac.co.since)"></dd></div>
 </dl>
 </div>
+<div class="px-acgrid">
+<div>
 <div class="px-card" style="margin-bottom:16px">
 <h2>Company</h2>
 <dl class="px-qmeta">
@@ -2046,6 +2049,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div v-if="me.phone"><dt>Phone</dt><dd v-text="me.phone"></dd></div>
 </dl>
 </div>
+</div>
 <div v-if="ac.editable">
 <div class="px-card" style="margin-bottom:16px">
 <h2>Delivery address</h2>
@@ -2067,6 +2071,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span style="font-size:14px;color:#1d6b3a" v-if="ac.msg" v-text="ac.msg"></span><span style="font-size:14px;color:#d32a37" v-if="ac.err" v-text="ac.err"></span>
 </div>
 </div>
+</div>
+<div class="px-acgrid">
 <div class="px-card" style="margin-bottom:16px" v-if="canOrder">
 <div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Order history</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">Open all</a></div>
 <div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a>.</div>
@@ -2087,6 +2093,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="px-ord-t"></span>
 <span class="px-st" :class="qStat(q).c" v-text="qStat(q).t"></span>
 </a>
+</div>
 </div>
 </div>
 </div>
