@@ -436,6 +436,15 @@ A.proposal = async (req, res) => {
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ proposal: PROP.view(row) });
 };
+A['proposal-pdf'] = async (req, res) => {
+  const t = String(req.query.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
+  if (await limited(req, 'proposal-pdf', 30, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
+  if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
+  const buf = await require('../lib/proposal-pdf').build(PROP.view(row));
+  res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', 'attachment; filename="' + String(row.number).replace(/[^A-Za-z0-9._-]/g, '') + '.pdf"'); res.setHeader('Cache-Control', 'private, no-store');
+  return res.status(200).end(buf);
+};
 A['proposal-accept'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const b = readBody(req), t = String(b.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });

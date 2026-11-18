@@ -1975,7 +1975,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <p class="px-muted" style="margin-top:14px;font-size:12px">Prices in USD. Taxes, if any, are added at invoicing. Stock is confirmed when we process your order.</p>
 </div>
 </div>
-<div class="px-card" style="max-width:900px;margin:16px auto" v-if="prop.done"><h2>Thank you, we have your acceptance</h2><p class="px-muted">We are preparing your order and will confirm the ship date by e-mail. Questions: <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p><button type="button" class="px-btn px-ghost px-sm" @click="propPrint()">Print or save as PDF</button></div>
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="prop.done"><h2>Thank you, we have your acceptance</h2><p class="px-muted">We are preparing your order and will confirm the ship date by e-mail. Questions: <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p><a class="px-btn px-ghost px-sm" :href="'/api/portal/proposal-pdf?t=' + encodeURIComponent(arg)">Download PDF</a></div>
 <div class="px-card" style="max-width:900px;margin:16px auto" v-if="!prop.done && prop.v.status === 'expired'"><h2>This proposal has expired</h2><p class="px-muted">Prices and stock change, so we need to refresh it. Reply to our e-mail and we will send you a new one.</p></div>
 <div class="px-card" style="max-width:900px;margin:16px auto" v-if="!prop.done && prop.v.status !== 'expired'">
 <h2>Accept and confirm delivery</h2>
@@ -1991,7 +1991,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <label style="display:block;margin-bottom:12px">Note for us (optional)<textarea v-model="prop.note" rows="2" maxlength="600" style="width:100%"></textarea></label>
 <label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px"><input type="checkbox" v-model="prop.agree" style="margin-top:3px"><span>I have reviewed the parts, prices and delivery details above and I accept this proposal.</span></label>
 <p class="px-err" v-if="prop.err" v-text="prop.err" role="alert"></p>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="px-btn px-dark" :disabled="prop.busy" @click="propAccept()" v-text="prop.busy ? 'Sending...' : 'Accept proposal'"></button><button type="button" class="px-btn px-ghost" @click="propPrint()">Print or save as PDF</button></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="px-btn px-dark" :disabled="prop.busy" @click="propAccept()" v-text="prop.busy ? 'Sending...' : 'Accept proposal'"></button><a class="px-btn px-ghost" :href="'/api/portal/proposal-pdf?t=' + encodeURIComponent(arg)">Download PDF</a></div>
 </div>
 </div>
 </div>
@@ -2071,7 +2071,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <dl class="px-qmeta"><div><dt>Sent</dt><dd v-text="date(q.created)"></dd></div><div v-if="q.po"><dt>PO / reference</dt><dd v-text="q.po"></dd></div><div v-if="q.needBy"><dt>Needed by</dt><dd v-text="q.needBy"></dd></div><div v-if="q.ship"><dt>Deliver to</dt><dd v-text="q.ship"></dd></div><div v-if="q.expires"><dt>Quote valid until</dt><dd v-text="date(q.expires)"></dd></div></dl>
 <table class="px-qlt"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody><tr v-for="l in (q.lines || [])"><td class="mono"><a :href="'#/p/' + encodeURIComponent(l.pn)" v-text="l.pn"></a></td><td v-text="map[l.pn] ? title(map[l.pn]) : l.name"></td><td class="r" v-text="l.qty"></td></tr></tbody></table>
 <p class="px-qnt" v-if="q.notes"><b>Your notes</b><span v-text="q.notes"></span></p>
-<div class="px-qact"><a class="px-btn px-dark px-sm" v-if="q.prop && q.prop.token" :href="'#/proposal/' + q.prop.token">View proposal</a><button type="button" class="px-btn px-ghost px-sm" @click="requote(q)">Add these parts to my quote list</button><a class="px-btn px-ghost px-sm" :href="'mailto:sales@maxzzdiesel.com?subject=' + encodeURIComponent('About quote ' + q.id)">Ask about this quote</a></div>
+<div class="px-qact"><a class="px-btn px-dark px-sm" v-if="q.prop && q.prop.token" :href="'#/proposal/' + q.prop.token">View proposal</a><a class="px-btn px-ghost px-sm" v-if="q.prop && q.prop.token" :href="'/api/portal/proposal-pdf?t=' + encodeURIComponent(q.prop.token)">Download PDF</a><button type="button" class="px-btn px-ghost px-sm" @click="requote(q)">Add these parts to my quote list</button><a class="px-btn px-ghost px-sm" :href="'mailto:sales@maxzzdiesel.com?subject=' + encodeURIComponent('About quote ' + q.id)">Ask about this quote</a></div>
 </div>
 </div>
 </div>
@@ -2278,7 +2278,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=97"></script>
+<script src="/js/portal-app.js?v=98"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
