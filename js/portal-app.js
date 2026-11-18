@@ -3031,6 +3031,7 @@
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
       track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
+      if (r && ['login', 'request', 'sent', 'invite'].indexOf(r) < 0) { try { localStorage.setItem('px-ret', JSON.stringify({ h: location.hash.slice(0, 200), t: Date.now() })); } catch (e) {} }
       this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false; this.mOpen = false; document.documentElement.classList.remove('px-lock');
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
@@ -3308,7 +3309,7 @@
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
       api('confirm', { body: { t: this.lt } }).then(function (r) {
         self.busy = false;
-        if (r._status === 200) { self.lt = ''; location.replace('/portal'); location.reload(); }
+        if (r._status === 200) { self.lt = ''; var back = ''; try { var sv = JSON.parse(localStorage.getItem('px-ret') || 'null'); if (sv && /^#\/[a-z]/.test(sv.h || '') && Date.now() - sv.t < 6 * 36e5) back = sv.h; localStorage.removeItem('px-ret'); } catch (e) {} location.replace('/portal' + back); location.reload(); }
         else self.err = r._status === 403 ? 'Your access is not approved yet.' : 'That sign-in link expired or was already used. Ask for a new one below.', self.lt = '';
       });
     },
