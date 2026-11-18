@@ -960,7 +960,7 @@ async function floorsFor(list) {
   const m = 1 + MIN_MARGIN() / 100;
   costs.forEach((c) => { const cost = Number(c.avg_cost) > 0 ? Number(c.avg_cost) : Number(c.last_cost) > 0 ? Number(c.last_cost) : null; if (!cost) return;
     const p = prod && prod.items && prod.items[c.code], tiers = ((p && p.t) || []).concat(p && p.d ? [p.d] : []).filter((x) => x > 0);
-    out[c.code] = { floor: Math.ceil(cost * m * 100) / 100, low: tiers.length ? Math.min.apply(null, tiers) : null }; });
+    out[c.code] = { cost, floor: Math.ceil(cost * m * 100) / 100, low: tiers.length ? Math.min.apply(null, tiers) : null }; });
   return out;
 }
 async function belowFloor(codes, kind, value, stack) {
@@ -1568,9 +1568,9 @@ A['proposal-get'] = async (req, res) => {
       customer_name: d.customer_name || '', contact_name: d.contact_name || '', contact_email: d.contact_email || '', contact_phone: d.contact_phone || '', ship: null };
   }
   const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code));
-  Object.keys(F).forEach((c) => { floors[c] = F[c].floor; });
+  const costs = {}; Object.keys(F).forEach((c) => { floors[c] = F[c].floor; costs[c] = F[c].cost; });
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.json({ proposal: p, fresh, floors, pct: MIN_MARGIN(), canBelow: w.role === 'superadmin', deal: { id: d.id, title: d.title, ref: d.ref, stage: d.stage, customer: d.customer_name, code: d.customer_code }, mailOn: customerMailOn(), url: p.token ? 'https://' + req.headers.host + '/portal#/proposal/' + p.token : null });
+  return res.json({ proposal: p, fresh, floors, costs, pct: MIN_MARGIN(), canBelow: w.role === 'superadmin', deal: { id: d.id, title: d.title, ref: d.ref, stage: d.stage, customer: d.customer_name, code: d.customer_code }, mailOn: customerMailOn(), url: p.token ? 'https://' + req.headers.host + '/portal#/proposal/' + p.token : null });
 };
 // type-ahead for adding a part: part number with or without dots and brand prefix, or words from the name
 A['proposal-search'] = async (req, res) => {
@@ -1587,7 +1587,23 @@ A['proposal-search'] = async (req, res) => {
     if (sc) out.push([sc, r]);
   }
   out.sort((a, b) => b[0] - a[0]);
-  return res.json({ rows: out.slice(0, 10).map(([, r]) => { const p = prod && prod.items && prod.items[r[0]]; return { code: r[0], name: String(r[1] || '').split(' / ')[0].slice(0, 120), price: p && p.d > 0 ? p.d : null }; }) });
+  const top = out.slice(0, 10), F = await floorsFor(top.map(([, r]) => r[0])).catch(() => ({}));
+  return res.json({ rows: top.map(([, r]) => { const p = prod && prod.items && prod.items[r[0]], f = F[r[0]]; return { code: r[0], name: String(r[1] || '').split(' / ')[0].slice(0, 120), price: p && p.d > 0 ? p.d : null, floor: f ? f.floor : null, cost: f ? f.cost : null }; }) });
+};
+// Preview of the document as the customer will get it, marked PENDING, before anything is saved or sent. Cost never appears.
+A['proposal-preview'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), d = await dealFor(req, res, w, clean(b.id, 60)); if (!d) return;
+  const lines = PROP.cleanLines(b.lines); if (!lines.length) return res.status(400).json({ error: 'Add at least one part with a quantity.' });
+  const days = Math.min(365, Math.max(1, parseInt(b.valid_days, 10) || 30));
+  const v = PROP.view({ number: clean(b.number, 40) || d.ref || 'DRAFT', doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines, discount_pct: Math.min(100, Math.max(0, Number(b.discount_pct) || 0)), freight: Math.max(0, Number(b.freight) || 0),
+    notes: clean(b.notes, 2000), customer_name: clean(b.customer_name, 120), contact_name: clean(b.contact_name, 120), valid_until: new Date(Date.now() + days * 86400000).toISOString() });
+  v.preview = true;
+  const buf = await require('../lib/proposal-pdf').build(v);
+  res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', 'inline; filename="preview-' + String(v.number).replace(/[^A-Za-z0-9-]/g, '') + '.pdf"'); res.setHeader('Cache-Control', 'private, no-store');
+  return res.send(buf);
 };
 A['proposal-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -2198,7 +2214,7 @@ A.audit = async (req, res) => {
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
 const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
-  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
+  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
