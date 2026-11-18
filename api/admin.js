@@ -699,7 +699,7 @@ A['segment-create'] = async (req, res) => {
   return res.json({ ok: true, id: seg.id, members: links.length, created: missing.length });
 };
 // company segment (Distributor, Rebuilder, Reseller...): set by hand, or confirm what the rules and the web research suggested
-const CUST_SEGS = ['Reseller', 'Rebuilder', 'Reseller/Rebuilder', 'Distributor', 'Repair shop', 'Individual', 'Group company', 'OEM', 'Online marketplace', 'Unclassified'];
+const CUST_SEGS = ['Reseller', 'Rebuilder', 'Reseller/Rebuilder', 'Other'];
 A['cseg-set'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
