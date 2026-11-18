@@ -2871,6 +2871,8 @@
     phoneIn: function (o) {
       o.country = this.dialCountry(o.phone, o.country); o.phone = this.maskPhone(o.phone, o.country);
     },
+    // ' (+55)' next to a country name in a select
+    dialTag: function (c) { if (NANP.test(c)) return ' (+1)'; var k = ''; Object.keys(DIAL).forEach(function (x) { if (DIAL[x] === c) k = x; }); return k ? ' (+' + k + ')' : ''; },
     maskPhone: function (v, country, final) {
       var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').replace(/^\s+/, '');
       if (!raw) return '';
