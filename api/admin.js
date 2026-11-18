@@ -1575,7 +1575,7 @@ A['proposal-get'] = async (req, res) => {
     p = { deal_id: d.id, ref: d.ref, number: /^SO-\d+$/i.test(d.ref || '') ? d.ref : 'Not numbered yet', doc_type: process.env.PROPOSAL_DOC === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines: await orderLinesOf(d.ref), discount_pct: 0, freight: 0, notes: '', valid_days: 30,
       customer_name: d.customer_name || '', contact_name: d.contact_name || '', contact_email: d.contact_email || '', contact_phone: d.contact_phone || '', ship: null };
   }
-  const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code));
+  const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code).filter(Boolean));
   const costs = {}; Object.keys(F).forEach((c) => { floors[c] = F[c].floor; costs[c] = F[c].cost; });
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ proposal: p, fresh, floors, costs, pct: MIN_MARGIN(), canBelow: w.role === 'superadmin', deal: { id: d.id, title: d.title, ref: d.ref, stage: d.stage, customer: d.customer_name, code: d.customer_code }, mailOn: customerMailOn(), url: p.token ? 'https://' + req.headers.host + '/portal#/proposal/' + p.token : null });
@@ -1623,7 +1623,7 @@ A['proposal-save'] = async (req, res) => {
   if (b.send && lines.some((l) => !(l.price > 0))) return res.status(400).json({ error: 'Every part needs a price before the proposal goes out.' });
   const pct = Math.min(100, Math.max(0, Number(b.discount_pct) || 0)), freight = Math.max(0, Number(b.freight) || 0), days = Math.min(365, Math.max(1, parseInt(b.valid_days, 10) || 30));
   // margin floor: cost + CAMPAIGN_MIN_MARGIN, on the price the customer actually pays (after the discount). Only a superadmin goes under, with a reason.
-  const F = await floorsFor(lines.map((l) => l.code)), below = [];
+  const F = await floorsFor(lines.map((l) => l.code).filter(Boolean)), below = [];
   lines.forEach((l) => { const f = F[l.code]; const net = l.price * (1 - pct / 100); if (f && net < f.floor - 0.004) below.push({ code: l.code, price: Math.round(net * 100) / 100, floor: f.floor }); });
   if (below.length) {
     if (!(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.length + ' part' + (below.length === 1 ? ' is' : 's are') + ' under the margin floor (cost + ' + MIN_MARGIN() + '%).' + (w.role === 'superadmin' ? ' Confirm to go under it, with a reason.' : ' Ask a superadmin to approve it.'), below, canBelow: w.role === 'superadmin' });
