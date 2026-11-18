@@ -1996,30 +1996,73 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 </div>
 <div v-if="route === 'account' && me">
-<div class="px-fh"><div><h1>My account</h1><p class="px-muted">Your company, your contact details and where every request stands.</p></div></div>
+<div class="px-fh"><div><h1>My account</h1><p class="px-muted">Your company, contact, addresses and every request you have sent us.</p></div></div>
+<div class="px-card" style="margin-bottom:16px" v-if="canOrder">
+<dl class="px-qmeta">
+<div><dt>Orders</dt><dd v-text="orders.length"></dd></div>
+<div><dt>Total ordered</dt><dd v-text="fmt(acTotal)"></dd></div>
+<div><dt>Open quotes</dt><dd v-text="acOpenQuotes"></dd></div>
+<div v-if="ac.co && ac.co.since"><dt>Customer since</dt><dd v-text="date(ac.co.since)"></dd></div>
+</dl>
+</div>
 <div class="px-card" style="margin-bottom:16px">
 <h2>Company</h2>
 <dl class="px-qmeta">
 <div><dt>Company</dt><dd v-text="me.account ? (me.account.company || me.account.customer) : 'Maxzz Diesel team'"></dd></div>
 <div v-if="me.account && me.account.code"><dt>Customer number</dt><dd v-text="me.account.code"></dd></div>
 <div v-if="me.account"><dt>Account status</dt><dd v-text="me.account.status === 'approved' ? 'Approved' : (me.account.status || '')"></dd></div>
-<div v-if="me.account && me.account.ship && me.account.ship.street"><dt>Delivery address</dt><dd v-text="[me.account.ship.street, me.account.ship.city, [me.account.ship.state, me.account.ship.zip].filter(Boolean).join(' '), me.account.ship.country].filter(Boolean).join(', ')"></dd></div>
+<div v-if="ac.co && ac.co.tier"><dt>Price list</dt><dd v-text="ac.co.tier"></dd></div>
+<div v-if="ac.co && ac.co.terms"><dt>Payment terms</dt><dd v-text="ac.co.terms"></dd></div>
 </dl>
+<p class="px-muted" style="font-size:13px;margin-top:10px" v-if="me.account">Company name, price list and sign-in e-mail are managed by our team. <a href="#" style="color:#d32a37;font-weight:500" @click.prevent="ac.reqOpen = !ac.reqOpen" v-text="ac.reqOpen ? 'Close' : 'Request a change'"></a></p>
+<div v-if="ac.reqOpen && me.account" style="margin-top:12px">
+<div class="px-ok" v-if="ac.reqDone" style="padding:12px 14px;border-radius:8px;background:#eaf6ee;color:#1d6b3a;font-size:14px">Sent. Our team will update it and reply by e-mail.</div>
+<div v-if="!ac.reqDone">
+<label class="px-f">What should we change?<textarea class="px-in" v-model="ac.reqText" maxlength="1200" placeholder="New company name, new sign-in e-mail, another person to add..."></textarea></label>
+<div class="px-btns" style="margin-top:10px"><button type="button" class="px-btn px-red px-sm" :disabled="ac.reqBusy || ac.reqText.trim().length < 5" @click="acRequest" v-text="ac.reqBusy ? 'Sending...' : 'Send to the team'"></button></div>
+<p class="px-muted" style="color:#d32a37;font-size:13px" v-if="ac.reqErr" v-text="ac.reqErr"></p>
+</div>
+</div>
 </div>
 <div class="px-card" style="margin-bottom:16px">
 <h2>Contact</h2>
-<dl class="px-qmeta">
+<div v-if="ac.editable">
+<div class="px-g2"><label class="px-f">Name<input class="px-in" v-model="ac.f.name" maxlength="120" autocomplete="name"></label><label class="px-f">Phone or WhatsApp<input class="px-in" type="tel" v-model="ac.f.phone" @input="ac.f.phone = maskPhone(ac.f.phone, ac.f.ship.country)" autocomplete="tel" inputmode="tel" placeholder="(954) 555-0123"></label></div>
+<div style="height:12px"></div>
+<label class="px-f">Sign-in e-mail<input class="px-in" :value="me.email" disabled></label>
+</div>
+<dl class="px-qmeta" v-else>
 <div><dt>Name</dt><dd v-text="me.name || firstName"></dd></div>
 <div><dt>E-mail</dt><dd v-text="me.email"></dd></div>
 <div v-if="me.phone"><dt>Phone</dt><dd v-text="me.phone"></dd></div>
 </dl>
-<p class="px-muted" style="font-size:13px;margin-top:10px">To change your company data or contact, e-mail <a href="mailto:sales@maxzzdiesel.com?subject=Update%20my%20account" style="color:#d32a37;font-weight:500">sales@maxzzdiesel.com</a> and we update it for you.</p>
+</div>
+<div v-if="ac.editable">
+<div class="px-card" style="margin-bottom:16px">
+<h2>Delivery address</h2>
+<div class="px-g2"><label class="px-f">Contact or company name<input class="px-in" v-model="ac.f.ship.name" maxlength="120" autocomplete="shipping name"></label><label class="px-f">Country<input class="px-in" v-model="ac.f.ship.country" maxlength="60" autocomplete="shipping country-name"></label></div>
+<div style="height:12px"></div><label class="px-f">Street address<input class="px-in" v-model="ac.f.ship.street" maxlength="160" autocomplete="shipping street-address"></label>
+<div style="height:12px"></div><div class="px-g3"><label class="px-f">City<input class="px-in" v-model="ac.f.ship.city" maxlength="80" autocomplete="shipping address-level2"></label><label class="px-f">State<input class="px-in" v-model="ac.f.ship.state" maxlength="60" autocomplete="shipping address-level1"></label><label class="px-f">ZIP<input class="px-in" v-model="ac.f.ship.zip" maxlength="20" autocomplete="shipping postal-code"></label></div>
+</div>
+<div class="px-card" style="margin-bottom:16px">
+<h2>Billing address</h2>
+<label class="px-fo" style="margin-bottom:12px"><input type="checkbox" v-model="ac.f.billSame"><span class="bx"></span><span class="l">Same as delivery address</span></label>
+<div v-if="!ac.f.billSame">
+<div class="px-g2"><label class="px-f">Contact or company name<input class="px-in" v-model="ac.f.bill.name" maxlength="120" autocomplete="billing name"></label><label class="px-f">Country<input class="px-in" v-model="ac.f.bill.country" maxlength="60" autocomplete="billing country-name"></label></div>
+<div style="height:12px"></div><label class="px-f">Street address<input class="px-in" v-model="ac.f.bill.street" maxlength="160" autocomplete="billing street-address"></label>
+<div style="height:12px"></div><div class="px-g3"><label class="px-f">City<input class="px-in" v-model="ac.f.bill.city" maxlength="80" autocomplete="billing address-level2"></label><label class="px-f">State<input class="px-in" v-model="ac.f.bill.state" maxlength="60" autocomplete="billing address-level1"></label><label class="px-f">ZIP<input class="px-in" v-model="ac.f.bill.zip" maxlength="20" autocomplete="billing postal-code"></label></div>
+</div>
+</div>
+<div class="px-btns" style="margin:0 0 20px;align-items:center;gap:14px">
+<button type="button" class="px-btn px-red" :disabled="ac.busy" @click="acSave" v-text="ac.busy ? 'Saving...' : 'Save changes'"></button>
+<span style="font-size:14px;color:#1d6b3a" v-if="ac.msg" v-text="ac.msg"></span><span style="font-size:14px;color:#d32a37" v-if="ac.err" v-text="ac.err"></span>
+</div>
 </div>
 <div class="px-card" style="margin-bottom:16px" v-if="canOrder">
-<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Recent orders</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">See all</a></div>
+<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Order history</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">Open all</a></div>
 <div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a>.</div>
 <div class="px-list">
-<button type="button" class="px-ord" v-for="o in ordersSorted.slice(0, 5)" :key="o.id" @click="cur = o; nav('o', o.id)">
+<button type="button" class="px-ord" v-for="o in ordersSorted.slice(0, 15)" :key="o.id" @click="cur = o; nav('o', o.id)">
 <div><b v-text="o.number"></b><small class="px-meta"><span v-text="date(o.created)"></span><span v-if="o.po" v-text="'PO ' + o.po"></span></small></div>
 <span class="px-ord-t" v-text="fmt(o.total)"></span>
 <span class="px-st" :class="o.status" v-text="label(o.status)"></span>
@@ -2027,11 +2070,11 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 </div>
 <div class="px-card">
-<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Recent quote requests</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">See all</a></div>
+<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Quote history</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">Open all</a></div>
 <div class="px-empty" v-if="!myQuotes.length">No quote requests yet.</div>
 <div class="px-list">
-<a class="px-ord" v-for="q in myQuotes.slice(0, 5)" :key="q.id" href="#/orders" style="text-decoration:none;color:inherit">
-<div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></span></small></div>
+<a class="px-ord" v-for="q in myQuotes.slice(0, 15)" :key="q.id" href="#/orders" style="text-decoration:none;color:inherit">
+<div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></span><span v-if="q.prop && q.prop.detail" v-text="fmt(q.prop.detail.total)"></span></small></div>
 <span class="px-ord-t"></span>
 <span class="px-st" :class="qStat(q).c" v-text="qStat(q).t"></span>
 </a>
@@ -2281,7 +2324,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=99"></script>
+<script src="/js/portal-app.js?v=100"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

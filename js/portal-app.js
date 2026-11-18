@@ -2457,6 +2457,7 @@
     vMake: '', vLast: '', vEng: '', f: { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false }, allBrands: false, showF: false, sugOn: false, sugI: -1,
     co: Object.assign({ po: '', method: 'Ground', name: '', street: '', city: '', state: '', zip: '', country: 'United States', notes: '', fwd: '' }, read('mx-portal-ship', {}), { po: '', notes: '' }),
     orders: [], cur: null, accounts: [], sync: null,
+    ac: { editable: false, loaded: false, busy: false, msg: '', err: '', co: null, f: { name: '', phone: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, bill: { name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, billSame: true }, reqOpen: false, reqText: '', reqBusy: false, reqDone: false, reqErr: '' },
 
     get cats() { var self = this; return CATS.map(function (c) { return Object.assign({ n: self.cat.filter(function (r) { return r[3] === c.k && !(self.hideOut && self.hid(r[0])); }).length }, c); }).filter(function (c) { return c.n; }); },
     get logged() { return !!(this.me && (this.me.admin || (this.me.account && this.me.account.status === 'approved'))); },
@@ -2749,6 +2750,8 @@
       if (this.me && sv && d.dest !== 'other') return { street: sv.street || '', city: sv.city || '', state: sv.state || '', zip: sv.zip || '', country: sv.country || d.country };
       return { street: d.street, city: d.city, state: d.state || '', zip: d.zip || '', country: d.country };
     },
+    get acTotal() { return (this.orders || []).reduce(function (a, o) { return a + (Number(o.total) || 0); }, 0); },
+    get acOpenQuotes() { return (this.myQuotes || []).filter(function (q) { var s = q.prop ? q.prop.status : ''; return s !== 'accepted' && s !== 'closed' && s !== 'expired' && !(q.ulStatus && q.ulStatus !== 'Parked' && q.ulStatus !== 'Draft'); }).length; },
     get ordersSorted() { return (this.orders || []).slice().sort(function (a, b) { return (b.created || 0) - (a.created || 0); }); },
     get relShown() { var r = this.related, n = r.length >= 8 ? 8 : r.length >= 4 ? 4 : r.length; return r.slice(0, n); },
     get buyAgain() {
@@ -3009,7 +3012,7 @@
           if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
-          try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
+          if (self.route === 'account') self.acLoad(); try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
           self.loadRewards();
@@ -3045,6 +3048,7 @@
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
+      if (r === 'account' && this.me) this.acLoad();
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'proposal') { var sp = this; this.prop = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
@@ -3382,6 +3386,33 @@
     reject: function (a) { var reason = prompt('Reason (optional, sent to the customer):'); if (reason === null) return; var self = this; api('admin-reject', { body: { account: a.id, reason: reason, notify: true } }).then(function () { self.flash('Declined'); self.loadAdmin(); }); },
     moveInd: function (nav) { var a = nav && nav.querySelector('a.on'), i = nav && nav.querySelector('.px-dind'); if (!a || !i) return; i.style.width = a.offsetWidth + 'px'; i.style.transform = 'translateX(' + a.offsetLeft + 'px)'; },
     pop: function () { try { if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; requestAnimationFrame(function () { document.querySelectorAll('.px-fab-b .n, .pxh-ic .pxh-n, .px-kpis b').forEach(function (e) { e.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.35)' }, { transform: 'scale(1)' }], { duration: 380, easing: 'cubic-bezier(.3,1.4,.5,1)' }); }); }); } catch (e) {} },
+    acLoad: function () {
+      var self = this; this.ac.msg = ''; this.ac.err = '';
+      api('account').then(function (r) {
+        if (r._status !== 200) return; var ac = self.ac; ac.editable = !!r.editable; ac.co = r.company || null; ac.loaded = true;
+        if (r.editable) { ac.f.name = r.profile.name || ''; ac.f.phone = r.profile.phone || ''; ac.f.ship = Object.assign({ name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, r.ship); if (!ac.f.ship.country) ac.f.ship.country = 'United States'; ac.f.bill = Object.assign({ name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, r.bill); if (!ac.f.bill.country) ac.f.bill.country = 'United States'; ac.f.billSame = !!r.billSame; }
+      });
+    },
+    acSave: function () {
+      var self = this, ac = this.ac; ac.msg = ''; ac.err = '';
+      if (!ac.f.name.trim()) { ac.err = 'Please enter your name.'; return; }
+      if (!ac.f.ship.street.trim() || !ac.f.ship.city.trim()) { ac.err = 'Delivery address needs a street and a city.'; return; }
+      if (!ac.f.billSame && (!ac.f.bill.street.trim() || !ac.f.bill.city.trim())) { ac.err = 'Billing address needs a street and a city.'; return; }
+      ac.busy = true; ac.f.phone = this.maskPhone(ac.f.phone, ac.f.ship.country, true);
+      api('account-save', { body: { name: ac.f.name, phone: ac.f.phone, ship: ac.f.ship, bill: ac.f.bill, billSame: ac.f.billSame } }).then(function (r) {
+        ac.busy = false;
+        if (r._status === 200) { ac.msg = 'Saved.'; if (self.me) { self.me.name = ac.f.name; self.me.phone = ac.f.phone; } setTimeout(function () { ac.msg = ''; }, 3000); }
+        else ac.err = r._status === 429 ? 'Too many changes. Try again in a few minutes.' : (r.error || 'Could not save. Try again.');
+      });
+    },
+    acRequest: function () {
+      var self = this, ac = this.ac; ac.reqBusy = true; ac.reqErr = '';
+      api('account-request', { body: { text: ac.reqText } }).then(function (r) {
+        ac.reqBusy = false;
+        if (r._status === 200) { ac.reqDone = true; ac.reqText = ''; setTimeout(function () { ac.reqDone = false; ac.reqOpen = false; }, 4000); }
+        else ac.reqErr = r._status === 429 ? 'Too many requests. Try again later.' : (r.error || 'Could not send. Try again.');
+      });
+    },
     flash: function (m, kind) { var self = this; this.toast = m; this.toastKind = kind || ''; clearTimeout(this._t); this._t = setTimeout(function () { self.toast = ''; }, 2600); }
   });
 
