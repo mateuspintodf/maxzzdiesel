@@ -2426,14 +2426,14 @@
   // longest national number per country (digits after the country code), to tell a local number from a full one
   var NAT = { Brazil: 11, Mexico: 10, Colombia: 10, Chile: 9, Peru: 9, Ecuador: 9, Argentina: 11, Uruguay: 9, Paraguay: 9, Bolivia: 8, Venezuela: 10, Panama: 8, 'Costa Rica': 8, Guatemala: 8, Honduras: 8, 'El Salvador': 8, Nicaragua: 8 };
   var NANP = /United States|Puerto Rico|Canada|Dominican Republic/;
-  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
+  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'account', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
     route: 'home', arg: '', camps: [], mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], usual: [], rep: '', REWARDS: { on: false, demo: true, points: 12480, rate: 1, levels: [
       { k: 'app', n: 'Apprentice', at: 0, c: '#8a9097', perk: 'Points on every order', perks: ['1 point per US$ 1 invoiced', 'Member pricing alerts', 'Order tracking in the store'] },
       { k: 'tech', n: 'Technician', at: 10000, c: '#c87533', perk: 'Free ground freight over US$ 1,500', perks: ['Everything in Apprentice', 'Free ground freight on orders over US$ 1,500', 'Early access to new part lines'] },
@@ -2745,7 +2745,7 @@
     get qShip() {
       var d = this.qd, sv = this.savedShip;
       if (this.me && sv && d.dest !== 'other') return { street: sv.street || '', city: sv.city || '', state: sv.state || '', zip: sv.zip || '', country: sv.country || d.country };
-      return { street: d.street, city: d.city, state: '', zip: '', country: d.country };
+      return { street: d.street, city: d.city, state: d.state || '', zip: d.zip || '', country: d.country };
     },
     get ordersSorted() { return (this.orders || []).slice().sort(function (a, b) { return (b.created || 0) - (a.created || 0); }); },
     get relShown() { var r = this.related, n = r.length >= 8 ? 8 : r.length >= 4 ? 4 : r.length; return r.slice(0, n); },
@@ -2772,7 +2772,7 @@
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
     // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
     qUnits: function (q) { return (q.lines || []).reduce(function (a, l) { return a + (l.qty || 0); }, 0); },
-    qStat: function (q) { var m = { Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Ordered', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
+    qStat: function (q) { var m = { Parked: ['In review', 'Parked', 2], Placed: ['Accepted', 'Accepted', 4], Backordered: ['Accepted', 'Accepted', 4], Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Shipped', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
     requote: function (q) { var self = this; (q.lines || []).forEach(function (l) { if (self.map[l.pn]) self.addQuote(l.pn, l.qty); }); this.flash('Parts added to your quote list', 'quote'); },
     // print the document only, with a file name the PDF dialog uses: "Maxzz Diesel Quote request MXQ-10005 Company 2026-11-15"
     printDoc: function () {
@@ -2858,6 +2858,7 @@
     get hi() { return this.firstName ? this.firstName + ', ' : ''; },
     get usPhone() { return NANP.test(this.rq.country); },
     get zipLabel() { return this.rq.country === 'Brazil' ? 'CEP' : /United States|Puerto Rico/.test(this.rq.country) ? 'ZIP' : 'Postal code'; },
+    zipLbl: function (c) { return c === 'Brazil' ? 'CEP' : /United States|Puerto Rico/.test(c) ? 'ZIP' : 'Postal code'; },
     okEmail: function (e) { return /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(String(e || '').trim()); },
     okPhone: function (p) { return String(p || '').replace(/\D/g, '').length >= 10; },
     // country from an international dial code (+55 Brazil...), only while the select is still on a NANP default
@@ -2871,6 +2872,8 @@
     phoneIn: function (o) {
       o.country = this.dialCountry(o.phone, o.country); o.phone = this.maskPhone(o.phone, o.country);
     },
+    // ' (+55)' next to a country name in a select
+    dialTag: function (c) { if (NANP.test(c)) return ' (+1)'; var k = ''; Object.keys(DIAL).forEach(function (x) { if (DIAL[x] === c) k = x; }); return k ? ' (+' + k + ')' : ''; },
     maskPhone: function (v, country, final) {
       var d = String(v || '').replace(/\D/g, ''), raw = String(v || '').replace(/^\s+/, '');
       if (!raw) return '';
@@ -2892,8 +2895,10 @@
       return '+' + (code && !full ? code + d.replace(/^0+/, '') : d).slice(0, 15);
     },
     rqNext: function () { this.rqTried = true; var r = this.rq; if (!r.name.trim() || !this.okEmail(r.email) || !this.okPhone(r.phone)) { setTimeout(function () { var b = document.querySelector('.px-stage .bad input, .px-stage input.bad, .px-stage [aria-invalid=true]'); if (b) b.focus(); }, 30); return; } this.rqStep = 2; setTimeout(function () { var c = document.querySelector('[autocomplete=organization]'); if (c) c.focus(); }, 60); },
-    rqZip: function () {
-      var self = this, r = this.rq, z = String(r.zip || '').trim(), c = r.country, url = '', br = false;
+    rqZip: function () { this.zipFill(this.rq); },
+    // fills city and state from a postal code (US, Puerto Rico, Canada, Mexico, Brazil) on any object that has zip, country, city and state
+    zipFill: function (r) {
+      var self = this, z = String(r.zip || '').trim(), c = r.country, url = '', br = false;
       clearTimeout(this._zt); this.zipMsg = '';
       if (/United States|Puerto Rico/.test(c) && /^\d{5}$/.test(z)) url = 'https://api.zippopotam.us/us/' + z;
       else if (c === 'Canada' && /^[A-Za-z]\d[A-Za-z]/.test(z)) url = 'https://api.zippopotam.us/ca/' + z.slice(0, 3).toUpperCase();
@@ -2909,7 +2914,7 @@
       }, 300);
     },
     get lp() { return ['request', 'login', 'sent', 'requested', 'pending'].indexOf(this.route) >= 0; },
-    get needLogin() { var r = this.route; if (r === 'admin') return !(this.me && this.me.admin); if (r === 'orders') return !this.me && this.meLoaded; return ['cart', 'checkout', 'o'].indexOf(r) >= 0 && !this.canOrder && this.meLoaded; },
+    get needLogin() { var r = this.route; if (r === 'admin') return !(this.me && this.me.admin); if (r === 'orders' || r === 'account') return !this.me && this.meLoaded; return ['cart', 'checkout', 'o'].indexOf(r) >= 0 && !this.canOrder && this.meLoaded; },
     get noPriceLines() { var self = this; return this.cart.filter(function (l) { return self.price(l.code) == null; }).map(function (l) { return l.code; }); },
     get pickup() { return /will call/i.test(this.co.method); },
     get blurb() {
@@ -3002,7 +3007,7 @@
           if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
-          if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
+          try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
           self.loadRewards();
@@ -3031,14 +3036,15 @@
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
       track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
+      if (r && ['login', 'request', 'sent', 'invite'].indexOf(r) < 0) { try { localStorage.setItem('px-ret', JSON.stringify({ h: location.hash.slice(0, 200), t: Date.now() })); } catch (e) {} }
       this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false; this.mOpen = false; document.documentElement.classList.remove('px-lock');
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
-      if (r === 'orders' && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
-      if (r === 'orders' && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
+      if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
+      if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }
@@ -3198,7 +3204,7 @@
     catLabel: function (k) { var c = CATS.filter(function (x) { return x.k === k; })[0]; return c ? c.label : k; },
     catIc: function (k) { var c = CATS.filter(function (x) { return x.k === k; })[0]; return c ? c.ic : 'all'; },
     ph: function (k) { return '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[this.catIc(k)] || '') + '</svg><span>Photo on request</span>'; },
-    wa: function (line, code) { var t = 'Hi Maxzz, ' + (code ? 'about part ' + code + ': ' : '') + 'I would like to check price and availability.'; return 'https://wa.me/' + (line === 'latam' ? '17867164857' : '19543716996') + '?text=' + encodeURIComponent(t); },
+    wa: function (line, code) { var t = 'Hi Maxzz, ' + (code ? 'about part ' + code + ': ' : '') + 'I would like to check price and availability.'; return 'https://wa.me/' + (line === 'latam' ? '17862412167' : '19543716996') + '?text=' + encodeURIComponent(t); },
     quoteQty: function (code) { var l = this.quote.filter(function (x) { return x.id === code; })[0]; return l ? l.qty : 0; },
     addQuote: function (code, n) {
       var r = this.map[code]; if (!r) return; n = Math.max(1, parseInt(n, 10) || 1);
@@ -3308,7 +3314,7 @@
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
       api('confirm', { body: { t: this.lt } }).then(function (r) {
         self.busy = false;
-        if (r._status === 200) { self.lt = ''; location.replace('/portal'); location.reload(); }
+        if (r._status === 200) { self.lt = ''; try { sessionStorage.setItem('px-login', '1'); } catch (e) {} var back = ''; try { var sv = JSON.parse(localStorage.getItem('px-ret') || 'null'); if (sv && /^#\/[a-z]/.test(sv.h || '') && Date.now() - sv.t < 6 * 36e5) back = sv.h; localStorage.removeItem('px-ret'); } catch (e) {} location.replace('/portal' + back); location.reload(); }
         else self.err = r._status === 403 ? 'Your access is not approved yet.' : 'That sign-in link expired or was already used. Ask for a new one below.', self.lt = '';
       });
     },
@@ -3344,7 +3350,7 @@
       var lines = this.quote.map(function (l) { return { pn: l.id, name: String(self.title(self.map[l.id]) || l.name || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
-        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, me ? this.qShip : { country: d.country, city: d.city }), lines: lines }) })
+        customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, this.qShip), lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (res) {
           if (res && res.id) number = res.id;

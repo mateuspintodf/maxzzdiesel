@@ -9,7 +9,7 @@
     var href = a.getAttribute('href') || '', txt = (a.innerText || a.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ').slice(0, 80);
     if (a.hasAttribute('data-chat')) return push('contact_click', { method: 'chat', link_location: where(a) });
     if (/^tel:/.test(href)) return push('contact_click', { method: 'phone', link_location: where(a) });
-    if (/wa\.me|whatsapp/i.test(href)) return push('contact_click', { method: 'whatsapp', link_location: where(a), whatsapp_line: /17867164857/.test(href) ? 'latam' : 'us' });
+    if (/wa\.me|whatsapp/i.test(href)) return push('contact_click', { method: 'whatsapp', link_location: where(a), whatsapp_line: /17862412167/.test(href) ? 'latam' : 'us' });
     if (/^mailto:/.test(href)) return push('contact_click', { method: 'email', link_location: where(a) });
     if (a.hasAttribute('hreflang') && /English|Español|Português/.test(txt)) return push('language_switch', { language_to: a.getAttribute('hreflang') });
     if (/^\/(es\/|pt\/)?quote(\?|$)/.test(href)) return push('cta_click', { cta: 'quote', cta_text: txt, link_location: where(a), search_term: (href.split('q=')[1] || '').replace(/\+/g, ' ') || undefined });

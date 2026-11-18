@@ -373,7 +373,7 @@ A.quotes = async (req, res) => {
   const w = await whoami(req);
   if (!w) return res.status(401).json({ error: 'login' });
   const key = 'portal/quotes/' + crypto.createHash('sha256').update(w.email).digest('hex').slice(0, 24) + '.json';
-  const list = PS.on() ? (w.user ? await PS.listQuotes(w.user.id) : []) : ((await readJson(key)) || []);
+  const list = PS.on() ? (await PS.listQuotes(w.user ? w.user.id : null, w.email)) : ((await readJson(key)) || []);
   // refresh status of recent quotes that also went to Unleashed
   if (configured()) {
     let changed = false;
@@ -381,8 +381,10 @@ A.quotes = async (req, res) => {
     const budget = new Promise((r) => setTimeout(r, 8000));
     await Promise.race([budget, Promise.all(todo.map(async (q) => {
       try {
-        const sq = await ul('SalesQuotes/' + q.ulGuid, '', { timeoutMs: 8000 });
-        const st = sq && sq.QuoteStatus;
+        // the request lives in Unleashed as a Parked sales order; older ones may be real quotes
+        let sq = null; try { sq = await ul('SalesOrders/' + q.ulGuid, '', { timeoutMs: 8000 }); } catch (e0) { sq = null; }
+        if (!sq || !sq.OrderStatus) sq = await ul('SalesQuotes/' + q.ulGuid, '', { timeoutMs: 8000 });
+        const st = sq && (sq.OrderStatus || sq.QuoteStatus);
         if (st && st !== q.ulStatus) { q.history = (q.history || []).concat([{ s: st, at: Date.now() }]); q.ulStatus = st; }
         if (sq && sq.QuoteExpiryDate) q.expires = sq.QuoteExpiryDate;
         q.checked = Date.now(); changed = true;

@@ -19,9 +19,9 @@ module.exports = async (req, res) => {
     if (await SDB.limited(req, 'track', 240, 10 * 60 * 1000)) return res.status(429).end();
     const b = readBody(req), list = (Array.isArray(b.events) ? b.events : [b]).slice(0, 20);
     const vid = clean(b.visitor, 40); if (!/^[a-z0-9-]{8,40}$/i.test(vid)) return res.status(400).end();
-    let uid = null, cid = null;
+    let uid = null, cid = null, who = null;
     const s = await SDB.lookup(req, 'customer').catch(() => null);
-    if (s) { const u = (await db.select('users', 'select=id,company_id&email=eq.' + encodeURIComponent(s.email) + '&limit=1'))[0]; if (u) { uid = u.id; cid = u.company_id; } }
+    if (s) { const u = (await db.select('users', 'select=id,company_id&email=eq.' + encodeURIComponent(s.email) + '&limit=1'))[0]; if (u) { uid = u.id; cid = u.company_id; } else if (s.email) who = String(s.email).slice(0, 120); }
     const ua = String(req.headers['user-agent'] || '');
     if (/bot|crawl|spider|headless|preview/i.test(ua)) return res.status(204).end();
     const geo = { country: clean(req.headers['x-vercel-ip-country'], 4) || null, region: clean(dec(req.headers['x-vercel-ip-country-region']), 60) || null, city: clean(dec(req.headers['x-vercel-ip-city']), 80) || null };
@@ -32,9 +32,11 @@ module.exports = async (req, res) => {
       qty: Number.isFinite(+e.qty) ? Math.min(99999, Math.max(0, Math.floor(+e.qty))) : null,
       value: Number.isFinite(+e.value) ? Math.round(+e.value * 100) / 100 : null,
       query: clean(e.query, 120) || null, props: e.props && typeof e.props === 'object' ? JSON.parse(JSON.stringify(e.props).slice(0, 800)) : {},
-      utm: utm && Object.keys(utm).length ? utm : null, referrer: clean(b.referrer, 120) || null, device: device(ua), ...geo,
+      utm: utm && Object.keys(utm).length ? utm : null, referrer: clean(b.referrer, 120) || null, device: device(ua), ...geo, who,
     }));
     if (rows.length) await db.insert('events', rows);
+    // signed in now: the same browser's earlier anonymous events belong to this person too
+    if ((uid || who) && list.some((e) => e && e.type === 'login')) await db.update('events', 'visitor_id=eq.' + encodeURIComponent(vid) + '&user_id=is.null&who=is.null', uid ? { user_id: uid, company_id: cid } : { who }).catch(() => {});
     return res.status(204).end();
   } catch (e) { console.error('track', e.message); return res.status(204).end(); }
 };
