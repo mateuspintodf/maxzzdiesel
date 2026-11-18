@@ -1469,7 +1469,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </article>
 
 </div>
-<div class="px-nf" v-if="(route === 'g' || route === 's') && results.length && results.length < 12"><div><b>Don't see your part?</b><p>Send the part number, engine serial or VIN and our team finds it.</p></div><div class="px-btns"><a class="px-btn px-dark px-sm" :href="'https://wa.me/19543716996?text=' + encodeURIComponent('Hi Maxzz, I need a part for ' + listTitle + '.')" target="_blank" rel="noopener">WhatsApp US</a><a class="px-btn px-ghost px-sm" :href="'https://wa.me/17867164857?text=' + encodeURIComponent('Hi Maxzz, I need a part for ' + listTitle + '.')" target="_blank" rel="noopener">Latin America</a><a class="px-btn px-ghost px-sm" href="tel:+19545864158">Call</a></div></div>
+<div class="px-nf" v-if="(route === 'g' || route === 's') && results.length && results.length < 12"><div><b>Don't see your part?</b><p>Send the part number, engine serial or VIN and our team finds it.</p></div><div class="px-btns"><a class="px-btn px-dark px-sm" :href="'https://wa.me/19543716996?text=' + encodeURIComponent('Hi Maxzz, I need a part for ' + listTitle + '.')" target="_blank" rel="noopener">WhatsApp US</a><a class="px-btn px-ghost px-sm" :href="'https://wa.me/17862412167?text=' + encodeURIComponent('Hi Maxzz, I need a part for ' + listTitle + '.')" target="_blank" rel="noopener">Latin America</a><a class="px-btn px-ghost px-sm" href="tel:+19545864158">Call</a></div></div>
 <button type="button" class="px-btn px-ghost px-more" v-if="results.length > shown.length" @click="limit += 24"><span v-text="'Show ' + Math.min(24, results.length - shown.length) + ' more · ' + (results.length - shown.length).toLocaleString('en-US') + ' left'"></span></button>
 </div>
 
@@ -1689,7 +1689,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: “0445120231, 6”.</p>
 <textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
 <button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste" v-text="flow === 'order' ? 'Add to cart' : 'Add to quote list'"></button>
-<div class="px-ok" :class="pasteWarn ? 'warn' : ''" v-if="pasteMsg" v-text="pasteMsg"></div><div class="px-btns" style="margin-top:10px" v-if="pasteMsg && pasteMiss.length"><a class="px-btn px-dark px-sm" :href="'https://wa.me/19543716996?text=' + encodeURIComponent('Hi Maxzz, can you check these parts: ' + pasteMiss.join(', '))" target="_blank" rel="noopener">WhatsApp US</a><a class="px-btn px-ghost px-sm" :href="'https://wa.me/17867164857?text=' + encodeURIComponent('Hi Maxzz, can you check these parts: ' + pasteMiss.join(', '))" target="_blank" rel="noopener">WhatsApp Latin America</a><a class="px-btn px-ghost px-sm" href="tel:+19545864158">Call +1 (954) 586-4158</a></div>
+<div class="px-ok" :class="pasteWarn ? 'warn' : ''" v-if="pasteMsg" v-text="pasteMsg"></div><div class="px-btns" style="margin-top:10px" v-if="pasteMsg && pasteMiss.length"><a class="px-btn px-dark px-sm" :href="'https://wa.me/19543716996?text=' + encodeURIComponent('Hi Maxzz, can you check these parts: ' + pasteMiss.join(', '))" target="_blank" rel="noopener">WhatsApp US</a><a class="px-btn px-ghost px-sm" :href="'https://wa.me/17862412167?text=' + encodeURIComponent('Hi Maxzz, can you check these parts: ' + pasteMiss.join(', '))" target="_blank" rel="noopener">WhatsApp Latin America</a><a class="px-btn px-ghost px-sm" href="tel:+19545864158">Call +1 (954) 586-4158</a></div>
 </details>
 </div>
 <div class="px-perk" v-if="flow === 'order' && showPrice && lines.length && REWARDS.on && !REWARDS.demo">
@@ -2229,7 +2229,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 <footer class="pxf">
 <div class="pxf-in">
 <div class="pxf-b"><img width="1015" height="224" src="/assets/logo-negative.svg" alt="Maxzz Diesel" style="height:34px; max-width: 100%; width: auto;"><p>Wholesale diesel injection parts since 1992. Warehouse at 6601 Lyons Road, Ste H-6, Coconut Creek, Florida 33073. In-stock orders placed by 3 pm Eastern ship the same day.</p></div>
-<div class="pxf-c"><b>Sales team</b><a href="tel:+19545864158">+1 (954) 586-4158</a><a href="https://wa.me/19543716996" target="_blank" rel="noopener">WhatsApp US +1 (954) 371-6996</a><a href="https://wa.me/17867164857" target="_blank" rel="noopener">WhatsApp LATAM +1 (786) 716-4857</a><a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a></div>
+<div class="pxf-c"><b>Sales team</b><a href="tel:+19545864158">+1 (954) 586-4158</a><a href="https://wa.me/19543716996" target="_blank" rel="noopener">WhatsApp US +1 (954) 371-6996</a><a href="https://wa.me/17862412167" target="_blank" rel="noopener">WhatsApp LATAM +1 (786) 241-2167</a><a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a></div>
 <div class="pxf-c"><b>Store</b><a href="#/all">Catalog</a><a href="#/quote">Quote list</a><a href="#/request" v-if="!me">Request wholesale access</a><a href="#/orders" v-if="me">My orders and quotes</a><a href="/policies">Shipping, returns and warranty</a></div>
 </div>
 <div class="pxf-bt"><span>© 2026 Maxzz Diesel</span><span><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/">maxzzdiesel.com</a></span></div>

@@ -44,7 +44,7 @@ ORG_NODE = {
          'availableLanguage': ['English', 'Spanish', 'Portuguese'], 'areaServed': 'US'},
         {'@type': 'ContactPoint', 'contactType': 'sales', 'telephone': '+1-954-371-6996', 'name': 'WhatsApp US',
          'availableLanguage': ['English', 'Spanish', 'Portuguese']},
-        {'@type': 'ContactPoint', 'contactType': 'sales', 'telephone': '+1-786-716-4857', 'name': 'WhatsApp Latin America',
+        {'@type': 'ContactPoint', 'contactType': 'sales', 'telephone': '+1-786-241-2167', 'name': 'WhatsApp Latin America',
          'availableLanguage': ['Spanish', 'Portuguese', 'English'], 'areaServed': 'Latin America'}],
     'memberOf': {'@type': 'Organization', 'name': 'Association of Diesel Specialists (ADS)'},
     'knowsAbout': ['Diesel fuel injection', 'Common rail injectors', 'High-pressure fuel pumps', 'Injector rebuilding',
