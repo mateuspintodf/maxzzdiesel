@@ -340,7 +340,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 .kd::after{display:none}.kd{padding-right:12px}
 .stp{display:flex;gap:4px;margin:0 0 14px;flex-wrap:wrap}.stp button{flex:1;min-width:84px;border:0;background:var(--soft);padding:9px 8px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink2);clip-path:polygon(0 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,0 100%,10px 50%);transition:background .15s}.stp button.dn{background:#e1eee6;color:#1f6a40}.stp button.on{background:var(--c);color:#fff;font-weight:600}
 .dg2{display:grid;grid-template-columns:minmax(0,330px) minmax(0,1fr);gap:16px;align-items:start}@media(max-width:900px){.dg2{grid-template-columns:1fr}}
-.pp-res{position:absolute;left:0;right:0;z-index:5;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);margin-top:4px;max-height:260px;overflow:auto}.pp-res:empty{display:none}.pp-hit{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;padding:9px 12px;cursor:pointer;font:inherit;color:inherit}.pp-hit:hover,.pp-hit:focus-visible{background:var(--soft)}.pp-hit em{margin-left:auto;font-style:normal;color:#8a9097;font-size:12px}.pp-tot{margin-top:12px;display:flex;flex-direction:column;gap:4px;max-width:320px;margin-left:auto}.pp-tot .row{display:flex;justify-content:space-between}.pp-warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fdecea;color:#7a1f16}.pp-msg{margin-top:10px;padding:10px 12px;border-radius:12px}.pp-msg.ok{background:#e7f6ec;color:#14532d}.pp-msg.bad{background:#fdecea;color:#7a1f16}
+.pp-new>td{background:#eef6ff}.pp-new:hover>td{background:#e4f0fd}.pp-tag{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:999px;background:#d7e9fb;color:#1c5a96;font:600 10px/1.5 var(--sans,inherit);letter-spacing:.02em;vertical-align:1px}.pp-res{position:absolute;left:0;right:0;z-index:5;background:#fff;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.14);margin-top:4px;max-height:260px;overflow:auto}.pp-res:empty{display:none}.pp-hit{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;padding:9px 12px;cursor:pointer;font:inherit;color:inherit}.pp-hit:hover,.pp-hit:focus-visible{background:var(--soft)}.pp-hit em{margin-left:auto;font-style:normal;color:#8a9097;font-size:12px}.pp-tot{margin-top:12px;display:flex;flex-direction:column;gap:4px;max-width:320px;margin-left:auto}.pp-tot .row{display:flex;justify-content:space-between}.pp-warn{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fdecea;color:#7a1f16}.pp-msg{margin-top:10px;padding:10px 12px;border-radius:12px}.pp-msg.ok{background:#e7f6ec;color:#14532d}.pp-msg.bad{background:#fdecea;color:#7a1f16}
 .dcol{display:flex;flex-direction:column;gap:12px;min-width:0}.cpn{background:var(--soft);border-radius:18px;padding:14px 16px}.cph{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.cph h3,.cpn>h3{margin:0;font-size:14px}
 .amt{font-size:26px;font-weight:700;letter-spacing:-.02em}.who2{display:flex;gap:10px;align-items:center;margin-bottom:8px}
 .ed{margin-top:10px}.ed summary{cursor:pointer;font-size:12.5px;color:var(--ink2)}.ed .fgrid{margin-top:10px}
@@ -833,7 +833,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   }
   // ---- Proposal editor inside the deal drawer
   function ppMoney(n) { return '$' + (Math.round((+n || 0) * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  function ppTot(P) { var sub = 0; P.lines.forEach(function (l) { sub += (+l.qty || 0) * (+l.price || 0); }); sub = Math.round(sub * 100) / 100; var d = Math.round(sub * Math.min(100, Math.max(0, +P.discount_pct || 0)) / 100 * 100) / 100, f = Math.max(0, +P.freight || 0); return { sub: sub, disc: d, fr: f, total: Math.round((sub - d + f) * 100) / 100 }; }
+  function ppExtra(l) { return !String(l.code || '').trim() || /^(ship|freight|tax|fee|cc|misc|charge|surcharge|handling)/i.test(l.code) || /ship|freight|sales tax|cc fee|credit card|surcharge|handling/i.test(l.name || ''); }
+  function ppMg(P, l) { var c = P.costs && P.costs[l.code]; if (!(c > 0) || ppExtra(l)) return null; var k = 1 - Math.min(100, Math.max(0, +P.discount_pct || 0)) / 100, net = (+l.price || 0) * k; if (!(net > 0)) return null; return { pct: (net - c) / net * 100, profit: (net - c) * (+l.qty || 0), rev: net * (+l.qty || 0) }; }
+  function ppTot(P) { var sub = 0; P.lines.forEach(function (l) { sub += (+l.qty || 0) * (+l.price || 0); }); sub = Math.round(sub * 100) / 100; var d = Math.round(sub * Math.min(100, Math.max(0, +P.discount_pct || 0)) / 100 * 100) / 100, f = Math.max(0, +P.freight || 0), pr = 0, rv = 0, nc = 0; P.lines.forEach(function (l) { if (ppExtra(l)) return; var m = ppMg(P, l); if (m) { pr += m.profit; rv += m.rev; } else nc++; }); return { sub: sub, disc: d, fr: f, total: Math.round((sub - d + f) * 100) / 100, profit: Math.round(pr * 100) / 100, mpct: rv > 0 ? pr / rv * 100 : null, nocost: nc }; }
+  function ppMgHtml(P, l) { var m = ppMg(P, l); if (!m) return '<span class="muted">-</span>'; var lim = +P.pct || 10, col = m.pct < lim ? '#c0392b' : m.pct < lim + 10 ? '#b9770e' : '#1d6b3a'; return '<b style="color:' + col + '">' + m.pct.toFixed(1) + '%</b>'; }
   function ppBelow(P) { var k = 1 - Math.min(100, Math.max(0, +P.discount_pct || 0)) / 100, out = {}; P.lines.forEach(function (l) { var f = P.floors && P.floors[l.code]; if (f && (+l.price || 0) * k < f - 0.004) out[l.code] = f; }); return out; }
   function ppPane(d) {
     var P = S.cd && S.cd.pp;
@@ -843,15 +846,15 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       h = '<div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span class="st">' + esc(P.status === 'sent' ? 'Sent' : P.status === 'accepted' ? 'Accepted' : 'Draft') + '</span><b class="mono">' + esc(P.number) + '</b><span class="sp"></span>' +
         '<select class="sel" data-pp="doc_type" style="width:auto"' + (ro ? ' disabled' : '') + '><option value="quote"' + (P.doc_type === 'quote' ? ' selected' : '') + '>Quote</option><option value="invoice"' + (P.doc_type === 'invoice' ? ' selected' : '') + '>Invoice</option></select>' +
         '<label class="muted" style="display:flex;align-items:center;gap:6px">Valid for <input type="number" min="1" max="365" data-pp="valid_days" value="' + esc(P.valid_days) + '" style="width:64px"' + (ro ? ' disabled' : '') + '> days</label></div>';
-    h += '<div style="overflow-x:auto"><table class="dt"><thead><tr><th>Part</th><th class="r" style="width:84px">Qty</th><th class="r" style="width:120px">Unit price</th><th class="r">Amount</th><th style="width:34px"></th></tr></thead><tbody id="pp-rows">';
+    h += '<div style="overflow-x:auto"><table class="dt"><thead><tr><th>Part</th><th class="r" style="width:84px">Qty</th><th class="r" style="width:120px">Unit price</th><th class="r">Amount</th><th class="r" style="width:74px">Margin</th><th style="width:34px"></th></tr></thead><tbody id="pp-rows">';
     P.lines.forEach(function (l, i) {
       var low = B[l.code];
-      h += '<tr><td><b class="mono">' + esc(l.code) + '</b><br><small class="muted">' + esc(l.name || '') + '</small>' + (low ? '<br><small style="color:#c0392b">Under the margin floor, minimum ' + ppMoney(low) + '</small>' : '') + '</td>' +
+      h += '<tr' + (l.added ? ' class="pp-new"' : '') + '><td><b class="mono">' + esc(l.code) + '</b>' + (l.added ? ' <span class="pp-tag">Added</span>' : '') + '<br><small class="muted">' + esc(l.name || '') + '</small>' + (low ? '<br><small style="color:#c0392b">Under the margin floor, minimum ' + ppMoney(low) + '</small>' : '') + '</td>' +
         '<td class="r"><input type="number" min="1" step="1" data-pp="l.' + i + '.qty" value="' + esc(l.qty) + '" style="width:72px;text-align:right"' + (ro ? ' disabled' : '') + '></td>' +
         '<td class="r"><input type="number" min="0" step="0.01" data-pp="l.' + i + '.price" value="' + esc(l.price) + '" style="width:104px;text-align:right' + (low ? ';border-color:#c0392b' : '') + '"' + (ro ? ' disabled' : '') + '></td>' +
-        '<td class="r" id="pp-am-' + i + '">' + ppMoney((+l.qty || 0) * (+l.price || 0)) + '</td><td>' + (ro ? '' : '<button class="kq" data-act="pp-rm" data-i="' + i + '" aria-label="Remove ' + esc(l.code) + '" data-tip="Remove">' + ic('trash', 14) + '</button>') + '</td></tr>';
+        '<td class="r" id="pp-am-' + i + '">' + ppMoney((+l.qty || 0) * (+l.price || 0)) + '</td><td class="r" id="pp-mg-' + i + '">' + ppMgHtml(P, l) + '</td><td>' + (ro ? '' : '<button class="kq" data-act="pp-rm" data-i="' + i + '" aria-label="Remove ' + esc(l.code) + '" data-tip="Remove">' + ic('trash', 14) + '</button>') + '</td></tr>';
     });
-    if (!P.lines.length) h += '<tr><td colspan="5" class="muted">No items yet. Search a part number below to add one.</td></tr>';
+    if (!P.lines.length) h += '<tr><td colspan="6" class="muted">No items yet. Search a part number below to add one.</td></tr>';
     h += '</tbody></table></div>';
     if (!ro) h += '<div style="margin-top:10px;position:relative"><label class="l">Add a part (part number with or without dots, or words from the name)</label><input type="search" id="pp-q" data-pp="q" placeholder="e.g. 5471504 or 5.471.504 or pump" autocomplete="off"><div id="pp-res" class="pp-res"></div></div>';
     h += '<div class="fgrid" style="margin-top:12px"><div><label class="l">Discount %</label><input type="number" min="0" max="100" step="0.1" data-pp="discount_pct" value="' + esc(P.discount_pct) + '"' + (ro ? ' disabled' : '') + '></div>' +
@@ -866,17 +869,17 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       (P.canBelow ? '<label style="display:flex;gap:8px;align-items:center;margin-top:8px"><input type="checkbox" data-pp="force"' + (P.force ? ' checked' : '') + '> Go under the floor</label>' + (P.force ? '<input type="text" data-pp="force_reason" placeholder="Reason (recorded)" value="' + esc(P.force_reason || '') + '" style="margin-top:6px;width:100%">' : '') : '') + '</div>';
     if (P.msg) h += '<div class="pp-msg ' + (P.msgOk ? 'ok' : 'bad') + '">' + esc(P.msg) + '</div>';
     if (P.url) h += '<div style="margin-top:10px"><label class="l">Customer link</label><div class="row" style="gap:6px"><input type="text" readonly value="' + esc(P.url) + '" id="pp-url" style="flex:1"><button class="btn ghost sm" data-act="pp-copy">Copy</button><a class="btn ghost sm" href="' + esc(P.url) + '" target="_blank" rel="noopener">Preview</a></div></div>';
-    if (!ro) h += '<div class="mact" style="margin-top:12px;gap:8px"><button class="btn ghost sm" data-act="pp-save"' + (P.busy ? ' disabled' : '') + '>Save draft</button><button class="btn sm" data-act="pp-send"' + (P.busy ? ' disabled' : '') + '>' + (P.status === 'sent' ? 'Save and send again' : 'Save and send to customer') + '</button></div>';
+    if (!ro) h += '<div class="mact" style="margin-top:12px;gap:8px"><button class="btn ghost sm" data-act="pp-save"' + (P.busy ? ' disabled' : '') + '>Save draft</button><button class="btn ghost sm" data-act="pp-preview"' + (P.busy ? ' disabled' : '') + '>' + ic('file', 14) + ' Preview ' + (P.doc_type === 'invoice' ? 'invoice' : 'quote') + '</button><button class="btn sm" data-act="pp-send"' + (P.busy ? ' disabled' : '') + '>' + (P.status === 'sent' ? 'Save and send again' : 'Save and send to customer') + '</button></div>';
     else h += '<p class="muted" style="margin-top:10px">The customer accepted this proposal' + (P.accepted_at ? ' on ' + esc(fmtAt(P.accepted_at)) : '') + '.</p>';
     return crmPane('Proposal', h);
   }
-  function ppTotHtml(T) { return '<div class="row"><span>Subtotal</span><span>' + ppMoney(T.sub) + '</span></div>' + (T.disc ? '<div class="row"><span>Discount</span><span>-' + ppMoney(T.disc) + '</span></div>' : '') + (T.fr ? '<div class="row"><span>Freight</span><span>' + ppMoney(T.fr) + '</span></div>' : '') + '<div class="row"><b>Total</b><b>' + ppMoney(T.total) + '</b></div>'; }
+  function ppTotHtml(T) { return '<div class="row"><span>Subtotal</span><span>' + ppMoney(T.sub) + '</span></div>' + (T.disc ? '<div class="row"><span>Discount</span><span>-' + ppMoney(T.disc) + '</span></div>' : '') + (T.fr ? '<div class="row"><span>Freight</span><span>' + ppMoney(T.fr) + '</span></div>' : '') + '<div class="row"><b>Total</b><b>' + ppMoney(T.total) + '</b></div>' + (T.mpct != null ? '<div class="row" style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--line)"><span class="muted">Profit (team only)</span><b>' + ppMoney(T.profit) + ' · ' + T.mpct.toFixed(1) + '%</b></div>' + (T.nocost ? '<div class="row"><small class="muted">' + T.nocost + ' part' + (T.nocost > 1 ? 's' : '') + ' without cost, not counted.</small></div>' : '') : ''); }
   function ppOpen(id) {
     S.cd.pp = { loading: true }; draw();
     api('proposal-get', null, '&id=' + encodeURIComponent(id)).then(function (r) {
       if (!S.cd || S.cd.id !== id) return;
       if (r._status !== 200) { S.cd.pp = null; return fail(r); }
-      var p = r.proposal; S.cd.pp = { id: id, status: p.status, number: p.number, doc_type: p.doc_type, valid_days: p.valid_days || 30, lines: (p.lines || []).map(function (l) { return { code: l.code, name: l.name, qty: l.qty, price: l.price }; }), discount_pct: +p.discount_pct || 0, freight: +p.freight || 0, notes: p.notes || '',
+      var p = r.proposal; S.cd.pp = { id: id, status: p.status, number: p.number, doc_type: p.doc_type, valid_days: p.valid_days || 30, lines: (p.lines || []).map(function (l) { return { code: l.code, name: l.name, qty: l.qty, price: l.price, added: l.added ? 1 : 0 }; }), costs: r.costs || {}, discount_pct: +p.discount_pct || 0, freight: +p.freight || 0, notes: p.notes || '',
         customer_name: p.customer_name, contact_name: p.contact_name, contact_email: p.contact_email, contact_phone: p.contact_phone, floors: r.floors || {}, pct: r.pct, canBelow: !!r.canBelow, url: r.url, accepted_at: p.accepted_at };
       draw();
     });
@@ -892,7 +895,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   }
   function ppPaint() {
     var P = S.cd && S.cd.pp; if (!P) return;
-    P.lines.forEach(function (l, i) { var el = document.getElementById('pp-am-' + i); if (el) el.textContent = ppMoney((+l.qty || 0) * (+l.price || 0)); });
+    P.lines.forEach(function (l, i) { var el = document.getElementById('pp-am-' + i); if (el) el.textContent = ppMoney((+l.qty || 0) * (+l.price || 0)); var mg = document.getElementById('pp-mg-' + i); if (mg) mg.innerHTML = ppMgHtml(P, l); });
     var t = document.getElementById('pp-tot'); if (t) t.innerHTML = ppTotHtml(ppTot(P));
     var nb = Object.keys(ppBelow(P)).length, w = document.getElementById('pp-warn'); if ((nb > 0) !== !!w) { var keep = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.pp; draw(); if (keep) { var n = app.querySelector('[data-pp="' + keep + '"]'); if (n) n.focus(); } }
   }
@@ -930,7 +933,12 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function crmAct(act, t) {
     if (act === 'pp-open') return ppOpen(t.dataset.id);
     if (act === 'pp-rm') { S.cd.pp.lines.splice(+t.dataset.i, 1); return draw(); }
-    if (act === 'pp-add') { var P0 = S.cd.pp, x = (P0.found || [])[+t.dataset.i]; if (!x) return; var ex = P0.lines.filter(function (l) { return l.code === x.code; })[0]; if (ex) ex.qty = (+ex.qty || 0) + 1; else P0.lines.push({ code: x.code, name: x.name, qty: 1, price: x.price || 0 }); P0.found = []; return draw(); }
+    if (act === 'pp-add') { var P0 = S.cd.pp, x = (P0.found || [])[+t.dataset.i]; if (!x) return; var ex = P0.lines.filter(function (l) { return l.code === x.code; })[0]; if (ex) ex.qty = (+ex.qty || 0) + 1; else { P0.floors = P0.floors || {}; P0.costs = P0.costs || {}; if (x.floor) P0.floors[x.code] = x.floor; if (x.cost) P0.costs[x.code] = x.cost; var at = P0.lines.length; for (var q0 = 0; q0 < P0.lines.length; q0++) { if (ppExtra(P0.lines[q0])) { at = q0; break; } } P0.lines.splice(at, 0, { code: x.code, name: x.name, qty: 1, price: x.price || 0, added: 1 }); } P0.found = []; return draw(); }
+    if (act === 'pp-preview') { var PP = S.cd && S.cd.pp; if (!PP) return; if (!PP.lines.length) { PP.msg = 'Add at least one part first.'; PP.msgOk = false; return draw(); } var win = window.open('', '_blank');
+      fetch('/api/admin?a=proposal-preview', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: PP.id, number: PP.number, doc_type: PP.doc_type, valid_days: PP.valid_days, lines: PP.lines, discount_pct: PP.discount_pct, freight: PP.freight, notes: PP.notes, customer_name: PP.customer_name, contact_name: PP.contact_name }) })
+        .then(function (r) { if (!r.ok) throw new Error('preview'); return r.blob(); }).then(function (bl) { var u = URL.createObjectURL(bl); if (win) win.location = u; else window.open(u, '_blank'); })
+        .catch(function () { if (win) win.close(); toast('Could not build the preview.'); });
+      return; }
     if (act === 'pp-save') return ppSave(false);
     if (act === 'pp-send') return ppSave(true);
     if (act === 'pp-copy') { var u = document.getElementById('pp-url'); if (u) { u.select(); try { navigator.clipboard.writeText(u.value); toast('Link copied.', true); } catch (x) { document.execCommand('copy'); } } return; }
@@ -1443,7 +1451,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   }
   function slLoad() {
     crmLoad(true); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } });
-    var L = slState(); api('sales-program').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
+    var L = slState(); api('sales-program', null, L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
     api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
   }
   function slHead() {

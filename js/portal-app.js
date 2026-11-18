@@ -3051,8 +3051,8 @@
       if (r === 'account' && this.me) this.acLoad();
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
-      if (r === 'proposal') { var sp = this; this.prop = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
-        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.prop.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.prop.ship, pv.ship); sp.prop.done = pv.status === 'accepted'; sp.prop.v = pv; sp.prop.loading = false; } else { sp.prop.loading = false; sp.prop.missing = true; } }); }
+      if (r === 'proposal') { var sp = this; this.prop = { loading: true, agree: false, note: '', po: '', busy: false, done: false, was: 0, err: '', contact: { name: '', phone: '', email: '' }, billSame: true, bill: { name: '', street: '', city: '', state: '', zip: '', country: 'United States' }, ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
+        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; var pre = j.prefill || {}, pp = sp.prop; pp.ship.name = pv.customer || ''; if (pre.ship) Object.keys(pre.ship).forEach(function (k) { if (pre.ship[k]) pp.ship[k] = pre.ship[k]; }); if (pv.ship) Object.assign(pp.ship, pv.ship); if (pre.contact) Object.assign(pp.contact, pre.contact); if (pre.bill) { Object.keys(pre.bill).forEach(function (k) { if (pre.bill[k]) pp.bill[k] = pre.bill[k]; }); } pp.billSame = pre.billSame !== false; sp.prop.done = pv.status === 'accepted'; if (sp.prop.done) sp.prop.was = j.acceptedAt || pv.acceptedAt || Date.now(); sp.prop.v = pv; sp.prop.loading = false; } else { sp.prop.loading = false; sp.prop.missing = true; } }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }
@@ -3138,9 +3138,10 @@
     qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; var f = document.querySelector('.px-fab-b.red'); if (f) f.focus(); }, 210); },
     propAccept: function () {
       var self = this, P = this.prop; if (!P || P.busy) return; P.err = '';
+      if (!P.contact.name.trim()) { P.err = 'Please enter your name.'; return; }
       if (!P.agree) { P.err = 'Please tick the box to accept.'; return; }
       P.busy = true;
-      api('proposal-accept', { body: { t: this.arg, ship: P.ship, note: P.note, agree: true } }).then(function (r) { P.busy = false; if (r.ok) { P.done = true; P.v.status = 'accepted'; window.scrollTo({ top: 0, behavior: 'smooth' }); } else P.err = r.error || 'Something went wrong. Please try again or call us.'; });
+      api('proposal-accept', { body: { t: this.arg, ship: P.ship, contact: { name: P.contact.name, phone: P.contact.phone }, bill: P.bill, billSame: P.billSame, po: P.po, note: P.note, agree: true } }).then(function (r) { P.busy = false; if (r.ok) { P.done = true; P.v.status = 'accepted'; window.scrollTo({ top: 0, behavior: 'smooth' }); } else P.err = r.error || 'Something went wrong. Please try again or call us.'; });
     },
     propPrint: function () { window.print(); },
     fmt: function (n) { return n == null ? 'Price on request' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },

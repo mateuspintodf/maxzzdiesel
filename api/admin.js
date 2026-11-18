@@ -960,7 +960,7 @@ async function floorsFor(list) {
   const m = 1 + MIN_MARGIN() / 100;
   costs.forEach((c) => { const cost = Number(c.avg_cost) > 0 ? Number(c.avg_cost) : Number(c.last_cost) > 0 ? Number(c.last_cost) : null; if (!cost) return;
     const p = prod && prod.items && prod.items[c.code], tiers = ((p && p.t) || []).concat(p && p.d ? [p.d] : []).filter((x) => x > 0);
-    out[c.code] = { floor: Math.ceil(cost * m * 100) / 100, low: tiers.length ? Math.min.apply(null, tiers) : null }; });
+    out[c.code] = { cost, floor: Math.ceil(cost * m * 100) / 100, low: tiers.length ? Math.min.apply(null, tiers) : null }; });
   return out;
 }
 async function belowFloor(codes, kind, value, stack) {
@@ -1557,20 +1557,28 @@ async function moveDeal(d, stage, body, by, value) {
   await db.update('crm_deals', 'id=eq.' + d.id, Object.assign({ stage, stage_at: now, updated_at: now }, won ? { closed_at: now } : {}, value != null ? { value } : {}));
   await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body, created_by: by }]).catch(() => {});
 }
+// proposal number: the Unleashed order number when the deal comes from one, otherwise the next quote number (MXQ-n), never an internal ref like access:<id>
+const goodNo = (n) => /^(SO-\d+|MXQ-\d+|P-[A-Z0-9]+)$/i.test(String(n || ''));
+async function propNumber(d) {
+  if (/^SO-\d+$/i.test(d.ref || '')) return d.ref;
+  try { if (PS.on()) return await PS.nextNumber('quote'); } catch (e) {}
+  return 'P-' + String(d.id).slice(0, 6).toUpperCase();
+}
 A['proposal-get'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
   const d = await dealFor(req, res, w, clean(req.query.id, 60)); if (!d) return;
   let p = (await db.select('proposals', 'select=*&deal_id=eq.' + d.id + '&limit=1'))[0], fresh = false;
+  if (p && p.status === 'draft' && !goodNo(p.number)) p.number = 'Not numbered yet';
   if (!p) {
     fresh = true;
-    p = { deal_id: d.id, ref: d.ref, number: d.ref || ('P-' + String(d.id).slice(0, 6).toUpperCase()), doc_type: process.env.PROPOSAL_DOC === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines: await orderLinesOf(d.ref), discount_pct: 0, freight: 0, notes: '', valid_days: 30,
+    p = { deal_id: d.id, ref: d.ref, number: /^SO-\d+$/i.test(d.ref || '') ? d.ref : 'Not numbered yet', doc_type: process.env.PROPOSAL_DOC === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines: await orderLinesOf(d.ref), discount_pct: 0, freight: 0, notes: '', valid_days: 30,
       customer_name: d.customer_name || '', contact_name: d.contact_name || '', contact_email: d.contact_email || '', contact_phone: d.contact_phone || '', ship: null };
   }
-  const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code));
-  Object.keys(F).forEach((c) => { floors[c] = F[c].floor; });
+  const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code).filter(Boolean));
+  const costs = {}; Object.keys(F).forEach((c) => { floors[c] = F[c].floor; costs[c] = F[c].cost; });
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.json({ proposal: p, fresh, floors, pct: MIN_MARGIN(), canBelow: w.role === 'superadmin', deal: { id: d.id, title: d.title, ref: d.ref, stage: d.stage, customer: d.customer_name, code: d.customer_code }, mailOn: customerMailOn(), url: p.token ? 'https://' + req.headers.host + '/portal#/proposal/' + p.token : null });
+  return res.json({ proposal: p, fresh, floors, costs, pct: MIN_MARGIN(), canBelow: w.role === 'superadmin', deal: { id: d.id, title: d.title, ref: d.ref, stage: d.stage, customer: d.customer_name, code: d.customer_code }, mailOn: customerMailOn(), url: p.token ? 'https://' + req.headers.host + '/portal#/proposal/' + p.token : null });
 };
 // type-ahead for adding a part: part number with or without dots and brand prefix, or words from the name
 A['proposal-search'] = async (req, res) => {
@@ -1587,7 +1595,23 @@ A['proposal-search'] = async (req, res) => {
     if (sc) out.push([sc, r]);
   }
   out.sort((a, b) => b[0] - a[0]);
-  return res.json({ rows: out.slice(0, 10).map(([, r]) => { const p = prod && prod.items && prod.items[r[0]]; return { code: r[0], name: String(r[1] || '').split(' / ')[0].slice(0, 120), price: p && p.d > 0 ? p.d : null }; }) });
+  const top = out.slice(0, 10), F = await floorsFor(top.map(([, r]) => r[0])).catch(() => ({}));
+  return res.json({ rows: top.map(([, r]) => { const p = prod && prod.items && prod.items[r[0]], f = F[r[0]]; return { code: r[0], name: String(r[1] || '').split(' / ')[0].slice(0, 120), price: p && p.d > 0 ? p.d : null, floor: f ? f.floor : null, cost: f ? f.cost : null }; }) });
+};
+// Preview of the document as the customer will get it, marked PENDING, before anything is saved or sent. Cost never appears.
+A['proposal-preview'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), d = await dealFor(req, res, w, clean(b.id, 60)); if (!d) return;
+  const lines = PROP.cleanLines(b.lines); if (!lines.length) return res.status(400).json({ error: 'Add at least one part with a quantity.' });
+  const days = Math.min(365, Math.max(1, parseInt(b.valid_days, 10) || 30));
+  const v = PROP.view({ number: clean(b.number, 40) || d.ref || 'DRAFT', doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines, discount_pct: Math.min(100, Math.max(0, Number(b.discount_pct) || 0)), freight: Math.max(0, Number(b.freight) || 0),
+    notes: clean(b.notes, 2000), customer_name: clean(b.customer_name, 120), contact_name: clean(b.contact_name, 120), valid_until: new Date(Date.now() + days * 86400000).toISOString() });
+  v.preview = true;
+  const buf = await require('../lib/proposal-pdf').build(v);
+  res.setHeader('Content-Type', 'application/pdf'); res.setHeader('Content-Disposition', 'inline; filename="preview-' + String(v.number).replace(/[^A-Za-z0-9-]/g, '') + '.pdf"'); res.setHeader('Cache-Control', 'private, no-store');
+  return res.send(buf);
 };
 A['proposal-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -1599,7 +1623,7 @@ A['proposal-save'] = async (req, res) => {
   if (b.send && lines.some((l) => !(l.price > 0))) return res.status(400).json({ error: 'Every part needs a price before the proposal goes out.' });
   const pct = Math.min(100, Math.max(0, Number(b.discount_pct) || 0)), freight = Math.max(0, Number(b.freight) || 0), days = Math.min(365, Math.max(1, parseInt(b.valid_days, 10) || 30));
   // margin floor: cost + CAMPAIGN_MIN_MARGIN, on the price the customer actually pays (after the discount). Only a superadmin goes under, with a reason.
-  const F = await floorsFor(lines.map((l) => l.code)), below = [];
+  const F = await floorsFor(lines.map((l) => l.code).filter(Boolean)), below = [];
   lines.forEach((l) => { const f = F[l.code]; const net = l.price * (1 - pct / 100); if (f && net < f.floor - 0.004) below.push({ code: l.code, price: Math.round(net * 100) / 100, floor: f.floor }); });
   if (below.length) {
     if (!(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.length + ' part' + (below.length === 1 ? ' is' : 's are') + ' under the margin floor (cost + ' + MIN_MARGIN() + '%).' + (w.role === 'superadmin' ? ' Confirm to go under it, with a reason.' : ' Ask a superadmin to approve it.'), below, canBelow: w.role === 'superadmin' });
@@ -1607,7 +1631,7 @@ A['proposal-save'] = async (req, res) => {
   }
   const now = new Date(), cur = (await db.select('proposals', 'select=*&deal_id=eq.' + d.id + '&limit=1'))[0];
   if (cur && cur.status === 'accepted') return res.status(409).json({ error: 'The customer already accepted this proposal. Open a new deal for changes.' });
-  const rec = { deal_id: d.id, ref: d.ref || null, number: (cur && cur.number) || d.ref || ('P-' + String(d.id).slice(0, 6).toUpperCase()), doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', lines, discount_pct: pct, freight: Math.round(freight * 100) / 100,
+  const rec = { deal_id: d.id, ref: d.ref || null, number: (cur && goodNo(cur.number) && cur.number) || await propNumber(d), doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', lines, discount_pct: pct, freight: Math.round(freight * 100) / 100,
     notes: String(b.notes || '').slice(0, 1500), valid_days: days, customer_name: clean(b.customer_name, 160) || d.customer_name || null, contact_name: clean(b.contact_name, 120) || d.contact_name || null,
     contact_email: clean(b.contact_email, 160).toLowerCase() || d.contact_email || null, contact_phone: clean(b.contact_phone, 40) || d.contact_phone || null, below_floor: below.length ? { by: w.email, reason: clean(b.force_reason, 300), parts: below } : null,
     created_by: (cur && cur.created_by) || w.email, updated_at: now.toISOString() };
@@ -1624,7 +1648,7 @@ A['proposal-save'] = async (req, res) => {
     await moveDeal(d, 'quote', 'Proposal ' + rec.number + ' sent to ' + rec.contact_email + ' (' + t.total.toFixed(2) + ' USD, valid ' + days + ' days)', w.email, t.total);
     try { await PS.updateQuoteStatus(rec.number, 'Quoted'); } catch (e) {}
     const v = PROP.view(saved);
-    try { mail = await send(rec.contact_email, v.label + ' ' + v.number + ' from Maxzz Diesel', 'Your ' + v.label.toLowerCase() + ' is ready', PROP.emailTable(v) + '<p style="margin-top:14px">Review it and accept online. You can confirm the delivery address and shipping before we process it.</p>', { label: 'Review and accept', url }, { name: rec.contact_name }); } catch (e) { console.error('proposal mail', e.message); }
+    try { mail = await send(rec.contact_email, v.label + ' ' + v.number + ' from Maxzz Diesel', 'Your ' + v.label.toLowerCase() + ' is ready', PROP.emailTable(v) + '<p style="margin-top:14px">Open it to review the parts and prices, check your contact, delivery and billing details (change anything that is not right), and accept. Nothing is processed until you accept.</p>', { label: 'Review and accept', url }, { name: rec.contact_name }); } catch (e) { console.error('proposal mail', e.message); }
   }
   return res.json({ ok: true, proposal: saved, totals: t, url, mail: mail ? (mail.sent ? 'sent' : mail.blocked ? 'blocked' : 'not sent') : null });
 };
@@ -2122,7 +2146,7 @@ A['sales-program'] = async (req, res) => {
     out.goals = { year: Y, years: [Y - 1, Y, Y + 1], rows: [rowFor('*')].concat(people.map(rowFor)) };
   }
   // the race track: how close the month is to its goal and what that month is worth in the year (the company for a superadmin, the person otherwise)
-  { const key = isSuper ? '*' : mineName, Yr = +ym.slice(0, 4);
+  { const spQ = String(req.query.sp || ''), key = isSuper ? (spQ && spQ !== 'all' && people.includes(spQ) ? spQ : '*') : mineName, Yr = +ym.slice(0, 4);
     if (key) { const gOf = (m) => { const g = goalOf(key, m); if (key === '*' && g.auto) { const v = people.map((p) => goalOf(p, m).v).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; } return g.v; };
       const sOf = (m) => key === '*' ? Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0) : Number(((mon[key] || {})[m] || {}).sales) || 0;
       const months = Array.from({ length: 12 }, (_, i) => { const m = Yr + '-' + pad2(i + 1); return { ym: m, goal: gOf(m), sales: sOf(m) }; });
@@ -2198,7 +2222,7 @@ A.audit = async (req, res) => {
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
 const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
-  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
+  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],

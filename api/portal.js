@@ -436,7 +436,16 @@ A.proposal = async (req, res) => {
   const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
   if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
   res.setHeader('Cache-Control', 'private, no-store');
-  return res.json({ proposal: PROP.view(row) });
+  // what we already know about this customer, so the page opens with their data filled in for them to confirm or edit
+  const pre = { contact: { name: row.contact_name || '', email: row.contact_email || '', phone: row.contact_phone || '' }, ship: row.ship || null, bill: null, billSame: true };
+  try {
+    if (PS.on() && row.contact_email) {
+      const u = (await sdb.select('users', 'select=company_id,name,phone&email=eq.' + encodeURIComponent(String(row.contact_email).toLowerCase()) + '&limit=1'))[0];
+      if (u) { if (!pre.contact.name) pre.contact.name = u.name || ''; if (!pre.contact.phone) pre.contact.phone = u.phone || ''; const ad = await addrOf(u.company_id); if (!pre.ship && ad.ship) pre.ship = adrRow(ad.ship); if (ad.bill) { pre.bill = adrRow(ad.bill); pre.billSame = adrKey(pre.bill) === adrKey(adrRow(ad.ship)); } }
+    }
+  } catch (e) { console.error('proposal prefill', e.message); }
+  const acc = row.accepted || null;
+  return res.json({ proposal: PROP.view(row), prefill: pre, acceptedAt: row.accepted_at || null, acceptedShip: acc && acc.ship || null });
 };
 A['proposal-pdf'] = async (req, res) => {
   const t = String(req.query.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
@@ -459,7 +468,11 @@ A['proposal-accept'] = async (req, res) => {
   const pickup = /will call|pick/i.test(ship.method);
   if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
   if (!b.agree) return res.status(400).json({ error: 'Please confirm that you accept the proposal.' });
-  const now = new Date().toISOString(), acc = { at: now, ship, note: clean(b.note, 600) };
+  const ct = b.contact || {}, contact = { name: clean(ct.name, 120), phone: clean(ct.phone, 40), email: row.contact_email || '' };
+  if (!contact.name) return res.status(400).json({ error: 'Please enter your name.' });
+  const bill = b.billSame === false ? ADR(b.bill) : null;
+  if (b.billSame === false && (!bill.street || !bill.city)) return res.status(400).json({ error: 'Billing address needs a street and a city.' });
+  const now = new Date().toISOString(), acc = { at: now, ship, bill, contact, po: clean(b.po, 60), note: clean(b.note, 600) };
   await sdb.update('proposals', 'id=eq.' + row.id, { status: 'accepted', accepted: acc, accepted_at: now, ship, updated_at: now });
   const view = PROP.view(Object.assign({}, row, { ship }));
   let un = null; try { un = await PROP.placeInUnleashed(row, ship); } catch (e) { console.error('proposal unleashed', e.message); un = { error: e.message }; }
@@ -472,7 +485,7 @@ A['proposal-accept'] = async (req, res) => {
   } catch (e) { console.error('proposal deal', e.message); }
   try { if (PS.on()) await PS.updateQuoteStatus(row.number, 'Accepted'); } catch (e) {}
   const where = [ship.street, ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
-  send('sales@maxzzdiesel.com', 'Proposal ' + row.number + ' accepted', 'Proposal accepted', PROP.emailTable(view) + '<p>Ship to: ' + esc(where || 'will call') + (ship.method ? ' · ' + esc(ship.method) : '') + '</p>' + (acc.note ? '<p>Customer note: ' + esc(acc.note) + '</p>' : '') + '<p><b>Unleashed:</b> ' + (un && un.placed ? 'order placed.' : 'not updated, place the order by hand.') + '</p>', null, { internal: true }).catch(() => {});
+  send('sales@maxzzdiesel.com', 'Proposal ' + row.number + ' accepted', 'Proposal accepted', PROP.emailTable(view) + '<p>Contact: ' + esc(contact.name) + (contact.phone ? ' · ' + esc(contact.phone) : '') + (contact.email ? ' · ' + esc(contact.email) : '') + (acc.po ? '<br>PO: ' + esc(acc.po) : '') + '<br>Ship to: ' + esc(where || 'will call') + (ship.method ? ' · ' + esc(ship.method) : '') + (bill ? '<br>Bill to: ' + esc([bill.name, bill.street, bill.city, bill.state, bill.zip, bill.country].filter(Boolean).join(', ')) : '<br>Bill to: same as delivery') + '</p>' + (acc.note ? '<p>Customer note: ' + esc(acc.note) + '</p>' : '') + '<p><b>Unleashed:</b> ' + (un && un.placed ? 'order placed.' : 'not updated, place the order by hand.') + '</p>', null, { internal: true }).catch(() => {});
   if (row.contact_email) send(row.contact_email, 'We received your acceptance of ' + row.number, 'Thank you', PROP.emailTable(view) + '<p>We are preparing your order and will confirm the ship date.</p>', null, { name: row.contact_name }).catch(() => {});
   return res.json({ ok: true, placed: !!(un && un.placed) });
 };
