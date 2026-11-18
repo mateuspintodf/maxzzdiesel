@@ -1292,12 +1292,26 @@ A['customer-save'] = async (req, res) => {
   ['ContactFirstName', 'ContactLastName', 'Email'].forEach((f) => { if (live[f]) out[f] = live[f]; });
   if (ad && ['city', 'state', 'country'].some(ch)) out.Addresses = JSON.parse(JSON.stringify(live.Addresses));
   if (ch('name')) out.CustomerName = want.name;
-  if (ch('contact')) { const parts = want.contact.split(' '); out.ContactFirstName = parts.shift() || ''; out.ContactLastName = parts.join(' '); }
-  if (ch('email')) out.Email = want.email;
-  if (ch('phone')) out.PhoneNumber = want.phone;
+  if (ch('contact')) { const parts = want.contact.split(' '); out.ContactFirstName = parts.shift() || null; out.ContactLastName = parts.join(' ') || null; }
+  if (ch('email')) out.Email = want.email || null;
+  if (ch('phone')) out.PhoneNumber = want.phone || null;
   if (ad) { const t = out.Addresses[live.Addresses.indexOf(ad)]; if (ch('city')) t.City = want.city; if (ch('state')) t.Region = want.state; if (ch('country')) t.Country = want.country; }
   try { await ul('Customers/' + live.Guid, '', { method: 'POST', body: out }); }
   catch (e) { return res.status(502).json({ error: 'Unleashed did not accept the change (' + e.message + '). Nothing was changed.' }); }
+  // read it back: Unleashed can answer OK and still keep the old value (it ignores empty text), so only report what it really holds
+  let back = null;
+  try { back = await ul('Customers/' + live.Guid); } catch (e) { back = null; }
+  if (back && back.Guid) {
+    const bad = changes.filter((x) => {
+      if (x.k === 'name') return (back.CustomerName || '') !== want.name;
+      if (x.k === 'contact') return [back.ContactFirstName, back.ContactLastName].filter(Boolean).join(' ') !== want.contact;
+      if (x.k === 'email') return String(back.Email || '').toLowerCase() !== want.email;
+      if (x.k === 'phone') return (back.PhoneNumber || '') !== want.phone;
+      const t = (back.Addresses || []).find((a) => /physical|street/i.test(a.AddressType || '')) || (back.Addresses || [])[0] || {};
+      return ({ city: t.City, state: t.Region, country: t.Country }[x.k] || '') !== want[x.k];
+    });
+    if (bad.length) return res.status(409).json({ error: 'Unleashed kept the old value for ' + bad.map((x) => x.f).join(', ') + '. Clearing a field is not accepted by Unleashed, so change it there if it must be empty. Nothing was changed here.' });
+  }
   const mset = { name: want.name, contact_name: want.contact || null, email: want.email || null, phone: want.phone || null, city: want.city || null, state: want.state || null, country: want.country || null, synced_at: new Date().toISOString() };
   await db.update('ul_customers', 'code=eq.' + encodeURIComponent(code), mset);
   const co = (await db.select('companies', 'select=id&unleashed_code=eq.' + encodeURIComponent(code) + '&limit=1'))[0];
