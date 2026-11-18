@@ -1648,7 +1648,7 @@ A['proposal-save'] = async (req, res) => {
     await moveDeal(d, 'quote', 'Proposal ' + rec.number + ' sent to ' + rec.contact_email + ' (' + t.total.toFixed(2) + ' USD, valid ' + days + ' days)', w.email, t.total);
     try { await PS.updateQuoteStatus(rec.number, 'Quoted'); } catch (e) {}
     const v = PROP.view(saved);
-    try { mail = await send(rec.contact_email, v.label + ' ' + v.number + ' from Maxzz Diesel', 'Your ' + v.label.toLowerCase() + ' is ready', PROP.emailTable(v) + '<p style="margin-top:14px">Review it and accept online. You can confirm the delivery address and shipping before we process it.</p>', { label: 'Review and accept', url }, { name: rec.contact_name }); } catch (e) { console.error('proposal mail', e.message); }
+    try { mail = await send(rec.contact_email, v.label + ' ' + v.number + ' from Maxzz Diesel', 'Your ' + v.label.toLowerCase() + ' is ready', PROP.emailTable(v) + '<p style="margin-top:14px">Open it to review the parts and prices, check your contact, delivery and billing details (change anything that is not right), and accept. Nothing is processed until you accept.</p>', { label: 'Review and accept', url }, { name: rec.contact_name }); } catch (e) { console.error('proposal mail', e.message); }
   }
   return res.json({ ok: true, proposal: saved, totals: t, url, mail: mail ? (mail.sent ? 'sent' : mail.blocked ? 'blocked' : 'not sent') : null });
 };
