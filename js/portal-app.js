@@ -3007,7 +3007,7 @@
           if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
           if (me.account) self.co.name = me.account.company;
           api('prices').then(function (b) { if (b._status === 200) self.book = b; });
-          if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
+          try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
           self.loadRewards();
@@ -3314,7 +3314,7 @@
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
       api('confirm', { body: { t: this.lt } }).then(function (r) {
         self.busy = false;
-        if (r._status === 200) { self.lt = ''; var back = ''; try { var sv = JSON.parse(localStorage.getItem('px-ret') || 'null'); if (sv && /^#\/[a-z]/.test(sv.h || '') && Date.now() - sv.t < 6 * 36e5) back = sv.h; localStorage.removeItem('px-ret'); } catch (e) {} location.replace('/portal' + back); location.reload(); }
+        if (r._status === 200) { self.lt = ''; try { sessionStorage.setItem('px-login', '1'); } catch (e) {} var back = ''; try { var sv = JSON.parse(localStorage.getItem('px-ret') || 'null'); if (sv && /^#\/[a-z]/.test(sv.h || '') && Date.now() - sv.t < 6 * 36e5) back = sv.h; localStorage.removeItem('px-ret'); } catch (e) {} location.replace('/portal' + back); location.reload(); }
         else self.err = r._status === 403 ? 'Your access is not approved yet.' : 'That sign-in link expired or was already used. Ask for a new one below.', self.lt = '';
       });
     },
