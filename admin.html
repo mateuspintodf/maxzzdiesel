@@ -1016,7 +1016,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var STAT_L = { active: 'Active', due: 'Due to reorder', overdue: 'Overdue', new: 'New', one_time: 'One order', lost: 'Lost', no_orders: 'No orders in 24 months' };
 
   // ---------------------------------------------------------------- Unleashed customer directory: compose filters, select, make a segment
-  var SEGS = ['Distributor', 'Rebuilder', 'Reseller', 'Repair shop', 'Individual', 'Group company', 'OEM', 'Online marketplace', 'Unclassified'], SEGST = { confirmed: 'Confirmed', suggested: 'Suggested' };
+  var SEGS = ['Reseller', 'Rebuilder', 'Reseller/Rebuilder', 'Distributor', 'Repair shop', 'Individual', 'Group company', 'OEM', 'Online marketplace', 'Unclassified'], SEGST = { confirmed: 'Confirmed', suggested: 'Suggested' };
   function segCell(r) { if (!r.sg) return '<span class="muted">-</span>'; return esc(r.sg) + (r.sgs === 'suggested' ? ' <span class="st pending" title="' + esc((r.sgc || '') + ' confidence' + (r.sge ? '. ' + r.sge : '')) + '">suggested</span>' : ''); }
   function dirFilter() {
     var F = S.df || {}, q = String(F.q || '').toLowerCase(), now = Date.now();
