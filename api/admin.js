@@ -1286,7 +1286,9 @@ A['customer-save'] = async (req, res) => {
   if (!changes.length) return res.json({ ok: true, changes: [] });
   if (!ad && changes.some((x) => ['city', 'state', 'country'].includes(x.k))) return res.status(409).json({ error: 'This customer has no address in Unleashed yet. Add the address there first.' });
   if (b.dry) return res.json({ ok: true, dry: true, changes });
-  const out = JSON.parse(JSON.stringify(live)), ch = (k) => changes.some((x) => x.k === k);
+  // only the identity plus what changed: posting the whole record back made Unleashed answer 500
+  const out = { Guid: live.Guid, CustomerCode: live.CustomerCode, CustomerName: live.CustomerName }, ch = (k) => changes.some((x) => x.k === k);
+  if (ad && ['city', 'state', 'country'].some(ch)) out.Addresses = JSON.parse(JSON.stringify(live.Addresses));
   if (ch('name')) out.CustomerName = want.name;
   if (ch('contact')) { const parts = want.contact.split(' '); out.ContactFirstName = parts.shift() || ''; out.ContactLastName = parts.join(' '); }
   if (ch('email')) out.Email = want.email;
