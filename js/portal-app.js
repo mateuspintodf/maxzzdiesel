@@ -2772,7 +2772,7 @@
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
     // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
     qUnits: function (q) { return (q.lines || []).reduce(function (a, l) { return a + (l.qty || 0); }, 0); },
-    qStat: function (q) { var m = { Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Ordered', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
+    qStat: function (q) { var m = { Parked: ['In review', 'Parked', 2], Placed: ['Accepted', 'Accepted', 4], Backordered: ['Accepted', 'Accepted', 4], Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Shipped', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
     requote: function (q) { var self = this; (q.lines || []).forEach(function (l) { if (self.map[l.pn]) self.addQuote(l.pn, l.qty); }); this.flash('Parts added to your quote list', 'quote'); },
     // print the document only, with a file name the PDF dialog uses: "Maxzz Diesel Quote request MXQ-10005 Company 2026-11-15"
     printDoc: function () {

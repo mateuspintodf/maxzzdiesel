@@ -1983,7 +1983,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <span class="px-qmore"><span v-text="qOpenId === q.id ? 'Hide' : 'Details'"></span><svg class="px-qchev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
 </button>
 <div class="px-qd" v-if="qOpenId === q.id">
-<ol class="px-qtl"><li v-for="(t, i) in ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Ordered']" :class="i < qStat(q).at ? 'on' : ''"><i></i><span v-text="t"></span></li></ol>
+<ol class="px-qtl"><li v-for="(t, i) in ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Shipped']" :class="i < qStat(q).at ? 'on' : ''"><i></i><span v-text="t"></span></li></ol>
 <dl class="px-qmeta"><div><dt>Sent</dt><dd v-text="date(q.created)"></dd></div><div v-if="q.po"><dt>PO / reference</dt><dd v-text="q.po"></dd></div><div v-if="q.needBy"><dt>Needed by</dt><dd v-text="q.needBy"></dd></div><div v-if="q.ship"><dt>Deliver to</dt><dd v-text="q.ship"></dd></div><div v-if="q.expires"><dt>Quote valid until</dt><dd v-text="date(q.expires)"></dd></div></dl>
 <table class="px-qlt"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th></tr></thead><tbody><tr v-for="l in (q.lines || [])"><td class="mono"><a :href="'#/p/' + encodeURIComponent(l.pn)" v-text="l.pn"></a></td><td v-text="map[l.pn] ? title(map[l.pn]) : l.name"></td><td class="r" v-text="l.qty"></td></tr></tbody></table>
 <p class="px-qnt" v-if="q.notes"><b>Your notes</b><span v-text="q.notes"></span></p>
