@@ -1285,9 +1285,11 @@ A['customer-save'] = async (req, res) => {
   const changes = Object.keys(want).filter((k) => want[k] !== was[k]).map((k) => ({ f: FL[k], k, from: was[k], to: want[k] }));
   if (!changes.length) return res.json({ ok: true, changes: [] });
   if (!ad && changes.some((x) => ['city', 'state', 'country'].includes(x.k))) return res.status(409).json({ error: 'This customer has no address in Unleashed yet. Add the address there first.' });
+  if (changes.some((x) => x.k === 'phone') && want.phone && !want.contact && !want.email) return res.status(400).json({ error: 'Unleashed only accepts a phone number when the customer also has a contact name or an e-mail. Fill one of them in too.' });
   if (b.dry) return res.json({ ok: true, dry: true, changes });
   // only the identity plus what changed: posting the whole record back made Unleashed answer 500
   const out = { Guid: live.Guid, CustomerCode: live.CustomerCode, CustomerName: live.CustomerName }, ch = (k) => changes.some((x) => x.k === k);
+  ['ContactFirstName', 'ContactLastName', 'Email'].forEach((f) => { if (live[f]) out[f] = live[f]; });
   if (ad && ['city', 'state', 'country'].some(ch)) out.Addresses = JSON.parse(JSON.stringify(live.Addresses));
   if (ch('name')) out.CustomerName = want.name;
   if (ch('contact')) { const parts = want.contact.split(' '); out.ContactFirstName = parts.shift() || ''; out.ContactLastName = parts.join(' '); }
