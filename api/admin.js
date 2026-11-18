@@ -661,9 +661,10 @@ A.invite = async (req, res) => {
 A.dir = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  const [rows, segs, st, tg] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => [])]);
+  const [rows, segs, st, tg, cs] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => []), db.selectAll('customer_segments', 'select=code,segment,status,confidence,evidence').catch(() => [])]);
   const T = {}; tg.forEach((x) => { (T[x.code] = T[x.code] || []).push(x.tag); });
-  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; });
+  const G = {}; cs.forEach((x) => { G[x.code] = x; });
+  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; const g = G[r.c]; if (g) { r.sg = g.segment; r.sgs = g.status; r.sgc = g.confidence; r.sge = g.evidence; } });
   return res.json({ rows: rows || [], segments: segs, synced: st[0] && st[0].customers_at });
 };
 A['dir-sync'] = async (req, res) => {
@@ -696,6 +697,22 @@ A['segment-create'] = async (req, res) => {
   for (let i = 0; i < links.length; i += 200) await db.insert('company_segments', links.slice(i, i + 200), { onConflict: 'company_id,segment_id', ignoreDuplicates: true });
   await PS.audit(w.email, 'segment.create', 'segment', seg.id, null, { name, members: links.length, created: missing.length });
   return res.json({ ok: true, id: seg.id, members: links.length, created: missing.length });
+};
+// company segment (Distributor, Rebuilder, Reseller...): set by hand, or confirm what the rules and the web research suggested
+const CUST_SEGS = ['Reseller', 'Rebuilder', 'Reseller/Rebuilder', 'Other'];
+A['cseg-set'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map((c) => clean(c, 60)).filter(Boolean))].slice(0, 3000);
+  if (!codes.length) return res.status(400).json({ error: 'codes' });
+  const now = new Date().toISOString();
+  if (b.segment) {
+    if (CUST_SEGS.indexOf(b.segment) < 0) return res.status(400).json({ error: 'segment' });
+    for (let i = 0; i < codes.length; i += 200) await db.insert('customer_segments', codes.slice(i, i + 200).map((code) => ({ code, segment: b.segment, status: 'confirmed', source: 'manual', confidence: null, evidence: null, confirmed_by: w.email, confirmed_at: now })), { onConflict: 'code' });
+  } else for (let i = 0; i < codes.length; i += 150) await db.update('customer_segments', 'status=eq.suggested&code=' + inList(codes.slice(i, i + 150)), { status: 'confirmed', confirmed_by: w.email, confirmed_at: now });
+  await PS.audit(w.email, 'company.segment', 'company', null, null, { segment: b.segment || 'confirmed suggestions', n: codes.length });
+  return res.json({ ok: true });
 };
 // free tags on a customer (by Unleashed code), used as filters in the customer list
 A['tags-set'] = async (req, res) => {
@@ -1352,13 +1369,25 @@ async function crmSync() {
   crmSyncAt = Date.now();
   const parked = await loadParked(false).catch(() => null); if (!parked) return;
   const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
-  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
+  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value,created_at,updated_at,stage_at&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
   const ctOf = {};
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
-  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto' }));
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (ctOf[r.code] || {}).contact_name || null, contact_email: (ctOf[r.code] || {}).email || null, contact_phone: (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
   if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
-  for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0, updated_at: new Date().toISOString() }).catch(() => {}); }
+  // a deal is as old as its order in Unleashed, not as the moment the CRM first saw it. Deals made by an earlier sync that nobody touched since get their order date back.
+  for (const r of parked) { const d = by[r.number]; if (!d || !r.at || d.stage === 'won' || d.stage === 'lost') continue; const cr = Date.parse(d.created_at), up = Date.parse(d.updated_at);
+    const sa = Date.parse(d.stage_at);
+    if (Number.isFinite(cr) && Math.abs(sa - cr) < 5 * 60e3 && cr - Date.parse(r.at) > 864e5 && Date.now() - cr < 3 * 864e5) await db.update('crm_deals', 'id=eq.' + d.id, Math.abs(up - cr) < 5 * 60e3 ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : { created_at: r.at, stage_at: r.at }).catch(() => {}); }
+  for (const r of parked) { const d = by[r.number]; if (d && d.stage !== 'won' && d.stage !== 'lost' && Number(d.value) !== Number(r.value)) await db.update('crm_deals', 'id=eq.' + d.id, { value: r.value || 0 }).catch(() => {}); }
+  // completed orders that never passed through the Parked list (or were invoiced before the CRM saw them) are won deals too
+  const done = await db.select('sales_orders', 'select=number,customer_code,customer_name,order_date,completed_date,subtotal,salesperson&status=eq.Completed&or=(is_return.is.null,is_return.eq.false)&order_date=gte.' + new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10) + '&limit=2000').catch(() => []);
+  const wonNew = done.filter((o) => !by[o.number] && !mk[o.number]);
+  if (wonNew.length) {
+    const miss = [...new Set(wonNew.map((o) => o.customer_code).filter((c) => c && !spOf[c]))];
+    for (let i = 0; i < miss.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson&code=' + inList(miss.slice(i, i + 150))).catch(() => [])).forEach((x) => { spOf[x.code] = x.salesperson; });
+    await db.insert('crm_deals', wonNew.map((o) => { const t = o.completed_date || o.order_date; return { title: (o.customer_name || o.customer_code || 'Customer') + ' · ' + o.number, stage: 'won', owner: o.salesperson || spOf[o.customer_code] || CRM_OWNER, customer_code: o.customer_code || null, customer_name: o.customer_name || null, value: Number(o.subtotal) || 0, source: 'order', ref: o.number, created_by: 'auto', created_at: o.order_date, updated_at: t, stage_at: t, closed_at: t, note: 'Imported from Unleashed (completed order)' }; }), { onConflict: 'ref' }).catch(() => null);
+  }
   await crmSyncAccess().catch(() => {});
   // deals whose order left the Parked list: lost if marked, won if invoiced
   const gone = deals.filter((d) => d.stage !== 'won' && d.stage !== 'lost' && !live.has(d.ref));
@@ -1418,9 +1447,13 @@ A.crm = async (req, res) => {
   await crmSync().catch(() => {});
   const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
   if (!isSuper && sc.none) return res.json({ stages: [], deals: [], mySp: null, isSuper, owners: [] });
-  const since = new Date(Date.now() - 60 * 864e5).toISOString();
-  const [stages, all] = await Promise.all([db.select('crm_stages', 'select=*&order=pos.asc'), db.select('crm_deals', 'select=*&or=(closed_at.is.null,closed_at.gte.' + since + ')&order=updated_at.desc&limit=800' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)))]);
-  const ids = all.map((d) => d.id), next = {};
+  const since = new Date(Date.now() - 60 * 864e5).toISOString(), dOk = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')), q = req.query || {}, own = isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp);
+  // default: open deals plus what closed in the last 60 days. With a period (or all=1) the board holds every deal created in it, the imported Unleashed order history included.
+  const per = q.all === '1' ? '' : (dOk(q.from) ? '&created_at=gte.' + q.from : '') + (dOk(q.to) ? '&created_at=lte.' + q.to + 'T23:59:59' : '');
+  const [stages, all] = await Promise.all([db.select('crm_stages', 'select=*&order=pos.asc'), (q.all === '1' || per)
+    ? db.selectAll('crm_deals', 'select=*&order=updated_at.desc' + per + own).then((r) => r.slice(0, 6000))
+    : db.select('crm_deals', 'select=*&or=(closed_at.is.null,closed_at.gte.' + since + ')&order=updated_at.desc&limit=800' + own)]);
+  const ids = all.filter((d) => d.source !== 'order').map((d) => d.id), next = {};
   for (let i = 0; i < ids.length; i += 100) (await db.select('crm_activities', 'select=deal_id,body,due&done_at=is.null&due=not.is.null&deal_id=in.(' + ids.slice(i, i + 100).join(',') + ')&order=due.asc')).forEach((a) => { if (!next[a.deal_id]) next[a.deal_id] = a; });
   all.forEach((d) => { d.next = next[d.id] || null; });
   const cnt = {};
