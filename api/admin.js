@@ -390,6 +390,32 @@ A['admin-save'] = async (req, res) => {
   scrMemo.delete(email);
   return res.json({ ok: true });
 };
+// invite one or more people by e-mail: they get the admin role you pick and an e-mail pointing at the admin sign-in
+A['admin-invite'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w)) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), role = clean(b.role, 20);
+  if (!ROLES.includes(role)) return res.status(400).json({ error: 'Pick a role.' });
+  const list = [...new Set(String(b.emails || '').toLowerCase().split(/[\s,;]+/).filter(Boolean))].slice(0, 20);
+  if (!list.length) return res.status(400).json({ error: 'Type at least one e-mail address.' });
+  const bad = list.filter((e) => !EMAIL.test(e));
+  if (bad.length) return res.status(400).json({ error: 'These do not look like e-mail addresses: ' + bad.join(', ') });
+  const scr = role === 'superadmin' || b.screens == null ? undefined : (Array.isArray(b.screens) ? [...new Set(b.screens.map((x) => String(x)).filter((x) => SCREENS.includes(x)))] : undefined);
+  const sp = clean(b.salesperson, 120) || null, out = { invited: [], skipped: [], mailed: 0 };
+  const me = (await db.select('admins', 'select=name,first_name&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
+  const by = String(me.first_name || me.name || w.email).trim();
+  for (const email of list) {
+    if (await adminRole(email)) { out.skipped.push(email); continue; }
+    await db.insert('admins', [{ email, role, active: true, salesperson: sp, ...(scr === undefined ? {} : { screens: scr }), created_by: w.email, updated_at: new Date().toISOString() }], { onConflict: 'email' });
+    await PS.audit(w.email, 'admin.create', 'admin', email, null, { role, active: true, invited: true });
+    scrMemo.delete(email);
+    out.invited.push(email);
+    const r = await send(email, 'You were invited to the Maxzz admin', 'You are invited', '<p>' + esc(by) + ' added you to the Maxzz admin as <b>' + esc(role) + '</b>.</p><p>Open the admin, type this e-mail address and we send you a sign-in link. No password needed.</p>', { url: base(req) + '/admin', label: 'Open the admin' }, { greet: true, team: true }).catch(() => ({}));
+    if (r && r.sent) out.mailed++;
+  }
+  return res.json(Object.assign({ ok: true }, out));
+};
 // ---------------------------------------------------------------- Unleashed import into segments
 const addrOf = (c) => { const a = (c.Addresses || []).find((x) => /physical|street/i.test(x.AddressType || '')) || (c.Addresses || [])[0] || {}; return { city: a.City || '', state: a.Region || '', country: a.Country || '' }; };
 async function allCustomers() {
