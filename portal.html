@@ -187,7 +187,7 @@ textarea.q-in{height:auto;padding:12px 16px;line-height:22px}
 <details class="pxh-me" v-if="me"><summary><span class="av" v-text="initials"></span><span class="t" v-text="firstName"></span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
 <div class="pxh-menu">
 <div class="hd"><b v-text="me.name || firstName"></b><span v-text="me.account ? me.account.company : 'Maxzz Diesel team'"></span><span class="em" v-text="me.email"></span></div>
-<a href="#/orders">My orders and quotes</a><a href="#/cart" v-if="canOrder">Cart</a><a href="#" @click.prevent="qOpen = true">Quote list</a><a href="#/rewards" v-if="REWARDS.on">Max Rewards</a><a href="#/admin" v-if="me.admin">Admin</a>
+<a href="#/account">My account</a><a href="#/orders">My orders and quotes</a><a href="#/cart" v-if="canOrder">Cart</a><a href="#" @click.prevent="qOpen = true">Quote list</a><a href="#/rewards" v-if="REWARDS.on">Max Rewards</a><a href="#/admin" v-if="me.admin">Admin</a>
 <button type="button" @click="logout">Sign out</button>
 </div></details>
 <a class="pxh-in-btn" href="#/login" v-if="!me">Sign in</a>
@@ -1955,6 +1955,50 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 
 <!-- checkout -->
 <!-- orders -->
+<div v-if="route === 'account' && me">
+<div class="px-fh"><div><h1>My account</h1><p class="px-muted">Your company, your contact details and where every request stands.</p></div></div>
+<div class="px-card" style="margin-bottom:16px">
+<h2>Company</h2>
+<dl class="px-qmeta">
+<div><dt>Company</dt><dd v-text="me.account ? (me.account.company || me.account.customer) : 'Maxzz Diesel team'"></dd></div>
+<div v-if="me.account && me.account.code"><dt>Customer number</dt><dd v-text="me.account.code"></dd></div>
+<div v-if="me.account"><dt>Account status</dt><dd v-text="me.account.status === 'approved' ? 'Approved' : (me.account.status || '')"></dd></div>
+<div v-if="me.account && me.account.ship && me.account.ship.street"><dt>Delivery address</dt><dd v-text="[me.account.ship.street, me.account.ship.city, [me.account.ship.state, me.account.ship.zip].filter(Boolean).join(' '), me.account.ship.country].filter(Boolean).join(', ')"></dd></div>
+</dl>
+</div>
+<div class="px-card" style="margin-bottom:16px">
+<h2>Contact</h2>
+<dl class="px-qmeta">
+<div><dt>Name</dt><dd v-text="me.name || firstName"></dd></div>
+<div><dt>E-mail</dt><dd v-text="me.email"></dd></div>
+<div v-if="me.phone"><dt>Phone</dt><dd v-text="me.phone"></dd></div>
+</dl>
+<p class="px-muted" style="font-size:13px;margin-top:10px">To change your company data or contact, e-mail <a href="mailto:sales@maxzzdiesel.com?subject=Update%20my%20account" style="color:#d32a37;font-weight:500">sales@maxzzdiesel.com</a> and we update it for you.</p>
+</div>
+<div class="px-card" style="margin-bottom:16px" v-if="canOrder">
+<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Recent orders</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">See all</a></div>
+<div class="px-empty" v-if="!orders.length">No orders yet. <a href="#/all" style="color:#d32a37;font-weight:500">Browse the catalog</a>.</div>
+<div class="px-list">
+<button type="button" class="px-ord" v-for="o in ordersSorted.slice(0, 5)" :key="o.id" @click="cur = o; nav('o', o.id)">
+<div><b v-text="o.number"></b><small class="px-meta"><span v-text="date(o.created)"></span><span v-if="o.po" v-text="'PO ' + o.po"></span></small></div>
+<span class="px-ord-t" v-text="fmt(o.total)"></span>
+<span class="px-st" :class="o.status" v-text="label(o.status)"></span>
+</button>
+</div>
+</div>
+<div class="px-card">
+<div style="display:flex;align-items:center;gap:10px"><h2 style="margin:0;flex:1">Recent quote requests</h2><a href="#/orders" style="color:#d32a37;font-weight:500;font-size:14px">See all</a></div>
+<div class="px-empty" v-if="!myQuotes.length">No quote requests yet.</div>
+<div class="px-list">
+<a class="px-ord" v-for="q in myQuotes.slice(0, 5)" :key="q.id" href="#/orders" style="text-decoration:none;color:inherit">
+<div><b v-text="q.id"></b><small class="px-meta"><span v-text="date(q.created)"></span><span v-text="(q.lines || []).length + ((q.lines || []).length === 1 ? ' part' : ' parts')"></span></small></div>
+<span class="px-ord-t"></span>
+<span class="px-st" :class="qStat(q).c" v-text="qStat(q).t"></span>
+</a>
+</div>
+</div>
+</div>
+
 <div v-if="route === 'orders' && me">
 <div class="px-fh"><div><h1>My orders and quotes</h1><p class="px-muted" v-text="(firstName ? firstName + ', every' : 'Every') + ' request you sent from the store, with its current status.'"></p></div></div>
 <div class="px-card" v-if="canOrder" style="margin-bottom:16px">
