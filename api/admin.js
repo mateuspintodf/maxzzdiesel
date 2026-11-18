@@ -1198,7 +1198,7 @@ A['dash-customers'] = async (req, res) => {
 // one customer, everything we know: sales rhythm and history from Unleashed, portal people, behavior, portal orders and quotes
 // one customer: sales, contacts and one activity timeline (like a CRM lead page) built from everything we keep
 const EVN = { product: 'viewed', search: 'searched', cart_add: 'added to cart', cart_remove: 'removed from cart', quote_remove: 'removed from the quote', qty_change: 'changed a quantity', quote_abandon: 'left with items in the list', campaign_click: 'came from a campaign', search_empty: 'searched with no result', cart_view: 'opened the cart', checkout: 'started checkout', voucher: 'tried a voucher', filter: 'filtered' };
-const AUD = { 'invite.send': ['invite', 'Invite e-mail sent'], 'invite.accept': ['account', 'Invite accepted'], 'company.approve': ['account', 'Account approved'], 'company.reject': ['account', 'Access request rejected'], 'prospect.add': ['account', 'Added by hand'] };
+const AUD = { 'invite.send': ['invite', 'Invite e-mail sent'], 'invite.accept': ['account', 'Invite accepted'], 'company.approve': ['account', 'Account approved'], 'company.edit': ['account', 'Customer details edited'], 'company.reject': ['account', 'Access request rejected'], 'prospect.add': ['account', 'Added by hand'] };
 A.customer = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
@@ -1251,11 +1251,55 @@ A.customer = async (req, res) => {
   const contact = { name: (u && u.contact_name) || (co && co.contact_name) || (users[0] && users[0].name) || '', email: (u && u.email) || (co && co.contact_email) || '', phone: (u && u.phone) || (co && co.contact_phone) || '',
     type: (u && u.type) || (co && co.customer_type) || '', tier: (u && u.tier) || (co && co.tier) || '', terms: (u && u.payment_terms) || (co && co.payment_terms) || '', sp: (u && u.salesperson) || (co && co.salesperson) || '',
     city: (u && u.city) || (co && co.city) || '', state: (u && u.state) || (co && co.state) || '', country: (u && u.country) || (co && co.country) || '', since: (u && u.created_on) || '', stop: !!((u && u.stop_credit) || (co && co.stop_credit)), obsolete: !!(u && u.obsolete),
-    segments: segl.map((x) => segN[x.segment_id]).filter(Boolean) };
+    segments: segl.map((x) => segN[x.segment_id]).filter(Boolean), cname: (u && u.name) || (co && co.name) || '', editable: !!(u && !u.obsolete && c) };
+  if (c) { const sg = (await db.select('customer_segments', 'select=segment,status,confidence,evidence&code=eq.' + encodeURIComponent(c) + '&limit=1').catch(() => []))[0]; if (sg) contact.seg = sg; }
   contact.tags = c ? (await db.select('customer_tags', 'select=tag&code=eq.' + encodeURIComponent(c)).catch(() => [])).map((x) => x.tag) : [];
   contact.allTags = [...new Set((await db.selectAll('customer_tags', 'select=tag').catch(() => [])).map((x) => x.tag))].sort();
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
     contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, timeline: T.slice(0, 300) });
+};
+// edit a customer: read it live from Unleashed, change only the fields that differ, write it back, then update our copy.
+// Not editable here on purpose: price tier, salesperson, payment terms, stop credit (those stay in Unleashed).
+A['customer-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  if (!configured()) return res.status(503).json({ error: 'Unleashed is not connected here.' });
+  const b = readBody(req), code = clean(b.code, 60);
+  const want = { name: clean(b.name, 150), contact: clean(b.contact, 120), email: clean(b.email, 160).toLowerCase(), phone: clean(b.phone, 40), city: clean(b.city, 80), state: clean(b.state, 60), country: clean(b.country, 60) };
+  if (!code) return res.status(400).json({ error: 'code' });
+  if (!want.name) return res.status(400).json({ error: 'The company name cannot be empty.' });
+  if (want.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(want.email)) return res.status(400).json({ error: 'That e-mail does not look right.' });
+  const mir = (await db.select('ul_customers', 'select=*&code=eq.' + encodeURIComponent(code) + '&limit=1'))[0];
+  if (!mir) return res.status(404).json({ error: 'customer' });
+  let live;
+  try {
+    if (mir.guid) live = await ul('Customers/' + mir.guid);
+    if (!live || !live.Guid) live = (((await ul('Customers', 'customerCode=' + encodeURIComponent(code) + '&includeObsolete=true')).Items) || [])[0];
+  } catch (e) { return res.status(502).json({ error: 'Could not read this customer in Unleashed (' + e.message + '). Nothing was changed.' }); }
+  if (!live || !live.Guid || live.CustomerCode !== code) return res.status(404).json({ error: 'Unleashed did not return this customer. Nothing was changed.' });
+  if (live.Obsolete) return res.status(409).json({ error: 'This customer is obsolete in Unleashed.' });
+  const ad = (live.Addresses || []).find((x) => /physical|street/i.test(x.AddressType || '')) || (live.Addresses || [])[0] || null;
+  const was = { name: live.CustomerName || '', contact: [live.ContactFirstName, live.ContactLastName].filter(Boolean).join(' '), email: String(live.Email || '').toLowerCase(), phone: live.PhoneNumber || live.MobileNumber || '', city: (ad && ad.City) || '', state: (ad && ad.Region) || '', country: (ad && ad.Country) || '' };
+  const FL = { name: 'Company name', contact: 'Contact', email: 'E-mail', phone: 'Phone', city: 'City', state: 'State', country: 'Country' };
+  const changes = Object.keys(want).filter((k) => want[k] !== was[k]).map((k) => ({ f: FL[k], k, from: was[k], to: want[k] }));
+  if (!changes.length) return res.json({ ok: true, changes: [] });
+  if (!ad && changes.some((x) => ['city', 'state', 'country'].includes(x.k))) return res.status(409).json({ error: 'This customer has no address in Unleashed yet. Add the address there first.' });
+  if (b.dry) return res.json({ ok: true, dry: true, changes });
+  const out = JSON.parse(JSON.stringify(live)), ch = (k) => changes.some((x) => x.k === k);
+  if (ch('name')) out.CustomerName = want.name;
+  if (ch('contact')) { const parts = want.contact.split(' '); out.ContactFirstName = parts.shift() || ''; out.ContactLastName = parts.join(' '); }
+  if (ch('email')) out.Email = want.email;
+  if (ch('phone')) out.PhoneNumber = want.phone;
+  if (ad) { const t = out.Addresses[live.Addresses.indexOf(ad)]; if (ch('city')) t.City = want.city; if (ch('state')) t.Region = want.state; if (ch('country')) t.Country = want.country; }
+  try { await ul('Customers/' + live.Guid, '', { method: 'POST', body: out }); }
+  catch (e) { return res.status(502).json({ error: 'Unleashed did not accept the change (' + e.message + '). Nothing was changed.' }); }
+  const mset = { name: want.name, contact_name: want.contact || null, email: want.email || null, phone: want.phone || null, city: want.city || null, state: want.state || null, country: want.country || null, synced_at: new Date().toISOString() };
+  await db.update('ul_customers', 'code=eq.' + encodeURIComponent(code), mset);
+  const co = (await db.select('companies', 'select=id&unleashed_code=eq.' + encodeURIComponent(code) + '&limit=1'))[0];
+  if (co) await db.update('companies', 'id=eq.' + co.id, { name: want.name, contact_name: want.contact || null, contact_email: want.email || null, contact_phone: want.phone || null, city: want.city || null, state: want.state || null, country: want.country || null });
+  await PS.audit(w.email, 'company.edit', 'company', co ? co.id : null, { code }, { code, changed: changes.map((x) => x.f), from: Object.fromEntries(changes.map((x) => [x.k, x.from])), to: Object.fromEntries(changes.map((x) => [x.k, x.to])) });
+  return res.json({ ok: true, changes });
 };
 // log a call, e-mail, meeting or note on a customer, with an optional follow-up date (shows on the dashboard until done)
 A['note-add'] = async (req, res) => {
