@@ -1451,7 +1451,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   }
   function slLoad() {
     crmLoad(true); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } });
-    var L = slState(); api('sales-program').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
+    var L = slState(); api('sales-program', null, L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
     api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
   }
   function slHead() {

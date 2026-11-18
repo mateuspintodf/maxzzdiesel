@@ -2146,7 +2146,7 @@ A['sales-program'] = async (req, res) => {
     out.goals = { year: Y, years: [Y - 1, Y, Y + 1], rows: [rowFor('*')].concat(people.map(rowFor)) };
   }
   // the race track: how close the month is to its goal and what that month is worth in the year (the company for a superadmin, the person otherwise)
-  { const key = isSuper ? '*' : mineName, Yr = +ym.slice(0, 4);
+  { const spQ = String(req.query.sp || ''), key = isSuper ? (spQ && spQ !== 'all' && people.includes(spQ) ? spQ : '*') : mineName, Yr = +ym.slice(0, 4);
     if (key) { const gOf = (m) => { const g = goalOf(key, m); if (key === '*' && g.auto) { const v = people.map((p) => goalOf(p, m).v).filter((x) => x != null); return v.length ? v.reduce((a, b) => a + b, 0) : null; } return g.v; };
       const sOf = (m) => key === '*' ? Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0) : Number(((mon[key] || {})[m] || {}).sales) || 0;
       const months = Array.from({ length: 12 }, (_, i) => { const m = Yr + '-' + pad2(i + 1); return { ym: m, goal: gOf(m), sales: sOf(m) }; });
