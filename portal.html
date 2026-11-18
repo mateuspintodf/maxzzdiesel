@@ -1957,41 +1957,41 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <!-- checkout -->
 <!-- orders -->
 <div v-if="route === 'proposal'" class="px-wrap" style="padding:28px 16px">
-<div class="px-card" v-if="!pr || pr.loading"><p class="px-muted">Loading your proposal...</p></div>
-<div class="px-card" v-if="pr && pr.missing"><h2>We could not open this proposal</h2><p class="px-muted">The link may be wrong or the proposal was replaced. Reply to our e-mail or write to <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a> and we will send it again.</p></div>
-<div v-if="pr && pr.v && !pr.missing">
+<div class="px-card" v-if="!prop || prop.loading"><p class="px-muted">Loading your proposal...</p></div>
+<div class="px-card" v-if="prop && prop.missing"><h2>We could not open this proposal</h2><p class="px-muted">The link may be wrong or the proposal was replaced. Reply to our e-mail or write to <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a> and we will send it again.</p></div>
+<div v-if="prop && prop.v && !prop.missing">
 <div class="px-paper" id="px-prop">
-<div class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="pr.v.label"></b><span v-text="pr.v.number"></span></div></div>
-<div class="px-paper-meta"><div><b>Prepared for</b><span v-text="pr.v.customer || pr.v.contact"></span><span v-if="pr.v.contact && pr.v.customer" v-text="pr.v.contact"></span></div><div><b>Date</b><span v-text="date(pr.v.sentAt || Date.now())"></span></div><div><b>Valid until</b><span v-text="pr.v.validUntil ? date(pr.v.validUntil) : '-'"></span></div><div><b>Status</b><span v-text="pr.v.status === 'accepted' ? 'Accepted' : pr.v.status === 'expired' ? 'Expired' : 'Waiting for your acceptance'"></span></div></div>
+<div class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="prop.v.label"></b><span v-text="prop.v.number"></span></div></div>
+<div class="px-paper-meta"><div><b>Prepared for</b><span v-text="prop.v.customer || prop.v.contact"></span><span v-if="prop.v.contact && prop.v.customer" v-text="prop.v.contact"></span></div><div><b>Date</b><span v-text="date(prop.v.sentAt || Date.now())"></span></div><div><b>Valid until</b><span v-text="prop.v.validUntil ? date(prop.v.validUntil) : '-'"></span></div><div><b>Status</b><span v-text="prop.v.status === 'accepted' ? 'Accepted' : prop.v.status === 'expired' ? 'Expired' : 'Waiting for your acceptance'"></span></div></div>
 <div style="padding:8px 32px 24px;overflow-x:auto">
 <table class="px-qlt" style="width:100%"><thead><tr><th>Part number</th><th>Description</th><th class="r">Qty</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead><tbody>
-<tr v-for="l in pr.v.lines"><td class="mono" v-text="l.code"></td><td v-text="l.name"></td><td class="r" v-text="l.qty"></td><td class="r" v-text="fmt(l.price)"></td><td class="r" v-text="fmt(l.amount)"></td></tr>
+<tr v-for="l in prop.v.lines"><td class="mono" v-text="l.code"></td><td v-text="l.name"></td><td class="r" v-text="l.qty"></td><td class="r" v-text="fmt(l.price)"></td><td class="r" v-text="fmt(l.amount)"></td></tr>
 </tbody><tfoot>
-<tr v-if="pr.v.discount"><td colspan="4" class="r">Discount ({{ pr.v.discountPct }}%)</td><td class="r" v-text="'-' + fmt(pr.v.discount)"></td></tr>
-<tr v-if="pr.v.freight"><td colspan="4" class="r">Freight</td><td class="r" v-text="fmt(pr.v.freight)"></td></tr>
-<tr><td colspan="4" class="r"><b>Total (USD)</b></td><td class="r"><b v-text="fmt(pr.v.total)"></b></td></tr>
+<tr v-if="prop.v.discount"><td colspan="4" class="r">Discount ({{ prop.v.discountPct }}%)</td><td class="r" v-text="'-' + fmt(prop.v.discount)"></td></tr>
+<tr v-if="prop.v.freight"><td colspan="4" class="r">Freight</td><td class="r" v-text="fmt(prop.v.freight)"></td></tr>
+<tr><td colspan="4" class="r"><b>Total (USD)</b></td><td class="r"><b v-text="fmt(prop.v.total)"></b></td></tr>
 </tfoot></table>
-<p v-if="pr.v.notes" style="margin-top:14px;white-space:pre-line" v-text="pr.v.notes"></p>
+<p v-if="prop.v.notes" style="margin-top:14px;white-space:pre-line" v-text="prop.v.notes"></p>
 <p class="px-muted" style="margin-top:14px;font-size:12px">Prices in USD. Taxes, if any, are added at invoicing. Stock is confirmed when we process your order.</p>
 </div>
 </div>
-<div class="px-card" style="max-width:900px;margin:16px auto" v-if="pr.done"><h2>Thank you, we have your acceptance</h2><p class="px-muted">We are preparing your order and will confirm the ship date by e-mail. Questions: <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p><button type="button" class="px-btn px-ghost px-sm" @click="propPrint()">Print or save as PDF</button></div>
-<div class="px-card" style="max-width:900px;margin:16px auto" v-if="!pr.done && pr.v.status === 'expired'"><h2>This proposal has expired</h2><p class="px-muted">Prices and stock change, so we need to refresh it. Reply to our e-mail and we will send you a new one.</p></div>
-<div class="px-card" style="max-width:900px;margin:16px auto" v-if="!pr.done && pr.v.status !== 'expired'">
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="prop.done"><h2>Thank you, we have your acceptance</h2><p class="px-muted">We are preparing your order and will confirm the ship date by e-mail. Questions: <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p><button type="button" class="px-btn px-ghost px-sm" @click="propPrint()">Print or save as PDF</button></div>
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="!prop.done && prop.v.status === 'expired'"><h2>This proposal has expired</h2><p class="px-muted">Prices and stock change, so we need to refresh it. Reply to our e-mail and we will send you a new one.</p></div>
+<div class="px-card" style="max-width:900px;margin:16px auto" v-if="!prop.done && prop.v.status !== 'expired'">
 <h2>Accept and confirm delivery</h2>
 <div class="px-fg" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:12px 0">
-<label>Ship to (name)<input type="text" v-model="pr.ship.name" maxlength="120"></label>
-<label>Street address<input type="text" v-model="pr.ship.street" maxlength="160" autocomplete="street-address"></label>
-<label>City<input type="text" v-model="pr.ship.city" maxlength="80"></label>
-<label>State<input type="text" v-model="pr.ship.state" maxlength="60"></label>
-<label>ZIP<input type="text" v-model="pr.ship.zip" maxlength="20"></label>
-<label>Country<input type="text" v-model="pr.ship.country" maxlength="60"></label>
-<label>Shipping method<select v-model="pr.ship.method"><option>Ground</option><option>Express</option><option>Freight (LTL)</option><option>Will call (pick up)</option></select></label>
+<label>Ship to (name)<input type="text" v-model="prop.ship.name" maxlength="120"></label>
+<label>Street address<input type="text" v-model="prop.ship.street" maxlength="160" autocomplete="street-address"></label>
+<label>City<input type="text" v-model="prop.ship.city" maxlength="80"></label>
+<label>State<input type="text" v-model="prop.ship.state" maxlength="60"></label>
+<label>ZIP<input type="text" v-model="prop.ship.zip" maxlength="20"></label>
+<label>Country<input type="text" v-model="prop.ship.country" maxlength="60"></label>
+<label>Shipping method<select v-model="prop.ship.method"><option>Ground</option><option>Express</option><option>Freight (LTL)</option><option>Will call (pick up)</option></select></label>
 </div>
-<label style="display:block;margin-bottom:12px">Note for us (optional)<textarea v-model="pr.note" rows="2" maxlength="600" style="width:100%"></textarea></label>
-<label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px"><input type="checkbox" v-model="pr.agree" style="margin-top:3px"><span>I have reviewed the parts, prices and delivery details above and I accept this proposal.</span></label>
-<p class="px-err" v-if="pr.err" v-text="pr.err" role="alert"></p>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="px-btn px-dark" :disabled="pr.busy" @click="propAccept()" v-text="pr.busy ? 'Sending...' : 'Accept proposal'"></button><button type="button" class="px-btn px-ghost" @click="propPrint()">Print or save as PDF</button></div>
+<label style="display:block;margin-bottom:12px">Note for us (optional)<textarea v-model="prop.note" rows="2" maxlength="600" style="width:100%"></textarea></label>
+<label style="display:flex;gap:8px;align-items:flex-start;margin-bottom:12px"><input type="checkbox" v-model="prop.agree" style="margin-top:3px"><span>I have reviewed the parts, prices and delivery details above and I accept this proposal.</span></label>
+<p class="px-err" v-if="prop.err" v-text="prop.err" role="alert"></p>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="px-btn px-dark" :disabled="prop.busy" @click="propAccept()" v-text="prop.busy ? 'Sending...' : 'Accept proposal'"></button><button type="button" class="px-btn px-ghost" @click="propPrint()">Print or save as PDF</button></div>
 </div>
 </div>
 </div>
@@ -2278,7 +2278,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=95"></script>
+<script src="/js/portal-app.js?v=96"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

@@ -2430,7 +2430,7 @@
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', pr: null, camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', prop: null, camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -3047,8 +3047,8 @@
       if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
-      if (r === 'proposal') { var sp = this; this.pr = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
-        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.pr.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.pr.ship, pv.ship); sp.pr.done = pv.status === 'accepted'; sp.pr.v = pv; sp.pr.loading = false; } else { sp.pr.loading = false; sp.pr.missing = true; } }); }
+      if (r === 'proposal') { var sp = this; this.prop = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
+        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.prop.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.prop.ship, pv.ship); sp.prop.done = pv.status === 'accepted'; sp.prop.v = pv; sp.prop.loading = false; } else { sp.prop.loading = false; sp.prop.missing = true; } }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }
@@ -3133,7 +3133,7 @@
     name: function (code) { var r = this.map[code]; return r ? this.title(r) : code; },
     qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; var f = document.querySelector('.px-fab-b.red'); if (f) f.focus(); }, 210); },
     propAccept: function () {
-      var self = this, P = this.pr; if (!P || P.busy) return; P.err = '';
+      var self = this, P = this.prop; if (!P || P.busy) return; P.err = '';
       if (!P.agree) { P.err = 'Please tick the box to accept.'; return; }
       P.busy = true;
       api('proposal-accept', { body: { t: this.arg, ship: P.ship, note: P.note, agree: true } }).then(function (r) { P.busy = false; if (r.ok) { P.done = true; P.v.status = 'accepted'; window.scrollTo({ top: 0, behavior: 'smooth' }); } else P.err = r.error || 'Something went wrong. Please try again or call us.'; });
