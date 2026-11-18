@@ -415,6 +415,12 @@ A.quotes = async (req, res) => {
       const ps = await sdb.select('proposals', 'select=ref,status,token,valid_until,doc_type&ref=in.(' + ids.join(',') + ')'), by = {}; ps.forEach((p) => { by[p.ref] = p; });
       list.forEach((q) => { const p = by[q.id]; if (p && p.status !== 'draft') q.prop = { status: p.status === 'sent' && p.valid_until && Date.parse(p.valid_until) < Date.now() ? 'expired' : p.status, token: p.token, doc: p.doc_type }; });
     }
+    // no proposal: a manual move of the CRM deal still moves what the customer sees (Unleashed status stays the floor, nothing is written there)
+    const open = list.filter((q) => !q.prop && /^[A-Za-z0-9-]+$/.test(String(q.id || '')) && /^(Parked|Draft)$/.test(String(q.ulStatus || ''))).map((q) => q.id);
+    if (open.length && PS.on()) {
+      const ds = await sdb.select('crm_deals', 'select=ref,stage&ref=in.(' + open.join(',') + ')'), st = {}; ds.forEach((d) => { st[d.ref] = d.stage; });
+      list.forEach((q) => { const g = st[q.id]; if (q.prop || !g) return; if (g === 'quote' || g === 'negotiation') q.prop = { status: 'sent' }; else if (g === 'won') q.prop = { status: 'accepted' }; else if (g === 'lost') q.prop = { status: 'closed' }; });
+    }
   } catch (e) { console.error('quote proposals', e.message); }
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ quotes: list });
