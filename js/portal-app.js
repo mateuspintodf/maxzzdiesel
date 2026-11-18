@@ -3048,7 +3048,7 @@
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
       if (r === 'proposal') { var sp = this; this.pr = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
-        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.pr.loading = false; sp.pr.v = pv; sp.pr.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.pr.ship, pv.ship); sp.pr.done = pv.status === 'accepted'; } else { sp.pr.loading = false; sp.pr.missing = true; } }); }
+        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.pr.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.pr.ship, pv.ship); sp.pr.done = pv.status === 'accepted'; sp.pr.v = pv; sp.pr.loading = false; } else { sp.pr.loading = false; sp.pr.missing = true; } }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }

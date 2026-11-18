@@ -1959,7 +1959,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div v-if="route === 'proposal'" class="px-wrap" style="padding:28px 16px">
 <div class="px-card" v-if="!pr || pr.loading"><p class="px-muted">Loading your proposal...</p></div>
 <div class="px-card" v-if="pr && pr.missing"><h2>We could not open this proposal</h2><p class="px-muted">The link may be wrong or the proposal was replaced. Reply to our e-mail or write to <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a> and we will send it again.</p></div>
-<div v-if="pr && !pr.loading && !pr.missing">
+<div v-if="pr && pr.v && !pr.missing">
 <div class="px-paper" id="px-prop">
 <div class="px-paper-h"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel"><div><b v-text="pr.v.label"></b><span v-text="pr.v.number"></span></div></div>
 <div class="px-paper-meta"><div><b>Prepared for</b><span v-text="pr.v.customer || pr.v.contact"></span><span v-if="pr.v.contact && pr.v.customer" v-text="pr.v.contact"></span></div><div><b>Date</b><span v-text="date(pr.v.sentAt || Date.now())"></span></div><div><b>Valid until</b><span v-text="pr.v.validUntil ? date(pr.v.validUntil) : '-'"></span></div><div><b>Status</b><span v-text="pr.v.status === 'accepted' ? 'Accepted' : pr.v.status === 'expired' ? 'Expired' : 'Waiting for your acceptance'"></span></div></div>
@@ -2278,7 +2278,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=94"></script>
+<script src="/js/portal-app.js?v=95"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>
