@@ -1535,6 +1535,100 @@ A.crm = async (req, res) => {
   const photos = {}; (await db.select('admins', 'select=email,name,first_name,salesperson,photo&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (!ph) return; [r.salesperson, r.name, r.first_name, String(r.name||'').trim().split(/\s+/)[0]].forEach((k) => { k = String(k || '').trim(); if (k && !photos[k]) photos[k] = ph; }); });
   return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
 };
+// ---------------------------------------------------------------- proposals (Sales > CRM > deal > Proposal)
+const PROP = require('../lib/proposal');
+const normPn = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+async function dealFor(req, res, w, id) {
+  const d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0];
+  if (!d) { res.status(404).json({ error: 'deal' }); return null; }
+  const sc = await salesScope(w, { query: {} });
+  if (w.role !== 'superadmin' && d.owner !== sc.sp) { res.status(403).json({ error: 'scope' }); return null; }
+  return d;
+}
+async function orderLinesOf(ref) {
+  if (!ref || !/^[A-Za-z0-9-]+$/.test(ref) || !configured()) return [];
+  try {
+    const o = ((await ul('SalesOrders', 'orderNumber=' + encodeURIComponent(ref), { timeoutMs: 9000 })).Items || [])[0];
+    return o ? (o.SalesOrderLines || []).filter((l) => l.Product).map((l) => ({ code: l.Product.ProductCode, name: String(l.Product.ProductDescription || '').slice(0, 140), qty: Number(l.OrderQuantity) || 0, price: Number(l.UnitPrice) || 0 })) : [];
+  } catch (e) { return []; }
+}
+async function moveDeal(d, stage, body, by, value) {
+  const now = new Date().toISOString(), won = stage === 'won' || stage === 'lost';
+  await db.update('crm_deals', 'id=eq.' + d.id, Object.assign({ stage, stage_at: now, updated_at: now }, won ? { closed_at: now } : {}, value != null ? { value } : {}));
+  await db.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body, created_by: by }]).catch(() => {});
+}
+A['proposal-get'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const d = await dealFor(req, res, w, clean(req.query.id, 60)); if (!d) return;
+  let p = (await db.select('proposals', 'select=*&deal_id=eq.' + d.id + '&limit=1'))[0], fresh = false;
+  if (!p) {
+    fresh = true;
+    p = { deal_id: d.id, ref: d.ref, number: d.ref || ('P-' + String(d.id).slice(0, 6).toUpperCase()), doc_type: process.env.PROPOSAL_DOC === 'invoice' ? 'invoice' : 'quote', status: 'draft', lines: await orderLinesOf(d.ref), discount_pct: 0, freight: 0, notes: '', valid_days: 30,
+      customer_name: d.customer_name || '', contact_name: d.contact_name || '', contact_email: d.contact_email || '', contact_phone: d.contact_phone || '', ship: null };
+  }
+  const floors = {}, F = await floorsFor((p.lines || []).map((l) => l.code));
+  Object.keys(F).forEach((c) => { floors[c] = F[c].floor; });
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ proposal: p, fresh, floors, pct: MIN_MARGIN(), canBelow: w.role === 'superadmin', deal: { id: d.id, title: d.title, ref: d.ref, stage: d.stage, customer: d.customer_name, code: d.customer_code }, mailOn: customerMailOn(), url: p.token ? 'https://' + req.headers.host + '/portal#/proposal/' + p.token : null });
+};
+// type-ahead for adding a part: part number with or without dots and brand prefix, or words from the name
+A['proposal-search'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const raw = clean(req.query.q, 60), nq = normPn(raw), words = raw.toLowerCase().split(/\s+/).filter((x) => x.length > 1);
+  if (nq.length < 2) return res.json({ rows: [] });
+  const [cat, prod] = await Promise.all([cached('catalog/live.json', 60 * 60 * 1000).catch(() => []), cached('portal/products.json', 10 * 60 * 1000).catch(() => null)]);
+  const out = [];
+  for (const r of (Array.isArray(cat) ? cat : [])) {
+    const code = normPn(r[0]), bare = code.replace(/^[a-z]{2,4}(?=\d)/, ''), name = String(r[1] || '').toLowerCase();
+    let sc = 0;
+    if (code === nq || bare === nq) sc = 100; else if (code.startsWith(nq) || bare.startsWith(nq)) sc = 80; else if (code.includes(nq)) sc = 60; else if (words.length && words.every((x) => name.includes(x))) sc = 30;
+    if (sc) out.push([sc, r]);
+  }
+  out.sort((a, b) => b[0] - a[0]);
+  return res.json({ rows: out.slice(0, 10).map(([, r]) => { const p = prod && prod.items && prod.items[r[0]]; return { code: r[0], name: String(r[1] || '').split(' / ')[0].slice(0, 120), price: p && p.d > 0 ? p.d : null }; }) });
+};
+A['proposal-save'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), d = await dealFor(req, res, w, clean(b.id, 60)); if (!d) return;
+  const lines = PROP.cleanLines(b.lines);
+  if (!lines.length) return res.status(400).json({ error: 'Add at least one part with a quantity.' });
+  if (b.send && lines.some((l) => !(l.price > 0))) return res.status(400).json({ error: 'Every part needs a price before the proposal goes out.' });
+  const pct = Math.min(100, Math.max(0, Number(b.discount_pct) || 0)), freight = Math.max(0, Number(b.freight) || 0), days = Math.min(365, Math.max(1, parseInt(b.valid_days, 10) || 30));
+  // margin floor: cost + CAMPAIGN_MIN_MARGIN, on the price the customer actually pays (after the discount). Only a superadmin goes under, with a reason.
+  const F = await floorsFor(lines.map((l) => l.code)), below = [];
+  lines.forEach((l) => { const f = F[l.code]; const net = l.price * (1 - pct / 100); if (f && net < f.floor - 0.004) below.push({ code: l.code, price: Math.round(net * 100) / 100, floor: f.floor }); });
+  if (below.length) {
+    if (!(w.role === 'superadmin' && b.force)) return res.status(409).json({ error: below.length + ' part' + (below.length === 1 ? ' is' : 's are') + ' under the margin floor (cost + ' + MIN_MARGIN() + '%).' + (w.role === 'superadmin' ? ' Confirm to go under it, with a reason.' : ' Ask a superadmin to approve it.'), below, canBelow: w.role === 'superadmin' });
+    if (!clean(b.force_reason, 300)) return res.status(400).json({ error: 'Say why this proposal goes under the margin floor.', below, canBelow: true });
+  }
+  const now = new Date(), cur = (await db.select('proposals', 'select=*&deal_id=eq.' + d.id + '&limit=1'))[0];
+  if (cur && cur.status === 'accepted') return res.status(409).json({ error: 'The customer already accepted this proposal. Open a new deal for changes.' });
+  const rec = { deal_id: d.id, ref: d.ref || null, number: (cur && cur.number) || d.ref || ('P-' + String(d.id).slice(0, 6).toUpperCase()), doc_type: b.doc_type === 'invoice' ? 'invoice' : 'quote', lines, discount_pct: pct, freight: Math.round(freight * 100) / 100,
+    notes: String(b.notes || '').slice(0, 1500), valid_days: days, customer_name: clean(b.customer_name, 160) || d.customer_name || null, contact_name: clean(b.contact_name, 120) || d.contact_name || null,
+    contact_email: clean(b.contact_email, 160).toLowerCase() || d.contact_email || null, contact_phone: clean(b.contact_phone, 40) || d.contact_phone || null, below_floor: below.length ? { by: w.email, reason: clean(b.force_reason, 300), parts: below } : null,
+    created_by: (cur && cur.created_by) || w.email, updated_at: now.toISOString() };
+  const t = PROP.calc(lines, pct, freight);
+  if (b.send) {
+    if (!rec.contact_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rec.contact_email)) return res.status(400).json({ error: 'Add a valid customer e-mail to send the proposal.' });
+    Object.assign(rec, { status: 'sent', token: (cur && cur.token) || PROP.newToken(), sent_at: now.toISOString(), valid_until: new Date(now.getTime() + days * 864e5).toISOString() });
+  } else if (!cur) rec.status = 'draft';
+  const saved = cur ? (await db.update('proposals', 'id=eq.' + cur.id, rec))[0] : (await db.insert('proposals', [rec]))[0];
+  await PS.audit(w.email, b.send ? 'proposal.send' : 'proposal.save', 'deal', d.id, null, { number: rec.number, total: t.total, below: below.length || undefined, reason: below.length ? clean(b.force_reason, 300) : undefined });
+  let mail = null, url = null;
+  if (b.send) {
+    url = 'https://' + req.headers.host + '/portal#/proposal/' + saved.token;
+    await moveDeal(d, 'quote', 'Proposal ' + rec.number + ' sent to ' + rec.contact_email + ' (' + t.total.toFixed(2) + ' USD, valid ' + days + ' days)', w.email, t.total);
+    try { await PS.updateQuoteStatus(rec.number, 'Quoted'); } catch (e) {}
+    const v = PROP.view(saved);
+    try { mail = await send(rec.contact_email, v.label + ' ' + v.number + ' from Maxzz Diesel', 'Your ' + v.label.toLowerCase() + ' is ready', PROP.emailTable(v) + '<p style="margin-top:14px">Review it and accept online. You can confirm the delivery address and shipping before we process it.</p>', { label: 'Review and accept', url }, { name: rec.contact_name }); } catch (e) { console.error('proposal mail', e.message); }
+  }
+  return res.json({ ok: true, proposal: saved, totals: t, url, mail: mail ? (mail.sent ? 'sent' : mail.blocked ? 'blocked' : 'not sent') : null });
+};
+
 A['crm-deal'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
@@ -2104,7 +2198,7 @@ A.audit = async (req, res) => {
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
 const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
-  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
+  crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],

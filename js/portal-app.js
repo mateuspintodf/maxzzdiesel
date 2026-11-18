@@ -2426,11 +2426,11 @@
   // longest national number per country (digits after the country code), to tell a local number from a full one
   var NAT = { Brazil: 11, Mexico: 10, Colombia: 10, Chile: 9, Peru: 9, Ecuador: 9, Argentina: 11, Uruguay: 9, Paraguay: 9, Bolivia: 8, Venezuela: 10, Panama: 8, 'Costa Rica': 8, Guatemala: 8, Honduras: 8, 'El Salvador': 8, Nicaragua: 8 };
   var NANP = /United States|Puerto Rico|Canada|Dominican Republic/;
-  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'account', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards'];
+  var ROUTES = ['home', 'c', 's', 'g', 'all', 'promo', 'p', 'cart', 'checkout', 'orders', 'account', 'o', 'login', 'sent', 'request', 'requested', 'pending', 'admin', 'quote', 'rewards', 'proposal'];
   var T0 = Date.now();
 
   var app = PetiteVue.reactive({
-    route: 'home', arg: '', camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
+    route: 'home', arg: '', pr: null, camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
     err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
     rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
     q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
@@ -2774,7 +2774,7 @@
     get pr() { return this.product || ['', '', '', '', '', '', '']; },
     // order flow (cart > shipping > review > order page) and quote flow (list > details > review > done)
     qUnits: function (q) { return (q.lines || []).reduce(function (a, l) { return a + (l.qty || 0); }, 0); },
-    qStat: function (q) { var m = { Parked: ['In review', 'Parked', 2], Placed: ['Accepted', 'Accepted', 4], Backordered: ['Accepted', 'Accepted', 4], Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Shipped', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
+    qStat: function (q) { if (q.prop) { var ps = q.prop.status; if (ps === 'sent') return { t: 'Quote sent', c: 'Quoted', at: 3 }; if (ps === 'accepted') return { t: 'Accepted', c: 'Accepted', at: 4 }; if (ps === 'expired') return { t: 'Quote expired', c: 'Closed', at: 3 }; } var m = { Parked: ['In review', 'Parked', 2], Placed: ['Accepted', 'Accepted', 4], Backordered: ['Accepted', 'Accepted', 4], Draft: ['In review', 'Parked', 2], Pending: ['Quote sent', 'Quoted', 3], Open: ['Quote sent', 'Quoted', 3], Accepted: ['Accepted', 'Accepted', 4], Completed: ['Shipped', 'Ordered', 5], Deleted: ['Closed', 'Closed', 1] }[q.ulStatus] || ['In review', 'Parked', 2]; return { t: m[0], c: m[1], at: m[2] }; },
     requote: function (q) { var self = this; (q.lines || []).forEach(function (l) { if (self.map[l.pn]) self.addQuote(l.pn, l.qty); }); this.flash('Parts added to your quote list', 'quote'); },
     // print the document only, with a file name the PDF dialog uses: "Maxzz Diesel Quote request MXQ-10005 Company 2026-11-15"
     printDoc: function () {
@@ -3038,7 +3038,7 @@
       if (r === 'c') { var lc = String(a).toLowerCase(), hit = CATS.filter(function (c) { return c.k.toLowerCase() === lc || c.label.toLowerCase() === lc || c.label.toLowerCase().replace(/s$/, '') === lc; })[0];
         if (!hit) { location.replace('#/all'); return; } if (hit.k !== a) { location.replace('#/c/' + encodeURIComponent(hit.k)); return; } }
       track('portal_view', { portal_route: r || 'home' }); if (r === 's' && a) track('search', { search_term: String(a).slice(0, 80), source: 'store' }); if (r === 'p' && a) track('view_item', { item_id: a, source: 'store' });
-      if (r && ['login', 'request', 'sent', 'invite'].indexOf(r) < 0) { try { localStorage.setItem('px-ret', JSON.stringify({ h: location.hash.slice(0, 200), t: Date.now() })); } catch (e) {} }
+      if (r && ['login', 'request', 'sent', 'invite', 'proposal'].indexOf(r) < 0) { try { localStorage.setItem('px-ret', JSON.stringify({ h: location.hash.slice(0, 200), t: Date.now() })); } catch (e) {} }
       this.route = r || 'home'; this.arg = a; this.err = ''; this.limit = 24; this.sugOn = false; this.showF = false; this.mbarOn = false; this.mOpen = false; document.documentElement.classList.remove('px-lock');
       this.qInput = r === 's' ? a : '';
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
@@ -3047,6 +3047,8 @@
       if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
+      if (r === 'proposal') { var sp = this; this.pr = { loading: true, agree: false, note: '', busy: false, done: false, err: '', ship: { name: '', street: '', city: '', state: '', zip: '', country: 'United States', method: 'Ground' } };
+        api('proposal?t=' + encodeURIComponent(a)).then(function (j) { if (j._status === 200 && j.proposal) { var pv = j.proposal; sp.pr.loading = false; sp.pr.v = pv; sp.pr.ship.name = pv.customer || ''; if (pv.ship) Object.assign(sp.pr.ship, pv.ship); sp.pr.done = pv.status === 'accepted'; } else { sp.pr.loading = false; sp.pr.missing = true; } }); }
       if (r === 'o') this.cur = this.orders.filter(function (o) { return o.id === a; })[0] || null;
       if (r === 'checkout' && !this.cart.length) { location.hash = '#/cart'; return; }
       if ((r === 'quote' || r === 'cart') && a === 'extras') { if (!(r === 'quote' ? this.quote : this.cart).length) { location.hash = '#/' + r; return; } if (!this.exBase) this.exBase = (r === 'quote' ? this.quote : this.cart).length; }
@@ -3130,6 +3132,13 @@
     stockText: function (code) { var n = this.qty(code); if (n == null) return 'Ask us'; if (n <= 0) return this.hideOut ? 'Unavailable, ask us' : 'Backorder'; return n < 5 ? 'Only ' + n + ' left' : 'In stock'; },
     name: function (code) { var r = this.map[code]; return r ? this.title(r) : code; },
     qClose: function () { var self = this; if (!this.qOpen || this.qClosing) return; this.qClosing = true; setTimeout(function () { self.qOpen = false; self.qClosing = false; var f = document.querySelector('.px-fab-b.red'); if (f) f.focus(); }, 210); },
+    propAccept: function () {
+      var self = this, P = this.pr; if (!P || P.busy) return; P.err = '';
+      if (!P.agree) { P.err = 'Please tick the box to accept.'; return; }
+      P.busy = true;
+      api('proposal-accept', { body: { t: this.arg, ship: P.ship, note: P.note, agree: true } }).then(function (r) { P.busy = false; if (r.ok) { P.done = true; P.v.status = 'accepted'; window.scrollTo({ top: 0, behavior: 'smooth' }); } else P.err = r.error || 'Something went wrong. Please try again or call us.'; });
+    },
+    propPrint: function () { window.print(); },
     fmt: function (n) { return n == null ? 'Price on request' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },

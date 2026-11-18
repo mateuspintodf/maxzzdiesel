@@ -12,6 +12,8 @@ const { loginToken, verify, setSession, clearSession } = require('../lib/session
 const { authenticate } = require('../lib/auth');
 const PS = require('../lib/portal-store');
 const SDB = require('../lib/sessions-db');
+const sdb = require('../lib/db');
+const PROP = require('../lib/proposal');
 const dbm = require('../lib/db');
 const { hiddenSet } = require('../lib/hidden');
 const vouchers = require('../lib/vouchers');
@@ -407,8 +409,55 @@ A.quotes = async (req, res) => {
     }))]);
     if (changed && !PS.on()) await writeJson(key, list).catch(() => {});
   }
+  try { // a proposal the team sent for this request decides what the customer sees
+    const ids = list.map((q) => q.id).filter((x) => /^[A-Za-z0-9-]+$/.test(String(x || '')));
+    if (ids.length && PS.on()) {
+      const ps = await sdb.select('proposals', 'select=ref,status,token,valid_until,doc_type&ref=in.(' + ids.join(',') + ')'), by = {}; ps.forEach((p) => { by[p.ref] = p; });
+      list.forEach((q) => { const p = by[q.id]; if (p && p.status !== 'draft') q.prop = { status: p.status === 'sent' && p.valid_until && Date.parse(p.valid_until) < Date.now() ? 'expired' : p.status, token: p.token, doc: p.doc_type }; });
+    }
+  } catch (e) { console.error('quote proposals', e.message); }
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ quotes: list });
+};
+
+// ---- proposals: the customer opens the link from the e-mail (a long random token is the key), reviews, confirms delivery and accepts
+const tokenOk = (t) => /^[A-Za-z0-9_-]{20,64}$/.test(String(t || ''));
+A.proposal = async (req, res) => {
+  const t = String(req.query.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
+  if (await limited(req, 'proposal', 60, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
+  if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ proposal: PROP.view(row) });
+};
+A['proposal-accept'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const b = readBody(req), t = String(b.t || ''); if (!tokenOk(t)) return res.status(404).json({ error: 'not found' });
+  if (await limited(req, 'proposal-accept', 10, 15 * 60 * 1000)) return res.status(429).json({ error: 'too many requests' });
+  const row = (await sdb.select('proposals', 'select=*&token=eq.' + encodeURIComponent(t) + '&limit=1'))[0];
+  if (!row || row.status === 'draft') return res.status(404).json({ error: 'not found' });
+  if (row.status === 'accepted') return res.json({ ok: true, already: true });
+  if (row.status !== 'sent' || (row.valid_until && Date.parse(row.valid_until) < Date.now())) return res.status(410).json({ error: 'This proposal is no longer open. Contact us and we will send an updated one.' });
+  const s = b.ship || {}, ship = { name: clean(s.name, 120) || row.customer_name || '', street: clean(s.street, 160), city: clean(s.city, 80), state: clean(s.state, 60), zip: clean(s.zip, 20), country: clean(s.country, 60) || 'United States', method: clean(s.method, 60) };
+  const pickup = /will call|pick/i.test(ship.method);
+  if (!pickup && (!ship.street || !ship.city)) return res.status(400).json({ error: 'Please fill in the street address and city.' });
+  if (!b.agree) return res.status(400).json({ error: 'Please confirm that you accept the proposal.' });
+  const now = new Date().toISOString(), acc = { at: now, ship, note: clean(b.note, 600) };
+  await sdb.update('proposals', 'id=eq.' + row.id, { status: 'accepted', accepted: acc, accepted_at: now, ship, updated_at: now });
+  const view = PROP.view(Object.assign({}, row, { ship }));
+  let un = null; try { un = await PROP.placeInUnleashed(row, ship); } catch (e) { console.error('proposal unleashed', e.message); un = { error: e.message }; }
+  try {
+    const d = row.deal_id && (await sdb.select('crm_deals', 'select=id,owner&id=eq.' + row.deal_id + '&limit=1'))[0];
+    if (d) {
+      await sdb.update('crm_deals', 'id=eq.' + d.id, { stage: 'won', stage_at: now, updated_at: now, closed_at: now, value: view.total });
+      await sdb.insert('crm_activities', [{ deal_id: d.id, kind: 'stage', body: 'Customer accepted ' + row.number + ' online. ' + (un && un.placed ? 'Unleashed order is now Placed.' : 'Unleashed was NOT updated (' + ((un && (un.reason || un.error)) || 'unknown') + '): place the order in Unleashed by hand.'), created_by: 'customer' }]).catch(() => {});
+    }
+  } catch (e) { console.error('proposal deal', e.message); }
+  try { if (PS.on()) await PS.updateQuoteStatus(row.number, 'Accepted'); } catch (e) {}
+  const where = [ship.street, ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
+  send('sales@maxzzdiesel.com', 'Proposal ' + row.number + ' accepted', 'Proposal accepted', PROP.emailTable(view) + '<p>Ship to: ' + esc(where || 'will call') + (ship.method ? ' · ' + esc(ship.method) : '') + '</p>' + (acc.note ? '<p>Customer note: ' + esc(acc.note) + '</p>' : '') + '<p><b>Unleashed:</b> ' + (un && un.placed ? 'order placed.' : 'not updated, place the order by hand.') + '</p>', null, { internal: true }).catch(() => {});
+  if (row.contact_email) send(row.contact_email, 'We received your acceptance of ' + row.number, 'Thank you', PROP.emailTable(view) + '<p>We are preparing your order and will confirm the ship date.</p>', null, { name: row.contact_name }).catch(() => {});
+  return res.json({ ok: true, placed: !!(un && un.placed) });
 };
 
 A.order = async (req, res) => {
