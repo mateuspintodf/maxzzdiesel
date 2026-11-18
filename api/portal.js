@@ -262,10 +262,11 @@ A.request = async (req, res) => {
   await writeJson(DB, db);
   }
   let cid = null;
+  // each HubSpot step on its own: a rejected e-mail (typo in the domain) must not drop the follow-up task for the team
+  try { cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company }); } catch (e) { console.error('hubspot contact', e.message); }
   try {
-    cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company });
-    await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? (prospect ? (prospect.existing ? ' · Existing Unleashed customer: ' : ' · Unleashed prospect created: ') : ' · Unleashed customer ') + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
-    await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).', [{ id: cid, type: 204 }], 4);
+    if (cid) await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? (prospect ? (prospect.existing ? ' · Existing Unleashed customer: ' : ' · Unleashed prospect created: ') : ' · Unleashed customer ') + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
+    await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).' + (cid ? '' : ' HubSpot did not accept the e-mail (' + f.email + '), check it with the customer. ' + f.name + ' · ' + f.phone), cid ? [{ id: cid, type: 204 }] : [], 4);
   } catch (e) { console.error('hubspot', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
     `<p>Thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`, null, { name: f.name });
