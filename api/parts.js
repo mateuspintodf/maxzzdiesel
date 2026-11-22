@@ -33,7 +33,7 @@ const CATS = {
 
 function load() {
   if (DB) return DB;
-  const rows = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'catalog.json'), 'utf8'));
+  const rows = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'catalog.json'), 'utf8')).filter((r) => r[2] !== 'engine'); // engine parts are sold on volvoenginekits.com, not here
   const specs = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'specs.json'), 'utf8'));
   const bySlug = {}, byCode = {}, cats = {}, makes = {}, engs = {}, oem = {};
   const clean = (sp) => {

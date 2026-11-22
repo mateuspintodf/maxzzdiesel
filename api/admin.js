@@ -1462,14 +1462,22 @@ let crmSyncAt = 0;
 async function crmSync() {
   if (Date.now() - crmSyncAt < 90e3 || !configured()) return;
   crmSyncAt = Date.now();
-  const parked = await loadParked(false).catch(() => null); if (!parked) return;
-  const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
-  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value,created_at,updated_at,stage_at&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
+  const parked = await loadParked(false).catch((e) => { console.error('crmSync: Unleashed read failed', e.message); crmSyncAt = 0; return null; }); if (!parked) return;
+  // without the marks or the deals already on record, a sync would create or rewrite deals it should leave alone: stop and try again on the next open
+  let marks, deals;
+  try { marks = await db.selectAll('pipeline_marks', 'select=number,status,reason'); deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value,created_at,updated_at,stage_at&ref=not.is.null'); }
+  catch (e) { console.error('crmSync: database read failed, nothing changed', e.message); crmSyncAt = 0; return; }
+  const mk = {}; marks.forEach((m) => { mk[m.number] = m; });
+  const by = {}; deals.forEach((d) => { by[d.ref] = d; });
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
   const ctOf = {};
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
   const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.name) : null) || (ctOf[r.code] || {}).contact_name || null, contact_email: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.email) : null) || (ctOf[r.code] || {}).email || null, contact_phone: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.phone) : null) || (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
-  if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
+  if (fresh.length) {
+    // one bad row must not lose the whole batch: on a failure each order is tried on its own and the one that fails is named in the log
+    let ins = await db.insert('crm_deals', fresh, { onConflict: 'ref', ignoreDuplicates: true }).catch((e) => { console.error('crmSync: batch insert failed, retrying one by one', e.message); return null; });
+    if (!ins) { ins = []; for (const row of fresh) { try { const r1 = await db.insert('crm_deals', [row], { onConflict: 'ref', ignoreDuplicates: true }); if (Array.isArray(r1)) ins.push(...r1); } catch (e) { console.error('crmSync: could not import', row.ref, e.message); } } }
+    if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
   // a deal is as old as its order in Unleashed, not as the moment the CRM first saw it. Deals made by an earlier sync that nobody touched since get their order date back.
   for (const r of parked) { const d = by[r.number]; if (!d || !r.at || d.stage === 'won' || d.stage === 'lost') continue; const cr = Date.parse(d.created_at), up = Date.parse(d.updated_at);
     const sa = Date.parse(d.stage_at);

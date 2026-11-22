@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { toRow } = require('../lib/catalog-map');
 const { hiddenSet } = require('../lib/hidden');
+const FIX = require('../lib/catalog-fix');
 
 const { head, get } = require('@vercel/blob');
 let memo = { at: 0, rows: null, src: 'snapshot' };
@@ -40,7 +41,8 @@ module.exports = async (req, res) => {
     res.setHeader('X-Catalog-Source', memo.src);
     res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400');
     const hid = await hiddenSet();
-    res.status(200).send(JSON.stringify(hid.size ? memo.rows.filter((r) => !hid.has(r[0])) : memo.rows));
+    const rows = await FIX.apply(memo.rows);
+    res.status(200).send(JSON.stringify(hid.size ? rows.filter((r) => !hid.has(r[0])) : rows));
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: 'catalog unavailable' });

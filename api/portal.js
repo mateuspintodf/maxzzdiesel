@@ -72,10 +72,10 @@ async function priceBook(account, admin) {
   return { tier: idx >= 0 ? prod.tiers[idx] : 'Default', at: prod.at, stockAt: stock && stock.at, items: out };
 }
 
-function orderMail(o) {
+function orderMail(o, team) {
   return `<p>Order <b>${esc(o.number)}</b>${o.po ? ` · PO ${esc(o.po)}` : ''}</p>
 <table width="100%" cellpadding="6" style="border-collapse:collapse;font-size:14px">${o.lines.map((l) =>
-    `<tr style="border-bottom:1px solid #eef0f2"><td>${esc(l.code)}${l.backorder ? ' <b style="color:#c26a0a">BACKORDER</b>' : ''}<br><span style="color:#8a9097">${esc(l.name)}</span></td><td align="right" style="padding-left:16px;white-space:nowrap;vertical-align:top">${l.qty} × $${l.price.toFixed(2)}</td></tr>`).join('')}
+    `<tr style="border-bottom:1px solid #eef0f2"><td>${esc(l.code)}${team && l.backorder ? ' <b style="color:#c26a0a">BACKORDER (' + (l.stock || 0) + ' on hand)</b>' : ''}${team && l.price == null ? ' <b style="color:#c26a0a">PRICE TO CONFIRM</b>' : ''}<br><span style="color:#8a9097">${esc(l.name)}</span></td><td align="right" style="padding-left:16px;white-space:nowrap;vertical-align:top">${l.qty} × ${l.price == null ? 'price confirmed by sales' : '$' + l.price.toFixed(2)}</td></tr>`).join('')}
 <tr><td><b>Total</b></td><td align="right"><b>$${o.total.toFixed(2)}</b></td></tr></table>`;
 }
 
@@ -123,8 +123,11 @@ A.groups = async (req, res) => {
 // "Bought together" map built daily from Unleashed sales history (product codes only).
 A.related = async (req, res) => {
   const r = await cached('portal/related.json', 60 * 60 * 1000);
-  res.setHeader('Cache-Control', 'public, max-age=3600');
-  return res.json({ rel: (r && r.rel) || {} });
+  const rel = Object.assign({}, (r && r.rel) || {});
+  // parts linked by hand in the admin come first; the automatic ones fill what is left
+  try { if (dbm.configured()) { const by = {}; (await dbm.selectAll('product_links', 'select=code,related_code,pos&order=pos')).forEach((x) => { (by[x.code] = by[x.code] || []).push(x.related_code); }); Object.keys(by).forEach((c) => { const auto = Array.isArray(rel[c]) ? rel[c] : []; rel[c] = by[c].concat(auto.filter((a) => by[c].indexOf(Array.isArray(a) ? a[0] : a) < 0)).slice(0, 12); }); } } catch (e) { console.error('related links', e.message); }
+  res.setHeader('Cache-Control', 'public, max-age=600');
+  return res.json({ rel });
 };
 A.health = async (req, res) => {
   let db = 'ok';
@@ -300,6 +303,8 @@ A.prices = async (req, res) => {
   const book = await priceBook(w.account, w.admin);
   if (!book) return res.status(503).json({ error: 'catalog syncing' });
   res.setHeader('Cache-Control', 'private, no-store');
+  // stock is internal: only the team gets quantities
+  if (!w.admin) { const items = {}; for (const [c, p] of Object.entries(book.items)) { const q = p.slice(); q[1] = null; items[c] = q; } return res.json({ tier: book.tier, at: book.at, items }); }
   return res.json(book);
 };
 
@@ -564,10 +569,10 @@ A.order = async (req, res) => {
     if (!l || typeof l !== 'object') continue;
     const code = clean(l.code, 60), qty = Math.min(9999, Math.max(1, parseInt(l.qty, 10) || 0));
     const p = book && book.items[code];
-    if (!p || p[0] == null) return res.status(400).json({ error: 'Part ' + code + ' has no online price. Remove it from the cart and add it to a quote request instead.', code });
+    if (!p) return res.status(400).json({ error: 'Part ' + code + ' is not available online. Remove it from the cart and ask our sales team.', code });
     // nothing is blocked by stock: lines above what is on hand go through as backorder and are flagged for the sales team
     const onHand = p[1];
-    lines.push({ code, name: names[code] || code, qty, price: p[0], total: money(p[0] * qty), backorder: onHand != null && qty > onHand, stock: onHand, vch: p[6] !== 0, camp: p[5] || null });
+    lines.push({ code, name: names[code] || code, qty, price: p[0], total: p[0] == null ? 0 : money(p[0] * qty), tbd: p[0] == null, backorder: onHand != null && qty > onHand, stock: onHand, vch: p[6] !== 0 && p[0] != null, camp: p[5] || null });
   }
   if (!lines.length) return res.status(400).json({ error: 'empty' });
   const s = b.ship || {};
@@ -603,7 +608,7 @@ A.order = async (req, res) => {
     const guid = PS.on() ? o.id : crypto.randomUUID();
     const body = {
       Guid: guid, OrderStatus: 'Parked', OrderDate: t.toISOString(), Customer: { CustomerCode: w.account.customerCode },
-      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, vch ? 'VOUCHER ' + vch.code + ' (-$' + discount.toFixed(2) + ')' : '', lines.some((l) => l.camp) ? 'CAMPAIGN PRICE (' + [...new Set(lines.filter((l) => l.camp).map((l) => l.camp))].join(', ') + '): ' + lines.filter((l) => l.camp).map((l) => l.code).join(', ') : '', lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
+      CustomerRef: o.po || o.number, Comments: ['Portal B2B ' + o.number, vch ? 'VOUCHER ' + vch.code + ' (-$' + discount.toFixed(2) + ')' : '', lines.some((l) => l.camp) ? 'CAMPAIGN PRICE (' + [...new Set(lines.filter((l) => l.camp).map((l) => l.camp))].join(', ') + '): ' + lines.filter((l) => l.camp).map((l) => l.code).join(', ') : '', lines.some((l) => l.tbd) ? 'PRICE TO CONFIRM: ' + lines.filter((l) => l.tbd).map((l) => l.code).join(', ') : '', lines.some((l) => l.backorder) ? 'BACKORDER: ' + lines.filter((l) => l.backorder).map((l) => l.code + ' (' + l.qty + ' asked, ' + (l.stock || 0) + ' on hand)').join(', ') : '', w.account.stopCredit ? 'CREDIT HOLD: check before releasing' : '', 'By ' + w.email, ship.fwd && ('Forwarder: ' + ship.fwd), o.notes].filter(Boolean).join(' · '),
       DeliveryName: ship.name, DeliveryStreetAddress: ship.street, DeliveryCity: ship.city, DeliveryRegion: ship.state, DeliveryPostCode: ship.zip, DeliveryCountry: ship.country,
       DeliveryMethod: ship.method || undefined, Currency: { CurrencyCode: 'USD' }, ExchangeRate: 1,
       SalesOrderLines: (function () {
@@ -611,7 +616,7 @@ A.order = async (req, res) => {
         const elig = lines.filter((l) => !vch || l.vch !== false), base = elig.reduce((a, l) => a + l.total, 0), rate = vch && base > 0 ? discount / base : 0, lastI = lines.lastIndexOf(elig[elig.length - 1]);
         let left = vch ? discount : 0;
         return lines.map((l, i) => { let lt = l.total; if (rate && elig.indexOf(l) >= 0) { const d = i === lastI ? money(left) : money(l.total * rate); left = money(left - d); lt = money(l.total - d); }
-          return { LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price, DiscountRate: rate && elig.indexOf(l) >= 0 ? money(rate * 1e4) / 1e4 : undefined, LineTotal: lt, LineTax: 0 }; });
+          return { LineNumber: i + 1, Product: { ProductCode: l.code, Guid: prod && prod.items[l.code] ? prod.items[l.code].g : undefined }, OrderQuantity: l.qty, UnitPrice: l.price == null ? 0 : l.price, DiscountRate: rate && elig.indexOf(l) >= 0 ? money(rate * 1e4) / 1e4 : undefined, LineTotal: lt, LineTax: 0 }; });
       })(),
       SubTotal: subtotal, TaxRate: 0, TaxTotal: 0, Total: subtotal
     };
@@ -635,9 +640,28 @@ A.order = async (req, res) => {
     { url: base(req) + '/portal#orders', label: 'Track your order' }, { name: w.user && w.user.name, greet: true });
   const orderTo = Array.from(new Set((process.env.VERCEL_ENV === 'production' ? String(process.env.TEAM_NOTIFY || 'admin@maxzzdiesel.com,michael@maxzzdiesel.com').toLowerCase().split(/[,\s]+/).filter(Boolean) : []).concat(admins())));
   if (orderTo.length) await send(orderTo, 'Portal order ' + o.number + ' · ' + w.account.company, 'New portal order',
-    `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${w.account.stopCredit ? '<p><b>Credit hold:</b> this customer is on stop credit in Unleashed. Check payment before releasing.</p>' : ''}${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${orderMail(o)}`, null, { internal: true });
+    `<p><b>${esc(w.account.company)}</b> (${esc(w.account.customerCode || 'no Unleashed code')}) · ${esc(w.email)}</p>${w.account.stopCredit ? '<p><b>Credit hold:</b> this customer is on stop credit in Unleashed. Check payment before releasing.</p>' : ''}${o.live ? '<p>Created in Unleashed as Parked.</p>' : '<p><b>Test mode:</b> not sent to Unleashed (PORTAL_ORDERS_LIVE is off).</p>'}${o.lines.some((l) => l.backorder || l.tbd) ? '<p><b>Needs your answer:</b> some lines are above stock or have no online price. Open the deal in the CRM and write the lead time or price on each one; the customer accepts it or takes the line out, and the rest of the order ships now.</p>' : ''}${orderMail(o, true)}`, null, { internal: true });
   } catch (e) { console.error('order mail', e.message); }
-  return res.json({ ok: true, order: o });
+  // the answer to the customer carries no stock information
+  return res.json({ ok: true, order: Object.assign({}, o, { lines: o.lines.map((l, i) => ({ no: i + 1, code: l.code, name: l.name, qty: l.qty, price: l.price, total: l.total })) }) });
+};
+
+// the customer answers a lead time written by the sales team: accept it, or take that line out of the order
+A['order-line'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await whoami(req);
+  if (!w || !w.account || w.account.status !== 'approved') return res.status(w ? 403 : 401).json({ error: 'login' });
+  if (!PS.on()) return res.status(400).json({ error: 'not available' });
+  const b = readBody(req), act = b.action === 'remove' ? 'removed' : b.action === 'accept' ? 'accepted' : '', no = parseInt(b.no, 10);
+  if (!act || !(no > 0) || !PS.isUuid(clean(b.order, 40))) return res.status(400).json({ error: 'bad request' });
+  const o = (await PS.listOrders(w.account.id)).find((x) => x.id === b.order);
+  const line = o && o.lines.find((l) => l.no === no);
+  if (!line || line.state !== 'needs_answer') return res.status(409).json({ error: 'This line was already answered.' });
+  await PS.answerLine(o.id, no, act);
+  await PS.audit(w.email, 'order_line_' + act, 'order', o.number, { code: line.code, lead: line.lead }).catch(() => {});
+  try { await notifyTeam('Order ' + o.number + ' · ' + w.account.company + ': line ' + (act === 'accepted' ? 'accepted' : 'removed'), act === 'accepted' ? 'The customer accepted the lead time' : 'The customer took a line out of the order',
+    [['Company', w.account.company], ['Order', o.number], ['Part', line.code + ' × ' + line.qty], ['Lead time sent', line.lead || ''], ['Answer', act === 'accepted' ? 'Accepted: keep the line and ship it when it arrives' : 'Removed: take this line out of the order in Unleashed'], ['By', w.email]], []); } catch (e) { console.error('order line mail', e.message); }
+  return res.json({ ok: true, order: (await PS.listOrders(w.account.id)).find((x) => x.id === o.id) });
 };
 
 // ---- admin (Michael, Leise) ----------------------------------------------
