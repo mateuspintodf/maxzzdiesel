@@ -461,12 +461,12 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     ['sales', 'Sales', [['crm', 'CRM'], ['pipe', 'Quotes & orders'], ['dir', 'Customers'], ['goals', 'Goals & rewards']]],
     ['ana', 'Analytics', [['sa', 'Sales'], ['dash', 'Overview'], ['events', 'Portal behavior'], ['bcomp', 'Behavior by customer'], ['stream', 'Event stream']]],
     ['portal', 'Portal', [['clients', 'Accounts'], ['prospects', 'Add by hand'], ['segments', 'Lists & invites']]],
-    ['mkt', 'Marketing', [['campaigns', 'Campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
+    ['mkt', 'Marketing', [['emails', 'E-mails'], ['campaigns', 'Price campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Products']]],
     ['set', 'Settings', [['profile', 'My account'], ['terms', 'Terms of use'], ['admins', 'Admin users'], ['audit', 'Activity log']]]];
   function okTab(id) { var sc = S.me && S.me.screens; return !sc || sc.indexOf(id) >= 0 || ['profile', 'sec', 'admins', 'audit'].indexOf(id) >= 0; }
   function navF() { return NAV.map(function (g) { return [g[0], g[1], g[2].filter(function (t) { return okTab(t[0]); })]; }).filter(function (g) { return g[2].length; }); }
-  var SCR_PRESETS = { all: null, sales: ['dash', 'dir', 'pipe', 'sa', 'crm', 'goals'], marketing: ['dash', 'dir', 'segments', 'clients', 'prospects', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'] };
+  var SCR_PRESETS = { all: null, sales: ['dash', 'dir', 'pipe', 'sa', 'crm', 'goals'], marketing: ['dash', 'dir', 'segments', 'clients', 'prospects', 'emails', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'] };
   var PAGE = {}; NAV.forEach(function (g) { g[2].forEach(function (t) { PAGE[t[0]] = { g: g[0], gn: g[1], n: t[1] }; }); }); PAGE.sec = PAGE.profile;
   var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer']];
   var HEAD = {
@@ -501,10 +501,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
     var sk = !!app.querySelector('.skel'), ap = app.querySelector('.app'); if (S._sk && !sk && ap && S._rvl !== S.tab) { S._rvl = S.tab; ap.classList.add('rvl'); setTimeout(function () { ap.classList.remove('rvl'); }, 800); } S._sk = sk;
   }
-  var VIEWS = { profile: function () { return '<div class="acct">' + drawProfile() + drawSec() + '</div>'; }, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
+  var VIEWS = { emails: function () { return window.MXMail ? window.MXMail.view() : ld(); }, profile: function () { return '<div class="acct">' + drawProfile() + drawSec() + '</div>'; }, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
+    if (t === 'emails') { S.tabErr = null; return window.MXMail && window.MXMail.load(); }
     if (t === 'sa') return slLoad();
     if (t === 'goals') return pgLoad();
     if (t === 'crm') return crmLoad();
@@ -2010,7 +2011,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function paint(html) {
     var keepH = window.scrollY > 0 ? window.scrollY + window.innerHeight : 0; if (keepH) app.style.minHeight = keepH + 'px';
     if (!window.morphdom) { app.innerHTML = html; if (!app.querySelector('.skel')) app.style.minHeight = ''; return enhance(); }
-    window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onNodeDiscarded: function (nd) { if (nd.classList && nd.classList.contains('ec') && window.echarts) { var ei = echarts.getInstanceByDom(nd); if (ei) ei.dispose(); } }, onBeforeElUpdated: function (from, to) { if (from.classList && from.classList.contains('ec') && to.classList.contains('ec')) { from.setAttribute('data-ec', to.getAttribute('data-ec')); from.style.height = to.style.height; from.className = to.className; return false; } if (from.classList && from.classList.contains('ind') && to.classList.contains('seg')) { to.classList.add('ind'); to.style.setProperty('--ix', from.style.getPropertyValue('--ix')); to.style.setProperty('--iw', from.style.getPropertyValue('--iw')); } if (from.isEqualNode(to)) return false; if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
+    window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onNodeDiscarded: function (nd) { if (nd.classList && nd.classList.contains('ec') && window.echarts) { var ei = echarts.getInstanceByDom(nd); if (ei) ei.dispose(); } }, onBeforeElUpdated: function (from, to) { if (from.classList && from.classList.contains('ec') && to.classList.contains('ec')) { from.setAttribute('data-ec', to.getAttribute('data-ec')); from.style.height = to.style.height; from.className = to.className; return false; } if (from.classList && from.classList.contains('ind') && to.classList.contains('seg')) { to.classList.add('ind'); to.style.setProperty('--ix', from.style.getPropertyValue('--ix')); to.style.setProperty('--iw', from.style.getPropertyValue('--iw')); } if (from.isEqualNode(to)) return false; if (from.id === 'ml-fr' && to.id === 'ml-fr') { from.className = to.className; return false; } if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
     if (!app.querySelector('.skel') && !S.sdBusy) app.style.minHeight = '';
     enhance();
   }
@@ -2425,6 +2426,8 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var gd = location.search.match(/[?&]deal=([0-9a-f-]{36})/i); if (gd) { try { sessionStorage.setItem('mz_godeal', gd[1]); } catch (e) {} history.replaceState(null, '', location.pathname); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
+  window.MXA = { S: S, api: api, draw: draw, esc: esc, ic: ic, tbl: tbl, th: th, h0: h0, hr: hr, n0: n0, opt: opt, toast: toast, tile: tile, sortRows: sortRows, fmtAt: fmtAt, ld: ld };
+  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-mail.js?v=1'; sc.onload = function () { if (S.tab === 'emails' && S.me) { loadTab('emails'); } }; document.head.appendChild(sc); })();
 })();
 </script>
 </body>

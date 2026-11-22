@@ -260,6 +260,8 @@ A.request = async (req, res) => {
     country: clean(b.country, 60), state: clean(b.state, 60), city: clean(b.city, 80), zip: clean(b.zip, 12), type: clean(b.type, 80), customerNumber: clean(b.customerNumber, 40), notes: clean(b.notes, 800) };
   if (!f.name || !f.company || !EMAIL.test(f.email) || f.phone.replace(/\D/g, '').length < 7) return res.status(400).json({ error: 'missing fields' });
   const prior = PS.on() ? (await PS.loadOne(f.email)).user : (await loadDb()).users[f.email];
+  // asked to receive promotions and news: kept with where the consent came from
+  if (b.optin === true && dbm.configured()) await dbm.insert('email_optins', [{ email: f.email, source: 'access request' }], { onConflict: 'email', ignoreDuplicates: true }).catch((e) => console.error('optin', e.message));
   if (prior && prior.status !== 'rejected') return res.json({ ok: true, already: prior.status });
   let prospect = null;
   if (prospectOn() && !f.customerNumber) {

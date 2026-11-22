@@ -1187,6 +1187,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
  .px .px-d4>.px-nf{grid-column:2;grid-row:2;margin:0 0 14px;flex-direction:column;align-items:flex-start}
  .px .px-d4>.px-d4a{grid-column:2;grid-row:3;margin-top:0!important;flex-direction:column}
  .px .px-d4>.px-d4a .px-btn{width:100%;justify-content:flex-start;padding:0 22px}
+.px-optin{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.45;color:#3a4048;cursor:pointer}.px-optin input{margin-top:3px;width:18px;height:18px;flex:none;accent-color:#d32a37}
 .px-af{position:relative;display:block}.px-addr{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:40;margin:0;padding:6px;list-style:none;background:#fff;border:1px solid #e3e6e9;border-radius:14px;box-shadow:0 12px 32px rgba(20,24,28,.14)}.px-addr li{padding:9px 12px;border-radius:10px;cursor:pointer}.px-addr li.on,.px-addr li:hover{background:#f4f5f6}.px-addr b{display:block;font-size:14px;font-weight:500;color:#1d2126;line-height:1.3}.px-addr small{display:block;font-size:12px;color:#5f656c;line-height:1.3}
 .px-shipc{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff;border:1px solid #e3e6e9;border-radius:18px;padding:16px 20px;margin:14px 0}.px-shipc b{display:block;font-size:13px;color:#5f656c;font-weight:500}.px-shipc span{display:block;font-size:15px;color:#1d2126}.px-shipc small{display:block;font-size:13px;color:#5f656c}
 .px-leadb{margin-top:8px;padding:10px 12px;border-radius:12px;background:#fff4e5;border:1px solid #f3d3a4;font-size:13px;color:#1d2126;display:flex;flex-direction:column;gap:4px}.px-leadb b{font-weight:600;color:#9a4b00}.px-leadb.accepted{background:#eaf6ee;border-color:#b9e0c6}.px-leadb.accepted b{color:#136c33}.px-leadb.removed{background:#f4f5f6;border-color:#e3e6e9}.px-leadb.removed b{color:#5f656c}.px-leada{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}tr.px-ln-off td{color:#8a9097}tr.px-ln-off td.mono{text-decoration:line-through}
@@ -1746,6 +1747,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 <div class="px-f" v-if="flow === 'order' && canOrder" style="margin-bottom:10px"><span>Voucher code</span><span class="px-iw" style="display:flex;gap:8px"><input class="px-in" v-model="vch.code" maxlength="40" placeholder="Optional" @keydown.enter.prevent="applyVoucher" @input="vch.ok = false; vch.msg = ''" style="flex:1"><button type="button" class="px-btn px-dark px-sm" @click="applyVoucher">Apply</button></span><span v-if="vch.ok" style="color:#1f8a4c;font-size:14px" v-text="'Voucher applied: you save ' + fmt(vch.discount) + '. Order total ' + fmt(vch.total) + '.'"></span><span v-else-if="vch.msg" style="color:#d32a37;font-size:14px" v-text="vch.msg"></span></div>
 <label class="px-f">Notes for our team<textarea class="px-in" v-if="flow === 'order'" v-model="co.notes" placeholder="Delivery window, core return, anything sales should know"></textarea><textarea class="px-in" v-else v-model="qd.notes" placeholder="Engine serial, VIN, core return, anything sales should know"></textarea></label>
+<label class="px-optin" v-if="flow === 'quote'"><input type="checkbox" v-model="qd.optin"><span>Send me promotions and news from Maxzz Diesel by e-mail. I can unsubscribe at any time.</span></label>
 <input type="text" id="px-qhp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 <div class="px-err" v-if="err" v-text="err"></div>
 <div style="display:flex;gap:10px;flex-wrap:wrap"><a class="px-btn px-ghost" :href="flow === 'order' ? '#/cart' : '#/quote'">Back</a><button class="px-btn px-red">Review</button></div>
@@ -1942,6 +1944,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <div class="px-g3c"><label class="px-f"><span v-text="zipLabel"></span><span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><input class="px-in" v-model="rq.zip" @input="rqZip" autocomplete="postal-code" :inputmode="rq.country === 'Canada' ? 'text' : 'numeric'" maxlength="10"></span></label><label class="px-f">City<input class="px-in" v-model="rq.city" autocomplete="address-level2"></label><label class="px-f">State<input class="px-in" v-model="rq.state" autocomplete="address-level1" maxlength="30"></label></div>
 <label class="px-f">Maxzz customer number, if you have one<span class="px-iw"><svg class="px-ii" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h14M5 15h14M10 3 8 21M16 3l-2 18"/></svg><input placeholder="Optional" class="px-in" v-model="rq.customerNumber" maxlength="40"></span></label>
 <label class="px-f">Anything we should know<textarea class="px-in" v-model="rq.notes" placeholder="Brands and engines you work with, monthly volume, current supplier..."></textarea></label>
+<label class="px-optin"><input type="checkbox" v-model="rq.optin"><span>Send me promotions and news from Maxzz Diesel by e-mail. I can unsubscribe at any time.</span></label>
 <input type="text" id="px-hp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true">
 <div class="px-err" v-if="err" v-text="err"></div>
 <div style="display:flex;gap:10px"><button type="button" class="px-btn px-ghost" @click="rqStep = 1">Back</button><button class="px-btn px-red" style="flex:1" :disabled="busy" v-text="busy ? 'Sending...' : 'Request access'"></button></div>
@@ -2345,7 +2348,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=102"></script>
+<script src="/js/portal-app.js?v=103"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

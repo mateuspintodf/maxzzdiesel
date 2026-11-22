@@ -40,6 +40,8 @@ module.exports = async (req, res) => {
   if (!customer.name || !customer.company || !EMAIL.test(customer.email) || !phoneOk || !lines.length) {
     return res.status(400).json({ error: 'missing fields' });
   }
+  // asked to receive promotions and news: kept with where the consent came from
+  if (b.optin === true && dbm.configured()) await dbm.insert('email_optins', [{ email: customer.email, source: store ? 'store quote' : 'website quote' }], { onConflict: 'email', ignoreDuplicates: true }).catch((e) => console.error('optin', e.message));
   // quotes also go to Unleashed as a Draft sales quote: store quotes when PORTAL_QUOTES_LIVE=1, website quotes when
   // SITE_QUOTES_UNLEASHED=1. Never blocks the request; HubSpot always gets the full quote.
   const ulq = await createSalesQuote(req, { number, customer, lines, notes: customer.notes, ship }, { site: !store });

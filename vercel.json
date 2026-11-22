@@ -52,6 +52,12 @@
     },
     "api/cron-digest.js": {
       "maxDuration": 60
+    },
+    "api/cron-email.js": {
+      "maxDuration": 60
+    },
+    "api/e.js": {
+      "maxDuration": 15
     }
   },
   "headers": [
@@ -1170,6 +1176,10 @@
     {
       "path": "/api/cron-digest?when=pm",
       "schedule": "0 23 * * 1-5"
+    },
+    {
+      "path": "/api/cron-email",
+      "schedule": "*/5 * * * *"
     }
   ],
   "rewrites": [
