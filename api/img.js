@@ -6,7 +6,7 @@
 const photos = require('../data/photos.json');
 const BLOB = 'https://bdznwjpmjxyavudx.public.blob.vercel-storage.com/p/';
 const TYPES = { webp: 'image/webp', png: 'image/png', jpg: 'image/jpeg' };
-const SIZES = { xs: [144, 108], s: [280, 210], m: [400, 300], l: [640, 480] };
+const SIZES = { xs: [144, 108], s: [280, 210], m: [400, 300], l: [640, 480], xl: [1248, 936] };
 const BG = '#f4f5f6';
 const empty = (w, h) => Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 400 300"><rect width="400" height="300" fill="${BG}"/><g fill="none" stroke="#c3c8ce" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><rect x="150" y="110" width="100" height="80" rx="12"/><circle cx="182" cy="140" r="9"/><path d="M158 182l30-28 22 20 14-12 22 20"/></g></svg>`);
 async function boxed(req, res) {
@@ -19,7 +19,7 @@ async function boxed(req, res) {
   let buf = null;
   for (const u of src) { try { const r = await fetch(u); if (r.ok) { buf = Buffer.from(await r.arrayBuffer()); break; } } catch (e) { /* next address */ } }
   try {
-    const img = buf ? sharp(buf, { failOn: 'none' }).rotate().resize(w, h, { fit: 'contain', background: BG }).flatten({ background: BG }) : sharp(empty(w, h));
+    const img = buf ? sharp(buf, { failOn: 'none' }).rotate().resize(w, h, { fit: req.query.s === 'xl' ? 'cover' : 'contain', background: BG }).flatten({ background: BG }) : sharp(empty(w, h));
     const out = await img.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
     res.setHeader('Content-Type', 'image/jpeg');
     res.setHeader('Cache-Control', buf ? 'public, max-age=604800, s-maxage=2592000, stale-while-revalidate=86400' : 'public, max-age=3600, s-maxage=3600');

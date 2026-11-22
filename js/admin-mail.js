@@ -26,7 +26,7 @@
   var STORE = 'https://www.maxzzdiesel.com/portal';
   // layout suggestions and e-mail sections, shared with the designer
   var SX = window.MXSections || null;
-  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=3'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
+  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=4'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
   // the small picture of a layout: header, one strip per section, in the order they appear
   var ln = function (w, h, c, m) { return '<span style="display:block;width:' + w + '%;height:' + h + 'px;border-radius:' + Math.min(3, h / 2) + 'px;background:' + c + ';margin:' + (m || 0) + 'px 0 0"></span>'; };
   var bx = function (inner, st) { return '<span style="display:block;padding:7px 11px;' + (st || '') + '">' + inner + '</span>'; };
@@ -37,6 +37,8 @@
     hd: bx(ln(22, 3, '#f08a24') + ln(74, 7, '#fff', 5) + ln(88, 3, '#6b727a', 5) + pill(), 'background:#1d2126;padding:12px 11px 14px'),
     hs: bx(ln(22, 3, '#c2410c') + ln(74, 7, '#1d2126', 5) + ln(88, 3, '#c9ced3', 5) + pill(), 'background:#f1f2f4;padding:12px 11px 14px'),
     t: bx(ln(58, 6, '#1d2126'), 'padding:11px 11px 2px'), p: bx(ln(100, 3, '#d5d9dd') + ln(84, 3, '#d5d9dd', 3)), s: bx(ln(90, 2, '#e3e6e9') + ln(60, 2, '#e3e6e9', 3)),
+    im: '<span style="display:block;height:58px;background:#dfe2e6;position:relative;overflow:hidden"><span style="position:absolute;left:14px;top:12px;width:12px;height:12px;border-radius:50%;background:#b4bac1"></span><span style="position:absolute;left:-10px;right:-10px;bottom:-34px;height:60px;background:#b4bac1;border-radius:50% 50% 0 0"></span></span>',
+    ft: bx('<span style="display:block;background:#c9ced3;border-radius:7px;padding:26px 8px 8px"><span style="display:block;width:58%;background:#fff;border-radius:5px;padding:6px">' + ln(70, 4, '#1d2126') + ln(90, 2.5, '#d5d9dd', 4) + '<span style="display:block;width:22px;height:7px;border-radius:4px;background:#d32a37;margin:5px 0 0"></span></span></span>'),
     b: bx(pill('#d32a37', 0), 'padding:6px 11px 9px'), d: bx('<span style="display:block;border-top:1px solid #e3e6e9"></span>', 'padding:6px 11px'),
     bn: bx(bx(ln(30, 3, '#ffc9cd') + ln(76, 7, '#fff', 5) + ln(60, 3, '#ffc9cd', 5) + pill('#fff'), 'background:#d32a37;border-radius:7px;padding:10px'), 'padding:10px 11px 3px'),
     l: bx(lrow() + lrow() + lrow(), 'padding:3px 11px 5px'), l1: bx(lrow(), 'padding:3px 11px 5px'),
@@ -46,7 +48,7 @@
     n: bx(bx(ln(40, 4, '#1d2126') + ln(92, 2.5, '#d9c9b0', 4), 'background:#fff3e2;border-left:3px solid #f08a24;border-radius:4px;padding:7px 8px')),
     c: bx('<span style="display:flex;align-items:center;gap:6px;background:#1d2126;border-radius:7px;padding:9px"><span style="flex:1">' + ln(70, 4, '#fff') + ln(90, 2.5, '#6b727a', 4) + '</span><span style="width:32px;height:11px;border-radius:6px;background:#d32a37;flex:none"></span></span>', 'padding:8px 11px')
   };
-  function wire(tk) { return '<span class="ml-th"><span class="ml-wf"><span style="display:flex;align-items:center;height:17px;background:#1d2126;padding:0 11px;border-bottom:1px solid #2c3138"><span style="width:28px;height:5px;border-radius:3px;background:#d32a37"></span></span>' + tk.map(function (t) { return WT[t] || ''; }).join('') + '</span></span>'; }
+  function wire(tk) { return '<span class="ml-th"><span class="ml-wf">' + (tk[0] === 'im' ? '' : '<span style="display:flex;align-items:center;height:17px;background:#1d2126;padding:0 11px;border-bottom:1px solid #2c3138"><span style="width:28px;height:5px;border-radius:3px;background:#d32a37"></span></span>') + tk.map(function (t) { return WT[t] || ''; }).join('') + '</span></span>'; }
 
   function fmt(d) { return d ? A.fmtAt(d) : '-'; }
   function pct(a, b) { return b ? Math.round(a / b * 100) + '%' : '-'; }
@@ -95,13 +97,13 @@
 
   // ------------------------------------------------------------------ header and footer, the same in every e-mail
   function openLay() { var m = M(); m.lay = { loading: true }; A.draw(); A.api('mail-layout').then(function (r) { if (r._status !== 200) { m.lay = null; A.toast(r.error || 'Could not open it.'); return A.draw(); }
-    var L = r.layout; while (L.header.links.length < 3) L.header.links.push({ label: '', url: '' }); while (L.footer.links.length < 4) L.footer.links.push({ label: '', url: '' }); m.lay = { L: L, html: '', dev: 'd' }; A.draw(); layPrev(0); }); }
+    var L = r.layout; while (L.header.links.length < 3) L.header.links.push({ label: '', url: '' }); m.lay = { L: L, html: '', dev: 'd' }; A.draw(); layPrev(0); }); }
   function layPrev(wait) { clearTimeout(pt); pt = setTimeout(function () { var Y = M().lay; if (!Y || !Y.L || !SX) return; A.api('mail-preview', { name: 'Sample', subject: 'Sample', content: { mode: 'free', html: SX.STARTERS[0][5](), blocks: [] }, layout: Y.L }).then(function (r) { var Y2 = M().lay; if (!Y2 || r._status !== 200) return; Y2.html = r.html; setFrame(); }); }, wait == null ? 600 : wait); }
   function viewLay() { var Y = M().lay; if (Y.loading) return A.ld(); var L = Y.L, H = L.header, Fo = L.footer;
     var lk = function (base, l, i, ph) { return '<div class="ml-lk"><input type="text" data-mf="y.' + base + '.links.' + i + '.label" value="' + esc(l.label || '') + '" placeholder="' + ph + '" maxlength="30" aria-label="Link text"><input type="url" data-mf="y.' + base + '.links.' + i + '.url" value="' + esc(l.url || '') + '" placeholder="https://" aria-label="Link address"></div>'; };
     var left = '<section class="card"><div class="ml-row" style="margin:0 0 6px"><button class="btn ghost sm" data-ml="back">← All e-mails</button><b>Header and footer</b><span class="sp"></span><button class="btn sm" data-ml="lay-save"' + (Y.saving ? ' disabled' : '') + '>Save</button></div><p class="ml-note" style="margin:0 0 4px">Used in every campaign and template, also the ones already saved. The unsubscribe link and the company address always go out.</p>' +
       '<div class="ml-h4">Header</div><div class="ml-row" style="margin:0 0 12px"><span class="ml-note" style="margin:0;min-width:86px">Background</span>' + seg('y.header.bg', H.bg, [['dark', 'Dark'], ['light', 'White']]) + '</div><div class="ml-row" style="margin:0 0 12px"><span class="ml-note" style="margin:0;min-width:86px">Logo</span>' + seg('y.header.align', H.align, [['left', 'Left'], ['center', 'Centered']]) + '</div><div class="ml-f"><span>Links beside the logo (optional, up to 3)</span>' + H.links.map(function (l, i) { return lk('header', l, i, ['Store', 'Promotions', 'Contact'][i]); }).join('') + '</div>' +
-      '<div class="ml-h4">Footer</div>' + f('Line beside the name', 'y.footer.tagline', Fo.tagline, { max: 120 }) + '<div class="ml-2">' + f('Phone', 'y.footer.phone', Fo.phone, { max: 40 }) + f('WhatsApp', 'y.footer.whatsapp', Fo.whatsapp, { max: 40 }) + '</div>' + f('E-mail', 'y.footer.email', Fo.email, { max: 120 }) + f('Company address (required by law in marketing e-mail)', 'y.footer.address', Fo.address, { max: 240 }) + f('Why the person receives it', 'y.footer.reason', Fo.reason, { max: 240 }) + '<div class="ml-f"><span>Links (optional, up to 4)</span>' + Fo.links.map(function (l, i) { return lk('footer', l, i, ['Wholesale store', 'Training', 'Instagram', 'LinkedIn'][i]); }).join('') + '</div></section>';
+      '<div class="ml-h4">Footer</div>' + f('Line beside the name', 'y.footer.tagline', Fo.tagline, { max: 120 }) + f('Phone', 'y.footer.phone', Fo.phone, { max: 40 }) + '<div class="ml-2">' + f('WhatsApp (US)', 'y.footer.whatsapp', Fo.whatsapp, { max: 40 }) + f('WhatsApp (Latin America, optional)', 'y.footer.whatsapp2', Fo.whatsapp2, { max: 40 }) + '</div><div class="ml-2">' + f('E-mail', 'y.footer.email', Fo.email, { max: 120 }) + f('Website', 'y.footer.website', Fo.website, { max: 80 }) + '</div>' + f('Company address (required by law in marketing e-mail)', 'y.footer.address', Fo.address, { max: 240 }) + f('Why the person receives it', 'y.footer.reason', Fo.reason, { max: 240 }) + '<div class="ml-h4">Round icons at the bottom (empty hides the icon)</div>' + f('LinkedIn', 'y.footer.linkedin', Fo.linkedin, { ph: 'https://' }) + f('Instagram', 'y.footer.instagram', Fo.instagram, { ph: 'https://' }) + f('Facebook', 'y.footer.facebook', Fo.facebook, { ph: 'https://' }) + '<p class="ml-note">The WhatsApp icon uses the US number.</p></section>';
     return '<div class="ml-grid"><div>' + left + '</div><div class="ml-prev"><section class="card"><div class="ml-row" style="margin:0 0 12px"><h3 style="margin:0">Preview</h3><span class="sp"></span>' + seg('y.dev', Y.dev, [['d', 'Desktop'], ['m', 'Phone']]) + '</div><iframe id="ml-fr" class="ml-fr' + (Y.dev === 'm' ? ' m' : '') + '" title="E-mail preview" sandbox=""></iframe></section></div></div>'; }
 
   // ------------------------------------------------------------------ editor
@@ -109,7 +111,7 @@
     var m = M(); m.pick = false; m.ed = { loading: true }; A.draw();
     A.api('mail-get', null, id ? '&id=' + id : '').then(function (r) {
       if (r._status !== 200) { m.ed = null; closeDesign(); A.toast(r.error || 'Could not open it.'); return; }
-      var c = r.campaign || { name: seed && seed.name || 'New e-mail', subject: seed && seed.subject || '', preheader: '', lang: 'en', content: seed && seed.html ? { mode: 'free', html: seed.html, blocks: [] } : { blocks: seed && seed.blocks || [] }, audience: { segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, status: 'draft', is_template: false };
+      var c = r.campaign || { name: seed && seed.name || 'New e-mail', subject: seed && seed.subject || '', preheader: '', lang: 'en', content: seed && seed.html ? { mode: 'free', html: seed.html, blocks: [], noHeader: !!seed.noHeader } : { blocks: seed && seed.blocks || [] }, audience: { segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, status: 'draft', is_template: false };
       c.content = c.content || { blocks: [] }; c.audience = Object.assign({ segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, c.audience || {});
       c.content.blocks.forEach(function (b) { if (b.type === 'products') b._txt = (b.codes || []).join('\n'); });
       m.ed = { c: c, canSend: !!r.canSend, simple: false, segs: r.segments, facets: r.facets, from: r.from, dev: 'd', fresh: !id && !!(seed && seed.design), dirty: !id, test: r.me || '', when: '', aud: null, html: '', miss: [], find: {}, lock: c.status !== 'draft' };
@@ -118,7 +120,7 @@
     });
   }
   function payload() { var c = M().ed.c; return { id: c.id, name: c.name, subject: c.subject, preheader: c.preheader, lang: c.lang, is_template: !!c.is_template, audience: c.audience,
-    content: { mode: c.content.mode === 'free' ? 'free' : undefined, html: c.content.mode === 'free' ? c.content.html : undefined, project: c.content.mode === 'free' ? c.content.project : undefined, blocks: c.content.blocks.map(function (b) { var o = {}; for (var k in b) if (k.charAt(0) !== '_') o[k] = b[k]; if (b.type === 'products') o.codes = String(b._txt == null ? (b.codes || []).join('\n') : b._txt).split(/[\s,;]+/).filter(Boolean); return o; }) } }; }
+    content: { noHeader: c.content.noHeader ? true : undefined, mode: c.content.mode === 'free' ? 'free' : undefined, html: c.content.mode === 'free' ? c.content.html : undefined, project: c.content.mode === 'free' ? c.content.project : undefined, blocks: c.content.blocks.map(function (b) { var o = {}; for (var k in b) if (k.charAt(0) !== '_') o[k] = b[k]; if (b.type === 'products') o.codes = String(b._txt == null ? (b.codes || []).join('\n') : b._txt).split(/[\s,;]+/).filter(Boolean); return o; }) } }; }
   var pt = 0;
   function preview(wait) { clearTimeout(pt); pt = setTimeout(function () { var E = M().ed; if (!E || !E.c) return; A.api('mail-preview', payload()).then(function (r) { var E2 = M().ed; if (!E2 || r._status !== 200) return; E2.html = r.html; var miss = (r.missing || []).join(','), ch = miss !== (E2.miss || []).join(','); E2.miss = r.missing || []; setFrame(); if (ch) A.draw(); }); }, wait == null ? 700 : wait); }
   // the visual designer (GrapesJS) opens over the whole screen, in its own frame, and hands the result back
@@ -128,14 +130,14 @@
   function cover() { if (ov) return; ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee;display:flex;align-items:center;justify-content:center;color:#5f656c;font-size:14px'; ov.innerHTML = '<span>Opening the designer…</span>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; }
   function design() {
     var E = M().ed; if (!E || E.lock || (ov && ov._data)) return; var c = E.c; cover();
-    var start = function (data) { if (!ov) return; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=3" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
+    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=4" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
     if (c.content.mode === 'free' && (c.content.project || c.content.html)) return start({ project: c.content.project || null, html: c.content.html || '' });
     A.api('mail-seed', payload()).then(function (r) { start({ project: null, html: (r && r.html) || '' }); });
   }
   window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || !ov) return; var E = M().ed, d = e.data;
-    if (d.type === 'mx-ready' && ov._data) { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html }, location.origin); }
+    if (d.type === 'mx-ready' && ov._data) { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html, noHeader: ov._data.noHeader }, location.origin); }
     if (d.type === 'mx-cancel') { closeDesign(); if (E && E.fresh) { var m0 = M(); m0.ed = null; m0.pick = true; A.draw(); } }
-    if (d.type === 'mx-done' && E) { E.fresh = false; E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
+    if (d.type === 'mx-done' && E) { E.fresh = false; E.c.content.noHeader = !!d.noHeader; E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
   function setFrame() { var E = M().lay || M().tx || M().ed, fr = document.getElementById('ml-fr'); if (fr && E && E.html && fr._h !== E.html) { fr._h = E.html; fr.srcdoc = E.html; } }
   function blockForm(b, i, n, lock) {
     var p = 'b.' + i + '.', body = '';
@@ -249,7 +251,7 @@
     if (act === 'pg') { m.pg = t.dataset.v; return A.draw(); }
     if (act === 'lay') return openLay();
     if (act === 'lay-save') { m.lay.saving = true; A.draw(); return A.api('mail-layout-save', { layout: m.lay.L }).then(function (r) { if (r._status === 200) { m.lay = null; m.tp = null; A.toast('Saved. Every e-mail uses it from now on.', true); A.draw(); } else { m.lay.saving = false; A.draw(); A.toast(r.error || 'Could not save.'); } }); }
-    if (act === 'new') { if (!SX) return; var s = SX.STARTERS[+t.dataset.i]; cover(); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: s[3], html: s[5](), design: true }); }
+    if (act === 'new') { if (!SX) return; var s = SX.STARTERS[+t.dataset.i]; cover(); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: s[3], html: s[5](), noHeader: !!(s[6] && s[6].noHeader), design: true }); }
     if (act === 'from' || act === 'copy') return A.api('mail-copy', { id: id }).then(function (r) { if (r._status === 200) { m.list = null; openEd(r.campaign.id); } else A.toast(r.error || 'Could not copy.'); });
     if (act === 'open') return openEd(id);
     if (act === 'tx') { var tt = (m.list.templates || []).filter(function (x) { return x.key === id; })[0]; if (!tt) return; var sv = tt.saved || {}; m.tx = { t: tt, f: { subject: sv.subject || '', title: sv.title || '', note: sv.note || '', cta_label: sv.cta_label || '' }, html: '', subject: '' }; A.draw(); return txPrev(0); }

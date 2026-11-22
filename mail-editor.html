@@ -70,7 +70,7 @@ button,input,select{font:inherit;color:inherit}
 <div id="boot"><i></i><span>Opening the designer…</span></div>
 <div class="top"><b>E-mail designer</b><small>Drag blocks into the e-mail. Click any element to change it.</small><span class="sp"></span>
 <div class="seg" id="dev"><button data-d="Desktop" class="on">Desktop</button><button data-d="Mobile portrait">Phone</button></div>
-<button class="btn ic" id="undo" title="Undo" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button><button class="btn ic" id="redo" title="Redo" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg></button>
+<button class="btn" id="hdr" title="Use the standard header, or leave it out to start the e-mail with your own picture">Standard header: on</button><button class="btn ic" id="undo" title="Undo" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button><button class="btn ic" id="redo" title="Redo" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg></button>
 <button class="btn" id="cancel">Cancel</button><button class="btn red" id="done">Use this design</button></div>
 <div class="wrap"><div id="gjs"></div>
 <aside class="side"><div class="tabs"><button id="t-add" class="on">Add</button><button id="t-style">Style</button></div>
@@ -80,13 +80,13 @@ button,input,select{font:inherit;color:inherit}
 <div class="pk-h"><b>Products in this block</b><span class="sp"></span><button class="pk-x" id="pk-close" aria-label="Close">×</button></div>
 <div class="pk-m"><div class="pk-c"><h4>Find a part</h4><input type="search" id="pk-q" placeholder="Part number, description or engine"><div id="pk-res"></div></div>
 <div class="pk-c"><h4>In the e-mail, in this order</h4><div id="pk-sel"></div></div></div>
-<div class="pk-o"><div><label>Layout</label><div class="seg" id="pk-lay"><button data-v="list">List</button><button data-v="grid2">2 columns</button><button data-v="grid3">3 columns</button></div></div>
+<div class="pk-o"><div><label>Layout</label><div class="seg" id="pk-lay"><button data-v="list">List</button><button data-v="grid2">2 columns</button><button data-v="grid3">3 columns</button><button data-v="hero">Featured</button></div></div>
 <div><label>What each part shows</label><div class="chips" id="pk-show"><button data-h="photo">Photo</button><button data-h="code">Part number</button><button data-h="cat">Category and brand</button><button data-h="app">Application</button><button data-h="price">Price of each customer</button><button data-h="cta">Button</button></div></div></div>
 <div class="pk-f"><small>Button text</small><input type="text" id="pk-cta" maxlength="40" style="width:170px"><span class="sp"></span><button class="btn dark" id="pk-ok">Save block</button></div>
 </div></div>
 <script src="/js/vendor/grapes.min.js?v=1"></script>
 <script src="/js/vendor/grapesjs-preset-newsletter.js?v=1"></script>
-<script src="/js/mail-sections.js?v=3"></script>
+<script src="/js/mail-sections.js?v=4"></script>
 <script>
 (function () {
   var F = 'Helvetica,Arial,sans-serif', ORIGIN = location.origin, SX = window.MXSections, S = SX.S;
@@ -98,13 +98,14 @@ button,input,select{font:inherit;color:inherit}
     blockManager: { appendTo: '#blocks' }, canvas: { styles: [] }, deviceManager: { devices: [{ name: 'Desktop', width: '' }, { name: 'Mobile portrait', width: '390px' }] } });
   editor.on('load', function () {
     var b = editor.Canvas.getBody(), d = editor.Canvas.getDocument();
-    if (b) { b.style.background = '#ffffff'; b.style.maxWidth = '680px'; b.style.margin = '22px auto'; b.style.borderRadius = '20px'; b.style.overflow = 'hidden'; b.style.fontFamily = F; b.style.minHeight = '200px'; }
-    if (d && d.documentElement) d.documentElement.style.background = '#e9ebee';
+    if (b) { b.style.background = '#ffffff'; b.style.maxWidth = '680px'; b.style.margin = '22px auto'; b.style.fontFamily = F; b.style.minHeight = '200px'; }
+    if (d && d.documentElement) { d.documentElement.style.background = '#e9ebee'; d.documentElement.style.overflowY = 'auto'; }
     if (d && d.head) { var st = d.createElement('style'); st.textContent = '@media (max-width:520px){.mx-col{display:block!important;width:100%!important;padding:0 0 12px 0!important}.mx-gap{display:none!important}}[data-mx-chrome]{pointer-events:none}'; d.head.appendChild(st); }
   });
 
   // ---- header and footer: the standard ones, shown around the e-mail and never saved with it -------------------------
-  var CHROME = { header: '', footer: '' }, fixing = false;
+  var CHROME = { header: '', footer: '' }, fixing = false, HDR = true;
+  function hdrBtn() { $('hdr').textContent = 'Standard header: ' + (HDR ? 'on' : 'off'); $('hdr').className = 'btn' + (HDR ? '' : ' dark'); }
   var LOCK = { selectable: false, hoverable: false, draggable: false, droppable: false, removable: false, copyable: false, editable: false, layerable: false, highlightable: false, badgable: false };
   editor.Components.addType('mx-chrome', {
     isComponent: function (el) { return !!(el.hasAttribute && el.hasAttribute('data-mx-chrome')); },
@@ -116,7 +117,7 @@ button,input,select{font:inherit;color:inherit}
   function fixChrome() {
     if (fixing) return; fixing = true;
     try { var W = editor.getWrapper(), mk = function (w) { return { type: 'mx-chrome', attributes: { 'data-mx-chrome': w, width: '100%', cellpadding: '0', cellspacing: '0', style: 'width:100%' } }; };
-      ['header', 'footer'].forEach(function (w) { var l = chromeOf(w); l.slice(1).forEach(function (c) { c.remove(); }); if (!l.length && CHROME[w]) { if (w === 'header') W.append(mk(w), { at: 0 }); else W.append(mk(w)); } });
+      ['header', 'footer'].forEach(function (w) { var l = chromeOf(w); l.slice(w === 'header' && !HDR ? 0 : 1).forEach(function (c) { c.remove(); }); if (w === 'header' && !HDR) return; if (!l.length && CHROME[w]) { if (w === 'header') W.append(mk(w), { at: 0 }); else W.append(mk(w)); } });
       var cs = W.components(), h = chromeOf('header')[0], f = chromeOf('footer')[0];
       if (h && cs.indexOf(h) !== 0) h.move(W, { at: 0 });
       if (f && cs.indexOf(f) !== cs.length - 1) f.move(W, { at: cs.length });
@@ -156,6 +157,8 @@ button,input,select{font:inherit;color:inherit}
   add('pl', 'Product list', 'Products', W(lrow(8) + lrow(28.5) + lrow(49)), S.products('list', []));
   add('p2', 'Products, 2 columns', 'Products', W(card(10, 47) + card(63, 47)), S.products('grid2', []));
   add('p3', 'Products, 3 columns', 'Products', W(card(8, 32) + card(44, 32) + card(80, 32)), S.products('grid3', []));
+  add('pf', 'Featured product', 'Products', W(R(8, 8, 104, 56, '#c9ced3', 7) + '<circle cx="84" cy="26" r="7" fill="#b4bac1"/>' + R(14, 30, 50, 28, '#fff', 4) + R(19, 35, 30, 3.5, D) + R(19, 42, 36, 2.5, G) + R(19, 48, 16, 6, RD, 3)), S.products('hero', []));
+  add('cp', 'Campaign picture', 'Sections', W(R(0, 0, 120, 44, '#dfe2e6', 0) + '<circle cx="30" cy="16" r="6" fill="#b4bac1"/><path d="M10 44l30-22 20 14 14-10 36 18z" fill="#b4bac1"/>' + R(14, 52, 60, 5, D) + R(14, 61, 80, 3, G), '#fff'), S.campaign());
   add('hd', 'Dark opening', 'Sections', W(R(12, 14, 22, 3, '#f08a24') + R(12, 22, 70, 7, '#fff') + R(12, 34, 84, 3, '#8a9097') + R(12, 46, 34, 11, RD, 6), D), S.heroDark('New in stock', 'A strong headline goes here', 'One line that says why it matters to the shop.', 'See the parts'));
   add('hs', 'Light opening', 'Sections', W(R(12, 14, 22, 3, '#c2410c') + R(12, 22, 70, 7, D) + R(12, 34, 84, 3, G) + R(12, 46, 34, 11, RD, 6), '#eceef0'), S.heroSoft('Maxzz news', 'A strong headline goes here', 'One line that says why it matters to the shop.', 'See the parts'));
   add('bn', 'Offer banner', 'Sections', W(R(8, 8, 104, 56, RD, 8) + R(18, 18, 24, 3, '#ffc9cd') + R(18, 26, 66, 7, '#fff') + R(18, 38, 50, 3, '#ffc9cd') + R(18, 47, 30, 10, '#fff', 5)), S.banner('Your offer in one line', 'Who it is for and until when.', 'See the offer'));
@@ -208,7 +211,7 @@ button,input,select{font:inherit;color:inherit}
     h += '<div class="st-h">' + (ch.length ? '<div class="crumb">' + ch.map(function (p, i) { return '<button data-up="' + i + '" title="Select the ' + NAME[kind(p)].toLowerCase() + ' around it">' + NAME[kind(p)] + '</button>›'; }).join('') + '<span>' + NAME[k] + '</span></div>' : '') + '<h3>' + NAME[k] + '</h3><div class="st-a">' + (k === 'products' ? '<button class="btn dark sm" data-do="pick">Choose parts and layout</button>' : '') + '<button class="btn sm" data-do="dup">Duplicate</button><button class="btn sm" data-do="del">Remove</button></div></div>';
     if (k === 'products') { el.innerHTML = h + '<div class="st-e">The parts, the layout, the price and what each part shows are chosen in "Choose parts and layout". You can also double click the block.</div>'; return; }
     if (k === 'link') h += '<div class="grp"><h4>Link</h4><div class="row"><label>Goes to</label><input type="url" data-at="href" value="' + esc(at.href || '') + '" placeholder="https://"></div></div>';
-    if (k === 'image') h += '<div class="grp"><h4>Picture</h4><div class="row"><label>Address of the picture<em>https</em></label><input type="url" data-at="src" value="' + esc(c.get('src') || at.src || '') + '" placeholder="https://"></div><div class="row"><label>Description<em>for who cannot see it</em></label><input type="text" data-at="alt" value="' + esc(at.alt || '') + '"></div>' + cFour('Rounded corners', 'radius', st) + '</div>';
+    if (k === 'image') h += '<div class="grp"><h4>Picture</h4><div class="row"><label>Address of the picture<em>https</em></label><input type="url" data-at="src" value="' + esc(c.get('src') || at.src || '') + '" placeholder="https://"></div><div class="row"><label>Description<em>for who cannot see it</em></label><input type="text" data-at="alt" value="' + esc(at.alt || '') + '"></div><div class="row"><button class="btn dark sm" data-do="upload">Upload a picture</button> <em id="up-msg" style="font-style:normal;color:var(--mut);font-size:12.5px;margin-left:6px">JPG or PNG, up to 3 MB. For a banner use 1360 px wide.</em></div>' + cFour('Rounded corners', 'radius', st) + '</div>';
     else {
       h += '<div class="grp"><h4>Text</h4>' + cNum('Size', 'font-size', num(st['font-size']) || 15, 10, 48) + cSeg('Weight', 'font-weight', /^(bold|[6-9]00)$/.test(st['font-weight']) ? (st['font-weight'] === '600' ? '600' : '700') : '400', [['400', 'Regular'], ['600', 'Semibold'], ['700', 'Bold']]) + cColor('Colour', 'color', st.color) + cSeg('Alignment', 'text-align', st['text-align'] || 'left', ALIGN) + '</div>';
       h += '<div class="grp"><h4>' + (k === 'link' ? 'Button' : 'Box') + '</h4>' + cColor('Background', 'background-color', st['background-color'] || st.background, true) + cFour('Inner space', 'padding', st) + cFour('Rounded corners', 'radius', st) + (k === 'text' ? cNum('Space below', 'margin-bottom', num(st['margin-bottom'] != null ? st['margin-bottom'] : String(st.margin || '').split(/\s+/)[2] || 0), 0, 60) : '') + '</div>';
@@ -228,6 +231,7 @@ button,input,select{font:inherit;color:inherit}
     if (d.sc) { if (d.sc === 'background-color') c.removeStyle('background'); setS(c, d.sc, d.v); return panel(); }
     if (d.link) { LINKED[d.link] = !LINKED[d.link]; if (LINKED[d.link]) { var a = four(c.getStyle() || {}, d.link); setFour(c, d.link, [a[0], a[0], a[0], a[0]]); } return panel(); }
     if (d.up != null) return editor.select(chain(c)[+d.up]);
+    if (d.do === 'upload') return $('up').click();
     if (d.do === 'pick') return openPicker(c); if (d.do === 'dup') return editor.runCommand('tlb-clone'); if (d.do === 'del') return editor.runCommand('tlb-delete'); });
   panel();
 
@@ -259,11 +263,19 @@ button,input,select{font:inherit;color:inherit}
   $('dev').addEventListener('click', function (e) { var d = e.target.dataset.d; if (!d) return; editor.setDevice(d); [].forEach.call($('dev').children, function (b) { b.className = b === e.target ? 'on' : ''; }); });
   $('undo').onclick = function () { editor.UndoManager.undo(); }; $('redo').onclick = function () { editor.UndoManager.redo(); };
   function say(m) { if (window.parent && window.parent !== window) window.parent.postMessage(m, ORIGIN); }
+  $('hdr').onclick = function () { HDR = !HDR; hdrBtn(); fixChrome(); };
+  // a picture from the computer: made smaller in the browser when it is big, then kept in our photo store
+  var up = document.createElement('input'); up.type = 'file'; up.id = 'up'; up.accept = 'image/jpeg,image/png,image/webp,image/gif'; up.style.display = 'none'; document.body.appendChild(up);
+  function fileData(file) { return new Promise(function (ok, no) { var rd = new FileReader(); rd.onerror = no; rd.onload = function () { var data = rd.result; if (file.size < 2.2 * 1024 * 1024) return ok(data);
+    var im = new Image(); im.onerror = no; im.onload = function () { var k = Math.min(1, 1600 / im.width), cv = document.createElement('canvas'); cv.width = Math.round(im.width * k); cv.height = Math.round(im.height * k); cv.getContext('2d').drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL('image/jpeg', 0.88)); }; im.src = data; }; rd.readAsDataURL(file); }); }
+  up.addEventListener('change', function () { var file = up.files[0], c = SEL, msg = function (t) { var m = $('up-msg'); if (m) m.textContent = t; }; up.value = ''; if (!file || !c) return; msg('Sending the picture…');
+    fileData(file).then(function (data) { return call('mail-upload', { data: data }); }).then(function (r) { if (!r || !r.url) return msg((r && r.error) || 'Could not save the picture.'); c.set('src', r.url); c.addAttributes({ src: r.url }); if (SEL === c) panel(); }).catch(function () { msg('Could not read that file.'); }); });
   $('cancel').onclick = function () { say({ type: 'mx-cancel' }); };
-  $('done').onclick = function () { editor.select(null); dropChrome(); var html = ''; try { html = editor.runCommand('gjs-get-inlined-html') || ''; } catch (e) { html = ''; } if (!html) html = editor.getHtml() + '<style>' + editor.getCss() + '</style>'; var project = editor.getProjectData(); say({ type: 'mx-done', html: html, project: project }); fixChrome(); };
+  $('done').onclick = function () { editor.select(null); dropChrome(); var html = ''; try { html = editor.runCommand('gjs-get-inlined-html') || ''; } catch (e) { html = ''; } if (!html) html = editor.getHtml() + '<style>' + editor.getCss() + '</style>'; var project = editor.getProjectData(); say({ type: 'mx-done', html: html, project: project, noHeader: !HDR }); fixChrome(); };
   function ready() { var b = $('boot'); if (b) b.remove(); }
   var layout = call('mail-layout').then(function (r) { CHROME = { header: (r && r.header) || '', footer: (r && r.footer) || '' }; }).catch(function () {});
   window.addEventListener('message', function (e) { if (e.origin !== ORIGIN || !e.data || e.data.type !== 'mx-load') return;
+    HDR = !e.data.noHeader; hdrBtn();
     var go = function () { try { if (e.data.project) editor.loadProjectData(e.data.project); else editor.setComponents(e.data.html || ''); } catch (x) { editor.setComponents(e.data.html || ''); }
       layout.then(function () { fixChrome(); editor.UndoManager.clear(); editor.select(null); ready(); }); };
     if (editor.Canvas.getBody()) go(); else editor.on('load', go); });
