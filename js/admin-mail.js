@@ -28,7 +28,7 @@
   var STORE = 'https://www.maxzzdiesel.com/portal';
   // layout suggestions and e-mail sections, shared with the designer
   var SX = window.MXSections || null;
-  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=5'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
+  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=6'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
   // the small picture of a layout: header, one strip per section, in the order they appear
   var ln = function (w, h, c, m) { return '<span style="display:block;width:' + w + '%;height:' + h + 'px;border-radius:' + Math.min(3, h / 2) + 'px;background:' + c + ';margin:' + (m || 0) + 'px 0 0"></span>'; };
   var bx = function (inner, st) { return '<span style="display:block;padding:7px 11px;' + (st || '') + '">' + inner + '</span>'; };
@@ -142,7 +142,7 @@
   function cover() { if (ov) return; ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee;display:flex;align-items:center;justify-content:center;color:#5f656c;font-size:14px'; ov.innerHTML = '<span>Opening the designer…</span>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; }
   function design() {
     var E = M().ed; if (!E || E.lock || (ov && ov._data)) return; var c = E.c; cover();
-    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; data.page = c.content.page || null; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=5" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
+    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; data.page = c.content.page || null; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=6" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
     if (c.content.mode === 'free' && (c.content.project || c.content.html)) return start({ project: c.content.project || null, html: c.content.html || '' });
     A.api('mail-seed', payload()).then(function (r) { start({ project: null, html: (r && r.html) || '' }); });
   }

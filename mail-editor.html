@@ -86,7 +86,7 @@ button,input,select{font:inherit;color:inherit}
 </div></div>
 <script src="/js/vendor/grapes.min.js?v=1"></script>
 <script src="/js/vendor/grapesjs-preset-newsletter.js?v=1"></script>
-<script src="/js/mail-sections.js?v=5"></script>
+<script src="/js/mail-sections.js?v=6"></script>
 <script>
 (function () {
   var F = 'Helvetica,Arial,sans-serif', ORIGIN = location.origin, SX = window.MXSections, S = SX.S;
@@ -142,7 +142,8 @@ button,input,select{font:inherit;color:inherit}
       pick: function () { openPicker(this.model); },
       show: function () {
         var el = this.el, a = this.model.getAttributes(), codes = String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), key = JSON.stringify([codes, a['data-layout'], a['data-price'], a['data-cta'], a['data-hide'], a['data-look']]);
-        var put = function (h) { el.innerHTML = '<tbody><tr><td style="font-family:' + F + '">' + h + '</td></tr></tbody>'; };
+        el.cellPadding = 0; el.cellSpacing = 0; el.style.borderCollapse = 'collapse'; // no frame around the parts, also in e-mails made before
+        var put = function (h) { el.innerHTML = '<tbody><tr><td style="padding:0;font-family:' + F + '">' + h + '</td></tr></tbody>'; };
         if (!codes.length) return put('<div style="border:2px dashed #d32a37;border-radius:14px;padding:28px 16px;text-align:center;color:#5f656c;font-size:14px"><b style="display:block;color:#1d2126;font-size:15px;margin:0 0 4px">Products</b>Double click to choose the parts</div>');
         if (cache[key]) return put(cache[key]);
         put('<div style="padding:26px;text-align:center;color:#8a9097;font-size:13px">Loading the parts…</div>');
@@ -233,7 +234,7 @@ button,input,select{font:inherit;color:inherit}
     var k = kind(c), st = c.getStyle() || {}, at = c.getAttributes() || {}, ch = chain(c), h = '';
     h += '<div class="st-h">' + (ch.length ? '<div class="crumb">' + ch.map(function (p, i) { return '<button data-up="' + i + '" title="Select the ' + NAME[kind(p)].toLowerCase() + ' around it">' + NAME[kind(p)] + '</button>›'; }).join('') + '<span>' + NAME[k] + '</span></div>' : '') + '<h3>' + NAME[k] + '</h3><div class="st-a">' + (k === 'products' ? '<button class="btn dark sm" data-do="pick">Choose parts and layout</button>' : '') + '<button class="btn sm" data-do="dup">Duplicate</button><button class="btn sm" data-do="del">Remove</button></div></div>';
     if (k === 'products') { var lk = getLook(c), lay = at['data-layout'] || 'grid2';
-      el.innerHTML = h + '<div class="grp"><h4>Look of the parts</h4>' + cNum('Size of the name', 'lk:ts', lk.ts || (lay === 'hero' ? 21 : lay === 'grid3' ? 14 : lay === 'list' ? 15 : 16), 11, 32) + cColor('Colour of the name', 'lk:tc', lk.tc || '#1d2126') + cColor('Colour of the small text', 'lk:xc', lk.xc || '#5f6670') + cColor('Colour of the button', 'lk:bc', lk.bc || '#d32a37') + (lay !== 'list' && !lk.full ? cNum('Rounded corners', 'lk:r', lk.r != null ? lk.r : (lay === 'hero' ? 18 : 16), 0, 28) : '') + (lay === 'hero' ? cSeg('Photo', 'lk:full', lk.full ? '1' : '', [['', 'With margins'], ['1', 'Edge to edge']]) : '') + '</div><p class="hint">The parts, the layout, the price and what each part shows are in "Choose parts and layout". You can also double click the block.</p>'; return; }
+      el.innerHTML = h + '<div class="grp"><h4>Look of the parts</h4>' + cNum('Size of the name', 'lk:ts', lk.ts || (lay === 'hero' ? 21 : lay === 'grid3' ? 14 : lay === 'list' ? 15 : 16), 11, 32) + cColor('Colour of the name', 'lk:tc', lk.tc || '#1d2126') + cColor('Colour of the small text', 'lk:xc', lk.xc || '#5f6670') + cColor('Colour of the button', 'lk:bc', lk.bc || '#d32a37') + (lay !== 'list' && !lk.full ? cNum('Rounded corners', 'lk:r', lk.r != null ? lk.r : (lay === 'hero' ? 18 : 16), 0, 28) : '') + (lay === 'hero' ? cSeg('Photo', 'lk:full', lk.full ? '1' : '', [['', 'With margins'], ['1', 'Edge to edge']]) + cSeg('Box with the text', 'lk:bx', lk.bx || 'w', [['w', 'White'], ['d', 'Dark'], ['b', 'Bar below']]) + (lk.bx === 'b' ? '' : cSeg('Position of the box', 'lk:al', lk.al || 'l', [['l', ALIGN[0][1]], ['c', ALIGN[1][1]], ['r', ALIGN[2][1]]]) + cNum('Space around the box', 'lk:pd', lk.pd != null ? lk.pd : (lk.full ? 28 : 16), 0, 60)) : '') + '</div><p class="hint">The parts, the layout, the price and what each part shows are in "Choose parts and layout". You can also double click the block.</p>'; return; }
     if (k === 'link') h += '<div class="grp"><h4>Link</h4><div class="row"><label>Goes to</label><input type="url" data-at="href" value="' + esc(at.href || '') + '" placeholder="https://"></div></div>';
     if (k === 'image') h += '<div class="grp"><h4>Picture</h4><div class="row"><label>Address of the picture<em>https</em></label><input type="url" data-at="src" value="' + esc(c.get('src') || at.src || '') + '" placeholder="https://"></div><div class="row"><label>Description<em>for who cannot see it</em></label><input type="text" data-at="alt" value="' + esc(at.alt || '') + '"></div><div class="row"><button class="btn dark sm" data-do="upload">Upload a picture</button> <em class="upm" style="font-style:normal;color:var(--mut);font-size:12.5px;margin-left:6px">JPG or PNG, up to 3 MB. For a banner use 1360 px wide.</em></div>' + cNum('Width', 'imgw', /%$/.test(st.width || '') ? num(st.width) : 100, 10, 100, '%') + cSeg('Position', 'imgal', /auto/.test(st.margin || '') ? (/^0(px)? 0(px)? 0(px)? auto/.test(st.margin) ? 'right' : 'center') : 'left', ALIGN) + cFour('Rounded corners', 'radius', st) + '</div>';
     else {
