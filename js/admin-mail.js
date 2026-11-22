@@ -26,7 +26,7 @@
   var STORE = 'https://www.maxzzdiesel.com/portal';
   // layout suggestions and e-mail sections, shared with the designer
   var SX = window.MXSections || null;
-  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=4'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
+  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=5'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
   // the small picture of a layout: header, one strip per section, in the order they appear
   var ln = function (w, h, c, m) { return '<span style="display:block;width:' + w + '%;height:' + h + 'px;border-radius:' + Math.min(3, h / 2) + 'px;background:' + c + ';margin:' + (m || 0) + 'px 0 0"></span>'; };
   var bx = function (inner, st) { return '<span style="display:block;padding:7px 11px;' + (st || '') + '">' + inner + '</span>'; };
@@ -120,7 +120,7 @@
     });
   }
   function payload() { var c = M().ed.c; return { id: c.id, name: c.name, subject: c.subject, preheader: c.preheader, lang: c.lang, is_template: !!c.is_template, audience: c.audience,
-    content: { noHeader: c.content.noHeader ? true : undefined, mode: c.content.mode === 'free' ? 'free' : undefined, html: c.content.mode === 'free' ? c.content.html : undefined, project: c.content.mode === 'free' ? c.content.project : undefined, blocks: c.content.blocks.map(function (b) { var o = {}; for (var k in b) if (k.charAt(0) !== '_') o[k] = b[k]; if (b.type === 'products') o.codes = String(b._txt == null ? (b.codes || []).join('\n') : b._txt).split(/[\s,;]+/).filter(Boolean); return o; }) } }; }
+    content: { page: c.content.page || undefined, noHeader: c.content.noHeader ? true : undefined, mode: c.content.mode === 'free' ? 'free' : undefined, html: c.content.mode === 'free' ? c.content.html : undefined, project: c.content.mode === 'free' ? c.content.project : undefined, blocks: c.content.blocks.map(function (b) { var o = {}; for (var k in b) if (k.charAt(0) !== '_') o[k] = b[k]; if (b.type === 'products') o.codes = String(b._txt == null ? (b.codes || []).join('\n') : b._txt).split(/[\s,;]+/).filter(Boolean); return o; }) } }; }
   var pt = 0;
   function preview(wait) { clearTimeout(pt); pt = setTimeout(function () { var E = M().ed; if (!E || !E.c) return; A.api('mail-preview', payload()).then(function (r) { var E2 = M().ed; if (!E2 || r._status !== 200) return; E2.html = r.html; var miss = (r.missing || []).join(','), ch = miss !== (E2.miss || []).join(','); E2.miss = r.missing || []; setFrame(); if (ch) A.draw(); }); }, wait == null ? 700 : wait); }
   // the visual designer (GrapesJS) opens over the whole screen, in its own frame, and hands the result back
@@ -130,14 +130,17 @@
   function cover() { if (ov) return; ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee;display:flex;align-items:center;justify-content:center;color:#5f656c;font-size:14px'; ov.innerHTML = '<span>Opening the designer…</span>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; }
   function design() {
     var E = M().ed; if (!E || E.lock || (ov && ov._data)) return; var c = E.c; cover();
-    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=4" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
+    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; data.page = c.content.page || null; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=5" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
     if (c.content.mode === 'free' && (c.content.project || c.content.html)) return start({ project: c.content.project || null, html: c.content.html || '' });
     A.api('mail-seed', payload()).then(function (r) { start({ project: null, html: (r && r.html) || '' }); });
   }
   window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || !ov) return; var E = M().ed, d = e.data;
-    if (d.type === 'mx-ready' && ov._data) { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html, noHeader: ov._data.noHeader }, location.origin); }
+    if (d.type === 'mx-ready' && ov._data) { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html, noHeader: ov._data.noHeader, page: ov._data.page }, location.origin); }
     if (d.type === 'mx-cancel') { closeDesign(); if (E && E.fresh) { var m0 = M(); m0.ed = null; m0.pick = true; A.draw(); } }
-    if (d.type === 'mx-done' && E) { E.fresh = false; E.c.content.noHeader = !!d.noHeader; E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
+    if (d.type === 'mx-save' && E) { var fr2 = ov.querySelector('iframe'), back = function (ok, err) { if (fr2 && fr2.contentWindow) fr2.contentWindow.postMessage({ type: 'mx-saved', ok: ok, error: err || '' }, location.origin); };
+      E.fresh = false; E.c.content.noHeader = !!d.noHeader; E.c.content.page = d.page || undefined; E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true;
+      A.api('mail-save', payload()).then(function (r) { if (r._status === 200 && r.campaign) { E.c.id = r.campaign.id; E.c.status = r.campaign.status; E.dirty = false; M().list = null; back(true); } else back(false, r.error || 'Could not save.'); }); }
+    if (d.type === 'mx-done' && E) { E.fresh = false; E.c.content.noHeader = !!d.noHeader; E.c.content.page = d.page || undefined; E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
   function setFrame() { var E = M().lay || M().tx || M().ed, fr = document.getElementById('ml-fr'); if (fr && E && E.html && fr._h !== E.html) { fr._h = E.html; fr.srcdoc = E.html; } }
   function blockForm(b, i, n, lock) {
     var p = 'b.' + i + '.', body = '';
