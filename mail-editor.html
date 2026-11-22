@@ -7,64 +7,125 @@
 <title>E-mail designer · Maxzz admin</title>
 <link rel="stylesheet" href="/js/vendor/grapes.min.css?v=1">
 <style>
-/* The designer runs inside the admin (in a frame). GrapesJS is restyled to the admin look: light panels, dark text, red accent. */
-:root{--gjs-primary-color:#ffffff;--gjs-secondary-color:#1d2126;--gjs-tertiary-color:#d32a37;--gjs-quaternary-color:#d32a37;--gjs-font-color:#1d2126;--gjs-font-color-active:#1d2126;--gjs-main-color:#ffffff;--gjs-main-dark-color:rgba(0,0,0,.08);--gjs-secondary-dark-color:rgba(0,0,0,.06);--gjs-main-light-color:rgba(0,0,0,.05);--gjs-secondary-light-color:rgba(0,0,0,.04);--gjs-soft-light-color:rgba(0,0,0,.03);--gjs-color-blue:#d32a37;--gjs-left-width:22%;--gjs-canvas-top:0px}
-html,body{height:100%;margin:0;font-family:Inter,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1d2126;background:#e9ebee}
-.top{height:56px;display:flex;align-items:center;gap:10px;padding:0 16px;background:#fff;border-bottom:1px solid #e3e6e9;box-sizing:border-box}
-.top b{font-size:15px}.top .sp{flex:1}.top small{color:#5f656c;font-size:12.5px}
-.btn{height:38px;border-radius:999px;border:1px solid #c9ced3;background:#fff;color:#1d2126;padding:0 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer}.btn:hover{border-color:#1d2126}.btn.red{background:#d32a37;border-color:#d32a37;color:#fff}.btn.red:hover{background:#b71f2b}.btn.dark{background:#1d2126;border-color:#1d2126;color:#fff}
-.seg{display:inline-flex;background:#f1f2f4;border-radius:999px;padding:3px}.seg button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;color:#3a4048}.seg button.on{background:#1d2126;color:#fff}
-#gjs{height:calc(100% - 56px)}
-.gjs-one-bg{background-color:#fff!important}.gjs-two-color{color:#1d2126!important}.gjs-three-bg{background-color:#d32a37!important;color:#fff!important}.gjs-four-color,.gjs-four-color-h:hover{color:#d32a37!important}
-.gjs-editor,.gjs-pn-panel,.gjs-blocks-c,.gjs-block-categories,.gjs-block-category,.gjs-sm-sectors,.gjs-traits-cs,.gjs-layer-manager,.gjs-layers{background:#fff!important;color:#1d2126!important}.gjs-block{background:#fff!important;color:#1d2126!important}.gjs-block svg{fill:none}.gjs-block__media{color:#1d2126}.gjs-title,.gjs-sm-sector-title,.gjs-layer-title,.gjs-sm-label,.gjs-trt-trait,.gjs-label,.gjs-category-title{color:#1d2126!important;background:#f7f8f9!important}.gjs-sm-property,.gjs-sm-properties,.gjs-trt-traits{color:#1d2126!important}.gjs-pn-btn{color:#3a4048!important}.gjs-pn-btn.gjs-pn-active{color:#d32a37!important}.gjs-field,.gjs-field input,.gjs-field select,.gjs-field textarea,.gjs-input-holder input{background:#fff!important;color:#1d2126!important}.gjs-radio-item-label,.gjs-sm-clear,.gjs-field-arrows,.gjs-sm-icon{color:#1d2126!important}.gjs-field-arrow-u{border-bottom-color:#5f656c!important}.gjs-field-arrow-d{border-top-color:#5f656c!important}.gjs-d-s-arrow{border-top-color:#5f656c!important}.gjs-cv-canvas{background:#e9ebee!important}.gjs-mdl-dialog{background:#fff!important;color:#1d2126!important;border-radius:16px}.gjs-am-assets-cont,.gjs-am-file-uploader>form{background:#f7f8f9!important}.gjs-cm-editor,.CodeMirror{border-radius:10px}
-.gjs-pn-panel{border-color:#e3e6e9}.gjs-pn-views-container{box-shadow:none;border-left:1px solid #e3e6e9;width:22%;padding-top:42px}.gjs-pn-views{border-bottom:1px solid #e3e6e9;width:22%}.gjs-pn-options{right:22%}.gjs-cv-canvas{width:78%;top:0;height:100%;background:#e9ebee}
-.gjs-pn-commands{display:none}.gjs-pn-devices-c{display:none}
-.gjs-block{border:1px solid #e3e6e9;border-radius:14px;box-shadow:none;min-height:78px;width:44%;margin:3%;padding:10px 6px;transition:border-color .15s}.gjs-block:hover{border-color:#1d2126;box-shadow:none}.gjs-block-label{font-size:12px;font-family:inherit}.gjs-block svg{width:34px;height:34px}
-.gjs-block-category .gjs-title,.gjs-sm-sector-title,.gjs-layer-title{background:#f7f8f9;border-color:#e3e6e9;font-weight:600;font-size:12.5px;letter-spacing:.02em}
-.gjs-field,.gjs-sm-field,.gjs-clm-tags #gjs-clm-new,.gjs-select{background:#fff;border:1px solid #c9ced3;border-radius:8px;color:#1d2126}.gjs-field input,.gjs-field select,.gjs-field textarea{color:#1d2126}
-.gjs-toolbar{background:#1d2126;border-radius:8px}.gjs-badge{background:#1d2126;border-radius:6px}.gjs-selected{outline:2px solid #d32a37!important}.gjs-rte-toolbar{background:#1d2126;border-radius:8px;border:0}.gjs-rte-action{color:#fff}
-.gjs-pn-btn{border-radius:8px}.gjs-pn-btn.gjs-pn-active{background:#f1f2f4;box-shadow:none;color:#d32a37}
+/* The designer runs inside the admin (in a frame). Only the canvas of GrapesJS is used: its own panels are hidden and
+   the side bar (blocks to add, style of the selected element) is ours, in the look of the admin. */
+:root{--ink:#1d2126;--mut:#5f656c;--line:#e3e6e9;--soft:#f4f5f6;--red:#d32a37;--gjs-primary-color:#fff;--gjs-secondary-color:#1d2126;--gjs-tertiary-color:#d32a37;--gjs-quaternary-color:#d32a37;--gjs-color-blue:#d32a37;--gjs-font-color:#1d2126}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--ink);background:#e9ebee;font-size:14px}
+button,input,select{font:inherit;color:inherit}
+.top{height:60px;display:flex;align-items:center;gap:10px;padding:0 18px;background:#fff;border-bottom:1px solid var(--line)}
+.top b{font-size:15px}.top .sp{flex:1}.top small{color:var(--mut);font-size:12.5px}
+.btn{height:38px;border-radius:999px;border:1px solid #c9ced3;background:#fff;color:var(--ink);padding:0 16px;font-size:14px;font-weight:500;cursor:pointer;white-space:nowrap}.btn:hover{border-color:var(--ink)}.btn.red{background:var(--red);border-color:var(--red);color:#fff;font-weight:600}.btn.red:hover{background:#b71f2b}.btn.dark{background:var(--ink);border-color:var(--ink);color:#fff}.btn.ic{width:38px;padding:0;display:inline-flex;align-items:center;justify-content:center}.btn.sm{height:32px;padding:0 12px;font-size:13px}
+.btn svg{width:17px;height:17px;display:block}
+.seg{display:inline-flex;background:#f1f2f4;border-radius:999px;padding:3px}.seg button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font-size:13px;cursor:pointer;color:#3a4048;display:inline-flex;align-items:center;justify-content:center;gap:6px}.seg button.on{background:var(--ink);color:#fff}.seg svg{width:16px;height:16px;pointer-events:none}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) 348px;height:calc(100% - 60px)}
+#gjs{height:100%;min-width:0}
+.side{background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:10px 14px;border-bottom:1px solid var(--line)}.tabs button{height:36px;border:0;border-radius:999px;background:transparent;font-weight:600;font-size:13.5px;color:var(--mut);cursor:pointer}.tabs button.on{background:var(--ink);color:#fff}
+.pane{flex:1;overflow:auto;min-height:0;display:none}.pane.on{display:block}
+/* GrapesJS: only the canvas stays */
+.gjs-pn-panels,.gjs-pn-panel{display:none!important}.gjs-editor{background:#e9ebee!important}.gjs-cv-canvas{width:100%!important;height:100%!important;top:0!important;left:0!important;background:#e9ebee!important}
+.gjs-toolbar{background:var(--ink);border-radius:8px;padding:2px}.gjs-badge{background:var(--ink);border-radius:6px;font-family:inherit}.gjs-rte-toolbar{background:var(--ink);border-radius:8px;border:0}.gjs-rte-action{color:#fff;border-right-color:rgba(255,255,255,.15)}.gjs-rte-active{background:rgba(255,255,255,.18)}
+.gjs-mdl-dialog{background:#fff!important;color:var(--ink)!important;border-radius:16px}.gjs-mdl-header{border-bottom-color:var(--line)}
+/* blocks to add */
+#blocks .gjs-blocks-cs,#blocks .gjs-block-categories{background:#fff!important}
+#blocks .gjs-block-category{border:0;background:#fff!important}
+#blocks .gjs-block-category .gjs-title{background:#fff!important;border:0;color:var(--mut)!important;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:16px 16px 6px;cursor:default}#blocks .gjs-caret-icon{display:none}
+#blocks .gjs-blocks-c{display:grid!important;grid-template-columns:1fr 1fr;gap:10px;padding:4px 14px 10px;background:#fff!important}
+#blocks .gjs-block{width:auto;min-height:0;margin:0;padding:8px 8px 9px;border:1px solid var(--line);border-radius:14px;box-shadow:none;background:#fff!important;color:var(--ink)!important;cursor:grab;transition:border-color .15s,transform .15s,box-shadow .15s;flex-direction:column;gap:7px}
+#blocks .gjs-block:hover{border-color:var(--ink);transform:translateY(-1px);box-shadow:0 6px 16px rgba(20,24,28,.08)}
+#blocks .gjs-block__media{width:100%;margin:0}#blocks .gjs-block__media svg{width:100%;height:auto;display:block;border-radius:9px}
+#blocks .gjs-block-label{font-size:12.5px;font-weight:600;font-family:inherit;line-height:1.25;text-align:left;padding:0 2px}
+.hint{margin:6px 14px 18px;padding:12px 14px;border-radius:12px;background:var(--soft);color:var(--mut);font-size:12.5px;line-height:1.5}
+/* style of the selected element */
+.st-e{padding:40px 22px;text-align:center;color:var(--mut);line-height:1.5}.st-e b{display:block;color:var(--ink);font-size:15px;margin:0 0 6px}
+.st-h{padding:14px 16px 12px;border-bottom:1px solid var(--line)}.st-h h3{margin:0;font-size:16px}
+.crumb{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:0 0 8px;font-size:12px;color:var(--mut)}.crumb button{border:0;background:var(--soft);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--mut)}.crumb button:hover{color:var(--ink);background:#e7e9ec}.crumb span{padding:4px 10px;border-radius:999px;background:var(--ink);color:#fff}
+.st-a{display:flex;gap:6px;margin:10px 0 0;flex-wrap:wrap}
+.grp{padding:14px 16px 6px;border-bottom:1px solid var(--line)}.grp h4{margin:0 0 12px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.row{margin:0 0 14px}.row>label{display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;margin:0 0 7px}.row>label em{font-style:normal;color:var(--mut);font-weight:400;font-size:12px}
+.row input[type=text],.row input[type=url]{width:100%;height:38px;border:1px solid #c9ced3;border-radius:10px;padding:0 12px;background:#fff}.row input:focus{outline:2px solid rgba(211,42,55,.25);border-color:var(--red)}
+.sl{display:flex;align-items:center;gap:10px}.sl input[type=range]{flex:1;min-width:0;accent-color:var(--red);height:4px}.nb{display:inline-flex;align-items:center;border:1px solid #c9ced3;border-radius:10px;height:36px;padding:0 8px;background:#fff;flex:none}.nb input{width:38px;border:0;outline:0;text-align:right;background:transparent;-moz-appearance:textfield;padding:0}.nb input::-webkit-outer-spin-button,.nb input::-webkit-inner-spin-button{-webkit-appearance:none}.nb i{font-style:normal;color:var(--mut);font-size:12px;margin-left:3px}
+.lk{width:36px;height:36px;border-radius:10px;border:1px solid #c9ced3;background:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none;color:var(--mut);align-self:flex-start}.lk svg{width:17px;height:17px;pointer-events:none}.lk.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.four{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1}.four div{text-align:center}.four .nb{width:100%;justify-content:center;padding:0 4px}.four .nb input{width:100%;text-align:center}.four small{display:block;margin:4px 0 0;font-size:10.5px;color:var(--mut);letter-spacing:.04em;text-transform:uppercase}
+.sw{display:flex;flex-wrap:wrap;gap:7px;align-items:center}.sw button{width:28px;height:28px;border-radius:999px;border:1px solid rgba(0,0,0,.14);cursor:pointer;padding:0;position:relative}.sw button.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--ink)}.sw button.no{background:#fff linear-gradient(135deg,transparent 46%,#d32a37 46%,#d32a37 54%,transparent 54%)}.sw label{width:28px;height:28px;border-radius:999px;border:1px dashed #9aa1a9;cursor:pointer;position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;color:var(--mut);font-size:16px;line-height:1}.sw label input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.row .seg{display:flex}.row .seg button{flex:1;padding:8px 6px}
 /* product picker */
 .pk{position:fixed;inset:0;background:rgba(20,24,28,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}.pk.on{display:flex}
-.pk-b{background:#fff;border-radius:20px;width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.pk-b{background:#fff;border-radius:20px;width:min(1020px,100%);max-height:94vh;display:flex;flex-direction:column;overflow:hidden}
 .pk-h{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid #eef0f2}.pk-h b{font-size:17px}.pk-h .sp{flex:1}
-.pk-m{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0;flex:1}.pk-c{padding:16px 22px;overflow:auto;min-height:320px;max-height:56vh}.pk-c+.pk-c{border-left:1px solid #eef0f2;background:#fafbfc}
-.pk-c h4{margin:0 0 10px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:#5f656c}
-.pk input[type=search],.pk input[type=text],.pk select{width:100%;box-sizing:border-box;border:1px solid #c9ced3;border-radius:12px;padding:10px 12px;font:inherit}
-.pk-r{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f2}.pk-r img,.pk-r i{width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f1f2f4;flex:none;display:block}.pk-r div{flex:1;min-width:0}.pk-r b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}.pk-r span{display:block;font-size:13px;color:#3a4048;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pk-x{border:1px solid #e3e6e9;background:#fff;border-radius:999px;width:30px;height:30px;cursor:pointer;flex:none}.pk-x:hover{border-color:#1d2126}.pk-x[disabled]{opacity:.3}
-.pk-f{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:16px 22px;border-top:1px solid #eef0f2}.pk-f label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:#5f656c}.pk-f .sp{flex:1}
+.pk-m{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0;flex:1}.pk-c{padding:16px 22px;overflow:auto;min-height:280px;max-height:48vh}.pk-c+.pk-c{border-left:1px solid #eef0f2;background:#fafbfc}
+.pk-c h4{margin:0 0 10px;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.pk input[type=search],.pk input[type=text]{width:100%;border:1px solid #c9ced3;border-radius:12px;padding:10px 12px;background:#fff}
+.pk-r{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f2}.pk-r img{width:56px;height:42px;border-radius:8px;background:#f1f2f4;flex:none;display:block}.pk-r div{flex:1;min-width:0}.pk-r b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}.pk-r span{display:block;font-size:13px;color:#3a4048;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-x{border:1px solid var(--line);background:#fff;border-radius:999px;width:30px;height:30px;cursor:pointer;flex:none}.pk-x:hover{border-color:var(--ink)}.pk-x[disabled]{opacity:.3}
+.pk-o{display:grid;grid-template-columns:auto 1fr;gap:14px 26px;padding:16px 22px;border-top:1px solid #eef0f2;align-items:start}.pk-o>div>label{display:block;font-size:12.5px;color:var(--mut);margin:0 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chips button{border:1px solid #c9ced3;background:#fff;border-radius:999px;padding:7px 12px;font-size:13px;cursor:pointer;color:var(--mut)}.chips button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.pk-f{display:flex;gap:12px;align-items:center;padding:14px 22px;border-top:1px solid #eef0f2}.pk-f .sp{flex:1}.pk-f small{color:var(--mut)}
 .pk-e{color:#8a9097;font-size:13px;padding:18px 0}
+#boot{position:fixed;inset:0;z-index:99999;background:#e9ebee;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--mut)}#boot i{width:34px;height:34px;border-radius:50%;border:3px solid #cfd3d8;border-top-color:var(--red);animation:sp .8s linear infinite}@keyframes sp{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
-<div class="top"><b>E-mail designer</b><small>Drag blocks from the right into the e-mail. Double click a product block to choose the parts.</small><span class="sp"></span>
-<div class="seg" id="dev"><button data-d="Desktop" class="on">Desktop</button><button data-d="Tablet">Tablet</button><button data-d="Mobile portrait">Phone</button></div>
-<button class="btn" id="undo" title="Undo">Undo</button><button class="btn" id="redo" title="Redo">Redo</button>
+<div id="boot"><i></i><span>Opening the designer…</span></div>
+<div class="top"><b>E-mail designer</b><small>Drag blocks into the e-mail. Click any element to change it.</small><span class="sp"></span>
+<div class="seg" id="dev"><button data-d="Desktop" class="on">Desktop</button><button data-d="Mobile portrait">Phone</button></div>
+<button class="btn ic" id="undo" title="Undo" aria-label="Undo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button><button class="btn ic" id="redo" title="Redo" aria-label="Redo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg></button>
 <button class="btn" id="cancel">Cancel</button><button class="btn red" id="done">Use this design</button></div>
-<div id="gjs"></div>
+<div class="wrap"><div id="gjs"></div>
+<aside class="side"><div class="tabs"><button id="t-add" class="on">Add</button><button id="t-style">Style</button></div>
+<div class="pane on" id="p-add"><div id="blocks"></div><p class="hint">The header and the footer are the same in every e-mail. Change them in Email campaigns, "Header and footer".</p></div>
+<div class="pane" id="p-style"></div></aside></div>
 <div class="pk" id="pk"><div class="pk-b">
 <div class="pk-h"><b>Products in this block</b><span class="sp"></span><button class="pk-x" id="pk-close" aria-label="Close">×</button></div>
 <div class="pk-m"><div class="pk-c"><h4>Find a part</h4><input type="search" id="pk-q" placeholder="Part number, description or engine"><div id="pk-res"></div></div>
 <div class="pk-c"><h4>In the e-mail, in this order</h4><div id="pk-sel"></div></div></div>
-<div class="pk-f"><label>Layout<div class="seg" id="pk-lay"><button data-v="list">List</button><button data-v="grid2">2 columns</button><button data-v="grid3">3 columns</button></div></label>
-<label>Price<select id="pk-price"><option value="none">No price</option><option value="tier">Price of each customer (their tier)</option></select></label>
-<label>Button text<input type="text" id="pk-cta" maxlength="40" style="width:160px"></label><span class="sp"></span><button class="btn dark" id="pk-ok">Save block</button></div>
+<div class="pk-o"><div><label>Layout</label><div class="seg" id="pk-lay"><button data-v="list">List</button><button data-v="grid2">2 columns</button><button data-v="grid3">3 columns</button></div></div>
+<div><label>What each part shows</label><div class="chips" id="pk-show"><button data-h="photo">Photo</button><button data-h="code">Part number</button><button data-h="cat">Category and brand</button><button data-h="app">Application</button><button data-h="price">Price of each customer</button><button data-h="cta">Button</button></div></div></div>
+<div class="pk-f"><small>Button text</small><input type="text" id="pk-cta" maxlength="40" style="width:170px"><span class="sp"></span><button class="btn dark" id="pk-ok">Save block</button></div>
 </div></div>
 <script src="/js/vendor/grapes.min.js?v=1"></script>
 <script src="/js/vendor/grapesjs-preset-newsletter.js?v=1"></script>
+<script src="/js/mail-sections.js?v=3"></script>
 <script>
 (function () {
-  var F = 'Helvetica,Arial,sans-serif', ORIGIN = location.origin;
+  var F = 'Helvetica,Arial,sans-serif', ORIGIN = location.origin, SX = window.MXSections, S = SX.S;
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function post(a, body) { return fetch('/api/admin?a=' + a, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json().catch(function () { return {}; }); }); }
+  function call(a, body) { return fetch('/api/admin?a=' + a, { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined }).then(function (r) { return r.json().catch(function () { return {}; }); }); }
+  var $ = function (id) { return document.getElementById(id); };
   var preset = window['grapesjs-preset-newsletter']; if (preset && preset.default) preset = preset.default;
   var editor = grapesjs.init({ container: '#gjs', height: '100%', width: 'auto', fromElement: false, storageManager: false, noticeOnUnload: false, plugins: preset ? [preset] : [], assetManager: { upload: false, embedAsBase64: false },
-    canvas: { styles: [] }, deviceManager: { devices: [{ name: 'Desktop', width: '' }, { name: 'Tablet', width: '700px' }, { name: 'Mobile portrait', width: '390px' }] } });
-  editor.on('load', function () { var b = editor.Canvas.getBody(); if (b) { b.style.background = '#ffffff'; b.style.maxWidth = '680px'; b.style.margin = '18px auto'; b.style.borderRadius = '18px'; b.style.fontFamily = F; } var d = editor.Canvas.getDocument(); if (d && d.documentElement) d.documentElement.style.background = '#e9ebee'; editor.Panels.getButton('views', 'open-blocks') && editor.Panels.getButton('views', 'open-blocks').set('active', true); });
+    blockManager: { appendTo: '#blocks' }, canvas: { styles: [] }, deviceManager: { devices: [{ name: 'Desktop', width: '' }, { name: 'Mobile portrait', width: '390px' }] } });
+  editor.on('load', function () {
+    var b = editor.Canvas.getBody(), d = editor.Canvas.getDocument();
+    if (b) { b.style.background = '#ffffff'; b.style.maxWidth = '680px'; b.style.margin = '22px auto'; b.style.borderRadius = '20px'; b.style.overflow = 'hidden'; b.style.fontFamily = F; b.style.minHeight = '200px'; }
+    if (d && d.documentElement) d.documentElement.style.background = '#e9ebee';
+    if (d && d.head) { var st = d.createElement('style'); st.textContent = '@media (max-width:520px){.mx-col{display:block!important;width:100%!important;padding:0 0 12px 0!important}.mx-gap{display:none!important}}[data-mx-chrome]{pointer-events:none}'; d.head.appendChild(st); }
+  });
 
-  // ---- our blocks -------------------------------------------------------------------------------------------
-  var MARK = function (codes, lay) { return '<table data-mx-products="' + esc(codes || '') + '" data-layout="' + (lay || 'grid2') + '" data-price="none" data-cta="View part" width="100%" style="width:100%;margin:0 0 12px"></table>'; };
+  // ---- header and footer: the standard ones, shown around the e-mail and never saved with it -------------------------
+  var CHROME = { header: '', footer: '' }, fixing = false;
+  var LOCK = { selectable: false, hoverable: false, draggable: false, droppable: false, removable: false, copyable: false, editable: false, layerable: false, highlightable: false, badgable: false };
+  editor.Components.addType('mx-chrome', {
+    isComponent: function (el) { return !!(el.hasAttribute && el.hasAttribute('data-mx-chrome')); },
+    model: { defaults: Object.assign({ tagName: 'table', name: 'Standard part', components: '', traits: [] }, LOCK) },
+    view: { onRender: function () { var w = this.model.getAttributes()['data-mx-chrome']; this.el.innerHTML = '<tbody>' + (CHROME[w] || '') + '</tbody>'; } }
+  });
+  function chromeOf(w) { return editor.getWrapper().components().filter(function (c) { return c.getAttributes()['data-mx-chrome'] === w; }); }
+  function dropChrome() { fixing = true; ['header', 'footer'].forEach(function (w) { chromeOf(w).forEach(function (c) { c.remove(); }); }); fixing = false; }
+  function fixChrome() {
+    if (fixing) return; fixing = true;
+    try { var W = editor.getWrapper(), mk = function (w) { return { type: 'mx-chrome', attributes: { 'data-mx-chrome': w, width: '100%', cellpadding: '0', cellspacing: '0', style: 'width:100%' } }; };
+      ['header', 'footer'].forEach(function (w) { var l = chromeOf(w); l.slice(1).forEach(function (c) { c.remove(); }); if (!l.length && CHROME[w]) { if (w === 'header') W.append(mk(w), { at: 0 }); else W.append(mk(w)); } });
+      var cs = W.components(), h = chromeOf('header')[0], f = chromeOf('footer')[0];
+      if (h && cs.indexOf(h) !== 0) h.move(W, { at: 0 });
+      if (f && cs.indexOf(f) !== cs.length - 1) f.move(W, { at: cs.length });
+    } catch (x) { /* the e-mail still works without the frame */ }
+    fixing = false;
+  }
+  var fixT = 0; editor.on('component:add component:remove block:drag:stop component:drag:end', function () { if (fixing) return; clearTimeout(fixT); fixT = setTimeout(fixChrome, 30); });
+
+  // ---- product blocks: a marker the server fills with the real parts --------------------------------------------------
   var cache = {};
   editor.Components.addType('mx-products', {
     isComponent: function (el) { return el.tagName === 'TABLE' && el.hasAttribute && el.hasAttribute('data-mx-products'); },
@@ -75,59 +136,138 @@ html,body{height:100%;margin:0;font-family:Inter,-apple-system,Segoe UI,Helvetic
       onRender: function () { this.show(); },
       pick: function () { openPicker(this.model); },
       show: function () {
-        var el = this.el, a = this.model.getAttributes(), codes = String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), key = JSON.stringify([codes, a['data-layout'], a['data-price'], a['data-cta']]);
+        var el = this.el, a = this.model.getAttributes(), codes = String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), key = JSON.stringify([codes, a['data-layout'], a['data-price'], a['data-cta'], a['data-hide']]);
         var put = function (h) { el.innerHTML = '<tbody><tr><td style="font-family:' + F + '">' + h + '</td></tr></tbody>'; };
-        if (!codes.length) return put('<div style="border:2px dashed #d32a37;border-radius:14px;padding:26px 16px;text-align:center;color:#5f656c;font-size:14px"><b style="display:block;color:#1d2126;font-size:15px;margin:0 0 4px">Products</b>Double click to choose the parts</div>');
+        if (!codes.length) return put('<div style="border:2px dashed #d32a37;border-radius:14px;padding:28px 16px;text-align:center;color:#5f656c;font-size:14px"><b style="display:block;color:#1d2126;font-size:15px;margin:0 0 4px">Products</b>Double click to choose the parts</div>');
         if (cache[key]) return put(cache[key]);
-        put('<div style="padding:22px;text-align:center;color:#8a9097;font-size:13px">Loading the parts…</div>');
-        post('mail-products', { codes: codes, layout: a['data-layout'], price: a['data-price'], cta: a['data-cta'] }).then(function (r) { cache[key] = (r && r.html) || '<div style="padding:22px;text-align:center;color:#b71f2b;font-size:13px">These part numbers are not in the catalog.</div>'; put(cache[key]); });
+        put('<div style="padding:26px;text-align:center;color:#8a9097;font-size:13px">Loading the parts…</div>');
+        call('mail-products', { codes: codes, layout: a['data-layout'], price: a['data-price'], cta: a['data-cta'], hide: String(a['data-hide'] || '').split(',').filter(Boolean) }).then(function (r) { cache[key] = (r && r.html) || '<div style="border:2px dashed #d32a37;border-radius:14px;padding:22px;text-align:center;color:#b71f2b;font-size:13px">These part numbers are not in the catalog. Double click to choose other parts.</div>'; put(cache[key]); });
       }
     }
   });
-  var bm = editor.Blocks, ICO = function (p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; };
-  var txt = function (s, st) { return '<p style="margin:0 0 14px;font-family:' + F + ';font-size:15px;line-height:1.6;color:#3a4048;' + (st || '') + '">' + s + '</p>'; };
-  bm.add('mx-products-2', { label: 'Products, 2 columns', category: 'Maxzz', media: ICO('<rect x="3" y="4" width="8" height="16" rx="2"/><rect x="13" y="4" width="8" height="16" rx="2"/>'), content: MARK('', 'grid2') });
-  bm.add('mx-products-3', { label: 'Products, 3 columns', category: 'Maxzz', media: ICO('<rect x="2.5" y="4" width="5.5" height="16" rx="1.5"/><rect x="9.25" y="4" width="5.5" height="16" rx="1.5"/><rect x="16" y="4" width="5.5" height="16" rx="1.5"/>'), content: MARK('', 'grid3') });
-  bm.add('mx-products-l', { label: 'Products, list', category: 'Maxzz', media: ICO('<rect x="3" y="4" width="18" height="6.5" rx="2"/><rect x="3" y="13.5" width="18" height="6.5" rx="2"/>'), content: MARK('', 'list') });
-  bm.add('mx-banner', { label: 'Banner', category: 'Maxzz', media: ICO('<rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 11h7M7 14h4"/>'), content: '<table width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 18px"><tr><td style="background:#d32a37;border-radius:16px;padding:22px 24px;font-family:' + F + '"><div style="font-size:22px;line-height:1.25;font-weight:700;color:#ffffff">This week only</div><div style="margin:6px 0 0;font-size:14px;line-height:1.5;color:#ffffff">For wholesale accounts, while it lasts</div></td></tr></table>' });
-  bm.add('mx-button', { label: 'Red button', category: 'Maxzz', media: ICO('<rect x="4" y="8" width="16" height="8" rx="4"/>'), content: '<a href="https://www.maxzzdiesel.com/portal" style="display:inline-block;background:#d32a37;border-radius:50px;padding:14px 26px;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;font-family:' + F + ';margin:6px 0 18px">Open the wholesale store</a>' });
-  bm.add('mx-title', { label: 'Title', category: 'Maxzz', media: ICO('<path d="M5 6h14M12 6v13"/>'), content: '<h2 style="margin:0 0 12px;font-size:24px;line-height:1.25;color:#1d2126;font-family:' + F + '">Hi {{first_name}}, parts picked for your shop</h2>' });
-  bm.add('mx-text', { label: 'Paragraph', category: 'Maxzz', media: ICO('<path d="M4 7h16M4 12h16M4 17h10"/>'), content: txt('Write here. Use {{first_name}}, {{company}} and {{salesperson}} and each person sees their own.') });
-  bm.add('mx-line', { label: 'Line', category: 'Maxzz', media: ICO('<path d="M3 12h18"/>'), content: '<div style="border-top:1px solid #eceef0;margin:8px 0 20px;font-size:0;line-height:0">&nbsp;</div>' });
-  var cats = bm.getCategories(); cats.each(function (c) { c.set('open', c.id === 'Maxzz'); c.set('order', c.id === 'Maxzz' ? 0 : 1); });
 
-  // ---- product picker ---------------------------------------------------------------------------------------
-  var CAT = null, IMGS = {}, P = { model: null, codes: [], lay: 'grid2' }, $ = function (id) { return document.getElementById(id); };
+  // ---- blocks to drag, each with a small picture of what it adds ------------------------------------------------------
+  var bm = editor.Blocks; bm.getAll().map(function (b) { return b.getId(); }).forEach(function (id) { bm.remove(id); });
+  var R = function (x, y, w, h, f, r) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (r == null ? 2 : r) + '" fill="' + f + '"/>'; };
+  var W = function (inner, bg) { return '<svg viewBox="0 0 120 72" xmlns="http://www.w3.org/2000/svg">' + R(0, 0, 120, 72, bg || '#f4f5f6', 0) + inner + '</svg>'; };
+  var G = '#c9ced3', D = '#1d2126', RD = '#d32a37', card = function (x, w) { return R(x, 10, w, 52, '#fff', 5) + R(x + 4, 14, w - 8, 22, '#e3e6e9', 3) + R(x + 4, 40, w - 14, 3, D) + R(x + 4, 46, w - 20, 2.5, G) + R(x + 4, 52, 16, 6, RD, 3); };
+  var lrow = function (y) { return R(10, y, 100, 15, '#fff', 3) + R(13, y + 2.5, 13, 10, '#e3e6e9', 2) + R(30, y + 3.5, 38, 3, D) + R(30, y + 9, 50, 2.5, G) + R(89, y + 4.5, 18, 6, RD, 3); };
+  var add = function (id, label, cat, media, content) { bm.add('mx-' + id, { label: label, category: cat, media: media, content: content, select: true }); };
+  add('pl', 'Product list', 'Products', W(lrow(8) + lrow(28.5) + lrow(49)), S.products('list', []));
+  add('p2', 'Products, 2 columns', 'Products', W(card(10, 47) + card(63, 47)), S.products('grid2', []));
+  add('p3', 'Products, 3 columns', 'Products', W(card(8, 32) + card(44, 32) + card(80, 32)), S.products('grid3', []));
+  add('hd', 'Dark opening', 'Sections', W(R(12, 14, 22, 3, '#f08a24') + R(12, 22, 70, 7, '#fff') + R(12, 34, 84, 3, '#8a9097') + R(12, 46, 34, 11, RD, 6), D), S.heroDark('New in stock', 'A strong headline goes here', 'One line that says why it matters to the shop.', 'See the parts'));
+  add('hs', 'Light opening', 'Sections', W(R(12, 14, 22, 3, '#c2410c') + R(12, 22, 70, 7, D) + R(12, 34, 84, 3, G) + R(12, 46, 34, 11, RD, 6), '#eceef0'), S.heroSoft('Maxzz news', 'A strong headline goes here', 'One line that says why it matters to the shop.', 'See the parts'));
+  add('bn', 'Offer banner', 'Sections', W(R(8, 8, 104, 56, RD, 8) + R(18, 18, 24, 3, '#ffc9cd') + R(18, 26, 66, 7, '#fff') + R(18, 38, 50, 3, '#ffc9cd') + R(18, 47, 30, 10, '#fff', 5)), S.banner('Your offer in one line', 'Who it is for and until when.', 'See the offer'));
+  add('it', 'Image and text', 'Sections', W(R(10, 12, 44, 48, '#dfe2e6', 6) + R(62, 18, 44, 5, D) + R(62, 29, 48, 3, G) + R(62, 36, 40, 3, G) + R(62, 48, 26, 4, RD)), S.imageText('A title for this story', 'Two or three lines that tell it. Change the picture in Style.', 'Read more'));
+  add('f3', 'Three highlights', 'Sections', W([8, 44, 80].map(function (x) { return R(x, 12, 32, 48, '#fff', 5) + R(x + 5, 18, 8, 3, RD) + R(x + 5, 26, 20, 4, D) + R(x + 5, 35, 22, 2.5, G) + R(x + 5, 41, 18, 2.5, G); }).join('')), S.features([['First point', 'A short line about it.'], ['Second point', 'A short line about it.'], ['Third point', 'A short line about it.']]));
+  add('ct', 'Talk to sales', 'Sections', W(R(8, 16, 104, 40, D, 8) + R(16, 27, 46, 5, '#fff') + R(16, 38, 54, 3, '#8a9097') + R(76, 29, 30, 13, RD, 6.5)), S.contact());
+  add('nt', 'Highlighted note', 'Sections', W(R(10, 18, 100, 36, '#fff3e2', 5) + R(10, 18, 4, 36, '#f08a24', 2) + R(22, 27, 40, 4, D) + R(22, 37, 78, 2.5, G) + R(22, 43, 60, 2.5, G)), S.note('Good to know', 'A short note that should stand out.'));
+  add('ti', 'Title', 'Basics', W(R(14, 24, 24, 3, '#c2410c') + R(14, 34, 76, 8, D)), S.title('Section', 'A title for this part'));
+  add('tx', 'Paragraph', 'Basics', W(R(14, 20, 92, 3.5, G) + R(14, 29, 92, 3.5, G) + R(14, 38, 92, 3.5, G) + R(14, 47, 54, 3.5, G)), S.text('Write here. Use {{first_name}}, {{company}} and {{salesperson}} and each person sees their own.'));
+  add('bt', 'Button', 'Basics', W(R(30, 25, 60, 22, RD, 11) + R(44, 34, 32, 4, '#fff')), S.button('Open the wholesale store'));
+  add('im', 'Image', 'Basics', W(R(10, 10, 100, 52, '#dfe2e6', 6) + '<circle cx="34" cy="28" r="6" fill="#b4bac1"/><path d="M18 56l26-22 18 14 12-9 28 17z" fill="#b4bac1"/>'), S.image());
+  add('c2', 'Two columns', 'Basics', W(R(10, 12, 47, 48, '#fff', 5) + R(63, 12, 47, 48, '#fff', 5) + R(16, 20, 26, 4, D) + R(16, 30, 34, 2.5, G) + R(16, 36, 30, 2.5, G) + R(69, 20, 26, 4, D) + R(69, 30, 34, 2.5, G) + R(69, 36, 30, 2.5, G)), S.columns2());
+  add('dv', 'Line', 'Basics', W(R(12, 35, 96, 2, G, 1)), S.divider());
+  add('sp', 'Space', 'Basics', W(R(12, 16, 96, 2, G, 1) + R(12, 54, 96, 2, G, 1) + '<path d="M60 24v24M55 29l5-5 5 5M55 43l5 5 5-5" fill="none" stroke="#8a9097" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'), S.spacer());
+  bm.getCategories().each(function (c) { c.set('open', true); });
+
+  // ---- style of the selected element ----------------------------------------------------------------------------------
+  // Inner space and rounded corners start linked: one value for the four sides. The chain button sets each side by itself.
+  var SEL = null, LINKED = { padding: true, radius: true }, lastDrop = 0, pt = 0;
+  var PAD = ['padding-top', 'padding-right', 'padding-bottom', 'padding-left'], RAD = ['border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius'];
+  var FOUR = { padding: ['padding', PAD, ['Top', 'Right', 'Bottom', 'Left'], 80], radius: ['border-radius', RAD, ['Top L', 'Top R', 'Bot R', 'Bot L'], 60] };
+  var num = function (v) { var n = parseFloat(v); return isNaN(n) ? 0 : Math.round(n); };
+  function four(st, k) { var d = FOUR[k], v = String(st[d[0]] || '').trim().split(/\s+/).filter(Boolean).map(num), o = !v.length ? [0, 0, 0, 0] : v.length === 1 ? [v[0], v[0], v[0], v[0]] : v.length === 2 ? [v[0], v[1], v[0], v[1]] : v.length === 3 ? [v[0], v[1], v[2], v[1]] : v.slice(0, 4);
+    d[1].forEach(function (p, i) { if (st[p] != null && st[p] !== '') o[i] = num(st[p]); }); return o; }
+  var same = function (a) { return a[0] === a[1] && a[1] === a[2] && a[2] === a[3]; };
+  function setFour(c, k, a) { var d = FOUR[k], o = {}; d[1].forEach(function (p) { c.removeStyle(p); }); o[d[0]] = same(a) ? a[0] + 'px' : a.map(function (x) { return x + 'px'; }).join(' '); c.addStyle(o); }
+  function setS(c, prop, v) { if (v === '' || v == null) c.removeStyle(prop); else { var o = {}; o[prop] = v; c.addStyle(o); } }
+  function hex(v) { v = String(v || '').trim(); var m = v.match(/^rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/i); if (m) return '#' + [1, 2, 3].map(function (i) { return ('0' + (+m[i]).toString(16)).slice(-2); }).join(''); if (/^#[0-9a-f]{3}$/i.test(v)) return '#' + v.slice(1).split('').map(function (x) { return x + x; }).join('').toLowerCase(); return /^#[0-9a-f]{6}$/i.test(v) ? v.toLowerCase() : ''; }
+  function kind(c) { var t = String(c.get('tagName') || '').toLowerCase(), ty = c.get('type');
+    if (ty === 'mx-products') return 'products'; if (t === 'img' || ty === 'image') return 'image'; if (t === 'a' || ty === 'link') return 'link';
+    if (t === 'td' || t === 'th' || ty === 'cell') return 'box'; if (t === 'table') return 'section'; if (ty === 'text' || /^(h[1-6]|p|span|b|strong|i|em|u)$/.test(t)) return 'text'; return 'box'; }
+  var NAME = { products: 'Products', image: 'Image', link: 'Link or button', text: 'Text', box: 'Box', section: 'Section' };
+  function chain(c) { var out = [], p = c.parent(), W = editor.getWrapper(); while (p && p !== W && out.length < 3) { var t = String(p.get('tagName') || '').toLowerCase(); if (t !== 'tbody' && t !== 'tr' && t !== 'thead') out.unshift(p); p = p.parent(); } return out; }
+  var COLORS = ['#1d2126', '#3a4048', '#5f6670', '#8a9097', '#ffffff', '#f4f5f6', '#d32a37', '#f08a24', '#c2410c'];
+  function cNum(label, prop, val, min, max) { return '<div class="row"><label>' + label + '</label><div class="sl"><input type="range" min="' + min + '" max="' + max + '" value="' + val + '" data-sp="' + prop + '"><span class="nb"><input type="number" min="' + min + '" max="' + max + '" value="' + val + '" data-sp="' + prop + '"><i>px</i></span></div></div>'; }
+  function cColor(label, prop, val, none) { var h = hex(val), own = h && COLORS.indexOf(h) < 0; return '<div class="row"><label>' + label + '</label><div class="sw">' + (none ? '<button class="no' + (!h ? ' on' : '') + '" data-sc="' + prop + '" data-v="" title="None"></button>' : '') + COLORS.map(function (c) { return '<button style="background:' + c + '" class="' + (h === c ? 'on' : '') + '" data-sc="' + prop + '" data-v="' + c + '" title="' + c + '"></button>'; }).join('') + '<label title="Another colour"' + (own ? ' style="background:' + h + ';border-style:solid"' : '') + '>' + (own ? '' : '+') + '<input type="color" value="' + (h || '#d32a37') + '" data-sp="' + prop + '" data-raw="1"></label></div></div>'; }
+  function cSeg(label, prop, val, opts) { return '<div class="row"><label>' + label + '</label><div class="seg">' + opts.map(function (o) { return '<button class="' + (String(val) === String(o[0]) ? 'on' : '') + '" data-sc="' + prop + '" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div></div>'; }
+  var CHAIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/></svg>';
+  function cFour(label, k, st) { var a = four(st, k), d = FOUR[k], on = LINKED[k];
+    return '<div class="row"><label>' + label + '<em>' + (on ? 'all sides together' : 'each side') + '</em></label><div class="sl">' + (on ? '<input type="range" min="0" max="' + d[3] + '" value="' + a[0] + '" data-four="' + k + '"><span class="nb"><input type="number" min="0" max="200" value="' + a[0] + '" data-four="' + k + '"><i>px</i></span>'
+      : '<div class="four">' + a.map(function (v, i) { return '<div><span class="nb"><input type="number" min="0" max="200" value="' + v + '" data-four="' + k + '" data-i="' + i + '"></span><small>' + d[2][i] + '</small></div>'; }).join('') + '</div>') +
+      '<button class="lk' + (on ? ' on' : '') + '" data-link="' + k + '" title="' + (on ? 'One value for all sides. Click to set each side by itself.' : 'Each side by itself. Click to use one value for all.') + '" aria-pressed="' + on + '">' + CHAIN + '</button></div></div>'; }
+  var AL = function (d) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="' + d + '"/></svg>'; };
+  var ALIGN = [['left', AL('M4 6h16M4 12h10M4 18h13')], ['center', AL('M4 6h16M7 12h10M5.5 18h13')], ['right', AL('M4 6h16M10 12h10M7 18h13')]];
+  function tab(t) { $('t-add').className = t === 'add' ? 'on' : ''; $('t-style').className = t === 'style' ? 'on' : ''; $('p-add').className = 'pane' + (t === 'add' ? ' on' : ''); $('p-style').className = 'pane' + (t === 'style' ? ' on' : ''); }
+  function panel() {
+    var c = SEL, el = $('p-style');
+    if (!c) { el.innerHTML = '<div class="st-e"><b>Nothing selected</b>Click a text, a button, a picture or a box in the e-mail to change how it looks.</div>'; return; }
+    var k = kind(c), st = c.getStyle() || {}, at = c.getAttributes() || {}, ch = chain(c), h = '';
+    h += '<div class="st-h">' + (ch.length ? '<div class="crumb">' + ch.map(function (p, i) { return '<button data-up="' + i + '" title="Select the ' + NAME[kind(p)].toLowerCase() + ' around it">' + NAME[kind(p)] + '</button>›'; }).join('') + '<span>' + NAME[k] + '</span></div>' : '') + '<h3>' + NAME[k] + '</h3><div class="st-a">' + (k === 'products' ? '<button class="btn dark sm" data-do="pick">Choose parts and layout</button>' : '') + '<button class="btn sm" data-do="dup">Duplicate</button><button class="btn sm" data-do="del">Remove</button></div></div>';
+    if (k === 'products') { el.innerHTML = h + '<div class="st-e">The parts, the layout, the price and what each part shows are chosen in "Choose parts and layout". You can also double click the block.</div>'; return; }
+    if (k === 'link') h += '<div class="grp"><h4>Link</h4><div class="row"><label>Goes to</label><input type="url" data-at="href" value="' + esc(at.href || '') + '" placeholder="https://"></div></div>';
+    if (k === 'image') h += '<div class="grp"><h4>Picture</h4><div class="row"><label>Address of the picture<em>https</em></label><input type="url" data-at="src" value="' + esc(c.get('src') || at.src || '') + '" placeholder="https://"></div><div class="row"><label>Description<em>for who cannot see it</em></label><input type="text" data-at="alt" value="' + esc(at.alt || '') + '"></div>' + cFour('Rounded corners', 'radius', st) + '</div>';
+    else {
+      h += '<div class="grp"><h4>Text</h4>' + cNum('Size', 'font-size', num(st['font-size']) || 15, 10, 48) + cSeg('Weight', 'font-weight', /^(bold|[6-9]00)$/.test(st['font-weight']) ? (st['font-weight'] === '600' ? '600' : '700') : '400', [['400', 'Regular'], ['600', 'Semibold'], ['700', 'Bold']]) + cColor('Colour', 'color', st.color) + cSeg('Alignment', 'text-align', st['text-align'] || 'left', ALIGN) + '</div>';
+      h += '<div class="grp"><h4>' + (k === 'link' ? 'Button' : 'Box') + '</h4>' + cColor('Background', 'background-color', st['background-color'] || st.background, true) + cFour('Inner space', 'padding', st) + cFour('Rounded corners', 'radius', st) + (k === 'text' ? cNum('Space below', 'margin-bottom', num(st['margin-bottom'] != null ? st['margin-bottom'] : String(st.margin || '').split(/\s+/)[2] || 0), 0, 60) : '') + '</div>';
+    }
+    el.innerHTML = h;
+  }
+  editor.on('component:selected', function (c) { SEL = c; var st = c.getStyle() || {}; LINKED = { padding: same(four(st, 'padding')), radius: same(four(st, 'radius')) }; panel(); if (Date.now() - lastDrop > 600) tab('style'); });
+  editor.on('component:deselected', function () { setTimeout(function () { if (!editor.getSelected()) { SEL = null; panel(); tab('add'); } }, 0); });
+  editor.on('block:drag:stop', function () { lastDrop = Date.now(); });
+  $('t-add').onclick = function () { tab('add'); }; $('t-style').onclick = function () { tab('style'); };
+  $('p-style').addEventListener('input', function (e) { var t = e.target, d = t.dataset, c = SEL; if (!c) return;
+    var mirror = function (sel) { var sl = t.closest('.sl'); if (sl) [].forEach.call(sl.querySelectorAll(sel), function (x) { if (x !== t) x.value = t.value; }); };
+    if (d.sp) { if (d.sp === 'background-color') c.removeStyle('background'); setS(c, d.sp, d.raw ? t.value : num(t.value) + 'px'); if (d.raw) { clearTimeout(pt); pt = setTimeout(panel, 500); } else mirror('[data-sp]'); return; }
+    if (d.four) { var a = four(c.getStyle() || {}, d.four), v = Math.max(0, num(t.value)); if (d.i != null) a[+d.i] = v; else { a = [v, v, v, v]; mirror('[data-four]'); } return setFour(c, d.four, a); }
+    if (d.at) { var o = {}; o[d.at] = t.value.trim(); if (d.at === 'src') c.set('src', o.src); c.addAttributes(o); } });
+  $('p-style').addEventListener('click', function (e) { var t = e.target.closest('button'), c = SEL; if (!t || !c) return; var d = t.dataset;
+    if (d.sc) { if (d.sc === 'background-color') c.removeStyle('background'); setS(c, d.sc, d.v); return panel(); }
+    if (d.link) { LINKED[d.link] = !LINKED[d.link]; if (LINKED[d.link]) { var a = four(c.getStyle() || {}, d.link); setFour(c, d.link, [a[0], a[0], a[0], a[0]]); } return panel(); }
+    if (d.up != null) return editor.select(chain(c)[+d.up]);
+    if (d.do === 'pick') return openPicker(c); if (d.do === 'dup') return editor.runCommand('tlb-clone'); if (d.do === 'del') return editor.runCommand('tlb-delete'); });
+  panel();
+
+  // ---- product picker -------------------------------------------------------------------------------------------------
+  var CAT = null, P = { model: null, codes: [], lay: 'grid2', hide: [], price: false };
   function name(d) { d = String(d || '').replace(/\(=[^)]*\)/g, ''); var m = d.match(/^(.*?)\s*\/\s*(?:Application|Suitable for|Suitable)\s*:?\s*(.*)$/i); return m ? m[1] + (m[2] ? ' · ' + m[2] : '') : d; }
-  function row(r, btn) { var im = IMGS[r[0]]; return '<div class="pk-r">' + (im ? '<img src="' + esc(im) + '" alt="" loading="lazy">' : '<i></i>') + '<div><b>' + esc(r[0]) + '</b><span>' + esc(name(r[1])) + '</span></div>' + btn + '</div>'; }
+  function prow(r, btn) { return '<div class="pk-r"><img src="/api/img?c=' + encodeURIComponent(r[0]) + '&s=xs" alt="" loading="lazy" width="56" height="42"><div><b>' + esc(r[0]) + '</b><span>' + esc(name(r[1])) + '</span></div>' + btn + '</div>'; }
+  function drawOpt() { [].forEach.call($('pk-lay').children, function (b) { b.className = b.dataset.v === P.lay ? 'on' : ''; }); [].forEach.call($('pk-show').children, function (b) { var k = b.dataset.h; b.className = (k === 'price' ? P.price : P.hide.indexOf(k) < 0) ? 'on' : ''; }); }
   function drawSel() { var M = {}; (CAT || []).forEach(function (r) { M[r[0]] = r; });
-    $('pk-sel').innerHTML = P.codes.length ? P.codes.map(function (c, i) { return row(M[c] || [c, 'Not in the catalog'], '<button class="pk-x" data-up="' + i + '"' + (i ? '' : ' disabled') + '>↑</button><button class="pk-x" data-dn="' + i + '"' + (i < P.codes.length - 1 ? '' : ' disabled') + '>↓</button><button class="pk-x" data-rm="' + i + '">×</button>'); }).join('') : '<div class="pk-e">No parts yet. Search on the left and add them.</div>';
-    [].forEach.call($('pk-lay').children, function (b) { b.className = b.dataset.v === P.lay ? 'on' : ''; }); }
+    $('pk-sel').innerHTML = P.codes.length ? P.codes.map(function (c, i) { return prow(M[c] || [c, CAT ? 'Not in the catalog' : ''], '<button class="pk-x" data-up="' + i + '"' + (i ? '' : ' disabled') + ' aria-label="Move up">↑</button><button class="pk-x" data-dn="' + i + '"' + (i < P.codes.length - 1 ? '' : ' disabled') + ' aria-label="Move down">↓</button><button class="pk-x" data-rm="' + i + '" aria-label="Remove">×</button>'); }).join('') : '<div class="pk-e">No parts yet. Search on the left and add them.</div>'; drawOpt(); }
   function drawRes() { var q = $('pk-q').value.toLowerCase().replace(/[^a-z0-9]/g, ''); if (!CAT) { $('pk-res').innerHTML = '<div class="pk-e">Loading the catalog…</div>'; return; }
     var hit = q.length < 2 ? [] : CAT.filter(function (r) { return (r[0] + ' ' + r[1]).toLowerCase().replace(/[^a-z0-9]/g, '').indexOf(q) >= 0; }).slice(0, 30);
-    $('pk-res').innerHTML = q.length < 2 ? '<div class="pk-e">Type at least 2 characters.</div>' : hit.length ? hit.map(function (r) { var inn = P.codes.indexOf(r[0]) >= 0; return row(r, '<button class="btn" data-add="' + esc(r[0]) + '"' + (inn ? ' disabled style="opacity:.4"' : '') + '>' + (inn ? 'Added' : 'Add') + '</button>'); }).join('') : '<div class="pk-e">Nothing found.</div>'; }
-  function openPicker(model) { var a = model.getAttributes(); P = { model: model, codes: String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), lay: a['data-layout'] || 'grid2' };
-    $('pk-price').value = a['data-price'] === 'tier' ? 'tier' : 'none'; $('pk-cta').value = a['data-cta'] || 'View part'; $('pk-q').value = ''; $('pk').classList.add('on'); drawSel(); drawRes(); setTimeout(function () { $('pk-q').focus(); }, 50);
-    if (!CAT) { fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { CAT = rows; drawSel(); drawRes(); }); fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { IMGS = m || {}; drawSel(); drawRes(); }).catch(function () {}); } }
+    $('pk-res').innerHTML = q.length < 2 ? '<div class="pk-e">Type at least 2 characters.</div>' : hit.length ? hit.map(function (r) { var inn = P.codes.indexOf(r[0]) >= 0; return prow(r, '<button class="btn sm" data-add="' + esc(r[0]) + '"' + (inn ? ' disabled style="opacity:.4"' : '') + '>' + (inn ? 'Added' : 'Add') + '</button>'); }).join('') : '<div class="pk-e">Nothing found.</div>'; }
+  function openPicker(model) { var a = model.getAttributes(); P = { model: model, codes: String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), lay: a['data-layout'] || 'grid2', hide: String(a['data-hide'] || '').split(',').filter(Boolean), price: a['data-price'] === 'tier' };
+    $('pk-cta').value = a['data-cta'] || 'View part'; $('pk-q').value = ''; $('pk').classList.add('on'); drawSel(); drawRes(); setTimeout(function () { $('pk-q').focus(); }, 50);
+    if (!CAT) fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { CAT = rows; drawSel(); drawRes(); }); }
   $('pk-q').addEventListener('input', drawRes);
-  $('pk').addEventListener('click', function (e) { var d = e.target.dataset || {};
-    if (e.target === $('pk') || e.target.id === 'pk-close') return $('pk').classList.remove('on');
+  $('pk').addEventListener('click', function (e) { var t = e.target.closest('button') || e.target, d = t.dataset || {};
+    if (e.target === $('pk') || t.id === 'pk-close') return $('pk').classList.remove('on');
     if (d.add) { if (P.codes.length < 24 && P.codes.indexOf(d.add) < 0) P.codes.push(d.add); drawSel(); return drawRes(); }
     if (d.rm != null) { P.codes.splice(+d.rm, 1); drawSel(); return drawRes(); }
     if (d.up != null) { var i = +d.up; P.codes.splice(i - 1, 0, P.codes.splice(i, 1)[0]); return drawSel(); }
     if (d.dn != null) { var j = +d.dn; P.codes.splice(j + 1, 0, P.codes.splice(j, 1)[0]); return drawSel(); }
-    if (d.v && e.target.parentNode.id === 'pk-lay') { P.lay = d.v; return drawSel(); }
-    if (e.target.id === 'pk-ok') { P.model.addAttributes({ 'data-mx-products': P.codes.join(','), 'data-layout': P.lay, 'data-price': $('pk-price').value, 'data-cta': $('pk-cta').value.trim() || 'View part' }); $('pk').classList.remove('on'); } });
+    if (d.v && t.parentNode.id === 'pk-lay') { P.lay = d.v; return drawOpt(); }
+    if (d.h) { if (d.h === 'price') P.price = !P.price; else { var x = P.hide.indexOf(d.h); if (x >= 0) P.hide.splice(x, 1); else P.hide.push(d.h); } return drawOpt(); }
+    if (t.id === 'pk-ok') { P.model.addAttributes({ 'data-mx-products': P.codes.join(','), 'data-layout': P.lay, 'data-price': P.price ? 'tier' : 'none', 'data-cta': $('pk-cta').value.trim() || 'View part', 'data-hide': P.hide.join(',') }); $('pk').classList.remove('on'); } });
 
-  // ---- top bar and the talk with the admin page ---------------------------------------------------------------
+  // ---- top bar and the talk with the admin page -----------------------------------------------------------------------
   $('dev').addEventListener('click', function (e) { var d = e.target.dataset.d; if (!d) return; editor.setDevice(d); [].forEach.call($('dev').children, function (b) { b.className = b === e.target ? 'on' : ''; }); });
   $('undo').onclick = function () { editor.UndoManager.undo(); }; $('redo').onclick = function () { editor.UndoManager.redo(); };
   function say(m) { if (window.parent && window.parent !== window) window.parent.postMessage(m, ORIGIN); }
   $('cancel').onclick = function () { say({ type: 'mx-cancel' }); };
-  $('done').onclick = function () { var html = ''; try { html = editor.runCommand('gjs-get-inlined-html') || ''; } catch (e) { html = ''; } if (!html) html = editor.getHtml() + '<style>' + editor.getCss() + '</style>'; say({ type: 'mx-done', html: html, project: editor.getProjectData() }); };
+  $('done').onclick = function () { editor.select(null); dropChrome(); var html = ''; try { html = editor.runCommand('gjs-get-inlined-html') || ''; } catch (e) { html = ''; } if (!html) html = editor.getHtml() + '<style>' + editor.getCss() + '</style>'; var project = editor.getProjectData(); say({ type: 'mx-done', html: html, project: project }); fixChrome(); };
+  function ready() { var b = $('boot'); if (b) b.remove(); }
+  var layout = call('mail-layout').then(function (r) { CHROME = { header: (r && r.header) || '', footer: (r && r.footer) || '' }; }).catch(function () {});
   window.addEventListener('message', function (e) { if (e.origin !== ORIGIN || !e.data || e.data.type !== 'mx-load') return;
-    var go = function () { try { if (e.data.project) editor.loadProjectData(e.data.project); else editor.setComponents(e.data.html || ''); } catch (x) { editor.setComponents(e.data.html || ''); } editor.UndoManager.clear(); };
+    var go = function () { try { if (e.data.project) editor.loadProjectData(e.data.project); else editor.setComponents(e.data.html || ''); } catch (x) { editor.setComponents(e.data.html || ''); }
+      layout.then(function () { fixChrome(); editor.UndoManager.clear(); editor.select(null); ready(); }); };
     if (editor.Canvas.getBody()) go(); else editor.on('load', go); });
+  setTimeout(ready, 8000);
   window.mxEditor = editor; say({ type: 'mx-ready' });
 })();
 </script>

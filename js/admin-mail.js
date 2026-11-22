@@ -15,19 +15,38 @@
     '.ml-note{font-size:12.5px;color:#5f656c;line-height:1.5;margin:6px 0 0}.ml-warn{background:#fff4e5;border:1px solid #f3d3a4;color:#7a3d00;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5;margin:0 0 12px}.ml-good{background:#eaf6ee;border:1px solid #b9e0c6;color:#136c33;border-radius:12px;padding:10px 12px;font-size:13px;margin:0 0 12px}' +
     '.ml-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;padding:6px 16px 18px}.ml-pick button{text-align:left;border:1px solid #e3e6e9;border-radius:16px;background:#fff;padding:16px;cursor:pointer;font:inherit}.ml-pick button:hover{border-color:#1d2126}.ml-pick b{display:block;font-size:15px;margin:0 0 4px}.ml-pick small{color:#5f656c;font-size:12.5px;line-height:1.4;display:block}' +
     '.ml-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ml-row .sp{flex:1}.ml-st{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;background:#eef0f2;color:#5f656c}.ml-st.sent{background:#eaf6ee;color:#136c33}.ml-st.sending,.ml-st.scheduled{background:#fff4e5;color:#9a4b00}.ml-st.failed,.ml-st.bounced,.ml-st.complained,.ml-st.cancelled{background:#fdecee;color:#b71f2b}.ml-st.held{background:#eef0f2;color:#5f656c}';
+  css += '.ml-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:16px;padding:8px 20px 24px}.ml-card{border:1px solid #e3e6e9;border-radius:20px;background:#fff;padding:10px 10px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;font:inherit;color:inherit;transition:border-color .15s,transform .15s,box-shadow .15s}.ml-card:hover{border-color:#1d2126;transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,24,28,.10)}.ml-card b{font-size:15px;margin:12px 4px 3px;display:block}.ml-card small{font-size:12.5px;line-height:1.45;color:#5f656c;margin:0 4px;display:block}.ml-card em{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c2410c;margin:0 4px;display:block}' +
+    '.ml-th{height:236px;border-radius:12px;background:#e9ebee;overflow:hidden;padding:14px 22px 0;display:block}.ml-wf{display:block;background:#fff;border-radius:8px 8px 0 0;height:100%;overflow:hidden;box-shadow:0 2px 12px rgba(20,24,28,.10)}.ml-th.real{padding:0;position:relative}.ml-th.real iframe{width:680px;height:800px;border:0;transform:scale(.34);transform-origin:0 0;pointer-events:none;display:block;position:absolute;left:50%;margin-left:-116px;top:0}' +
+    '.ml-gh{padding:4px 20px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ml-gt{padding:14px 20px 0;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5f656c}.ml-lk{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin:0 0 8px}.ml-lk input{font:inherit;border:1px solid #c9ced3;border-radius:12px;padding:9px 12px;width:100%;box-sizing:border-box;background:#fff}.ml-h4{margin:18px 0 10px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5f656c}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var TYPES = [['heading', 'Heading'], ['text', 'Text'], ['products', 'Products'], ['banner', 'Banner'], ['button', 'Button'], ['image', 'Image'], ['divider', 'Line'], ['spacer', 'Space']];
   var NEWB = { heading: function () { return { type: 'heading', text: '', size: 'm' }; }, text: function () { return { type: 'text', text: '' }; }, products: function () { return { type: 'products', codes: [], layout: 'grid2', price: 'none', cta: 'View part' }; },
     banner: function () { return { type: 'banner', text: '', sub: '', bg: 'red', label: '', url: '' }; }, button: function () { return { type: 'button', label: '', url: 'https://www.maxzzdiesel.com/portal' }; }, image: function () { return { type: 'image', src: '', alt: '', url: '' }; }, divider: function () { return { type: 'divider' }; }, spacer: function () { return { type: 'spacer', h: 20 }; } };
   var STORE = 'https://www.maxzzdiesel.com/portal';
-  var STARTERS = [
-    ['Product list', 'A short note and the parts in a list, one under the other.', function () { return { subject: '{{first_name}}, parts picked for {{company}}', blocks: [{ type: 'heading', text: 'Hi {{first_name}}, parts picked for your shop', size: 'l' }, { type: 'text', text: 'Here is what other shops like yours ordered this month.' }, { type: 'products', codes: [], layout: 'list', price: 'none', cta: 'View part' }, { type: 'button', label: 'Open the wholesale store', url: STORE }] }; }],
-    ['Product grid', 'Parts side by side in two or three columns.', function () { return { subject: 'New in stock this week', blocks: [{ type: 'heading', text: 'New this week', size: 'l' }, { type: 'products', codes: [], layout: 'grid3', price: 'none', cta: 'View' }, { type: 'button', label: 'See the full catalog', url: STORE + '#/all' }] }; }],
-    ['Featured part', 'One part in evidence, with the reason to buy it.', function () { return { subject: 'One part worth a look, {{first_name}}', blocks: [{ type: 'banner', text: 'Part of the week', sub: '', bg: 'dark', label: '', url: '' }, { type: 'products', codes: [], layout: 'list', price: 'none', cta: 'View part' }, { type: 'text', text: 'Why it matters: ' }, { type: 'divider' }, { type: 'heading', text: 'Goes well with', size: 'm' }, { type: 'products', codes: [], layout: 'grid2', price: 'none', cta: 'View part' }] }; }],
-    ['Promotion', 'A banner with the offer, the parts and one button.', function () { return { subject: 'This week only at Maxzz Diesel', blocks: [{ type: 'banner', text: 'This week only', sub: 'For wholesale accounts, while it lasts', bg: 'red', label: 'See the offer', url: STORE }, { type: 'text', text: 'Hi {{first_name}}, this offer is for {{company}}.' }, { type: 'products', codes: [], layout: 'grid2', price: 'tier', cta: 'Add to order' }] }; }],
-    ['Simple notice', 'Text and one button. For news, holidays and service notes.', function () { return { subject: 'A note from Maxzz Diesel', blocks: [{ type: 'heading', text: 'Hi {{first_name}},', size: 'm' }, { type: 'text', text: '' }, { type: 'button', label: 'Talk to sales', url: 'https://www.maxzzdiesel.com/quote' }] }; }],
-    ['Blank', 'Start from nothing.', function () { return { subject: '', blocks: [] }; }]];
+  // layout suggestions and e-mail sections, shared with the designer
+  var SX = window.MXSections || null;
+  if (!SX) { var sx = document.createElement('script'); sx.src = '/js/mail-sections.js?v=3'; sx.onload = function () { SX = window.MXSections; if (S.tab === 'emails') A.draw(); }; document.head.appendChild(sx); }
+  // the small picture of a layout: header, one strip per section, in the order they appear
+  var ln = function (w, h, c, m) { return '<span style="display:block;width:' + w + '%;height:' + h + 'px;border-radius:' + Math.min(3, h / 2) + 'px;background:' + c + ';margin:' + (m || 0) + 'px 0 0"></span>'; };
+  var bx = function (inner, st) { return '<span style="display:block;padding:7px 11px;' + (st || '') + '">' + inner + '</span>'; };
+  var pill = function (c, m) { return '<span style="display:block;width:40px;height:10px;border-radius:5px;background:' + (c || '#d32a37') + ';margin:' + (m == null ? 6 : m) + 'px 0 0"></span>'; };
+  var tile = function () { return '<span style="flex:1;border:1px solid #eceef0;border-radius:5px;padding:4px;display:block"><span style="display:block;height:26px;border-radius:3px;background:#e3e6e9"></span>' + ln(80, 3, '#1d2126', 4) + ln(60, 2.5, '#d5d9dd', 3) + '<span style="display:block;width:20px;height:6px;border-radius:3px;background:#d32a37;margin:4px 0 0"></span></span>'; };
+  var lrow = function () { return '<span style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid #eceef0"><span style="width:18px;height:14px;border-radius:3px;background:#e3e6e9;flex:none"></span><span style="flex:1">' + ln(58, 3, '#1d2126') + ln(80, 2.5, '#d5d9dd', 3) + '</span><span style="width:24px;height:8px;border-radius:4px;background:#d32a37;flex:none"></span></span>'; };
+  var WT = {
+    hd: bx(ln(22, 3, '#f08a24') + ln(74, 7, '#fff', 5) + ln(88, 3, '#6b727a', 5) + pill(), 'background:#1d2126;padding:12px 11px 14px'),
+    hs: bx(ln(22, 3, '#c2410c') + ln(74, 7, '#1d2126', 5) + ln(88, 3, '#c9ced3', 5) + pill(), 'background:#f1f2f4;padding:12px 11px 14px'),
+    t: bx(ln(58, 6, '#1d2126'), 'padding:11px 11px 2px'), p: bx(ln(100, 3, '#d5d9dd') + ln(84, 3, '#d5d9dd', 3)), s: bx(ln(90, 2, '#e3e6e9') + ln(60, 2, '#e3e6e9', 3)),
+    b: bx(pill('#d32a37', 0), 'padding:6px 11px 9px'), d: bx('<span style="display:block;border-top:1px solid #e3e6e9"></span>', 'padding:6px 11px'),
+    bn: bx(bx(ln(30, 3, '#ffc9cd') + ln(76, 7, '#fff', 5) + ln(60, 3, '#ffc9cd', 5) + pill('#fff'), 'background:#d32a37;border-radius:7px;padding:10px'), 'padding:10px 11px 3px'),
+    l: bx(lrow() + lrow() + lrow(), 'padding:3px 11px 5px'), l1: bx(lrow(), 'padding:3px 11px 5px'),
+    g2: bx('<span style="display:flex;gap:5px">' + tile() + tile() + '</span>'), g3: bx('<span style="display:flex;gap:4px">' + tile() + tile() + tile() + '</span>'),
+    f3: bx('<span style="display:flex;gap:4px">' + [0, 1, 2].map(function () { return '<span style="flex:1;background:#f4f5f6;border-radius:5px;padding:6px 5px;display:block">' + ln(30, 3, '#d32a37') + ln(80, 4, '#1d2126', 4) + ln(90, 2.5, '#c9ced3', 4) + '</span>'; }).join('') + '</span>'),
+    it: bx('<span style="display:flex;gap:7px;align-items:center"><span style="flex:none;width:44%;height:42px;border-radius:5px;background:#dfe2e6"></span><span style="flex:1">' + ln(80, 5, '#1d2126') + ln(100, 2.5, '#d5d9dd', 5) + ln(70, 2.5, '#d5d9dd', 3) + ln(36, 3, '#d32a37', 5) + '</span></span>'),
+    n: bx(bx(ln(40, 4, '#1d2126') + ln(92, 2.5, '#d9c9b0', 4), 'background:#fff3e2;border-left:3px solid #f08a24;border-radius:4px;padding:7px 8px')),
+    c: bx('<span style="display:flex;align-items:center;gap:6px;background:#1d2126;border-radius:7px;padding:9px"><span style="flex:1">' + ln(70, 4, '#fff') + ln(90, 2.5, '#6b727a', 4) + '</span><span style="width:32px;height:11px;border-radius:6px;background:#d32a37;flex:none"></span></span>', 'padding:8px 11px')
+  };
+  function wire(tk) { return '<span class="ml-th"><span class="ml-wf"><span style="display:flex;align-items:center;height:17px;background:#1d2126;padding:0 11px;border-bottom:1px solid #2c3138"><span style="width:28px;height:5px;border-radius:3px;background:#d32a37"></span></span>' + tk.map(function (t) { return WT[t] || ''; }).join('') + '</span></span>'; }
 
   function fmt(d) { return d ? A.fmtAt(d) : '-'; }
   function pct(a, b) { return b ? Math.round(a / b * 100) + '%' : '-'; }
@@ -44,12 +63,11 @@
     var h = '';
     if (!L.key) h += '<div class="ml-warn"><b>Sending is not set up:</b> the Resend key (RESEND_API_KEY) is missing in this environment. You can build and preview e-mails, nothing goes out.</div>';
     else if (!L.mailOn) h += '<div class="ml-warn"><b>Customer e-mail is switched off.</b> Campaigns only reach team addresses and the pilot address for now; everyone else is kept on record as "held". Sending from: ' + esc(L.from) + '</div>';
-    if (m.pick) return h + '<section class="card flush"><div class="fbar"><h2>Start from</h2><span class="sp"></span><button class="btn ghost sm" data-ml="pick-x">Cancel</button></div><div class="ml-pick">' + STARTERS.map(function (s, i) { return '<button data-ml="new" data-i="' + i + '"><b>' + s[0] + '</b><small>' + s[1] + '</small></button>'; }).join('') +
-      L.campaigns.filter(function (c) { return c.is_template; }).map(function (c) { return '<button data-ml="from" data-id="' + c.id + '"><b>' + esc(c.name) + '</b><small>Your template · ' + esc(c.subject || 'no subject') + '</small></button>'; }).join('') + '</div></section>';
+    if (m.pick) return h + viewPick(L);
     var rows = L.campaigns.filter(function (c) { return inTab(c, m.tab); }).map(function (c) { var s = c.stats || {}; c.rec = s.total || 0; c.op = s.opened || 0; c.cl = s.clicked || 0; c.when = c.sent_at || c.scheduled_at || c.updated_at; return c; });
     S.mlso = S.mlso || { k: 'when', d: -1 }; rows = A.sortRows(rows, 'mlso');
     var cnt = function (t) { return t === 'tx' ? (L.templates || []).length : L.campaigns.filter(function (c) { return inTab(c, t); }).length; };
-    h += '<section class="card flush"><div class="fbar"><div class="seg" style="background:var(--soft)">' + TABS.map(function (t) { return '<button data-ml="tab" data-v="' + t[0] + '" class="' + (m.tab === t[0] ? 'on' : '') + '">' + t[1] + ' ' + cnt(t[0]) + '</button>'; }).join('') + '</div><span class="sp"></span><button class="btn acc" data-ml="pick">' + ic('plus', 16) + ' New e-mail</button></div>';
+    h += '<section class="card flush"><div class="fbar"><div class="seg" style="background:var(--soft)">' + TABS.map(function (t) { return '<button data-ml="tab" data-v="' + t[0] + '" class="' + (m.tab === t[0] ? 'on' : '') + '">' + t[1] + ' ' + cnt(t[0]) + '</button>'; }).join('') + '</div><span class="sp"></span><button class="btn ghost sm" data-ml="lay">Header and footer</button><button class="btn acc" data-ml="pick">' + ic('plus', 16) + ' New e-mail</button></div>';
     if (m.tab === 'tx') return h + '<p class="ml-note" style="padding:0 20px 6px">These go out by themselves when something happens in the portal. You can change the subject, the title, the button and add a note on top. The details (order lines, links, amounts) are written by the system and cannot be removed.</p>' +
       A.tbl([A.h0('E-mail'), A.h0('Subject'), A.h0('Wording'), A.h0('')], (L.templates || []).map(function (t) { var sv = t.saved; return '<tr data-ml="tx" data-id="' + t.key + '" style="cursor:pointer"><td><b>' + esc(t.name) + '</b></td><td>' + esc((sv && sv.subject) || t.subject) + '</td><td>' + (sv ? '<span class="ml-st sending">changed</span><small>' + esc(String(sv.updated_by || '').split('@')[0]) + ' · ' + esc(fmt(sv.updated_at)) + '</small>' : '<span class="ml-st">built-in</span>') + '</td><td class="r"><button class="btn ghost sm" data-ml="tx" data-id="' + t.key + '">Edit</button></td></tr>'; })) + '</section>';
     var sent = m.tab === 'sent';
@@ -61,16 +79,41 @@
     return h + '</section>';
   }
 
+  // ------------------------------------------------------------------ new e-mail: layout suggestions with a small picture each
+  function viewPick(L) {
+    var m = M(), g = m.pg || 'All', ST = SX ? SX.STARTERS : [], mine = L.campaigns.filter(function (c) { return c.is_template; });
+    var groups = ['All', 'Products', 'Promotions', 'News'].concat(mine.length ? ['Your templates'] : []);
+    var h = '<section class="card flush"><div class="fbar"><h2>Start a new e-mail</h2><span class="sp"></span><button class="btn ghost sm" data-ml="pick-x">Cancel</button></div><div class="ml-gh"><div class="seg" style="background:var(--soft)">' + groups.map(function (x) { return '<button data-ml="pg" data-v="' + x + '" class="' + (g === x ? 'on' : '') + '">' + x + '</button>'; }).join('') + '</div><span class="ml-note" style="margin:0 0 0 6px">Pick a layout. It opens in the designer with sample parts, ready to change.</span></div>';
+    if (!SX) return h + A.ld() + '</section>';
+    var cards = ST.map(function (s, i) { return g === 'All' || g === s[2] ? '<button class="ml-card" data-ml="new" data-i="' + i + '">' + wire(s[4]) + '<b>' + esc(s[0]) + '</b><small>' + esc(s[1]) + '</small></button>' : ''; }).join('');
+    if (g !== 'Your templates' && cards) h += '<div class="ml-gal">' + cards + '</div>';
+    if (mine.length && (g === 'All' || g === 'Your templates')) { m.tp = m.tp || {};
+      h += (g === 'All' ? '<div class="ml-gt">Your templates</div>' : '') + '<div class="ml-gal">' + mine.map(function (c) { var pv = m.tp[c.id]; return '<div class="ml-card" role="button" tabindex="0" data-ml="from" data-id="' + c.id + '"><span class="ml-th real">' + (pv && pv !== 1 ? '<iframe sandbox="" tabindex="-1" title="" srcdoc="' + esc(pv) + '"></iframe>' : '') + '</span><b>' + esc(c.name) + '</b><small>' + esc(c.subject || 'No subject yet') + '</small></div>'; }).join('') + '</div>';
+      mine.slice(0, 12).forEach(function (c) { if (m.tp[c.id]) return; m.tp[c.id] = 1; A.api('mail-preview', { id: c.id }).then(function (r) { if (r._status === 200 && r.html) { m.tp[c.id] = r.html; if (M().pick) A.draw(); } }); }); }
+    return h + '</section>';
+  }
+
+  // ------------------------------------------------------------------ header and footer, the same in every e-mail
+  function openLay() { var m = M(); m.lay = { loading: true }; A.draw(); A.api('mail-layout').then(function (r) { if (r._status !== 200) { m.lay = null; A.toast(r.error || 'Could not open it.'); return A.draw(); }
+    var L = r.layout; while (L.header.links.length < 3) L.header.links.push({ label: '', url: '' }); while (L.footer.links.length < 4) L.footer.links.push({ label: '', url: '' }); m.lay = { L: L, html: '', dev: 'd' }; A.draw(); layPrev(0); }); }
+  function layPrev(wait) { clearTimeout(pt); pt = setTimeout(function () { var Y = M().lay; if (!Y || !Y.L || !SX) return; A.api('mail-preview', { name: 'Sample', subject: 'Sample', content: { mode: 'free', html: SX.STARTERS[0][5](), blocks: [] }, layout: Y.L }).then(function (r) { var Y2 = M().lay; if (!Y2 || r._status !== 200) return; Y2.html = r.html; setFrame(); }); }, wait == null ? 600 : wait); }
+  function viewLay() { var Y = M().lay; if (Y.loading) return A.ld(); var L = Y.L, H = L.header, Fo = L.footer;
+    var lk = function (base, l, i, ph) { return '<div class="ml-lk"><input type="text" data-mf="y.' + base + '.links.' + i + '.label" value="' + esc(l.label || '') + '" placeholder="' + ph + '" maxlength="30" aria-label="Link text"><input type="url" data-mf="y.' + base + '.links.' + i + '.url" value="' + esc(l.url || '') + '" placeholder="https://" aria-label="Link address"></div>'; };
+    var left = '<section class="card"><div class="ml-row" style="margin:0 0 6px"><button class="btn ghost sm" data-ml="back">← All e-mails</button><b>Header and footer</b><span class="sp"></span><button class="btn sm" data-ml="lay-save"' + (Y.saving ? ' disabled' : '') + '>Save</button></div><p class="ml-note" style="margin:0 0 4px">Used in every campaign and template, also the ones already saved. The unsubscribe link and the company address always go out.</p>' +
+      '<div class="ml-h4">Header</div><div class="ml-row" style="margin:0 0 12px"><span class="ml-note" style="margin:0;min-width:86px">Background</span>' + seg('y.header.bg', H.bg, [['dark', 'Dark'], ['light', 'White']]) + '</div><div class="ml-row" style="margin:0 0 12px"><span class="ml-note" style="margin:0;min-width:86px">Logo</span>' + seg('y.header.align', H.align, [['left', 'Left'], ['center', 'Centered']]) + '</div><div class="ml-f"><span>Links beside the logo (optional, up to 3)</span>' + H.links.map(function (l, i) { return lk('header', l, i, ['Store', 'Promotions', 'Contact'][i]); }).join('') + '</div>' +
+      '<div class="ml-h4">Footer</div>' + f('Line beside the name', 'y.footer.tagline', Fo.tagline, { max: 120 }) + '<div class="ml-2">' + f('Phone', 'y.footer.phone', Fo.phone, { max: 40 }) + f('WhatsApp', 'y.footer.whatsapp', Fo.whatsapp, { max: 40 }) + '</div>' + f('E-mail', 'y.footer.email', Fo.email, { max: 120 }) + f('Company address (required by law in marketing e-mail)', 'y.footer.address', Fo.address, { max: 240 }) + f('Why the person receives it', 'y.footer.reason', Fo.reason, { max: 240 }) + '<div class="ml-f"><span>Links (optional, up to 4)</span>' + Fo.links.map(function (l, i) { return lk('footer', l, i, ['Wholesale store', 'Training', 'Instagram', 'LinkedIn'][i]); }).join('') + '</div></section>';
+    return '<div class="ml-grid"><div>' + left + '</div><div class="ml-prev"><section class="card"><div class="ml-row" style="margin:0 0 12px"><h3 style="margin:0">Preview</h3><span class="sp"></span>' + seg('y.dev', Y.dev, [['d', 'Desktop'], ['m', 'Phone']]) + '</div><iframe id="ml-fr" class="ml-fr' + (Y.dev === 'm' ? ' m' : '') + '" title="E-mail preview" sandbox=""></iframe></section></div></div>'; }
+
   // ------------------------------------------------------------------ editor
   function openEd(id, seed) {
     var m = M(); m.pick = false; m.ed = { loading: true }; A.draw();
     A.api('mail-get', null, id ? '&id=' + id : '').then(function (r) {
-      if (r._status !== 200) { m.ed = null; A.toast(r.error || 'Could not open it.'); return; }
-      var c = r.campaign || { name: seed && seed.name || 'New e-mail', subject: seed && seed.subject || '', preheader: '', lang: 'en', content: { blocks: seed && seed.blocks || [] }, audience: { segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, status: 'draft', is_template: false };
+      if (r._status !== 200) { m.ed = null; closeDesign(); A.toast(r.error || 'Could not open it.'); return; }
+      var c = r.campaign || { name: seed && seed.name || 'New e-mail', subject: seed && seed.subject || '', preheader: '', lang: 'en', content: seed && seed.html ? { mode: 'free', html: seed.html, blocks: [] } : { blocks: seed && seed.blocks || [] }, audience: { segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, status: 'draft', is_template: false };
       c.content = c.content || { blocks: [] }; c.audience = Object.assign({ segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, c.audience || {});
       c.content.blocks.forEach(function (b) { if (b.type === 'products') b._txt = (b.codes || []).join('\n'); });
-      m.ed = { c: c, canSend: !!r.canSend, simple: false, segs: r.segments, facets: r.facets, from: r.from, dev: 'd', dirty: !id, test: r.me || '', when: '', aud: null, html: '', miss: [], find: {}, lock: c.status !== 'draft' };
-      A.draw(); preview(0); if (seed && seed.design) design();
+      m.ed = { c: c, canSend: !!r.canSend, simple: false, segs: r.segments, facets: r.facets, from: r.from, dev: 'd', fresh: !id && !!(seed && seed.design), dirty: !id, test: r.me || '', when: '', aud: null, html: '', miss: [], find: {}, lock: c.status !== 'draft' };
+      A.draw(); preview(0); if (seed && seed.design) design(); else closeDesign();
       if (!S.cat) A.api('catalog-all').then(function (x) { if (x._status === 200) { S.cat = x; } });
     });
   }
@@ -81,17 +124,19 @@
   // the visual designer (GrapesJS) opens over the whole screen, in its own frame, and hands the result back
   var ov = null;
   function closeDesign() { if (ov) { ov.remove(); ov = null; document.documentElement.style.overflow = ''; } }
+  // the cover goes up at once (with a spinner), so the form behind it is never seen while the designer loads
+  function cover() { if (ov) return; ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee;display:flex;align-items:center;justify-content:center;color:#5f656c;font-size:14px'; ov.innerHTML = '<span>Opening the designer…</span>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; }
   function design() {
-    var E = M().ed; if (!E || E.lock || ov) return; var c = E.c;
-    var start = function (data) { ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee'; ov.innerHTML = '<iframe src="/mail-editor.html?v=2" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; ov._data = data; };
+    var E = M().ed; if (!E || E.lock || (ov && ov._data)) return; var c = E.c; cover();
+    var start = function (data) { if (!ov) return; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=3" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
     if (c.content.mode === 'free' && (c.content.project || c.content.html)) return start({ project: c.content.project || null, html: c.content.html || '' });
     A.api('mail-seed', payload()).then(function (r) { start({ project: null, html: (r && r.html) || '' }); });
   }
   window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || !ov) return; var E = M().ed, d = e.data;
-    if (d.type === 'mx-ready') { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html }, location.origin); }
-    if (d.type === 'mx-cancel') closeDesign();
-    if (d.type === 'mx-done' && E) { E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
-  function setFrame() { var E = M().tx || M().ed, fr = document.getElementById('ml-fr'); if (fr && E && E.html && fr._h !== E.html) { fr._h = E.html; fr.srcdoc = E.html; } }
+    if (d.type === 'mx-ready' && ov._data) { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html }, location.origin); }
+    if (d.type === 'mx-cancel') { closeDesign(); if (E && E.fresh) { var m0 = M(); m0.ed = null; m0.pick = true; A.draw(); } }
+    if (d.type === 'mx-done' && E) { E.fresh = false; E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
+  function setFrame() { var E = M().lay || M().tx || M().ed, fr = document.getElementById('ml-fr'); if (fr && E && E.html && fr._h !== E.html) { fr._h = E.html; fr.srcdoc = E.html; } }
   function blockForm(b, i, n, lock) {
     var p = 'b.' + i + '.', body = '';
     if (b.type === 'heading') body = f('Text', p + 'text', b.text, { max: 200 }) + seg(p + 'size', b.size || 'm', [['m', 'Normal'], ['l', 'Large']]);
@@ -176,18 +221,19 @@
       f('Note on top of the e-mail (optional)', 'x.note', T.f.note, { area: 1, rows: 4, ph: 'For example: our warehouse is closed on Thursday for Thanksgiving.' }) + f('Button text', 'x.cta_label', T.f.cta_label, { max: 60, ph: 'Keeps the built-in button text' }) + '</section>';
     return '<div class="ml-grid"><div>' + left + '</div><div class="ml-prev"><section class="card"><h3 style="margin:0 0 4px">Preview</h3><p class="ml-note" style="margin:0 0 12px">Subject: ' + esc(T.subject || '') + '</p><iframe id="ml-fr" class="ml-fr" title="E-mail preview" sandbox=""></iframe></section></div></div>'; }
   function txPrev(wait) { clearTimeout(pt); pt = setTimeout(function () { var T = M().tx; if (!T) return; A.api('mail-tx-preview', Object.assign({ key: T.t.key }, T.f)).then(function (r) { var T2 = M().tx; if (!T2 || r._status !== 200) return; T2.html = r.html; var ch = T2.subject !== r.subject; T2.subject = r.subject; setFrame(); if (ch) A.draw(); }); }, wait == null ? 600 : wait); }
-  function view() { var m = M(); var h = m.tx ? viewTx() : m.rep ? viewRep() : m.ed ? viewEd() : viewList(); setTimeout(setFrame, 0); return h; }
+  function view() { var m = M(); var h = m.lay ? viewLay() : m.tx ? viewTx() : m.rep ? viewRep() : m.ed ? viewEd() : viewList(); setTimeout(setFrame, 0); return h; }
 
   // ------------------------------------------------------------------ events
   function setPath(path, v) { var m = M(), E = m.ed, k = path.split('.');
     if (k[0] === 'c') { E.c[k[1]] = v; E.dirty = true; return 1; } if (k[0] === 'a') { E.c.audience[k[1]] = v; E.aud = null; E.dirty = true; return 2; }
     if (k[0] === 'x') { m.tx.f[k[1]] = v; return 3; }
+    if (k[0] === 'y') { if (k[1] === 'dev') { m.lay.dev = v; return 0; } var o = m.lay.L; for (var i = 1; i < k.length - 1; i++) o = o[k[i]]; o[k[k.length - 1]] = v; return 4; }
     if (k[0] === 'e') { E[k[1]] = v; return 0; } if (k[0] === 'r') { m.rep[k[1]] = v; return 0; }
     if (k[0] === 'b') { var b = E.c.content.blocks[+k[1]]; if (b) { b[k[2]] = k[2] === 'h' ? parseInt(v, 10) || 20 : v; E.dirty = true; } return 1; } return 0; }
   function keep(sel) { A.draw(); var n = app.querySelector(sel); if (n) { n.focus(); try { var l = n.value.length; n.setSelectionRange(l, l); } catch (x) {} } }
   app.addEventListener('input', function (e) { var d = e.target.dataset || {}; if (S.tab !== 'emails') return;
     if (d.mlfind != null) { M().ed.find[d.mlfind] = e.target.value; return keep('[data-mlfind="' + d.mlfind + '"]'); }
-    if (!d.mf) return; var r = setPath(d.mf, e.target.value); if (d.redraw) return keep('[data-mf="' + d.mf + '"]'); if (r === 1) preview(); if (r === 3) txPrev(); });
+    if (!d.mf) return; var r = setPath(d.mf, e.target.value); if (d.redraw) return keep('[data-mf="' + d.mf + '"]'); if (r === 1) preview(); if (r === 3) txPrev(); if (r === 4) layPrev(); });
   app.addEventListener('change', function (e) { var d = e.target.dataset || {}; if (S.tab !== 'emails') return;
     if (d.mlchk === 'tpl') { M().ed.c.is_template = e.target.checked; M().ed.dirty = true; return A.draw(); }
     if (d.mf && e.target.tagName === 'SELECT') { setPath(d.mf, e.target.value); A.draw(); preview(0); } });
@@ -200,7 +246,10 @@
     e.preventDefault();
     if (act === 'tab') { m.tab = t.dataset.v; return A.draw(); }
     if (act === 'pick') { m.pick = true; return A.draw(); } if (act === 'pick-x') { m.pick = false; return A.draw(); }
-    if (act === 'new') { var s = STARTERS[+t.dataset.i], x = s[2](); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: x.subject, blocks: x.blocks, design: true }); }
+    if (act === 'pg') { m.pg = t.dataset.v; return A.draw(); }
+    if (act === 'lay') return openLay();
+    if (act === 'lay-save') { m.lay.saving = true; A.draw(); return A.api('mail-layout-save', { layout: m.lay.L }).then(function (r) { if (r._status === 200) { m.lay = null; m.tp = null; A.toast('Saved. Every e-mail uses it from now on.', true); A.draw(); } else { m.lay.saving = false; A.draw(); A.toast(r.error || 'Could not save.'); } }); }
+    if (act === 'new') { if (!SX) return; var s = SX.STARTERS[+t.dataset.i]; cover(); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: s[3], html: s[5](), design: true }); }
     if (act === 'from' || act === 'copy') return A.api('mail-copy', { id: id }).then(function (r) { if (r._status === 200) { m.list = null; openEd(r.campaign.id); } else A.toast(r.error || 'Could not copy.'); });
     if (act === 'open') return openEd(id);
     if (act === 'tx') { var tt = (m.list.templates || []).filter(function (x) { return x.key === id; })[0]; if (!tt) return; var sv = tt.saved || {}; m.tx = { t: tt, f: { subject: sv.subject || '', title: sv.title || '', note: sv.note || '', cta_label: sv.cta_label || '' }, html: '', subject: '' }; A.draw(); return txPrev(0); }
@@ -211,12 +260,14 @@
     if (act === 'rep') return openRep(id);
     if (act === 'arch') { if (!confirm('Archive this e-mail? It leaves the lists; the results are kept.')) return; return A.api('mail-archive', { id: id }).then(function (r) { if (r._status === 200) load(); else A.toast(r.error || 'Could not archive.'); }); }
     if (act === 'cancel') { if (!confirm('Cancel this sending? People who already received it are not affected.')) return; return A.api('mail-cancel', { id: id }).then(function (r) { if (r._status === 200) { A.toast('Cancelled.', true); if (m.rep) loadRep(); load(); } else A.toast(r.error || 'Could not cancel.'); }); }
-    if (act === 'back') { if (E && E.dirty && !E.lock && !confirm('Leave without saving the changes?')) return; m.ed = null; m.rep = null; m.tx = null; if (!m.list) load(); return A.draw(); }
+    if (act === 'back') { if (E && E.dirty && !E.lock && !confirm('Leave without saving the changes?')) return; m.ed = null; m.rep = null; m.tx = null; m.lay = null; if (!m.list) load(); return A.draw(); }
     if (act === 'rep-refresh') { m.rep.busy2 = true; A.toast('Checking the delivery of the last e-mails…', true); return loadRep(true); }
     if (act === 'cont') { m.rep.busy = true; A.draw(); return A.api('mail-continue', { id: m.rep.id }).then(function () { loadRep(); }); }
+    if (act === 'set' && m.lay) { setPath(t.dataset.p, t.dataset.v); A.draw(); return layPrev(0); }
     if (!E) return;
-    var bl = E.c.content.blocks, i = +t.dataset.i;
     if (act === 'set') { setPath(t.dataset.p, t.dataset.v); A.draw(); return preview(0); }
+    var bl = E.c.content.blocks, i = +t.dataset.i;
+
     if (act === 'addb') { var nb = NEWB[t.dataset.t](); if (nb.type === 'products') nb._txt = ''; bl.push(nb); E.dirty = true; A.draw(); return preview(0); }
     if (act === 'del') { bl.splice(i, 1); E.dirty = true; A.draw(); return preview(0); }
     if (act === 'up' && i > 0) { bl.splice(i - 1, 0, bl.splice(i, 1)[0]); E.dirty = true; A.draw(); return preview(0); }
@@ -237,5 +288,5 @@
     }
   });
 
-  window.MXMail = { view: view, load: function () { var m = M(); m.ed = null; m.rep = null; m.tx = null; m.pick = false; load(); } };
+  window.MXMail = { view: view, load: function () { var m = M(); m.ed = null; m.rep = null; m.tx = null; m.lay = null; m.pick = false; load(); } };
 })();

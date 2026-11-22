@@ -41,19 +41,21 @@
       "maxDuration": 300
     },
     "api/img.js": {
-      "includeFiles": "data/photos.json",
+      "includeFiles": "{data/photos.json,js/portal-app.js}",
       "maxDuration": 15
     },
     "api/cron-sales.js": {
       "maxDuration": 300
     },
     "api/admin.js": {
+      "includeFiles": "js/portal-app.js",
       "maxDuration": 60
     },
     "api/cron-digest.js": {
       "maxDuration": 60
     },
     "api/cron-email.js": {
+      "includeFiles": "js/portal-app.js",
       "maxDuration": 60
     },
     "api/e.js": {
