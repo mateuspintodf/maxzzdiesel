@@ -2068,7 +2068,17 @@ A['sales-data'] = async (req, res) => {
   if (k0.sales > 0 && k0.coverage != null && k0.coverage < 0.7) signals.push({ id: 'cost', sev: 'info', title: 'Profit covers part of the sales', n: 1, tip: 'Only ' + Math.round(k0.coverage * 100) + '% of the sales in this period have a recorded cost.', text: 'The cost at the time of the sale is being loaded from Unleashed for older orders. Profit and margin firm up as the history load finishes.', rows: [] });
   let everyone = [];
   if (sc.all) everyone = [...new Set([...people.map((x) => x.sp), ...comm.map((x) => x.salesperson), ...(await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson)])].sort();
-  return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
+  // week by week: the same aggregate, asked once per week (Monday to Sunday, at most the last 27 weeks of the period)
+  let weeks = null;
+  if (req.query.g === 'week' && !sc.none) {
+    const ws = []; let mon = addDays(to, -((new Date(to + 'T00:00:00Z').getUTCDay() + 6) % 7));
+    while (mon >= addDays(from, -6) && ws.length < 27) { const a0 = mon < from ? from : mon, b0 = addDays(mon, 6) > to ? to : addDays(mon, 6); if (a0 <= b0) ws.unshift([mon, a0, b0]); mon = addDays(mon, -7); }
+    const per = await Promise.all(ws.map((x) => db.rpc('sales_agg', { p_from: x[1], p_to: x[2], p_sp: sc.sp }).catch((e) => { console.error('sales week', x[0], e.message); return null; })));
+    if (per.every(Boolean)) { const byC = {}; customers.forEach((c) => { c.weeks = {}; byC[c.c] = c; });
+      per.forEach((d, i) => { (d.orders || []).forEach((r) => { const c = byC[r.c]; if (c) c.weeks[ws[i][0]] = (c.weeks[ws[i][0]] || 0) + (Number(r.sales) || 0); }); });
+      weeks = ws.map((x) => x[0]); }
+  }
+  return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, weeks, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
     days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
     customers, people, parts, signals, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
 };

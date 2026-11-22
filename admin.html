@@ -293,7 +293,10 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 .sa-t td.r,.sa-t th.r{text-align:right;white-space:nowrap}.rl{display:flex;gap:6px;align-items:center;margin-top:6px}.rl input{width:70px;padding:7px 8px;border:1px solid var(--line,#d9dde2);border-radius:10px}.chk{display:inline-flex;gap:6px;align-items:center;font-size:13.5px;color:var(--ink2)}
 .plk{margin:0 16px 14px;padding:14px 16px;border:1px solid var(--line,#e3e6e9);border-radius:14px;background:#fafbfc;display:flex;flex-direction:column;gap:10px}.plk small{display:block;color:#5f656c;margin-top:2px}.plk textarea{width:100%;font:inherit;font-family:ui-monospace,Menlo,monospace;font-size:13px;border:1px solid #c9ced3;border-radius:10px;padding:10px 12px;resize:vertical}.plka{display:flex;gap:8px;align-items:center}.okc{color:#136c33}.errc{color:#d32a37}.pfix{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:#eef0f2;color:#5f656c;vertical-align:middle}.pfix.warn{background:#fff4e5;color:#9a4b00}.pfix.on{background:#eaf6ee;color:#136c33}.pfix.off{background:#f4f5f6;color:#8a9097}
 .ldl{padding:10px 0;border-top:1px solid #eef0f2}.ldl:first-of-type{border-top:0}.ldh small{display:block;margin-top:2px}.ldf{display:flex;gap:8px;margin-top:8px}.ldf input{flex:1;min-width:0;border:1px solid #c9ced3;border-radius:999px;padding:8px 14px;font:inherit}
-.sa-mon td,.sa-mon th{font-variant-numeric:tabular-nums}.sa-mon td:first-child,.sa-mon th:first-child{position:sticky;left:0;background:#fff;z-index:1;min-width:200px}.sa-mon tr.tot td{border-top:2px solid #1d2126;background:#f7f8f9;position:sticky;bottom:0}
+.sa-mon td,.sa-mon th{font-variant-numeric:tabular-nums}.sa-mon td.r,.sa-mon th.r{padding-left:8px;padding-right:10px}
+.twm{max-height:calc(100vh - 170px);overflow:auto;cursor:grab;overscroll-behavior:contain}.twm.drag{cursor:grabbing;user-select:none}.twm table{border-collapse:separate;border-spacing:0}
+.twm thead th{position:sticky;top:0;z-index:3;background:#fff;box-shadow:inset 0 -1px 0 #e3e6e9}.twm td:first-child,.twm th:first-child{position:sticky;left:0;z-index:2;background:#fff;min-width:190px;max-width:240px;box-shadow:inset -1px 0 0 #eef0f2}.twm thead th:first-child{z-index:5}
+.twm tr.tot td{position:sticky;bottom:0;z-index:3;background:#f4f5f7;box-shadow:inset 0 2px 0 #1d2126}.twm tr.tot td:first-child{z-index:5;background:#f4f5f7}
 .selbar select.sel{background:#fff;color:#1d2126;border-radius:999px;min-height:36px}
 @media(max-width:700px){.sa-t{min-width:760px}.rl{flex-wrap:wrap}}
 
@@ -425,7 +428,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
 <script src="/js/morphdom.min.js?v=1"></script>
 <script>
 (function () {
-  var app = document.getElementById('app'), S = { me: null, tab: 'crm', data: null, err: '', lt: '', q: '', open: null, found: {}, busy: false, audit: null, sent: false, ex: {}, crmf: { per: '30' } };
+  var app = document.getElementById('app'), S = { me: null, tab: 'dash', data: null, err: '', lt: '', q: '', open: null, found: {}, busy: false, audit: null, sent: false, ex: {}, crmf: { per: '30' } };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function api(a, body, qs) {
     return fetch('/api/admin?a=' + a + (qs || ''), { method: body ? 'POST' : 'GET', credentials: 'same-origin', headers: body ? { 'Content-Type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined })
@@ -483,7 +486,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     document.body.classList.remove('is-login');
     if (!okTab(S.tab) && navF().length) { S.tab = navF()[0][2][0][0]; setTimeout(function () { loadTab(S.tab); }, 0); }
     var pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0, P = PAGE[S.tab] || PAGE.dash, grp = navF().filter(function (g) { return g[0] === P.g; })[0];
-    var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="crm"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
+    var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="dash"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
     navF().forEach(function (g) { if (g[0] === 'set') return; h += '<button data-tab="' + g[2][0][0] + '" class="' + (P.g === g[0] ? 'on' : '') + '">' + g[1] + '</button>'; });
     h += '</nav><div class="tools">' + (S.me.role === 'superadmin' ? '<div style="position:relative"><button class="cb" data-act="brief" title="Daily briefing" aria-label="Daily briefing">' + ic('spark') + '</button>' + (S.bfOpen ? '<div class="menu nfp" style="right:0;left:auto;width:440px;max-width:92vw;padding:0;max-height:78vh;overflow:auto">' + drawBrief() + '</div>' : '') + '</div>' : '') + '<div style="position:relative"><button class="cb" data-act="bell" title="Notifications" aria-label="Notifications">' + ic('bell') + (pend || nfUn() ? '<i></i>' : '') + '</button>' + (S.nfOpen ? nfPanel(pend) : '') + '</div><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
       (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="profile">' + ic('user', 16) + 'My account</button><button data-tab="terms">' + ic('file', 16) + 'Terms of use</button><button data-tab="admins">' + ic('shield', 16) + 'Admin users</button><button data-tab="audit">' + ic('clock', 16) + 'Activity log</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></header>';
@@ -1458,7 +1461,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     else if (p === 'all') a = d0(2015, 0, 1); else if (p === '365') a = d0(Y, M, D - 364); else a = d0(Y, M, D - ((+p || 30) - 1));
     return { from: ymd(a), to: ymd(b) };
   }
-  function slState() { if (!S.sl) { var r = slRange('30'); S.sl = { p: '30', from: r.from, to: r.to, cmp: 'prev', sp: 'all', v: 'customers', mon: false, q: '' }; } return S.sl; }
+  function slState() { if (!S.sl) { var r = slRange('30'); S.sl = { p: '30', from: r.from, to: r.to, cmp: 'prev', sp: 'all', v: 'customers', mv: '', q: '' }; } return S.sl; }
   function slSet(k, v) {
     var L = slState();
     if (k === 'p') { L.p = v; if (v !== 'custom') { var r = slRange(v); L.from = r.from; L.to = r.to; } else return draw(); }
@@ -1468,7 +1471,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function slLoad() {
     crmLoad(true); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } });
     var L = slState(); api('sales-program', null, L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
-    api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
+    api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.mv === 'week' ? '&g=week' : '') + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
   }
   function slHead() {
     var L = slState(), D = S.sd;
@@ -1546,21 +1549,33 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (open) h += '<div class="sigp"><p>' + esc(open.text) + '</p>' + (open.rows.length ? tbl([h0('Customer'), '<th class="r">This period</th>', '<th class="r">Before</th>', h0('Note')], open.rows.map(function (r) { return '<tr data-act="cust" data-code="' + esc(r.c || '') + '"><td><b>' + esc(r.n || r.c) + '</b><div class="muted" style="font-size:12px">' + esc(r.c || '') + (r.sp ? ' · ' + esc(r.sp) : '') + '</div></td><td class="r">' + m0(r.a) + '</td><td class="r">' + m0(r.b) + '</td><td>' + esc(r.note || '') + '</td></tr>'; }), 'sa-t') : '') + '</div>';
     return h + '</section>';
   }
+  // the columns of the customer matrix: weeks (from the server), months or years (folded from the months)
+  function slBuckets(D, L) {
+    var MN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], mv = L.mv;
+    if (mv === 'week') return { keys: D.weeks || [], lab: function (k) { return MN[+k.slice(5, 7) - 1] + ' ' + (+k.slice(8)); }, val: function (c, k) { return (c.weeks && c.weeks[k]) || 0; }, name: 'week', tip: 'Week starting on Monday ' };
+    var all = {}; D.customers.forEach(function (c) { Object.keys(c.months).forEach(function (m) { all[m] = 1; }); }); var ms = Object.keys(all).sort();
+    if (mv === 'year') { var ys = {}; ms.forEach(function (m) { ys[m.slice(0, 4)] = 1; }); return { keys: Object.keys(ys).sort(), lab: function (k) { return k; }, val: function (c, k) { var t = 0; for (var m in c.months) if (m.slice(0, 4) === k) t += c.months[m]; return t; }, name: 'year', tip: '' }; }
+    return { keys: ms.slice(-24), lab: function (k) { return MN[+k.slice(5, 7) - 1] + ' ' + k.slice(2, 4); }, val: function (c, k) { return c.months[k] || 0; }, name: 'month', tip: '' };
+  }
+  function mk(n) { n = Number(n) || 0; var a = Math.abs(n), sg = n < 0 ? '-' : ''; return a >= 1e6 ? sg + '$' + (a / 1e6).toFixed(2) + 'M' : a >= 1e4 ? sg + '$' + Math.round(a / 1e3) + 'k' : a >= 1e3 ? sg + '$' + (a / 1e3).toFixed(1) + 'k' : sg + '$' + Math.round(a); }
   function slCustomers(D, L) {
-    var q = String(L.q || '').toLowerCase(), tot = D.kpi.sales || 0, ms = L.mon ? slMonths(D) : [];
-    var rows = sortRows(D.customers.map(function (c) { c.pro = c.cov ? c.profit : null; c.mg = c.cov ? c.profit / c.cov : null; c.sh = tot ? c.sales / tot : 0; c.dv = pct(c.sales, c.prev); ms.forEach(function (m) { c['m_' + m] = c.months[m] || 0; }); return c; }).filter(function (c) { return !q || qhas((c.n || '') + ' ' + c.c, q); }), 'slc');
-    var MN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], mlab = function (m) { return MN[+m.slice(5, 7) - 1] + ' ' + m.slice(2, 4); };
+    var q = String(L.q || '').toLowerCase(), tot = D.kpi.sales || 0, B = L.mv ? slBuckets(D, L) : null, ks = B ? B.keys : [];
+    var rows = sortRows(D.customers.map(function (c) { c.pro = c.cov ? c.profit : null; c.mg = c.cov ? c.profit / c.cov : null; c.sh = tot ? c.sales / tot : 0; c.dv = pct(c.sales, c.prev); ks.forEach(function (k) { c['m_' + k] = B.val(c, k); }); return c; }).filter(function (c) { return !q || qhas((c.n || '') + ' ' + c.c, q); }), 'slc');
+    var MV = [['', 'Summary'], ['week', 'By week'], ['month', 'By month'], ['year', 'By year']];
     var h = '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="sl.q" value="' + esc(L.q || '') + '" placeholder="Customer or code"></label><span class="sp"></span>' +
-      '<div class="seg"><button data-act="sl-mon" data-v="0" class="' + (L.mon ? '' : 'on') + '">Summary</button><button data-act="sl-mon" data-v="1" class="' + (L.mon ? 'on' : '') + '">Month by month</button></div><button class="btn sm" data-act="sl-csv">' + ic('dl', 14) + ' Export CSV</button></div>';
+      '<div class="seg">' + MV.map(function (x) { return '<button data-act="sl-mon" data-v="' + x[0] + '" class="' + ((L.mv || '') === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+      (L.mv ? '<select class="sel" data-chg="sl.p" aria-label="Period" style="width:auto">' + SLP.map(function (x) { return opt(x[0], x[1], L.p); }).join('') + '</select>' + (L.p === 'custom' ? '<input class="sel" type="date" data-chg="sl.from" value="' + esc(L.from) + '" aria-label="From" style="width:auto"><input class="sel" type="date" data-chg="sl.to" value="' + esc(L.to) + '" aria-label="To" style="width:auto">' : '') : '') +
+      '<button class="btn sm" data-act="sl-csv">' + ic('dl', 14) + ' Export CSV</button></div>';
     var who = function (c) { return '<td><b>' + esc(c.n || c.c) + '</b><div class="muted" style="font-size:12px">' + esc(c.c || '') + (c.sp ? ' · ' + esc(c.sp) : '') + '</div></td>'; };
-    if (L.mon) {
-      // one row per customer, one column per month: who bought what each month, with the totals of everything that matches the search
-      var sum = {}, all = 0; ms.forEach(function (m) { sum[m] = 0; }); rows.forEach(function (c) { all += c.sales || 0; ms.forEach(function (m) { sum[m] += c.months[m] || 0; }); });
-      var top = Math.max.apply(null, [1].concat(rows.slice(0, 300).map(function (c) { return Math.max.apply(null, [0].concat(ms.map(function (m) { return c.months[m] || 0; }))); })));
-      var body = rows.slice(0, 300).map(function (c) { return '<tr data-act="cust" data-code="' + esc(c.c || '') + '">' + who(c) + '<td class="r"><b>' + m0(c.sales) + '</b></td>' + ms.map(function (m) { var v = c.months[m] || 0; return '<td class="r" style="' + (v > 0 ? 'background:rgba(240,138,36,' + (0.05 + 0.3 * Math.min(1, v / top)).toFixed(2) + ')' : 'color:#c2c7cd') + '">' + (v ? m0(v) : '·') + '</td>'; }).join('') + '</tr>'; });
-      if (rows.length) body.push('<tr class="tot"><td><b>Total</b><div class="muted" style="font-size:12px">' + n0(rows.length) + ' customers</div></td><td class="r"><b>' + m0(all) + '</b></td>' + ms.map(function (m) { return '<td class="r"><b>' + m0(sum[m]) + '</b></td>'; }).join('') + '</tr>');
-      h += tbl([th('n', 'Customer', 'slc'), th('sales', 'Total', 'slc', 1)].concat(ms.map(function (m) { return th('m_' + m, mlab(m), 'slc', 1); })), body, 'sa-t sa-mon');
-      return h + '<div class="muted" style="padding:10px 16px;font-size:12.5px">' + (rows.length > 300 ? 'Top 300 of ' + rows.length + ' on screen, the total row counts all of them. Export the CSV for the full list. ' : '') + 'Click a month to sort by it. Darker cells are bigger months. Change the period at the top to see more or fewer months.</div></section>';
+    if (L.mv) {
+      // one row per customer, one column per week, month or year. The header and the total row stay in view while the list scrolls.
+      if (L.mv === 'week' && !D.weeks) return h + '<div class="empty" style="padding:28px">Loading the weeks…</div></section>';
+      var sum = {}, all = 0, small = ks.length > 8, f = small ? mk : m0; ks.forEach(function (k) { sum[k] = 0; }); rows.forEach(function (c) { all += c.sales || 0; ks.forEach(function (k) { sum[k] += c['m_' + k]; }); });
+      var top = Math.max.apply(null, [1].concat(rows.slice(0, 300).map(function (c) { return Math.max.apply(null, [0].concat(ks.map(function (k) { return c['m_' + k]; }))); })));
+      var body = rows.slice(0, 300).map(function (c) { return '<tr data-act="cust" data-code="' + esc(c.c || '') + '">' + who(c) + '<td class="r"><b>' + m0(c.sales) + '</b></td>' + ks.map(function (k) { var v = c['m_' + k]; return '<td class="r" title="' + esc(B.tip + B.lab(k)) + ': ' + m0(v) + '" style="' + (v > 0 ? 'background:rgba(240,138,36,' + (0.05 + 0.3 * Math.min(1, v / top)).toFixed(2) + ')' : 'color:#c2c7cd') + '">' + (v ? f(v) : '·') + '</td>'; }).join('') + '</tr>'; });
+      if (rows.length) body.push('<tr class="tot"><td><b>Total</b><div class="muted" style="font-size:12px">' + n0(rows.length) + ' customers</div></td><td class="r"><b>' + m0(all) + '</b></td>' + ks.map(function (k) { return '<td class="r" title="' + m0(sum[k]) + '"><b>' + f(sum[k]) + '</b></td>'; }).join('') + '</tr>');
+      h += tbl([th('n', 'Customer', 'slc'), th('sales', 'Total', 'slc', 1)].concat(ks.map(function (k) { return th('m_' + k, B.lab(k), 'slc', 1); })), body, 'sa-t sa-mon').replace('<div class="tw">', '<div class="tw twm">');
+      return h + '<div class="muted" style="padding:10px 16px;font-size:12.5px">' + (rows.length > 300 ? 'Top 300 of ' + rows.length + ' on screen, the total row counts all of them. Export the CSV for the full list. ' : '') + 'Click a ' + B.name + ' to sort by it. Darker cells are bigger. ' + (small ? 'Amounts are rounded to fit; hover a cell for the exact value. ' : '') + (L.mv === 'week' ? 'Weeks run Monday to Sunday, up to the last 27 of the period. ' : '') + 'Drag the table sideways if it does not fit.</div></section>';
     }
     h += tbl([th('n', 'Customer', 'slc'), th('sales', 'Sales', 'slc', 1), th('sh', '% of total', 'slc', 1), th('pro', 'Profit', 'slc', 1), th('mg', 'Margin', 'slc', 1), th('orders', 'Orders', 'slc', 1), th('comm', 'Commission', 'slc', 1)]
       .concat(D.prev ? [th('dv', 'vs before', 'slc', 1)] : []),
@@ -1603,9 +1618,9 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       D.parts.map(function (p) { return '<tr><td><b>' + esc(p.code) + '</b><div class="muted" style="font-size:12px">' + esc(p.name) + '</div></td><td class="r">' + m0(p.sales) + '</td><td class="r">' + n0(p.qty) + '</td><td class="r">' + (p.profit ? m0(p.profit) : '-') + '</td>' + (D.prev ? '<td class="r">' + delta(p.sales, p.prev) + '</td>' : '') + '</tr>'; }), 'sa-t') + '</section>';
   }
   function slCsv() {
-    var D = S.sd, ms = slMonths(D), tot = D.kpi.sales || 0;
-    csv('sales-by-customer-' + D.from + '-to-' + D.to + '.csv', [['Customer', 'Code', 'Salesperson', 'Sales', '% of total', 'Profit', 'Orders', 'Commission', 'Sales in the comparison period'].concat(ms)].concat(D.customers.map(function (c) {
-      return [c.n, c.c, c.sp, c.sales.toFixed(2), tot ? (c.sales / tot * 100).toFixed(2) : '', c.cov ? c.profit.toFixed(2) : '', c.orders, (c.comm || 0).toFixed(2), D.prev ? c.prev.toFixed(2) : ''].concat(ms.map(function (m) { return c.months[m] ? c.months[m].toFixed(2) : ''; })); }))); }
+    var D = S.sd, L = slState(), B = slBuckets(D, { mv: L.mv === 'week' && !D.weeks ? 'month' : (L.mv || 'month') }), ks = B.keys, tot = D.kpi.sales || 0;
+    csv('sales-by-customer-' + D.from + '-to-' + D.to + '.csv', [['Customer', 'Code', 'Salesperson', 'Sales', '% of total', 'Profit', 'Orders', 'Commission', 'Sales in the comparison period'].concat(ks.map(function (k) { return B.name === 'week' ? 'Week of ' + k : k; }))].concat(D.customers.map(function (c) {
+      return [c.n, c.c, c.sp, c.sales.toFixed(2), tot ? (c.sales / tot * 100).toFixed(2) : '', c.cov ? c.profit.toFixed(2) : '', c.orders, (c.comm || 0).toFixed(2), D.prev ? c.prev.toFixed(2) : ''].concat(ks.map(function (k) { var v = B.val(c, k); return v ? v.toFixed(2) : ''; })); }))); }
 
   // ---------------------------------------------------------------- Sales > Goals & rewards
   function pgLoad(year) { year = year || (S.pgd && S.pgd.year); S.tabErr = null; api('sales-program', null, year ? '&year=' + year : '').then(function (r) { if (r._status === 200) { S.pg = r; S.pgd = null; S.pcd = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'goals'; draw(); } }); }
@@ -2037,6 +2052,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function fail(r) { S.err = r._status === 401 ? 'Session ended. Sign in again.' : (r.error || 'Could not save. Check your connection and try again.'); if (r._status === 401) S.me = null; S.busy = false; var keep = {}; [].forEach.call(app.querySelectorAll('[data-g]'), function (x) { keep[x.dataset.g + '|' + x.dataset.k] = x.type === 'checkbox' ? x.checked : x.value; }); draw(); [].forEach.call(app.querySelectorAll('[data-g]'), function (x) { var k = x.dataset.g + '|' + x.dataset.k; if (k in keep) { if (x.type === 'checkbox') x.checked = keep[k]; else x.value = keep[k]; } }); }
   function setM(path, v) { var k = path.split('.'), o = S; for (var i = 0; i < k.length - 1; i++) { if (!o[k[i]] || typeof o[k[i]] !== 'object') o[k[i]] = {}; o = o[k[i]]; } o[k[k.length - 1]] = v; if (k[0] === 'cf') S.cn = 60; if (k[0] === 'df') S.dn = 80; if (k[0] === 'pf2') S.pn = 100; }
   app.addEventListener('input', function (e) { var m = e.target.dataset && e.target.dataset.m; if (!m) return; setM(m, e.target.value); var p = e.target.selectionStart; draw(); var n = app.querySelector('[data-m="' + m + '"]'); if (n) { n.focus(); try { n.setSelectionRange(p, p); } catch (x) {} } });
+  (function () { var box = null, x0 = 0, y0 = 0, l0 = 0, t0 = 0, moved = false;
+    app.addEventListener('mousedown', function (e) { var b = e.target.closest && e.target.closest('.twm'); if (!b || e.button !== 0 || e.target.closest('button,input,select,a')) return; box = b; x0 = e.clientX; y0 = e.clientY; l0 = b.scrollLeft; t0 = b.scrollTop; moved = false; });
+    window.addEventListener('mousemove', function (e) { if (!box) return; var dx = e.clientX - x0, dy = e.clientY - y0; if (!moved && Math.abs(dx) + Math.abs(dy) < 6) return; moved = true; box.classList.add('drag'); box.scrollLeft = l0 - dx; box.scrollTop = t0 - dy; });
+    window.addEventListener('mouseup', function () { if (box) box.classList.remove('drag'); box = null; });
+    app.addEventListener('click', function (e) { if (moved && e.target.closest && e.target.closest('.twm')) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true); })();
   app.addEventListener('input', function (e) { var ld = e.target.dataset && e.target.dataset.lead; if (!ld || !S.cd || !S.cd.porder) return; var lx = S.cd.porder.lines.filter(function (x) { return x.no === +ld; })[0]; if (lx) lx.draft = e.target.value; });
   app.addEventListener('input', function (e) { var d = e.target.dataset || {};
     if (d.pgann != null) { var rw = S.pgd.rows[d.pgann]; rw.annual = +e.target.value; rw.dirty = true; pgSpread(rw); return pgPaint(d.pgann); }
@@ -2229,7 +2249,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'plink-save') { var PK = S.plk; if (!PK) return; PK.busy = true; PK.msg = ''; draw(); return api('product-links', { code: PK.code, related: String(PK.text || '').split(/[\s,;]+/).filter(Boolean) }).then(function (r) { PK.busy = false; if (r.ok) { S.cat.links = S.cat.links || {}; var rl = String(PK.text || '').split(/[\s,;]+/).filter(Boolean).slice(0, 12); if (rl.length) S.cat.links[PK.code] = rl; else delete S.cat.links[PK.code]; PK.ok = true; PK.msg = r.n ? r.n + ' related parts saved.' : 'Related parts cleared. The automatic suggestions are used.'; } else { PK.ok = false; PK.msg = r.error || 'Could not save.'; } draw(); }); }
     if (act === 'lead-send') { var LC = S.cd, li = +t.dataset.no, ln = LC && LC.porder && LC.porder.lines.filter(function (x) { return x.no === li; })[0]; if (!ln) return; var note = String(ln.draft == null ? ln.lead : ln.draft).trim(); if (note.length < 3) { LC.leadMsg = 'Write the lead time first, for example: ships in 3 weeks.'; return draw(); }
       LC.leadBusy = true; LC.leadMsg = ''; draw(); return api('order-lead', { order: LC.porder.id, no: li, note: note }).then(function (r) { LC.leadBusy = false; if (r.ok) { ln.lead = note; ln.state = 'needs_answer'; ln.draft = null; LC.leadMsg = r.mailed ? 'Sent. The customer got an e-mail and answers in the portal.' : 'Saved. The customer sees it in the portal (no e-mail went out).'; } else LC.leadMsg = r.error || 'Could not save.'; draw(); }); }
-    if (act === 'sl-mon') { var LM = slState(); LM.mon = t.dataset.v === '1'; if (LM.mon && ['365', 'ytd', 'ly', 'all', 'custom'].indexOf(LM.p) < 0) return slSet('p', '365'); return draw(); }
+    if (act === 'sl-mon') { var LM = slState(), was = LM.mv || '', mv2 = t.dataset.v || ''; LM.mv = mv2; var dd = Math.round((Date.parse(LM.to) - Date.parse(LM.from)) / 864e5) + 1;
+      // each view opens on a period that fills it: about 13 weeks, 12 months, or every year on record. A custom range is left alone.
+      if (LM.p !== 'custom') { if (mv2 === 'week' && dd > 190) return slSet('p', '90'); if (mv2 === 'month' && (dd < 60 || dd > 800)) return slSet('p', '365'); if (mv2 === 'year' && dd < 400) return slSet('p', 'all'); }
+      if ((mv2 === 'week') !== (was === 'week')) { S.sd = null; draw(); return slLoad(); } return draw(); }
     if (act === 'sl-rule') { var ri = +t.dataset.i, rp = S.sd.people[ri], rb = app.querySelector('[data-rb="' + ri + '"]'), rv = app.querySelector('[data-rp="' + ri + '"]'); if (!rp || !rv || rv.value === '') { toast('Type the percentage first.'); return; }
       return api('sales-commission', { salesperson: rp.sp, basis: rb.value, pct: parseFloat(rv.value) }).then(function (r) { if (r.ok) { toast('Commission saved for ' + rp.sp + '.'); slLoad(); } else fail(r); }); }
     if (act === 'sort') { var sk = t.dataset.sk, kk = t.dataset.k, cur = S[sk] || {}; S[sk] = { k: kk, d: cur.k === kk ? -cur.d : (['n', 'company', 'code', 'k', 'sp', 'status', 'segment', 'customerCode', 'tier', 'loc', 'next', 'since'].indexOf(kk) >= 0 ? 1 : -1) }; return draw(); }
