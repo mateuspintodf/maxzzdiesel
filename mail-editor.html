@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>E-mail designer · Maxzz admin</title>
+<link rel="stylesheet" href="/js/vendor/grapes.min.css?v=1">
+<style>
+/* The designer runs inside the admin (in a frame). GrapesJS is restyled to the admin look: light panels, dark text, red accent. */
+:root{--gjs-primary-color:#ffffff;--gjs-secondary-color:#1d2126;--gjs-tertiary-color:#d32a37;--gjs-quaternary-color:#d32a37;--gjs-font-color:#1d2126;--gjs-font-color-active:#1d2126;--gjs-main-color:#ffffff;--gjs-main-dark-color:rgba(0,0,0,.08);--gjs-secondary-dark-color:rgba(0,0,0,.06);--gjs-main-light-color:rgba(0,0,0,.05);--gjs-secondary-light-color:rgba(0,0,0,.04);--gjs-soft-light-color:rgba(0,0,0,.03);--gjs-color-blue:#d32a37;--gjs-left-width:22%;--gjs-canvas-top:0px}
+html,body{height:100%;margin:0;font-family:Inter,-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1d2126;background:#e9ebee}
+.top{height:56px;display:flex;align-items:center;gap:10px;padding:0 16px;background:#fff;border-bottom:1px solid #e3e6e9;box-sizing:border-box}
+.top b{font-size:15px}.top .sp{flex:1}.top small{color:#5f656c;font-size:12.5px}
+.btn{height:38px;border-radius:999px;border:1px solid #c9ced3;background:#fff;color:#1d2126;padding:0 16px;font:inherit;font-size:14px;font-weight:500;cursor:pointer}.btn:hover{border-color:#1d2126}.btn.red{background:#d32a37;border-color:#d32a37;color:#fff}.btn.red:hover{background:#b71f2b}.btn.dark{background:#1d2126;border-color:#1d2126;color:#fff}
+.seg{display:inline-flex;background:#f1f2f4;border-radius:999px;padding:3px}.seg button{border:0;background:transparent;border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;cursor:pointer;color:#3a4048}.seg button.on{background:#1d2126;color:#fff}
+#gjs{height:calc(100% - 56px)}
+.gjs-one-bg{background-color:#fff!important}.gjs-two-color{color:#1d2126!important}.gjs-three-bg{background-color:#d32a37!important;color:#fff!important}.gjs-four-color,.gjs-four-color-h:hover{color:#d32a37!important}
+.gjs-editor,.gjs-pn-panel,.gjs-blocks-c,.gjs-block-categories,.gjs-block-category,.gjs-sm-sectors,.gjs-traits-cs,.gjs-layer-manager,.gjs-layers{background:#fff!important;color:#1d2126!important}.gjs-block{background:#fff!important;color:#1d2126!important}.gjs-block svg{fill:none}.gjs-block__media{color:#1d2126}.gjs-title,.gjs-sm-sector-title,.gjs-layer-title,.gjs-sm-label,.gjs-trt-trait,.gjs-label,.gjs-category-title{color:#1d2126!important;background:#f7f8f9!important}.gjs-sm-property,.gjs-sm-properties,.gjs-trt-traits{color:#1d2126!important}.gjs-pn-btn{color:#3a4048!important}.gjs-pn-btn.gjs-pn-active{color:#d32a37!important}.gjs-field,.gjs-field input,.gjs-field select,.gjs-field textarea,.gjs-input-holder input{background:#fff!important;color:#1d2126!important}.gjs-radio-item-label,.gjs-sm-clear,.gjs-field-arrows,.gjs-sm-icon{color:#1d2126!important}.gjs-field-arrow-u{border-bottom-color:#5f656c!important}.gjs-field-arrow-d{border-top-color:#5f656c!important}.gjs-d-s-arrow{border-top-color:#5f656c!important}.gjs-cv-canvas{background:#e9ebee!important}.gjs-mdl-dialog{background:#fff!important;color:#1d2126!important;border-radius:16px}.gjs-am-assets-cont,.gjs-am-file-uploader>form{background:#f7f8f9!important}.gjs-cm-editor,.CodeMirror{border-radius:10px}
+.gjs-pn-panel{border-color:#e3e6e9}.gjs-pn-views-container{box-shadow:none;border-left:1px solid #e3e6e9;width:22%;padding-top:42px}.gjs-pn-views{border-bottom:1px solid #e3e6e9;width:22%}.gjs-pn-options{right:22%}.gjs-cv-canvas{width:78%;top:0;height:100%;background:#e9ebee}
+.gjs-pn-commands{display:none}.gjs-pn-devices-c{display:none}
+.gjs-block{border:1px solid #e3e6e9;border-radius:14px;box-shadow:none;min-height:78px;width:44%;margin:3%;padding:10px 6px;transition:border-color .15s}.gjs-block:hover{border-color:#1d2126;box-shadow:none}.gjs-block-label{font-size:12px;font-family:inherit}.gjs-block svg{width:34px;height:34px}
+.gjs-block-category .gjs-title,.gjs-sm-sector-title,.gjs-layer-title{background:#f7f8f9;border-color:#e3e6e9;font-weight:600;font-size:12.5px;letter-spacing:.02em}
+.gjs-field,.gjs-sm-field,.gjs-clm-tags #gjs-clm-new,.gjs-select{background:#fff;border:1px solid #c9ced3;border-radius:8px;color:#1d2126}.gjs-field input,.gjs-field select,.gjs-field textarea{color:#1d2126}
+.gjs-toolbar{background:#1d2126;border-radius:8px}.gjs-badge{background:#1d2126;border-radius:6px}.gjs-selected{outline:2px solid #d32a37!important}.gjs-rte-toolbar{background:#1d2126;border-radius:8px;border:0}.gjs-rte-action{color:#fff}
+.gjs-pn-btn{border-radius:8px}.gjs-pn-btn.gjs-pn-active{background:#f1f2f4;box-shadow:none;color:#d32a37}
+/* product picker */
+.pk{position:fixed;inset:0;background:rgba(20,24,28,.45);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}.pk.on{display:flex}
+.pk-b{background:#fff;border-radius:20px;width:min(980px,100%);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+.pk-h{display:flex;align-items:center;gap:10px;padding:18px 22px;border-bottom:1px solid #eef0f2}.pk-h b{font-size:17px}.pk-h .sp{flex:1}
+.pk-m{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:0;flex:1}.pk-c{padding:16px 22px;overflow:auto;min-height:320px;max-height:56vh}.pk-c+.pk-c{border-left:1px solid #eef0f2;background:#fafbfc}
+.pk-c h4{margin:0 0 10px;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:#5f656c}
+.pk input[type=search],.pk input[type=text],.pk select{width:100%;box-sizing:border-box;border:1px solid #c9ced3;border-radius:12px;padding:10px 12px;font:inherit}
+.pk-r{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #eef0f2}.pk-r img,.pk-r i{width:46px;height:46px;border-radius:8px;object-fit:cover;background:#f1f2f4;flex:none;display:block}.pk-r div{flex:1;min-width:0}.pk-r b{display:block;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}.pk-r span{display:block;font-size:13px;color:#3a4048;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pk-x{border:1px solid #e3e6e9;background:#fff;border-radius:999px;width:30px;height:30px;cursor:pointer;flex:none}.pk-x:hover{border-color:#1d2126}.pk-x[disabled]{opacity:.3}
+.pk-f{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;padding:16px 22px;border-top:1px solid #eef0f2}.pk-f label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:#5f656c}.pk-f .sp{flex:1}
+.pk-e{color:#8a9097;font-size:13px;padding:18px 0}
+</style>
+</head>
+<body>
+<div class="top"><b>E-mail designer</b><small>Drag blocks from the right into the e-mail. Double click a product block to choose the parts.</small><span class="sp"></span>
+<div class="seg" id="dev"><button data-d="Desktop" class="on">Desktop</button><button data-d="Tablet">Tablet</button><button data-d="Mobile portrait">Phone</button></div>
+<button class="btn" id="undo" title="Undo">Undo</button><button class="btn" id="redo" title="Redo">Redo</button>
+<button class="btn" id="cancel">Cancel</button><button class="btn red" id="done">Use this design</button></div>
+<div id="gjs"></div>
+<div class="pk" id="pk"><div class="pk-b">
+<div class="pk-h"><b>Products in this block</b><span class="sp"></span><button class="pk-x" id="pk-close" aria-label="Close">×</button></div>
+<div class="pk-m"><div class="pk-c"><h4>Find a part</h4><input type="search" id="pk-q" placeholder="Part number, description or engine"><div id="pk-res"></div></div>
+<div class="pk-c"><h4>In the e-mail, in this order</h4><div id="pk-sel"></div></div></div>
+<div class="pk-f"><label>Layout<div class="seg" id="pk-lay"><button data-v="list">List</button><button data-v="grid2">2 columns</button><button data-v="grid3">3 columns</button></div></label>
+<label>Price<select id="pk-price"><option value="none">No price</option><option value="tier">Price of each customer (their tier)</option></select></label>
+<label>Button text<input type="text" id="pk-cta" maxlength="40" style="width:160px"></label><span class="sp"></span><button class="btn dark" id="pk-ok">Save block</button></div>
+</div></div>
+<script src="/js/vendor/grapes.min.js?v=1"></script>
+<script src="/js/vendor/grapesjs-preset-newsletter.js?v=1"></script>
+<script>
+(function () {
+  var F = 'Helvetica,Arial,sans-serif', ORIGIN = location.origin;
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function post(a, body) { return fetch('/api/admin?a=' + a, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function (r) { return r.json().catch(function () { return {}; }); }); }
+  var preset = window['grapesjs-preset-newsletter']; if (preset && preset.default) preset = preset.default;
+  var editor = grapesjs.init({ container: '#gjs', height: '100%', width: 'auto', fromElement: false, storageManager: false, noticeOnUnload: false, plugins: preset ? [preset] : [], assetManager: { upload: false, embedAsBase64: false },
+    canvas: { styles: [] }, deviceManager: { devices: [{ name: 'Desktop', width: '' }, { name: 'Tablet', width: '700px' }, { name: 'Mobile portrait', width: '390px' }] } });
+  editor.on('load', function () { var b = editor.Canvas.getBody(); if (b) { b.style.background = '#ffffff'; b.style.maxWidth = '680px'; b.style.margin = '18px auto'; b.style.borderRadius = '18px'; b.style.fontFamily = F; } var d = editor.Canvas.getDocument(); if (d && d.documentElement) d.documentElement.style.background = '#e9ebee'; editor.Panels.getButton('views', 'open-blocks') && editor.Panels.getButton('views', 'open-blocks').set('active', true); });
+
+  // ---- our blocks -------------------------------------------------------------------------------------------
+  var MARK = function (codes, lay) { return '<table data-mx-products="' + esc(codes || '') + '" data-layout="' + (lay || 'grid2') + '" data-price="none" data-cta="View part" width="100%" style="width:100%;margin:0 0 12px"></table>'; };
+  var cache = {};
+  editor.Components.addType('mx-products', {
+    isComponent: function (el) { return el.tagName === 'TABLE' && el.hasAttribute && el.hasAttribute('data-mx-products'); },
+    model: { defaults: { name: 'Products', droppable: false, editable: false, components: '', traits: [] } },
+    view: {
+      events: { dblclick: 'pick' },
+      init: function () { this.listenTo(this.model, 'change:attributes', this.show); },
+      onRender: function () { this.show(); },
+      pick: function () { openPicker(this.model); },
+      show: function () {
+        var el = this.el, a = this.model.getAttributes(), codes = String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), key = JSON.stringify([codes, a['data-layout'], a['data-price'], a['data-cta']]);
+        var put = function (h) { el.innerHTML = '<tbody><tr><td style="font-family:' + F + '">' + h + '</td></tr></tbody>'; };
+        if (!codes.length) return put('<div style="border:2px dashed #d32a37;border-radius:14px;padding:26px 16px;text-align:center;color:#5f656c;font-size:14px"><b style="display:block;color:#1d2126;font-size:15px;margin:0 0 4px">Products</b>Double click to choose the parts</div>');
+        if (cache[key]) return put(cache[key]);
+        put('<div style="padding:22px;text-align:center;color:#8a9097;font-size:13px">Loading the parts…</div>');
+        post('mail-products', { codes: codes, layout: a['data-layout'], price: a['data-price'], cta: a['data-cta'] }).then(function (r) { cache[key] = (r && r.html) || '<div style="padding:22px;text-align:center;color:#b71f2b;font-size:13px">These part numbers are not in the catalog.</div>'; put(cache[key]); });
+      }
+    }
+  });
+  var bm = editor.Blocks, ICO = function (p) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + p + '</svg>'; };
+  var txt = function (s, st) { return '<p style="margin:0 0 14px;font-family:' + F + ';font-size:15px;line-height:1.6;color:#3a4048;' + (st || '') + '">' + s + '</p>'; };
+  bm.add('mx-products-2', { label: 'Products, 2 columns', category: 'Maxzz', media: ICO('<rect x="3" y="4" width="8" height="16" rx="2"/><rect x="13" y="4" width="8" height="16" rx="2"/>'), content: MARK('', 'grid2') });
+  bm.add('mx-products-3', { label: 'Products, 3 columns', category: 'Maxzz', media: ICO('<rect x="2.5" y="4" width="5.5" height="16" rx="1.5"/><rect x="9.25" y="4" width="5.5" height="16" rx="1.5"/><rect x="16" y="4" width="5.5" height="16" rx="1.5"/>'), content: MARK('', 'grid3') });
+  bm.add('mx-products-l', { label: 'Products, list', category: 'Maxzz', media: ICO('<rect x="3" y="4" width="18" height="6.5" rx="2"/><rect x="3" y="13.5" width="18" height="6.5" rx="2"/>'), content: MARK('', 'list') });
+  bm.add('mx-banner', { label: 'Banner', category: 'Maxzz', media: ICO('<rect x="3" y="6" width="18" height="12" rx="3"/><path d="M7 11h7M7 14h4"/>'), content: '<table width="100%" cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 18px"><tr><td style="background:#d32a37;border-radius:16px;padding:22px 24px;font-family:' + F + '"><div style="font-size:22px;line-height:1.25;font-weight:700;color:#ffffff">This week only</div><div style="margin:6px 0 0;font-size:14px;line-height:1.5;color:#ffffff">For wholesale accounts, while it lasts</div></td></tr></table>' });
+  bm.add('mx-button', { label: 'Red button', category: 'Maxzz', media: ICO('<rect x="4" y="8" width="16" height="8" rx="4"/>'), content: '<a href="https://www.maxzzdiesel.com/portal" style="display:inline-block;background:#d32a37;border-radius:50px;padding:14px 26px;color:#ffffff;text-decoration:none;font-weight:600;font-size:15px;font-family:' + F + ';margin:6px 0 18px">Open the wholesale store</a>' });
+  bm.add('mx-title', { label: 'Title', category: 'Maxzz', media: ICO('<path d="M5 6h14M12 6v13"/>'), content: '<h2 style="margin:0 0 12px;font-size:24px;line-height:1.25;color:#1d2126;font-family:' + F + '">Hi {{first_name}}, parts picked for your shop</h2>' });
+  bm.add('mx-text', { label: 'Paragraph', category: 'Maxzz', media: ICO('<path d="M4 7h16M4 12h16M4 17h10"/>'), content: txt('Write here. Use {{first_name}}, {{company}} and {{salesperson}} and each person sees their own.') });
+  bm.add('mx-line', { label: 'Line', category: 'Maxzz', media: ICO('<path d="M3 12h18"/>'), content: '<div style="border-top:1px solid #eceef0;margin:8px 0 20px;font-size:0;line-height:0">&nbsp;</div>' });
+  var cats = bm.getCategories(); cats.each(function (c) { c.set('open', c.id === 'Maxzz'); c.set('order', c.id === 'Maxzz' ? 0 : 1); });
+
+  // ---- product picker ---------------------------------------------------------------------------------------
+  var CAT = null, IMGS = {}, P = { model: null, codes: [], lay: 'grid2' }, $ = function (id) { return document.getElementById(id); };
+  function name(d) { d = String(d || '').replace(/\(=[^)]*\)/g, ''); var m = d.match(/^(.*?)\s*\/\s*(?:Application|Suitable for|Suitable)\s*:?\s*(.*)$/i); return m ? m[1] + (m[2] ? ' · ' + m[2] : '') : d; }
+  function row(r, btn) { var im = IMGS[r[0]]; return '<div class="pk-r">' + (im ? '<img src="' + esc(im) + '" alt="" loading="lazy">' : '<i></i>') + '<div><b>' + esc(r[0]) + '</b><span>' + esc(name(r[1])) + '</span></div>' + btn + '</div>'; }
+  function drawSel() { var M = {}; (CAT || []).forEach(function (r) { M[r[0]] = r; });
+    $('pk-sel').innerHTML = P.codes.length ? P.codes.map(function (c, i) { return row(M[c] || [c, 'Not in the catalog'], '<button class="pk-x" data-up="' + i + '"' + (i ? '' : ' disabled') + '>↑</button><button class="pk-x" data-dn="' + i + '"' + (i < P.codes.length - 1 ? '' : ' disabled') + '>↓</button><button class="pk-x" data-rm="' + i + '">×</button>'); }).join('') : '<div class="pk-e">No parts yet. Search on the left and add them.</div>';
+    [].forEach.call($('pk-lay').children, function (b) { b.className = b.dataset.v === P.lay ? 'on' : ''; }); }
+  function drawRes() { var q = $('pk-q').value.toLowerCase().replace(/[^a-z0-9]/g, ''); if (!CAT) { $('pk-res').innerHTML = '<div class="pk-e">Loading the catalog…</div>'; return; }
+    var hit = q.length < 2 ? [] : CAT.filter(function (r) { return (r[0] + ' ' + r[1]).toLowerCase().replace(/[^a-z0-9]/g, '').indexOf(q) >= 0; }).slice(0, 30);
+    $('pk-res').innerHTML = q.length < 2 ? '<div class="pk-e">Type at least 2 characters.</div>' : hit.length ? hit.map(function (r) { var inn = P.codes.indexOf(r[0]) >= 0; return row(r, '<button class="btn" data-add="' + esc(r[0]) + '"' + (inn ? ' disabled style="opacity:.4"' : '') + '>' + (inn ? 'Added' : 'Add') + '</button>'); }).join('') : '<div class="pk-e">Nothing found.</div>'; }
+  function openPicker(model) { var a = model.getAttributes(); P = { model: model, codes: String(a['data-mx-products'] || '').split(/[\s,;]+/).filter(Boolean), lay: a['data-layout'] || 'grid2' };
+    $('pk-price').value = a['data-price'] === 'tier' ? 'tier' : 'none'; $('pk-cta').value = a['data-cta'] || 'View part'; $('pk-q').value = ''; $('pk').classList.add('on'); drawSel(); drawRes(); setTimeout(function () { $('pk-q').focus(); }, 50);
+    if (!CAT) { fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { CAT = rows; drawSel(); drawRes(); }); fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { IMGS = m || {}; drawSel(); drawRes(); }).catch(function () {}); } }
+  $('pk-q').addEventListener('input', drawRes);
+  $('pk').addEventListener('click', function (e) { var d = e.target.dataset || {};
+    if (e.target === $('pk') || e.target.id === 'pk-close') return $('pk').classList.remove('on');
+    if (d.add) { if (P.codes.length < 24 && P.codes.indexOf(d.add) < 0) P.codes.push(d.add); drawSel(); return drawRes(); }
+    if (d.rm != null) { P.codes.splice(+d.rm, 1); drawSel(); return drawRes(); }
+    if (d.up != null) { var i = +d.up; P.codes.splice(i - 1, 0, P.codes.splice(i, 1)[0]); return drawSel(); }
+    if (d.dn != null) { var j = +d.dn; P.codes.splice(j + 1, 0, P.codes.splice(j, 1)[0]); return drawSel(); }
+    if (d.v && e.target.parentNode.id === 'pk-lay') { P.lay = d.v; return drawSel(); }
+    if (e.target.id === 'pk-ok') { P.model.addAttributes({ 'data-mx-products': P.codes.join(','), 'data-layout': P.lay, 'data-price': $('pk-price').value, 'data-cta': $('pk-cta').value.trim() || 'View part' }); $('pk').classList.remove('on'); } });
+
+  // ---- top bar and the talk with the admin page ---------------------------------------------------------------
+  $('dev').addEventListener('click', function (e) { var d = e.target.dataset.d; if (!d) return; editor.setDevice(d); [].forEach.call($('dev').children, function (b) { b.className = b === e.target ? 'on' : ''; }); });
+  $('undo').onclick = function () { editor.UndoManager.undo(); }; $('redo').onclick = function () { editor.UndoManager.redo(); };
+  function say(m) { if (window.parent && window.parent !== window) window.parent.postMessage(m, ORIGIN); }
+  $('cancel').onclick = function () { say({ type: 'mx-cancel' }); };
+  $('done').onclick = function () { var html = ''; try { html = editor.runCommand('gjs-get-inlined-html') || ''; } catch (e) { html = ''; } if (!html) html = editor.getHtml() + '<style>' + editor.getCss() + '</style>'; say({ type: 'mx-done', html: html, project: editor.getProjectData() }); };
+  window.addEventListener('message', function (e) { if (e.origin !== ORIGIN || !e.data || e.data.type !== 'mx-load') return;
+    var go = function () { try { if (e.data.project) editor.loadProjectData(e.data.project); else editor.setComponents(e.data.html || ''); } catch (x) { editor.setComponents(e.data.html || ''); } editor.UndoManager.clear(); };
+    if (editor.Canvas.getBody()) go(); else editor.on('load', go); });
+  window.mxEditor = editor; say({ type: 'mx-ready' });
+})();
+</script>
+</body>
+</html>

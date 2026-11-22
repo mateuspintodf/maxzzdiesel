@@ -37,7 +37,7 @@
 
   // ------------------------------------------------------------------ list
   function load() { A.api('mail-list').then(function (r) { if (r._status === 200) { M().list = r; S.tabErr = null; A.draw(); } else { S.tabErr = 'emails'; A.draw(); } }); }
-  var TABS = [['draft', 'Drafts'], ['scheduled', 'Scheduled'], ['sent', 'Sending and sent'], ['tpl', 'Templates']];
+  var TABS = [['draft', 'Drafts'], ['scheduled', 'Scheduled'], ['sent', 'Sending and sent'], ['tpl', 'Templates'], ['tx', 'Portal e-mails']];
   function inTab(c, t) { return t === 'tpl' ? c.is_template : c.is_template ? false : t === 'draft' ? c.status === 'draft' : t === 'scheduled' ? c.status === 'scheduled' : ['sending', 'sent', 'cancelled'].indexOf(c.status) >= 0; }
   function viewList() {
     var m = M(), L = m.list; if (!L) return A.ld();
@@ -48,8 +48,10 @@
       L.campaigns.filter(function (c) { return c.is_template; }).map(function (c) { return '<button data-ml="from" data-id="' + c.id + '"><b>' + esc(c.name) + '</b><small>Your template · ' + esc(c.subject || 'no subject') + '</small></button>'; }).join('') + '</div></section>';
     var rows = L.campaigns.filter(function (c) { return inTab(c, m.tab); }).map(function (c) { var s = c.stats || {}; c.rec = s.total || 0; c.op = s.opened || 0; c.cl = s.clicked || 0; c.when = c.sent_at || c.scheduled_at || c.updated_at; return c; });
     S.mlso = S.mlso || { k: 'when', d: -1 }; rows = A.sortRows(rows, 'mlso');
-    var cnt = function (t) { return L.campaigns.filter(function (c) { return inTab(c, t); }).length; };
+    var cnt = function (t) { return t === 'tx' ? (L.templates || []).length : L.campaigns.filter(function (c) { return inTab(c, t); }).length; };
     h += '<section class="card flush"><div class="fbar"><div class="seg" style="background:var(--soft)">' + TABS.map(function (t) { return '<button data-ml="tab" data-v="' + t[0] + '" class="' + (m.tab === t[0] ? 'on' : '') + '">' + t[1] + ' ' + cnt(t[0]) + '</button>'; }).join('') + '</div><span class="sp"></span><button class="btn acc" data-ml="pick">' + ic('plus', 16) + ' New e-mail</button></div>';
+    if (m.tab === 'tx') return h + '<p class="ml-note" style="padding:0 20px 6px">These go out by themselves when something happens in the portal. You can change the subject, the title, the button and add a note on top. The details (order lines, links, amounts) are written by the system and cannot be removed.</p>' +
+      A.tbl([A.h0('E-mail'), A.h0('Subject'), A.h0('Wording'), A.h0('')], (L.templates || []).map(function (t) { var sv = t.saved; return '<tr data-ml="tx" data-id="' + t.key + '" style="cursor:pointer"><td><b>' + esc(t.name) + '</b></td><td>' + esc((sv && sv.subject) || t.subject) + '</td><td>' + (sv ? '<span class="ml-st sending">changed</span><small>' + esc(String(sv.updated_by || '').split('@')[0]) + ' · ' + esc(fmt(sv.updated_at)) + '</small>' : '<span class="ml-st">built-in</span>') + '</td><td class="r"><button class="btn ghost sm" data-ml="tx" data-id="' + t.key + '">Edit</button></td></tr>'; })) + '</section>';
     var sent = m.tab === 'sent';
     h += A.tbl([A.th('name', 'E-mail', 'mlso'), A.th('status', 'Status', 'mlso'), A.th('when', sent ? 'Sent' : m.tab === 'scheduled' ? 'Goes out' : 'Changed', 'mlso')].concat(sent ? [A.th('rec', 'Recipients', 'mlso', 1), A.th('op', 'Opened', 'mlso', 1), A.th('cl', 'Clicked', 'mlso', 1)] : [A.th('created_by', 'By', 'mlso')]).concat([A.h0('')]),
       rows.map(function (c) { var s = c.stats || {};
@@ -67,16 +69,29 @@
       var c = r.campaign || { name: seed && seed.name || 'New e-mail', subject: seed && seed.subject || '', preheader: '', lang: 'en', content: { blocks: seed && seed.blocks || [] }, audience: { segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, status: 'draft', is_template: false };
       c.content = c.content || { blocks: [] }; c.audience = Object.assign({ segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, c.audience || {});
       c.content.blocks.forEach(function (b) { if (b.type === 'products') b._txt = (b.codes || []).join('\n'); });
-      m.ed = { c: c, segs: r.segments, facets: r.facets, from: r.from, dev: 'd', dirty: !id, test: r.me || '', when: '', aud: null, html: '', miss: [], find: {}, lock: c.status !== 'draft' };
-      A.draw(); preview(0);
+      m.ed = { c: c, canSend: !!r.canSend, simple: false, segs: r.segments, facets: r.facets, from: r.from, dev: 'd', dirty: !id, test: r.me || '', when: '', aud: null, html: '', miss: [], find: {}, lock: c.status !== 'draft' };
+      A.draw(); preview(0); if (seed && seed.design) design();
       if (!S.cat) A.api('catalog-all').then(function (x) { if (x._status === 200) { S.cat = x; } });
     });
   }
   function payload() { var c = M().ed.c; return { id: c.id, name: c.name, subject: c.subject, preheader: c.preheader, lang: c.lang, is_template: !!c.is_template, audience: c.audience,
-    content: { blocks: c.content.blocks.map(function (b) { var o = {}; for (var k in b) if (k.charAt(0) !== '_') o[k] = b[k]; if (b.type === 'products') o.codes = String(b._txt == null ? (b.codes || []).join('\n') : b._txt).split(/[\s,;]+/).filter(Boolean); return o; }) } }; }
+    content: { mode: c.content.mode === 'free' ? 'free' : undefined, html: c.content.mode === 'free' ? c.content.html : undefined, project: c.content.mode === 'free' ? c.content.project : undefined, blocks: c.content.blocks.map(function (b) { var o = {}; for (var k in b) if (k.charAt(0) !== '_') o[k] = b[k]; if (b.type === 'products') o.codes = String(b._txt == null ? (b.codes || []).join('\n') : b._txt).split(/[\s,;]+/).filter(Boolean); return o; }) } }; }
   var pt = 0;
   function preview(wait) { clearTimeout(pt); pt = setTimeout(function () { var E = M().ed; if (!E || !E.c) return; A.api('mail-preview', payload()).then(function (r) { var E2 = M().ed; if (!E2 || r._status !== 200) return; E2.html = r.html; var miss = (r.missing || []).join(','), ch = miss !== (E2.miss || []).join(','); E2.miss = r.missing || []; setFrame(); if (ch) A.draw(); }); }, wait == null ? 700 : wait); }
-  function setFrame() { var E = M().ed, fr = document.getElementById('ml-fr'); if (fr && E && E.html && fr._h !== E.html) { fr._h = E.html; fr.srcdoc = E.html; } }
+  // the visual designer (GrapesJS) opens over the whole screen, in its own frame, and hands the result back
+  var ov = null;
+  function closeDesign() { if (ov) { ov.remove(); ov = null; document.documentElement.style.overflow = ''; } }
+  function design() {
+    var E = M().ed; if (!E || E.lock || ov) return; var c = E.c;
+    var start = function (data) { ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee'; ov.innerHTML = '<iframe src="/mail-editor.html?v=2" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; ov._data = data; };
+    if (c.content.mode === 'free' && (c.content.project || c.content.html)) return start({ project: c.content.project || null, html: c.content.html || '' });
+    A.api('mail-seed', payload()).then(function (r) { start({ project: null, html: (r && r.html) || '' }); });
+  }
+  window.addEventListener('message', function (e) { if (e.origin !== location.origin || !e.data || !ov) return; var E = M().ed, d = e.data;
+    if (d.type === 'mx-ready') { var fr = ov.querySelector('iframe'); if (fr && fr.contentWindow) fr.contentWindow.postMessage({ type: 'mx-load', project: ov._data.project, html: ov._data.html }, location.origin); }
+    if (d.type === 'mx-cancel') closeDesign();
+    if (d.type === 'mx-done' && E) { E.c.content.mode = 'free'; E.c.content.html = String(d.html || ''); E.c.content.project = d.project || null; E.dirty = true; closeDesign(); A.draw(); preview(0); } });
+  function setFrame() { var E = M().tx || M().ed, fr = document.getElementById('ml-fr'); if (fr && E && E.html && fr._h !== E.html) { fr._h = E.html; fr.srcdoc = E.html; } }
   function blockForm(b, i, n, lock) {
     var p = 'b.' + i + '.', body = '';
     if (b.type === 'heading') body = f('Text', p + 'text', b.text, { max: 200 }) + seg(p + 'size', b.size || 'm', [['m', 'Normal'], ['l', 'Large']]);
@@ -106,8 +121,9 @@
     h += '<div class="ml-f"><span>Only these salespeople (none ticked means all)</span><div class="ml-chips">' + F.salespeople.map(function (t) { return chip('salespeople', t[0], t[0], t[1]); }).join('') + '</div></div>';
     if (E.segs.length) h += '<div class="ml-f"><span>Leave out the people of these lists</span><div class="ml-chips">' + E.segs.map(function (s) { return chip('exclude', s.id, s.name, s.n); }).join('') + '</div></div>';
     h += f('Consent', 'a.consent', a.consent, { sel: [['optin', 'Only people who asked to receive promotions and news'], ['customers', 'Customers and contacts on file (always with the unsubscribe link)']] });
+    h += f('Limit per person', 'a.maxPerWeek', String(a.maxPerWeek || 0), { sel: [['0', 'No limit'], ['1', 'At most 1 campaign in 7 days'], ['2', 'At most 2 campaigns in 7 days'], ['3', 'At most 3 campaigns in 7 days']] });
     h += '<div class="ml-row"><button class="btn sm" data-ml="count"' + (E.counting ? ' disabled' : '') + '>Count recipients</button>';
-    if (E.aud) { var I = E.aud.info, out = []; if (I.noOptin) out.push(n0(I.noOptin) + ' without opt-in'); if (I.unsubscribed) out.push(n0(I.unsubscribed) + ' unsubscribed'); if (I.bounced) out.push(n0(I.bounced) + ' bounced or reported spam'); if (I.excludedList) out.push(n0(I.excludedList) + ' in the left out lists'); if (I.invalid) out.push(n0(I.invalid) + ' invalid addresses');
+    if (E.aud) { var I = E.aud.info, out = []; if (I.noOptin) out.push(n0(I.noOptin) + ' without opt-in'); if (I.unsubscribed) out.push(n0(I.unsubscribed) + ' unsubscribed'); if (I.bounced) out.push(n0(I.bounced) + ' bounced or reported spam'); if (I.excludedList) out.push(n0(I.excludedList) + ' in the left out lists'); if (I.invalid) out.push(n0(I.invalid) + ' invalid addresses'); if (I.capped) out.push(n0(I.capped) + ' already at the weekly limit');
       h += '<b>' + n0(I.count) + ' will receive</b></div><p class="ml-note">' + n0(I.matched) + ' matched the lists and filters' + (out.length ? '. Left out: ' + out.join(', ') : '') + '.' + (E.aud.sample.length ? ' For example: ' + E.aud.sample.slice(0, 4).map(function (p) { return esc(p.email); }).join(', ') + '.' : '') + '</p>'; }
     else h += '</div>';
     return h;
@@ -118,14 +134,17 @@
     var left = '<section class="card"><div class="ml-row" style="margin:0 0 14px"><button class="btn ghost sm" data-ml="back">← All e-mails</button><span class="sp"></span><span class="ml-st ' + c.status + '">' + (c.is_template ? 'template' : c.status) + '</span>' + (E.dirty ? '<span class="ml-note" style="margin:0">Not saved</span>' : '') + (lock ? '' : '<button class="btn sm" data-ml="save"' + (E.saving ? ' disabled' : '') + '>Save</button>') + '</div>';
     if (lock) left += '<div class="ml-warn">This e-mail is ' + esc(c.status) + ' and cannot be changed. Duplicate it to send a new version.</div>';
     left += f('Name (only you see it)', 'c.name', c.name, { max: 120 }) + f('Subject', 'c.subject', c.subject, { max: 200, ph: 'What the person reads in the inbox' }) + f('Preview text (the grey line after the subject)', 'c.preheader', c.preheader, { max: 200 }) + '</section>';
-    left += bl.map(function (b, i) { return blockForm(b, i, bl.length, lock); }).join('');
-    if (!lock) left += '<section class="card"><b style="font-size:13px;color:#5f656c">Add a block</b><div class="ml-add">' + TYPES.map(function (t) { return '<button class="btn ghost sm" data-ml="addb" data-t="' + t[0] + '">' + ic('plus', 14) + ' ' + t[1] + '</button>'; }).join('') + '</div></section>';
+    var free = c.content.mode === 'free';
+    if (!lock) left += '<section class="card"><h3 style="margin:0 0 6px">Design</h3><p class="ml-note" style="margin:0 0 12px">' + (free ? 'This e-mail was built in the designer. Open it again to change anything.' : 'Drag and drop blocks, change colours and text on the e-mail itself, and place products in a list, 2 or 3 columns.') + '</p><div class="ml-row"><button class="btn acc" data-ml="design">' + (free ? 'Open the designer' : 'Open the visual designer') + '</button>' + (free ? '<button class="btn ghost sm" data-ml="unfree">Go back to simple blocks</button>' : '<button class="btn ghost sm" data-ml="simple">' + (E.simple ? 'Hide the simple blocks' : 'Or fill in simple blocks') + '</button>') + '</div></section>';
+    if (!free && (E.simple || lock)) left += bl.map(function (b, i) { return blockForm(b, i, bl.length, lock); }).join('');
+    if (!lock && !free && E.simple) left += '<section class="card"><b style="font-size:13px;color:#5f656c">Add a block</b><div class="ml-add">' + TYPES.map(function (t) { return '<button class="btn ghost sm" data-ml="addb" data-t="' + t[0] + '">' + ic('plus', 14) + ' ' + t[1] + '</button>'; }).join('') + '</div></section>';
     var right = '<div class="ml-prev"><section class="card"><div class="ml-row" style="margin:0 0 12px"><h3 style="margin:0">Preview</h3><span class="sp"></span>' + seg('e.dev', E.dev, [['d', 'Desktop'], ['m', 'Phone']]) + '</div>' +
       (E.miss && E.miss.length ? '<div class="ml-warn">Not in the catalog, left out of the e-mail: ' + esc(E.miss.join(', ')) + '</div>' : '') + '<iframe id="ml-fr" class="ml-fr' + (E.dev === 'm' ? ' m' : '') + '" title="E-mail preview" sandbox=""></iframe><p class="ml-note">Shown with a sample contact. Links are tracked only in the e-mails that are really sent.</p></section></div>';
     var send = '';
     if (!c.is_template) {
       send = '<section class="card">' + audPanel(E) + '</section><section class="card"><h3 style="margin:0 0 10px">Test</h3><div class="ml-row"><input type="text" data-mf="e.test" value="' + esc(E.test) + '" placeholder="one or more e-mails" style="flex:1;min-width:220px;border:1px solid #c9ced3;border-radius:999px;padding:9px 14px;font:inherit"><button class="btn sm" data-ml="test"' + (E.testing ? ' disabled' : '') + '>Send test</button></div>' + (E.testMsg ? '<p class="ml-note">' + esc(E.testMsg) + '</p>' : '') + '</section>';
-      if (!lock) send += '<section class="card"><h3 style="margin:0 0 10px">Send</h3><p class="ml-note" style="margin:0 0 10px">From ' + esc(E.from || '') + '. Save first: what goes out is the saved version.</p><div class="ml-row"><input type="datetime-local" data-mf="e.when" value="' + esc(E.when) + '" style="border:1px solid #c9ced3;border-radius:999px;padding:8px 14px;font:inherit"><button class="btn ghost sm" data-ml="sched"' + (E.sending ? ' disabled' : '') + '>Schedule</button><span class="sp"></span><button class="btn acc" data-ml="now"' + (E.sending ? ' disabled' : '') + '>' + (E.sending ? 'Sending' : 'Send now') + '</button></div>' + (E.sendMsg ? '<p class="ml-note">' + esc(E.sendMsg) + '</p>' : '') + '</section>';
+      if (!lock && !E.canSend) send += '<section class="card"><h3 style="margin:0 0 10px">Send</h3><p class="ml-note" style="margin:0">Only a superadmin can send or schedule a campaign. Save it and ask one to review and send.</p></section>';
+      if (!lock && E.canSend) send += '<section class="card"><h3 style="margin:0 0 10px">Send</h3><p class="ml-note" style="margin:0 0 10px">From ' + esc(E.from || '') + '. Save first: what goes out is the saved version.</p><div class="ml-row"><input type="datetime-local" data-mf="e.when" value="' + esc(E.when) + '" style="border:1px solid #c9ced3;border-radius:999px;padding:8px 14px;font:inherit"><button class="btn ghost sm" data-ml="sched"' + (E.sending ? ' disabled' : '') + '>Schedule</button><span class="sp"></span><button class="btn acc" data-ml="now"' + (E.sending ? ' disabled' : '') + '>' + (E.sending ? 'Sending' : 'Send now') + '</button></div>' + (E.sendMsg ? '<p class="ml-note">' + esc(E.sendMsg) + '</p>' : '') + '</section>';
     }
     left += (lock ? '' : '<section class="card"><div class="ml-row"><label class="mck" style="margin:0"><input type="checkbox" class="ck" data-mlchk="tpl"' + (c.is_template ? ' checked' : '') + '> Keep as a template (it is never sent, only copied)</label></div></section>') + send;
     return '<div class="ml-grid"><div>' + left + '</div>' + right + '</div>';
@@ -133,14 +152,15 @@
 
   // ------------------------------------------------------------------ report
   function openRep(id) { var m = M(); m.rep = { id: id, loading: true }; A.draw(); loadRep(); }
-  function loadRep() { var m = M(); if (!m.rep) return; A.api('mail-report', null, '&id=' + m.rep.id).then(function (r) { if (!m.rep) return; if (r._status !== 200) { m.rep = null; A.toast(r.error || 'Could not load the results.'); return; } m.rep = Object.assign({ id: m.rep.id, q: m.rep.q || '' }, r); A.draw(); }); }
+  function loadRep(sync) { var m = M(); if (!m.rep) return; A.api('mail-report', null, '&id=' + m.rep.id + (sync ? '&sync=1' : '')).then(function (r) { if (!m.rep) return; if (r._status !== 200) { m.rep = null; A.toast(r.error || 'Could not load the results.'); return; } m.rep = Object.assign({ id: m.rep.id, q: m.rep.q || '' }, r); A.draw(); }); }
   function viewRep() {
     var R = M().rep; if (R.loading) return A.ld();
     var s = R.stats, c = R.campaign, base = s.reached || 0;
     var h = '<div class="ml-row" style="margin:0 0 14px"><button class="btn ghost sm" data-ml="back">← All e-mails</button><b>' + esc(c.name) + '</b><span class="ml-st ' + c.status + '">' + c.status + '</span><span class="sp"></span>' + (c.status === 'sending' ? '<button class="btn sm" data-ml="cont"' + (R.busy ? ' disabled' : '') + '>' + (R.busy ? 'Sending' : 'Keep sending') + '</button><button class="btn ghost sm" data-ml="cancel" data-id="' + c.id + '">Cancel the rest</button>' : '') + '<button class="btn ghost sm" data-ml="rep-refresh">Refresh</button></div>';
     h += '<div class="kpis">' + A.tile('Sent', n0(base), n0(s.total) + ' on the list' + (s.queued ? ', ' + n0(s.queued) + ' still to go' : ''), '', 'dark') + A.tile('Opened', n0(s.opened), pct(s.opened, base) + ' of sent') + A.tile('Clicked', n0(s.clicked), pct(s.clicked, base) + ' of sent', '', s.clicked ? 'acc' : '') + A.tile('Unsubscribed', n0(s.unsubscribed), pct(s.unsubscribed, base)) + '</div>';
-    h += '<div class="kpis">' + A.tile('Delivered', R.hook ? n0(s.delivered) : '-', R.hook ? pct(s.delivered, base) : 'needs the Resend webhook') + A.tile('Bounced', n0(s.bounced), 'address does not exist') + A.tile('Spam reports', n0(s.complained), '') + A.tile('Not sent', n0(s.held + s.failed), n0(s.held) + ' held, ' + n0(s.failed) + ' failed') + '</div>';
+    h += '<div class="kpis">' + A.tile('Delivered', n0(s.delivered), s.delivered ? pct(s.delivered, base) + ' of sent' : 'press Refresh a few minutes after sending') + A.tile('Bounced', n0(s.bounced), 'address does not exist') + A.tile('Spam reports', n0(s.complained), '') + A.tile('Not sent', n0(s.held + s.failed), n0(s.held) + ' held, ' + n0(s.failed) + ' failed') + '</div>';
     h += '<p class="ml-note" style="margin:0 0 14px">Opens are only a hint: Apple Mail opens everything by itself and other programs hide it. Clicks are the number to trust.</p>';
+    if (R.sales) { var SL = R.sales, m$ = function (n) { return '$' + n0(n); }; h += '<section class="card flush"><div class="fbar"><h2>Orders after this e-mail</h2></div>' + A.tbl([A.h0('Who'), A.hr('Customers'), A.hr('Orders in 7 days'), A.hr('Revenue in 7 days'), A.hr('Orders in 30 days'), A.hr('Revenue in 30 days')], [['Customers who clicked', SL.clickers, SL.click7, SL.click30], ['All customers who received', SL.customers, SL.all7, SL.all30]].map(function (x) { return '<tr><td><b>' + x[0] + '</b></td><td class="r">' + n0(x[1]) + '</td><td class="r">' + n0(x[2].orders) + '</td><td class="r">' + m$(x[2].revenue) + '</td><td class="r">' + n0(x[3].orders) + '</td><td class="r">' + m$(x[3].revenue) + '</td></tr>'; })) + '<p class="ml-note" style="padding:0 16px 14px">Invoiced orders in Unleashed since ' + esc(SL.since) + ', from the customers matched by e-mail. It shows what happened after the e-mail, not that the e-mail caused it.</p></section>'; }
     if (R.links.length) h += '<section class="card flush"><div class="fbar"><h2>What was clicked</h2></div>' + A.tbl([A.h0('Link or part'), A.hr('People'), A.hr('Clicks')], R.links.map(function (l) { return '<tr><td>' + (l.code ? '<b class="mono">' + esc(l.code) + '</b>' : esc(l.key.replace(/^https?:\/\/(www\.)?/, '').slice(0, 90))) + '</td><td class="r">' + n0(l.people) + '</td><td class="r">' + n0(l.clicks) + '</td></tr>'; })) + '</section>';
     var q = String(R.q || '').toLowerCase(), rows = R.sends.filter(function (x) { return !q || (x.email + ' ' + (x.name || '') + ' ' + (x.company || '') + ' ' + x.status).toLowerCase().indexOf(q) >= 0; });
     rows.forEach(function (x) { x.op = x.opened_at ? 1 : 0; x.cl = x.click_count || 0; }); S.mlrs = S.mlrs || { k: 'cl', d: -1 }; rows = A.sortRows(rows, 'mlrs');
@@ -150,17 +170,24 @@
     return h;
   }
 
-  function view() { var m = M(); var h = m.rep ? viewRep() : m.ed ? viewEd() : viewList(); setTimeout(setFrame, 0); return h; }
+  function viewTx() { var T = M().tx, t = T.t;
+    var left = '<section class="card"><div class="ml-row" style="margin:0 0 14px"><button class="btn ghost sm" data-ml="back">← All e-mails</button><b>' + esc(t.name) + '</b><span class="sp"></span>' + (t.saved ? '<button class="btn ghost sm" data-ml="tx-reset">Restore the built-in text</button>' : '') + '<button class="btn sm" data-ml="tx-save"' + (T.saving ? ' disabled' : '') + '>Save</button></div>' +
+      f('Subject', 'x.subject', T.f.subject, { max: 200, ph: t.subject, note: 'Empty keeps: ' + esc(t.subject) + (/\{\{/.test(t.subject) ? '. Keep the {{fields}}: they are filled in by the system.' : '') }) + f('Title inside the e-mail', 'x.title', T.f.title, { max: 120, ph: t.title }) +
+      f('Note on top of the e-mail (optional)', 'x.note', T.f.note, { area: 1, rows: 4, ph: 'For example: our warehouse is closed on Thursday for Thanksgiving.' }) + f('Button text', 'x.cta_label', T.f.cta_label, { max: 60, ph: 'Keeps the built-in button text' }) + '</section>';
+    return '<div class="ml-grid"><div>' + left + '</div><div class="ml-prev"><section class="card"><h3 style="margin:0 0 4px">Preview</h3><p class="ml-note" style="margin:0 0 12px">Subject: ' + esc(T.subject || '') + '</p><iframe id="ml-fr" class="ml-fr" title="E-mail preview" sandbox=""></iframe></section></div></div>'; }
+  function txPrev(wait) { clearTimeout(pt); pt = setTimeout(function () { var T = M().tx; if (!T) return; A.api('mail-tx-preview', Object.assign({ key: T.t.key }, T.f)).then(function (r) { var T2 = M().tx; if (!T2 || r._status !== 200) return; T2.html = r.html; var ch = T2.subject !== r.subject; T2.subject = r.subject; setFrame(); if (ch) A.draw(); }); }, wait == null ? 600 : wait); }
+  function view() { var m = M(); var h = m.tx ? viewTx() : m.rep ? viewRep() : m.ed ? viewEd() : viewList(); setTimeout(setFrame, 0); return h; }
 
   // ------------------------------------------------------------------ events
   function setPath(path, v) { var m = M(), E = m.ed, k = path.split('.');
     if (k[0] === 'c') { E.c[k[1]] = v; E.dirty = true; return 1; } if (k[0] === 'a') { E.c.audience[k[1]] = v; E.aud = null; E.dirty = true; return 2; }
+    if (k[0] === 'x') { m.tx.f[k[1]] = v; return 3; }
     if (k[0] === 'e') { E[k[1]] = v; return 0; } if (k[0] === 'r') { m.rep[k[1]] = v; return 0; }
     if (k[0] === 'b') { var b = E.c.content.blocks[+k[1]]; if (b) { b[k[2]] = k[2] === 'h' ? parseInt(v, 10) || 20 : v; E.dirty = true; } return 1; } return 0; }
   function keep(sel) { A.draw(); var n = app.querySelector(sel); if (n) { n.focus(); try { var l = n.value.length; n.setSelectionRange(l, l); } catch (x) {} } }
   app.addEventListener('input', function (e) { var d = e.target.dataset || {}; if (S.tab !== 'emails') return;
     if (d.mlfind != null) { M().ed.find[d.mlfind] = e.target.value; return keep('[data-mlfind="' + d.mlfind + '"]'); }
-    if (!d.mf) return; var r = setPath(d.mf, e.target.value); if (d.redraw) return keep('[data-mf="' + d.mf + '"]'); if (r === 1) preview(); });
+    if (!d.mf) return; var r = setPath(d.mf, e.target.value); if (d.redraw) return keep('[data-mf="' + d.mf + '"]'); if (r === 1) preview(); if (r === 3) txPrev(); });
   app.addEventListener('change', function (e) { var d = e.target.dataset || {}; if (S.tab !== 'emails') return;
     if (d.mlchk === 'tpl') { M().ed.c.is_template = e.target.checked; M().ed.dirty = true; return A.draw(); }
     if (d.mf && e.target.tagName === 'SELECT') { setPath(d.mf, e.target.value); A.draw(); preview(0); } });
@@ -173,14 +200,19 @@
     e.preventDefault();
     if (act === 'tab') { m.tab = t.dataset.v; return A.draw(); }
     if (act === 'pick') { m.pick = true; return A.draw(); } if (act === 'pick-x') { m.pick = false; return A.draw(); }
-    if (act === 'new') { var s = STARTERS[+t.dataset.i], x = s[2](); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: x.subject, blocks: x.blocks }); }
+    if (act === 'new') { var s = STARTERS[+t.dataset.i], x = s[2](); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: x.subject, blocks: x.blocks, design: true }); }
     if (act === 'from' || act === 'copy') return A.api('mail-copy', { id: id }).then(function (r) { if (r._status === 200) { m.list = null; openEd(r.campaign.id); } else A.toast(r.error || 'Could not copy.'); });
     if (act === 'open') return openEd(id);
+    if (act === 'tx') { var tt = (m.list.templates || []).filter(function (x) { return x.key === id; })[0]; if (!tt) return; var sv = tt.saved || {}; m.tx = { t: tt, f: { subject: sv.subject || '', title: sv.title || '', note: sv.note || '', cta_label: sv.cta_label || '' }, html: '', subject: '' }; A.draw(); return txPrev(0); }
+    if (act === 'tx-save' || act === 'tx-reset') { if (act === 'tx-reset' && !confirm('Go back to the built-in text of this e-mail?')) return; m.tx.saving = true; A.draw(); return A.api('mail-tx-save', Object.assign({ key: m.tx.t.key, reset: act === 'tx-reset' }, m.tx.f)).then(function (r) { if (r._status === 200) { m.tx = null; m.list = null; A.toast('Saved. The next e-mails of this kind use it.', true); load(); } else { m.tx.saving = false; A.toast(r.error || 'Could not save.'); } }); }
+    if (act === 'design') return design();
+    if (act === 'simple') { E.simple = !E.simple; return A.draw(); }
+    if (act === 'unfree') { if (!confirm('Go back to simple blocks? The design made in the designer is discarded.')) return; E.c.content.mode = undefined; E.c.content.html = undefined; E.c.content.project = undefined; E.simple = true; E.dirty = true; A.draw(); return preview(0); }
     if (act === 'rep') return openRep(id);
     if (act === 'arch') { if (!confirm('Archive this e-mail? It leaves the lists; the results are kept.')) return; return A.api('mail-archive', { id: id }).then(function (r) { if (r._status === 200) load(); else A.toast(r.error || 'Could not archive.'); }); }
     if (act === 'cancel') { if (!confirm('Cancel this sending? People who already received it are not affected.')) return; return A.api('mail-cancel', { id: id }).then(function (r) { if (r._status === 200) { A.toast('Cancelled.', true); if (m.rep) loadRep(); load(); } else A.toast(r.error || 'Could not cancel.'); }); }
-    if (act === 'back') { if (E && E.dirty && !E.lock && !confirm('Leave without saving the changes?')) return; m.ed = null; m.rep = null; if (!m.list) load(); return A.draw(); }
-    if (act === 'rep-refresh') return loadRep();
+    if (act === 'back') { if (E && E.dirty && !E.lock && !confirm('Leave without saving the changes?')) return; m.ed = null; m.rep = null; m.tx = null; if (!m.list) load(); return A.draw(); }
+    if (act === 'rep-refresh') { m.rep.busy2 = true; A.toast('Checking the delivery of the last e-mails…', true); return loadRep(true); }
     if (act === 'cont') { m.rep.busy = true; A.draw(); return A.api('mail-continue', { id: m.rep.id }).then(function () { loadRep(); }); }
     if (!E) return;
     var bl = E.c.content.blocks, i = +t.dataset.i;
@@ -205,5 +237,5 @@
     }
   });
 
-  window.MXMail = { view: view, load: function () { var m = M(); m.ed = null; m.rep = null; m.pick = false; load(); } };
+  window.MXMail = { view: view, load: function () { var m = M(); m.ed = null; m.rep = null; m.tx = null; m.pick = false; load(); } };
 })();

@@ -18,3 +18,7 @@ create table if not exists public.email_suppressions (email text primary key, re
 alter table public.email_suppressions enable row level security;
 create table if not exists public.email_optins (email text primary key, source text, at timestamptz not null default now());
 alter table public.email_optins enable row level security;
+
+-- Wording of the portal e-mails changed in the admin (subject, title, note on top, button text).
+create table if not exists public.email_templates (key text primary key, subject text, title text, note text, cta_label text, updated_by text, updated_at timestamptz not null default now());
+alter table public.email_templates enable row level security;
