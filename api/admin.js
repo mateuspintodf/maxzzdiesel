@@ -277,7 +277,7 @@ A.reject = async (req, res) => {
   for (const u of people) await SDB.revokeEmail(u.email, w.email, 'customer').catch(() => {});
   await PS.audit(w.email, 'company.reject', 'company', acc.id, null, { reason: acc.reason });
   if (b.notify) for (const u of people) await send(u.email, 'About your Maxzz B2B portal request', 'About your request',
-    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/quote or reply to this e-mail.</p>`, null, { name: u.name, greet: true }).catch(() => {});
+    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/portal or reply to this e-mail.</p>`, null, { name: u.name, greet: true }).catch(() => {});
   return res.json({ ok: true });
 };
 // ends every open customer session of one person

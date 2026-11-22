@@ -310,7 +310,7 @@ def band(title, text, ctas):
 
 
 def band_ctas():
-    return (f'<a class="btn b-white" href="/quote" style="display: inline-flex; align-items: center; gap: 15px; background: #ffffff; color: #1d2126; border-radius: 50px; padding: 5px 5px 5px 30px; font-family: {FONT}; font-size: 15px; height: 60px; box-sizing: border-box; white-space: nowrap;">Request a quote'
+    return (f'<a class="btn b-white" href="/portal" style="display: inline-flex; align-items: center; gap: 15px; background: #ffffff; color: #1d2126; border-radius: 50px; padding: 5px 5px 5px 30px; font-family: {FONT}; font-size: 15px; height: 60px; box-sizing: border-box; white-space: nowrap;">Request a quote'
             f'<span class="ic" style="width: 50px; height: 50px; border-radius: 50%; background: #d32a37; color: #ffffff; display: flex; align-items: center; justify-content: center;">{ARROW}</span></a>'
             f'<a class="btn b-ghost" href="tel:+19545864158" style="display: inline-flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.6); color: #ffffff; border-radius: 50px; padding: 0 28px; font-family: {FONT}; font-size: 15px; height: 60px; box-sizing: border-box; white-space: nowrap;">+1 (954)&nbsp;586-4158</a>')
 
@@ -368,7 +368,7 @@ def triad(s):
     parts_codes = [code for _, code in hub_rows(s)[:0]]
     parts_card = (f'<div class="sx-card"><span class="sx-pill">1. The parts</span><h3 class="sx-h3" style="margin-top:16px">Parts from our Florida stock and partner network</h3>'
                   f'<p style="margin:12px 0 18px">Genuine and aftermarket components for {E(s["apps"])}, matched by part number and shipped from Coconut Creek, FL. Most in-stock orders ship the same business day.</p>'
-                  f'<a class="sx-btn red" href="#parts">See the part numbers</a> <a class="sx-btn ol" href="/quote" style="margin-top:8px">Request a quote</a></div>')
+                  f'<a class="sx-btn red" href="#parts">See the part numbers</a> <a class="sx-btn ol" href="/portal" style="margin-top:8px">Request a quote</a></div>')
     tool_card = (f'<div class="sx-card"><span class="sx-pill">2. Bench tooling and fluids</span><h3 class="sx-h3" style="margin-top:16px">Robiel tools and Maxzz fluids</h3>'
                  f'<ul style="list-style:none;margin:16px 0 0;padding:0;font-size:15px">{"".join(tools)}</ul>'
                  f'<div style="height:1px;background:#e3e6e9;margin:14px 0"></div><ul style="list-style:none;margin:0;padding:0;font-size:15px">{fl}</ul></div>')
@@ -388,7 +388,7 @@ def build_system(s, rel_links):
     path = f'/systems/{s["slug"]}'
     rows = hub_rows(s)
     sections = []
-    ctas = cta_red('/quote', 'Request a quote') + cta_ghost('#parts', 'Part numbers and cross-reference')
+    ctas = cta_red('/portal', 'Request a quote') + cta_ghost('#parts', 'Part numbers and cross-reference')
     crumbs = [('Home', '/'), ('Injection parts', '/injection-parts'), (s['crumb'], None)]
     h = hero(crumbs, E(s['title']), E(s['lead']), ctas, image=s.get('img', 'common-rail-diesel-injector-test-bench.webp'), eyebrow=s['apps'])
     facts = ''.join(f'<div class="sx-card" style="padding:22px 24px"><div style="font-size:12px;letter-spacing:.8px;text-transform:uppercase;color:#8a9099;font-weight:600">{E(k)}</div>'
@@ -403,7 +403,7 @@ def build_system(s, rel_links):
 <span class="sx-pill">Cross-reference</span><h2 class="sx-h2">Part numbers for the {E(s["crumb"])}</h2>
 <p style="margin:16px 0 28px;max-width:760px">Real part numbers from our catalog. Press the button to add a line to your quote list, then send the list for pricing and stock in one business day. The cross-reference column shows the related numbers we match to the same application.</p>
 {tbl}
-<p style="margin:16px 0 0;font-size:14px">Do not see your number? <a href="/quote">Add it as a custom line</a> or <a href="/parts">browse the full parts catalog</a>.</p>
+<p style="margin:16px 0 0;font-size:14px">Do not see your number? <a href="/portal">Add it as a custom line</a> or <a href="/parts">browse the full parts catalog</a>.</p>
 </div></section>
 <section class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">The Maxzz ecosystem</span><h2 class="sx-h2">Parts, bench tooling and training in one place</h2>
@@ -559,7 +559,7 @@ def build_resources():
     desc = 'Technical guides on common rail injector rebuilds, failure symptoms, piezo injector cleaning and CP4 pump failure, with part numbers and bench tooling.'
     h = hero([('Home', '/'), ('Technical guides', None)], 'Technical guides for <span style="color:#fc771d">diesel injection</span> rebuilders',
              'Rebuild procedures, failure symptoms and part numbers for the injectors and pumps shops see every day, written for the bench.',
-             cta_red('/quote', 'Request a quote') + cta_ghost('/training', 'Diesel Tech Academy courses'), eyebrow='Technical guides')
+             cta_red('/portal', 'Request a quote') + cta_ghost('/training', 'Diesel Tech Academy courses'), eyebrow='Technical guides')
     cards = ''
     for g_ in C.GUIDES:
         _u = photo(GUIDE_PH.get(g_['ph']))

@@ -148,6 +148,16 @@
   ],
   "redirects": [
     {
+      "source": "/quote",
+      "destination": "/portal",
+      "permanent": true
+    },
+    {
+      "source": "/parts/c/engine-parts",
+      "destination": "https://volvoenginekits.com/",
+      "permanent": true
+    },
+    {
       "source": "/product/tool-set-cp3-pump",
       "destination": "/parts/rb-323-50-34",
       "permanent": true
@@ -314,12 +324,12 @@
     },
     {
       "source": "/contact-us/",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
       "source": "/contact-us",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
@@ -499,7 +509,7 @@
     },
     {
       "source": "/contact",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
@@ -589,12 +599,12 @@
     },
     {
       "source": "/cart/:path*",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
       "source": "/purchase-completion/:path*",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
@@ -1134,7 +1144,7 @@
     },
     {
       "source": "/contact/",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     }
   ],

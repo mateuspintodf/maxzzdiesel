@@ -20,7 +20,6 @@ Allow: /
 Disallow: /api/
 Disallow: /painel
 Disallow: /admin
-Disallow: /portal
 Disallow: /agenda
 
 User-agent: *
@@ -28,7 +27,6 @@ Allow: /
 Disallow: /api/
 Disallow: /painel
 Disallow: /admin
-Disallow: /portal
 Disallow: /agenda
 
 Sitemap: https://www.maxzzdiesel.com/sitemap.xml

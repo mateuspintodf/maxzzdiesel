@@ -114,7 +114,7 @@
   var CATS = [
     { k: 'Injector', label: 'Injectors', ic: 'inj' }, { k: 'Pump', label: 'Pumps', ic: 'pump' }, { k: 'Nozzle', label: 'Nozzles', ic: 'noz' },
     { k: 'Rail', label: 'Rails', ic: 'rail' }, { k: 'Repair part', label: 'Repair parts', ic: 'rep' }, { k: 'Tool', label: 'Tool sets', ic: 'tool' },
-    { k: 'Engine parts', label: 'Engine parts', ic: 'eng' }, { k: 'Fluid', label: 'Fluids', ic: 'fl' }, { k: 'Kit', label: 'Contamination kits', ic: 'kit' }
+    { k: 'Fluid', label: 'Fluids', ic: 'fl' }, { k: 'Kit', label: 'Contamination kits', ic: 'kit' }
   ];
   var ENG = [{ k: 'f', label: 'Ford · Power Stroke' }, { k: 'c', label: 'Ram / Dodge · Cummins' }, { k: 'd', label: 'Chevy / GMC · Duramax' }, { k: 'h', label: 'Heavy duty trucks' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
@@ -2991,12 +2991,15 @@
       var self = this, h = location.search;
       if (/e=link/.test(h)) this.err = 'That sign-in link expired or was already used. Ask for a new one below.';
       if (/e=access/.test(h)) this.err = 'Your access is not approved yet.';
+      var ad = h.match(/[?&]add=([^&]+)/); if (ad) this.pendAdd = decodeURIComponent(ad[1]).split(',').map(function (x) { var k = x.split(':'); return [String(k[0] || '').trim().slice(0, 60), Math.max(1, Math.min(9999, parseInt(k[1], 10) || 1))]; }).filter(function (x) { return x[0]; }).slice(0, 60);
+      var mk = h.match(/[?&]make=([a-z]+)/), sq = h.match(/[?&]q=([^&]+)/), MK = mk && { ram: 'c', gm: 'd', ford: 'f', hd: 'h' }[mk[1]];
+      if (MK) { this.pendEng = MK; location.hash = '#/all'; } else if (sq) { try { location.hash = '#/s/' + encodeURIComponent(decodeURIComponent(sq[1].replace(/\+/g, ' ')).slice(0, 80)); } catch (e) { /* bad link, open the store */ } }
       var iv = h.match(/[?&]iv=([^&]+)/);
       if (iv) { this.iv = { t: decodeURIComponent(iv[1]), info: null, agree: false, name: '' }; location.hash = '#/login'; api('invite-info?t=' + encodeURIComponent(this.iv.t)).then(function (r) { if (r._status === 200) { self.iv.info = r; self.iv.name = r.name || ''; } else { self.iv = null; self.err = 'That invitation link expired or was already used. Ask us for a new one.'; } }); }
       var lt = h.match(/[?&]lt=([^&]+)/);
       if (lt) { this.lt = decodeURIComponent(lt[1]); location.hash = '#/login'; }
       if (h) history.replaceState(null, '', location.pathname + location.hash);
-      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
+      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); self.takeAdd(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
       if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) { self.relMan = j.man || {}; self.relEx = j.ex || {}; self.buy = j.rel; } }).catch(function () {}); }
@@ -3050,7 +3053,7 @@
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
-      if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
+      if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false }; if (this.pendEng && r === 'all') { this.f.eng = [this.pendEng]; this.pendEng = null; }
       if (r === 'account' && this.me) this.acLoad();
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
@@ -3243,7 +3246,8 @@
     // the price list can answer 503 while the catalog syncs: try again instead of leaving every part without a price
     loadBook: function (n) { var self = this; api('prices').then(function (b) { if (b._status === 200) { self.book = b; return; } if (n < 4 && b._status !== 401 && b._status !== 403) setTimeout(function () { self.loadBook(n + 1); }, 1500 * (n + 1)); }).catch(function () { if (n < 4) setTimeout(function () { self.loadBook(n + 1); }, 1500 * (n + 1)); }); },
     // approved customers have one list: whatever was in the quote list before signing in moves into the cart
-    oneList: function () { var self = this; if (!this.canOrder || !this.quote.length) return; this.quote.forEach(function (q) { var l = self.cart.filter(function (x) { return x.code === q.id; })[0]; if (l) l.qty = Math.max(l.qty, q.qty || 1); else self.cart.push({ code: q.id, qty: q.qty || 1 }); }); this.quote.splice(0); write(QK, []); this.save(); },
+    oneList: function () { var self = this; if (!this.canOrder || !this.quote.length) return; var cl = this.quote.filter(function (q) { return q.custom; }).map(function (q) { return q.qty + ' x ' + q.id; }); if (cl.length && (this.co.notes || '').indexOf(cl[0]) < 0) this.co.notes = ((this.co.notes ? this.co.notes + '\n' : '') + 'Not listed online, please check: ' + cl.join(', ')).slice(0, 780);
+      this.quote.filter(function (q) { return !q.custom; }).forEach(function (q) { var l = self.cart.filter(function (x) { return x.code === q.id; })[0]; if (l) l.qty = Math.max(l.qty, q.qty || 1); else self.cart.push({ code: q.id, qty: q.qty || 1 }); }); this.quote.splice(0); write(QK, []); this.save(); if (this.route === 'quote') location.hash = '#/cart'; },
     // another tab changed a list: take its copy instead of overwriting it later with a stale one
     syncLists: function (e) { if (e && e.key && e.key !== CK && e.key !== QK) return; var c = read(CK, []), q = read(QK, []); if (JSON.stringify(c) !== JSON.stringify(this.cart)) this.cart = c; if (JSON.stringify(q) !== JSON.stringify(this.quote)) this.quote = q; },
     get seeStock() { return !!(this.me && this.me.admin); },
@@ -3277,6 +3281,17 @@
     ph: function (k) { return '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[this.catIc(k)] || '') + '</svg><span>Photo on request</span>'; },
     wa: function (line, code) { var t = 'Hi Maxzz, ' + (code ? 'about part ' + code + ': ' : '') + 'I would like to check price and availability.'; return 'https://wa.me/' + (line === 'latam' ? '17862412167' : '19543716996') + '?text=' + encodeURIComponent(t); },
     quoteQty: function (code) { var l = this.quote.filter(function (x) { return x.id === code; })[0]; return l ? l.qty : 0; },
+    takeAdd: function () {
+      var self = this, L = this.pendAdd; if (!L || !L.length) return; this.pendAdd = null;
+      L.forEach(function (x) { var hit = self.find(x[0]) || (self.map[x[0]] ? x[0] : null); self.putQuote(hit || x[0], x[1], !hit); });
+      write(QK, this.quote); this.oneList(); location.hash = this.canOrder ? '#/cart' : '#/quote';
+    },
+    // one line of the quote list; custom = a number we do not list online, kept as typed so sales can check it
+    putQuote: function (id, n, custom) {
+      var r = this.map[id], q = this.quote.filter(function (x) { return x.id === id; })[0];
+      if (q) q.qty += n; else if (r && !custom) this.quote.push({ id: id, name: r[1], pn: id, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: n });
+      else this.quote.push({ id: id, name: 'Not listed online, sales will check', pn: id, app: 'Custom line', cat: 'Other', slug: 'other', img: '', pos: '', qty: n, custom: true });
+    },
     addQuote: function (code, n) {
       var r = this.map[code]; if (!r) return; n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.quote.filter(function (x) { return x.id === code; })[0];
@@ -3305,10 +3320,11 @@
       return hit ? hit[0] : null;
     },
     addPaste: function () {
-      var self = this, ok = 0, miss = [], noPrice = [];
+      var self = this, ok = 0, miss = [], noPrice = [], custom = [];
       this.paste.split(/\n+/).forEach(function (line) {
         line = line.trim(); if (!line) return;
         var m = line.match(/^(.*?)[\s,;\t]+(\d{1,5})\s*$/), code = m ? m[1] : line, n = m ? Math.min(9999, parseInt(m[2], 10)) : 1, hit = self.find(code);
+        if (!hit && self.flow === 'quote' && code.replace(/[^A-Za-z0-9]/g, '').length >= 4) { self.putQuote(code.slice(0, 60), n, true); custom.push(code); return; }
         if (!hit) { miss.push(code); return; }
         if (self.flow === 'quote' || !self.canOrder) {
           var r = self.map[hit], q = self.quote.filter(function (x) { return x.id === hit; })[0];
@@ -3324,6 +3340,7 @@
       var pm = [];
       if (ok) pm.push(ok + (ok === 1 ? ' part added' : ' parts added'));
       if (miss.length) pm.push((ok ? 'Not found: ' : 'Not listed online: ') + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + (this.flow === 'quote' && this.lines.length ? '. We added them to your notes so sales can check them' : '. Send them to our sales team'));
+      if (custom.length) pm.push(custom.length + (custom.length === 1 ? ' number is' : ' numbers are') + ' not listed online and stayed in the list for sales to check');
       if (noPrice.length) pm.push('No online price, moved to your quote list: ' + noPrice.slice(0, 6).join(', '));
       this.pasteMsg = pm.length ? pm.join('. ') + '.' : 'Nothing to add.';
       this.pasteWarn = !!miss.length;
@@ -3417,7 +3434,7 @@
       if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = me.phone || ''; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
       var snap = this.doc; if (snap && snap.none) snap = null;
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-      var lines = this.quote.map(function (l) { return { pn: l.id, name: String(self.title(self.map[l.id]) || l.name || '').replace(/\u2011/g, '-'), qty: l.qty }; });
+      var lines = this.quote.map(function (l) { return { pn: l.id, name: String((self.map[l.id] && self.title(self.map[l.id])) || (l.custom ? 'Custom line, not listed online' : l.name) || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
       fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', optin: !!this.qd.optin, attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
         customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, this.qShip), lines: lines }) })

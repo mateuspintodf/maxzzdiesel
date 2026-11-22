@@ -26,7 +26,6 @@ const CATS = {
   Rail: { s: 'rails', l: 'Common rails and lines', d: 'Common rails, pressure lines and rail parts for diesel engines.' },
   'Repair part': { s: 'repair-parts', l: 'Injector and pump repair parts', d: 'Control valves, shims, seals, repair kits and rebuild parts for diesel injectors and pumps.' },
   Tool: { s: 'tool-sets', l: 'Injector and pump tools', d: 'Robiel tool sets and bench tools for diesel injector and pump repair.' },
-  'Engine parts': { s: 'engine-parts', l: 'Diesel engine parts', d: 'Engine parts for light and heavy duty diesel engines.' },
   Fluid: { s: 'fluids', l: 'Test bench fluids', d: 'Calibration fluid and degreasers for diesel test benches.' },
   Kit: { s: 'contamination-kits', l: 'Contamination kits', d: 'Fuel system contamination kits.' }
 };
@@ -107,7 +106,7 @@ table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:10px 8px;
 </style></head><body>
 <header class="h"><div class="h-in"><a href="/" aria-label="Maxzz Diesel home"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel" width="150" height="34"></a>
 <nav aria-label="Main"><a href="/injection-parts">Injection parts</a><a href="/parts">Parts catalog</a><a href="/aftertreatment">Aftertreatment</a><a href="/about">About</a></nav>
-<a class="btn ghost" href="/portal">Wholesale login</a><a class="btn red" href="/quote">Request a quote</a></div></header>
+<a class="btn ghost" href="/portal">Wholesale login</a><a class="btn red" href="/portal">Request a quote</a></div></header>
 <main class="w">${body}</main>
 <footer class="f"><div class="f-in"><div><b style="color:#fff">Maxzz Diesel</b><br>6601 Lyons Road, Ste H-6, Coconut Creek, FL 33073<br>In-stock orders placed by 3 pm Eastern ship the same day.</div><div><a href="tel:+19545864158">+1 (954) 586-4158</a><br><a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a><br><a href="/parts">Parts catalog</a> · <a href="/policies">Shipping and returns</a></div></div></footer>
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-T8J8922X"></script><script>window.dataLayer=window.dataLayer||[];dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});</script>
@@ -166,8 +165,8 @@ ${faqs.length ? `<div class="card faq"><h2>Questions about ${esc(p.oem)}</h2>${f
 </div><aside class="card cta" style="margin-top:0;position:sticky;top:16px">
 <h2 style="margin:0">Get a price</h2>
 <p>Wholesale prices and live stock for approved repair shops, injection labs, distributors and fleets.</p>
-<a class="btn red" href="/quote?add=${encodeURIComponent(p.code)}">Add to a quote request</a>
-<a class="btn ghost" href="/portal#/p/${encodeURIComponent(p.code)}" rel="nofollow">See price in the wholesale store</a>
+<a class="btn red" href="/portal?add=${encodeURIComponent(p.code)}">Add to a quote request</a>
+<a class="btn ghost" href="/portal#/p/${encodeURIComponent(p.code)}">See price in the wholesale store</a>
 <p>We reply with price, stock and lead time within one business day. In-stock orders placed by 3 pm Eastern ship the same day.</p>
 <p>Questions? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or e-mail <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p>
 ${engKey || makeKey ? `<div class="chips">${makeKey ? `<a href="/parts/v/${makeKey}">${esc(sp.make)} parts</a>` : ''}${engKey && db.engs[engKey] && db.engs[engKey].items.length >= 3 ? `<a href="/parts/e/${engKey}">${esc(sp.engHub)}</a>` : ''}</div>` : ''}
@@ -185,10 +184,10 @@ function listPage({ title, h1, lead, canon, items, crumbs, pageNo, index = true 
   const top = slice.filter((p) => p.sp).slice(0, 24);
   const body = `<div class="crumb">${crumbs.slice(0, -1).map((c) => `<a href="${c[1]}">${esc(c[0])}</a>`).join(' / ')} / ${esc(crumbs[crumbs.length - 1][0])}</div>
 <h1>${esc(h1)}</h1><p class="lead">${esc(lead)}</p>
-<p><a class="btn red" href="/quote">Request a quote</a> <a class="btn ghost" href="/portal">Wholesale login</a></p>
+<p><a class="btn red" href="/portal">Request a quote</a> <a class="btn ghost" href="/portal">Wholesale login</a></p>
 ${top.length && n === 1 ? `<h2 style="margin-top:28px">Popular part numbers</h2><div class="grid">${top.map(itemCard).join('')}</div>` : ''}
 <div class="card"><h2>${items.length} part numbers${pages > 1 ? `, page ${n} of ${pages}` : ''}</h2><table class="list"><thead><tr><th style="width:auto">Part number</th><th style="width:auto">Description</th><th style="width:auto"></th></tr></thead><tbody>
-${slice.map((p) => p.sp ? `<tr><td><a href="/parts/${p.slug}">${esc(p.code)}</a></td><td>${esc(p.title)}</td><td></td></tr>` : `<tr><td>${esc(p.code)}</td><td>${esc(tidy(p.name))}</td><td><a href="/quote?add=${encodeURIComponent(p.code)}" rel="nofollow">Quote</a></td></tr>`).join('')}
+${slice.map((p) => p.sp ? `<tr><td><a href="/parts/${p.slug}">${esc(p.code)}</a></td><td>${esc(p.title)}</td><td></td></tr>` : `<tr><td>${esc(p.code)}</td><td>${esc(tidy(p.name))}</td><td><a href="/portal?add=${encodeURIComponent(p.code)}" rel="nofollow">Quote</a></td></tr>`).join('')}
 </tbody></table>${pages > 1 ? `<div class="pg">${Array.from({ length: pages }, (_, i) => i + 1).map((i) => i === n ? `<b>${i}</b>` : `<a href="${canon}${i > 1 ? '?page=' + i : ''}">${i}</a>`).join('')}</div>` : ''}</div>`;
   const ld = [{ '@type': 'CollectionPage', name: h1, url: SITE + canon + (n > 1 ? '?page=' + n : ''), isPartOf: { '@id': SITE + '/#website' } }];
   if (top.length) ld.push({ '@type': 'ItemList', itemListElement: top.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: SITE + '/parts/' + p.slug, name: p.title })) });
@@ -203,7 +202,7 @@ function hubPage(db) {
   const body = `<div class="crumb"><a href="/">Home</a> / Parts catalog</div>
 <h1>Diesel injection parts catalog</h1>
 <p class="lead">Fuel injectors, high-pressure pumps, nozzles, control valves, repair kits and tools, stocked in Coconut Creek, Florida, since 1992. Search by part number, vehicle or engine, then request a quote. We reply within one business day.</p>
-<p><a class="btn red" href="/quote">Request a quote</a> <a class="btn ghost" href="/portal">Wholesale login</a></p>
+<p><a class="btn red" href="/portal">Request a quote</a> <a class="btn ghost" href="/portal">Wholesale login</a></p>
 <h2 style="margin-top:32px">By category</h2><div class="grid">${catList.map(([k, c]) => `<a class="it" href="/parts/c/${c.s}"><b>${esc(c.l)}</b><span style="font-size:14px;color:#6b7178">${db.cats[k].length} part numbers</span></a>`).join('')}</div>
 <h2 style="margin-top:32px">By vehicle</h2><div class="chips">${makes.map(([k, m]) => `<a href="/parts/v/${k}">${esc(m.l)} (${m.items.length})</a>`).join('')}</div>
 <h2 style="margin-top:32px">By engine</h2><div class="chips">${engs.map(([k, e]) => `<a href="/parts/e/${k}">${esc(e.l)}</a>`).join('')}</div>`;
@@ -269,7 +268,7 @@ module.exports = async (req, res) => {
     }
     if (!html) {
       res.statusCode = 404; res.setHeader('Cache-Control', 'public, s-maxage=600');
-      html = page({ title: 'Part not found | Maxzz Diesel', desc: 'Part not found.', canon: '', index: false, body: '<h1>We could not find that part</h1><p class="lead">Search the catalog or send us the part number and we look it up for you.</p><p><a class="btn red" href="/parts">Parts catalog</a> <a class="btn ghost" href="/quote">Request a quote</a></p>' });
+      html = page({ title: 'Part not found | Maxzz Diesel', desc: 'Part not found.', canon: '', index: false, body: '<h1>We could not find that part</h1><p class="lead">Search the catalog or send us the part number and we look it up for you.</p><p><a class="btn red" href="/parts">Parts catalog</a> <a class="btn ghost" href="/portal">Request a quote</a></p>' });
     }
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.end(html);

@@ -6,8 +6,11 @@
 <!-- End Google Tag Manager -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Wholesale store | Maxzz Diesel</title>
-<meta name="description" content="Maxzz Diesel B2B portal for approved wholesale customers: prices, stock and order tracking."><meta name="robots" content="noindex, nofollow">
+<title>Wholesale Diesel Injection Parts Store and Quotes | Maxzz Diesel</title>
+<meta name="description" content="Find diesel injectors, pumps, nozzles, valves and bench tools by part number, engine or vehicle. Build your list and get a wholesale quote in one business day. Approved accounts sign in for their prices and online ordering."><meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.maxzzdiesel.com/portal">
+<link rel="alternate" hreflang="en" href="https://www.maxzzdiesel.com/portal"><link rel="alternate" hreflang="es" href="https://www.maxzzdiesel.com/es/quote"><link rel="alternate" hreflang="pt-BR" href="https://www.maxzzdiesel.com/pt/quote"><link rel="alternate" hreflang="x-default" href="https://www.maxzzdiesel.com/portal">
+<meta property="og:title" content="Wholesale Diesel Injection Parts Store and Quotes"><meta property="og:description" content="Find diesel injection parts by part number, engine or vehicle, build your list and get a wholesale quote in one business day."><meta property="og:type" content="website"><meta property="og:url" content="https://www.maxzzdiesel.com/portal">
 <meta property="og:title" content="Maxzz B2B portal">
 <meta property="og:description" content="Find diesel injectors, pumps, nozzles, valves and bench tools by engine and year or by part number. Build your list and get wholesale pricing from Maxzz Diesel.">
 <meta property="og:type" content="website">
@@ -1682,8 +1685,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 <table class="px-ltab" v-if="lines.length">
 <thead><tr><th colspan="2">Part</th><th v-if="showPrice && seeStock">Availability</th><th class="r" v-if="showPrice">Unit price</th><th class="c">Qty</th><th class="r" v-if="showPrice">Amount</th><th></th></tr></thead>
 <tbody><tr v-for="l in lines" :key="l.code">
-<td class="th"><a :href="'#/p/' + encodeURIComponent(l.code)"><img v-if="img(l.code)" :src="img(l.code)" @error="imgFail(l.code)" :alt="'Part ' + l.code"><span v-else class="px-thph" v-html="icon(catIc(map[l.code] && map[l.code][3]))"></span></a></td>
-<td class="lnm"><a class="nm" :href="'#/p/' + encodeURIComponent(l.code)" v-text="name(l.code)"></a><span class="px-code2" v-html="pnw(l.code)"></span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span><span class="px-warn" v-if="flow === 'order' && price(l.code) != null && qty(l.code) != null && l.qty > qty(l.code)" v-text="qty(l.code) > 0 ? 'Backorder: ' + qty(l.code) + ' in stock now, the rest ships when available.' : 'Backorder: ships when available.'"></span></td>
+<td class="th"><a :href="map[l.code] ? '#/p/' + encodeURIComponent(l.code) : '#/quote'"><img v-if="img(l.code)" :src="img(l.code)" @error="imgFail(l.code)" :alt="'Part ' + l.code"><span v-else class="px-thph" v-html="icon(catIc(map[l.code] && map[l.code][3]))"></span></a></td>
+<td class="lnm"><a class="nm" :href="map[l.code] ? '#/p/' + encodeURIComponent(l.code) : '#/quote'" v-text="name(l.code)"></a><span class="px-code2" v-if="map[l.code]" v-html="pnw(l.code)"></span><span class="px-warn" v-if="flow === 'quote' && cat.length && !map[l.code]">Not listed online. Our sales team checks this number and answers with the quote.</span><span class="px-warn" v-if="flow === 'order' && price(l.code) == null">No online price. Move it to a quote request.</span><span class="px-warn" v-if="flow === 'order' && price(l.code) != null && qty(l.code) != null && l.qty > qty(l.code)" v-text="qty(l.code) > 0 ? 'Backorder: ' + qty(l.code) + ' in stock now, the rest ships when available.' : 'Backorder: ships when available.'"></span></td>
 <td class="lst" v-if="showPrice && seeStock"><span class="px-stock" v-if="seeStock"><i class="px-dot" :class="stockClass(l.code)"></i><span v-text="stockText(l.code)"></span></span></td>
 <td class="r lup" v-if="showPrice" :class="price(l.code) == null ? 'px-por' : ''" v-text="fmt(price(l.code))"></td>
 <td class="c lqt"><div class="px-qty"><button type="button" aria-label="Less" @click="setLn(l.i, l.qty - 1)">&minus;</button><input type="number" min="0" :value="l.qty" @change="setLn(l.i, $event.target.value); $event.target.value = (lines[l.i] || l).qty" aria-label="Quantity"><button type="button" aria-label="More" @click="setLn(l.i, l.qty + 1)">+</button></div></td>
@@ -1692,7 +1695,7 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </tr></tbody>
 </table>
 <details class="px-paste" :open="!lines.length || !!pasteMsg">
-<summary v-text="flow === 'order' ? 'Quick order: paste part numbers' : 'Paste a list of part numbers'"></summary>
+<summary v-text="flow === 'order' ? 'Quick order: paste part numbers' : 'Paste a list of part numbers, also the ones you do not find here'"></summary>
 <p class="px-muted" style="margin:8px 0 0">One per line, quantity after a space, comma or tab: “0445120231, 6”.</p>
 <textarea class="px-in" v-model="paste" placeholder="0445120231, 6&#10;F00RJ02005 2"></textarea>
 <button type="button" class="px-btn px-dark px-sm" style="margin-top:10px" @click="addPaste" v-text="flow === 'order' ? 'Add to cart' : 'Add to quote list'"></button>
@@ -2348,7 +2351,7 @@ html.px-lock,html.px-lock body{overflow:hidden}
 
 </div>
 <script src="/js/petite-vue.iife.js"></script>
-<script src="/js/portal-app.js?v=104"></script>
+<script src="/js/portal-app.js?v=105"></script>
 <script src="/js/motion.js?v=8" defer></script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
 <script src="/js/track.js?v=1" defer></script>

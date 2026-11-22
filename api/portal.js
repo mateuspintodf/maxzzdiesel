@@ -84,10 +84,11 @@ const A = {};
 // public: live campaigns (name, badge, which parts), no prices
 A.campaigns = async (req, res) => {
   res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
-  // a campaign marked "show to everyone" (Black Friday) also shows its price to visitors, worked out from the default sell price
+  // A campaign marked "show to everyone" (Black Friday) shows its name and badge to visitors. Prices are only for
+  // identified customers (their tier), so no price leaves here.
   const out = { campaigns: await CAMP.publicList(await hiddenSet()).catch(() => []), prices: {} };
   try {
-    const open = (await CAMP.live()).filter((c) => c.show_all);
+    const open = []; // visitors never get a price
     if (open.length) {
       const hid = await hiddenSet(), prod = await cached('portal/products.json', 10 * 60 * 1000);
       for (const [code, p] of Object.entries((prod && prod.items) || {})) {
@@ -757,7 +758,7 @@ A['admin-reject'] = async (req, res) => {
     await PS.audit(w.email, 'company.reject', 'company', acc.id, null, { reason: acc.reason });
   } else await writeJson(DB, w.db);
   if (b.notify) for (const u of people) await send(u.email, 'About your Maxzz B2B portal request', 'About your request',
-    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/quote or reply to this e-mail.</p>`, null, { name: u.name, greet: true });
+    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/portal or reply to this e-mail.</p>`, null, { name: u.name, greet: true });
   return res.json({ ok: true });
 };
 
