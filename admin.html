@@ -499,7 +499,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     h += (VIEWS[S.tab] || drawClients)();
     paint(h + '</div>' + drawDrawer() + drawInvite() + drawModal() + (S.toastMsg ? '<div class="toast" role="status">' + (S.toastOk ? '<span class="tck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5 10 17 19 7"/></svg></span>' : '') + '<span>' + esc(S.toastMsg) + '</span>' + (S.lastBulk ? '<button data-act="pundo">Undo</button>' : '') + '<button data-act="toast-x" aria-label="Close">' + ic('x', 14) + '</button></div>' : ''));
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
-    var sk = !!app.querySelector('.skel'), ap = app.querySelector('.app'); if (S._sk && !sk && ap) { ap.classList.add('rvl'); setTimeout(function () { ap.classList.remove('rvl'); }, 800); } S._sk = sk;
+    var sk = !!app.querySelector('.skel'), ap = app.querySelector('.app'); if (S._sk && !sk && ap && S._rvl !== S.tab) { S._rvl = S.tab; ap.classList.add('rvl'); setTimeout(function () { ap.classList.remove('rvl'); }, 800); } S._sk = sk;
   }
   var VIEWS = { profile: function () { return '<div class="acct">' + drawProfile() + drawSec() + '</div>'; }, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
@@ -675,14 +675,14 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var P = S.pipe; if (!P) return ld();
     var F = S.pf || {}, now = Date.now(), mySp = P.mySp;
     var rows = (P.rows || []).map(function (r) { var k = PK[r.kind] || PK.parked, hrs = r.at ? (now - Date.parse(r.at)) / 36e5 : 0; r.hrs = hrs; r.lvl = hrs >= k[2] ? 'red' : hrs >= k[1] ? 'amb' : 'ok'; return r; });
-    var L = rows.filter(function (r) { return (!F.kind || r.kind === F.kind) && (!F.mine || !mySp || r.sp === mySp) && (!F.late || r.lvl !== 'ok'); }).sort(function (a, b) { return b.hrs - a.hrs; });
+    var L = rows.filter(function (r) { return (!F.kind || r.kind === F.kind) && (!F.mine || !mySp || r.sp === mySp) && (!F.late || r.lvl !== 'ok'); }); if (!S.pps) S.pps = { k: 'hrs', d: 1 }; L.forEach(function (r) { r.n = r.name || r.code || ''; r.val = r.value || 0; }); L = sortRows(L, 'pps');
     var cnt = function (k) { return rows.filter(function (r) { return r.kind === k; }).length; }, late = rows.filter(function (r) { return r.lvl === 'red'; }).length;
     var age = function (h) { return h < 1 ? Math.max(1, Math.round(h * 60)) + ' min' : h < 48 ? Math.round(h) + ' h' : Math.round(h / 24) + ' days'; };
     var h = '<div class="kpis">' + tile('Waiting', n0(rows.length), 'parked in Unleashed', '', 'dark') + tile('Late', n0(late), 'quotes over 3 days, portal orders over 2 hours', '', late ? 'acc' : '') + tile('Website quotes', n0(cnt('site_quote')), '') + tile('Portal orders', n0(cnt('portal_order')), n0(cnt('portal_quote')) + ' portal quotes') + '</div>';
     h += '<section class="card flush"><div class="fbar"><div class="seg" style="background:var(--soft)">' + [['', 'All'], ['site_quote', 'Website quotes'], ['portal_quote', 'Portal quotes'], ['portal_order', 'Portal orders'], ['parked', 'Other parked']].map(function (x) { return '<button data-act="pf-kind" data-v="' + x[0] + '" class="' + ((F.kind || '') === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       (mySp ? '<label class="mck" style="margin:0"><input type="checkbox" class="ck" data-pfmine="1"' + (F.mine ? ' checked' : '') + '> My accounts</label>' : '') + '<label class="mck" style="margin:0"><input type="checkbox" class="ck" data-pflate="1"' + (F.late ? ' checked' : '') + '> Late only</label><span class="sp"></span><span class="muted">Updated ' + esc(fmtAt(new Date(P.at).toISOString())) + '</span><button class="ib" data-act="pf-fresh" title="Reload from Unleashed" aria-label="Reload from Unleashed">' + ic('refresh', 16) + '</button></div>';
     if (!L.length) return h + '<div class="empty" style="padding:24px">' + (rows.length ? 'Nothing with these filters.' : 'Nothing waiting. Every quote and portal order has been released.') + '</div></section>';
-    h += tbl([h0('Age'), h0('What'), h0('Customer'), h0('Salesperson'), hr('Value'), h0('')], L.map(function (r) { var k = PK[r.kind] || PK.parked;
+    h += tbl([th('hrs', 'Age', 'pps'), th('number', 'What', 'pps'), th('n', 'Customer', 'pps'), th('sp', 'Salesperson', 'pps'), th('val', 'Value', 'pps', 1), h0('')], L.map(function (r) { var k = PK[r.kind] || PK.parked;
       return '<tr><td class="nw"><span class="age ' + r.lvl + '">' + esc(age(r.hrs)) + '</span></td><td><b class="mono">' + esc(r.number) + '</b><small>' + esc(k[0]) + (r.ref ? ' · ' + esc(r.ref) : '') + ' · ' + r.lines + ' line' + (r.lines === 1 ? '' : 's') + '</small></td><td><a data-act="cust" data-code="' + esc(r.code || '') + '" style="cursor:pointer"><b>' + esc(r.name || r.code) + '</b></a><small>' + (r.web ? '<span class="hidx">New customer: link the real one in Unleashed</span> · ' : '') + esc(r.note.slice(0, 120)) + '</small></td><td>' + esc(r.sp || '-') + '</td><td class="r b">' + (r.value ? k$(r.value) : '-') + '</td>' +
         '<td class="nw" data-stop="1"><button class="btn sm" data-act="pf-log" data-code="' + esc(r.code || '') + '" data-n="' + esc(r.number) + '">' + ic('phone', 14) + ' Log</button> <button class="btn ghost sm" data-act="pf-done" data-n="' + esc(r.number) + '" data-code="' + esc(r.code || '') + '" data-name="' + esc(r.name || '') + '" title="Released or answered: take it off the board">Handled</button> <button class="btn ghost sm dang" data-act="pf-lost" data-n="' + esc(r.number) + '" data-code="' + esc(r.code || '') + '" data-name="' + esc(r.name || '') + '">Lost</button></td></tr>'; }));
     return h + '<p class="muted" style="padding:0 20px 16px;font-size:12.5px">Release, add freight or delete the order in Unleashed. "Handled" and "Lost" only take it off this board and log it on the customer.</p></section>';
@@ -1466,12 +1466,12 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var L = slState();
     if (k === 'p') { L.p = v; if (v !== 'custom') { var r = slRange(v); L.from = r.from; L.to = r.to; } else return draw(); }
     else L[k] = v;
-    S.sd = null; draw(); slLoad();
+    if (S.sd) S.sdBusy = true; draw(); slLoad();
   }
   function slLoad() {
     crmLoad(true); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } });
     var L = slState(); api('sales-program', null, L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '').then(function (r) { if (r._status === 200) { S.pg = r; draw(); } });
-    api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.mv === 'week' ? '&g=week' : '') + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
+    api('sales-data', null, '&from=' + L.from + '&to=' + L.to + '&cmp=' + L.cmp + (L.mv === 'week' ? '&g=week' : '') + (L.sp && L.sp !== 'all' ? '&sp=' + encodeURIComponent(L.sp) : '')).then(function (r) { S.sdBusy = false; if (r._status === 200) { S.sd = r; S.tabErr = null; draw(); } else if (r._status === 401) fail(r); else { S.tabErr = 'sa'; draw(); } });
   }
   function slHead() {
     var L = slState(), D = S.sd;
@@ -1565,7 +1565,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     var h = '<section class="card flush"><div class="fbar"><label class="srch">' + ic('search', 16) + '<input type="search" data-m="sl.q" value="' + esc(L.q || '') + '" placeholder="Customer or code"></label><span class="sp"></span>' +
       '<div class="seg">' + MV.map(function (x) { return '<button data-act="sl-mon" data-v="' + x[0] + '" class="' + ((L.mv || '') === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
       (L.mv ? '<select class="sel" data-chg="sl.p" aria-label="Period" style="width:auto">' + SLP.map(function (x) { return opt(x[0], x[1], L.p); }).join('') + '</select>' + (L.p === 'custom' ? '<input class="sel" type="date" data-chg="sl.from" value="' + esc(L.from) + '" aria-label="From" style="width:auto"><input class="sel" type="date" data-chg="sl.to" value="' + esc(L.to) + '" aria-label="To" style="width:auto">' : '') : '') +
-      '<button class="btn sm" data-act="sl-csv">' + ic('dl', 14) + ' Export CSV</button></div>';
+      (S.sdBusy ? '<span class="muted" style="font-size:12.5px"><i class="spn"></i>Updating</span>' : '') + '<button class="btn sm" data-act="sl-csv">' + ic('dl', 14) + ' Export CSV</button></div>';
     var who = function (c) { return '<td><b>' + esc(c.n || c.c) + '</b><div class="muted" style="font-size:12px">' + esc(c.c || '') + (c.sp ? ' · ' + esc(c.sp) : '') + '</div></td>'; };
     if (L.mv) {
       // one row per customer, one column per week, month or year. The header and the total row stay in view while the list scrolls.
@@ -2008,8 +2008,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   // only what changed is touched on the page (morphdom), so scroll, focus and open elements stay put and the
   // enter animations run only on things that really appear
   function paint(html) {
-    if (!window.morphdom) { app.innerHTML = html; return enhance(); }
+    var keepH = window.scrollY > 0 ? window.scrollY + window.innerHeight : 0; if (keepH) app.style.minHeight = keepH + 'px';
+    if (!window.morphdom) { app.innerHTML = html; if (!app.querySelector('.skel')) app.style.minHeight = ''; return enhance(); }
     window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onNodeDiscarded: function (nd) { if (nd.classList && nd.classList.contains('ec') && window.echarts) { var ei = echarts.getInstanceByDom(nd); if (ei) ei.dispose(); } }, onBeforeElUpdated: function (from, to) { if (from.classList && from.classList.contains('ec') && to.classList.contains('ec')) { from.setAttribute('data-ec', to.getAttribute('data-ec')); from.style.height = to.style.height; from.className = to.className; return false; } if (from.classList && from.classList.contains('ind') && to.classList.contains('seg')) { to.classList.add('ind'); to.style.setProperty('--ix', from.style.getPropertyValue('--ix')); to.style.setProperty('--iw', from.style.getPropertyValue('--iw')); } if (from.isEqualNode(to)) return false; if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
+    if (!app.querySelector('.skel') && !S.sdBusy) app.style.minHeight = '';
     enhance();
   }
   var NUMSEL = '.kpi>b,.mk b,.fst b,.segn b,.stat b';
@@ -2252,10 +2254,10 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'sl-mon') { var LM = slState(), was = LM.mv || '', mv2 = t.dataset.v || ''; LM.mv = mv2; var dd = Math.round((Date.parse(LM.to) - Date.parse(LM.from)) / 864e5) + 1;
       // each view opens on a period that fills it: about 13 weeks, 12 months, or every year on record. A custom range is left alone.
       if (LM.p !== 'custom') { if (mv2 === 'week' && dd > 190) return slSet('p', '90'); if (mv2 === 'month' && (dd < 60 || dd > 800)) return slSet('p', '365'); if (mv2 === 'year' && dd < 400) return slSet('p', 'all'); }
-      if ((mv2 === 'week') !== (was === 'week')) { S.sd = null; draw(); return slLoad(); } return draw(); }
+      if (mv2 === 'week' && S.sd && !S.sd.weeks) { S.sdBusy = true; draw(); return slLoad(); } return draw(); }
     if (act === 'sl-rule') { var ri = +t.dataset.i, rp = S.sd.people[ri], rb = app.querySelector('[data-rb="' + ri + '"]'), rv = app.querySelector('[data-rp="' + ri + '"]'); if (!rp || !rv || rv.value === '') { toast('Type the percentage first.'); return; }
       return api('sales-commission', { salesperson: rp.sp, basis: rb.value, pct: parseFloat(rv.value) }).then(function (r) { if (r.ok) { toast('Commission saved for ' + rp.sp + '.'); slLoad(); } else fail(r); }); }
-    if (act === 'sort') { var sk = t.dataset.sk, kk = t.dataset.k, cur = S[sk] || {}; S[sk] = { k: kk, d: cur.k === kk ? -cur.d : (['n', 'company', 'code', 'k', 'sp', 'status', 'segment', 'customerCode', 'tier', 'loc', 'next', 'since'].indexOf(kk) >= 0 ? 1 : -1) }; return draw(); }
+    if (act === 'sort') { var sk = t.dataset.sk, kk = t.dataset.k, cur = S[sk] || {}; S[sk] = { k: kk, d: cur.k === kk ? -cur.d : (['n', 'company', 'code', 'k', 'sp', 'status', 'segment', 'customerCode', 'tier', 'loc', 'next', 'since', 'number', 'hrs'].indexOf(kk) >= 0 ? 1 : -1) }; return draw(); }
     if (act === 'ach') { S.ach = t.dataset.c; return draw(); }
     if (act === 'cst') { S.nfOpen = false; }
     if (act === 'cst') { S.cst = t.dataset.s; if (S.tab !== 'clients') S.tab = 'clients'; return draw(); }
