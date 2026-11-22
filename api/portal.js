@@ -125,9 +125,11 @@ A.related = async (req, res) => {
   const r = await cached('portal/related.json', 60 * 60 * 1000);
   const rel = Object.assign({}, (r && r.rel) || {});
   // parts linked by hand in the admin come first; the automatic ones fill what is left
-  try { if (dbm.configured()) { const by = {}; (await dbm.selectAll('product_links', 'select=code,related_code,pos&order=pos')).forEach((x) => { (by[x.code] = by[x.code] || []).push(x.related_code); }); Object.keys(by).forEach((c) => { const auto = Array.isArray(rel[c]) ? rel[c] : []; rel[c] = by[c].concat(auto.filter((a) => by[c].indexOf(Array.isArray(a) ? a[0] : a) < 0)).slice(0, 12); }); } } catch (e) { console.error('related links', e.message); }
+  const man = {}, ex = {};
+  try { if (dbm.configured()) { const by = man; (await dbm.selectAll('product_links', 'select=code,related_code,pos,excluded&order=pos')).forEach((x) => { const t = x.excluded ? ex : by; (t[x.code] = t[x.code] || []).push(x.related_code); });
+    Object.keys(ex).forEach((c) => { if (Array.isArray(rel[c])) rel[c] = rel[c].filter((a) => ex[c].indexOf(Array.isArray(a) ? a[0] : a) < 0); }); Object.keys(by).forEach((c) => { const auto = Array.isArray(rel[c]) ? rel[c] : []; rel[c] = by[c].concat(auto.filter((a) => by[c].indexOf(Array.isArray(a) ? a[0] : a) < 0)).slice(0, 12); }); } } catch (e) { console.error('related links', e.message); }
   res.setHeader('Cache-Control', 'public, max-age=600');
-  return res.json({ rel });
+  return res.json({ rel, man, ex });
 };
 A.health = async (req, res) => {
   let db = 'ok';

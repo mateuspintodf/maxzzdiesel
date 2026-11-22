@@ -18,6 +18,8 @@
   css += '.ml-gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:16px;padding:8px 20px 24px}.ml-card{border:1px solid #e3e6e9;border-radius:20px;background:#fff;padding:10px 10px 14px;text-align:left;cursor:pointer;display:flex;flex-direction:column;font:inherit;color:inherit;transition:border-color .15s,transform .15s,box-shadow .15s}.ml-card:hover{border-color:#1d2126;transform:translateY(-2px);box-shadow:0 10px 24px rgba(20,24,28,.10)}.ml-card b{font-size:15px;margin:12px 4px 3px;display:block}.ml-card small{font-size:12.5px;line-height:1.45;color:#5f656c;margin:0 4px;display:block}.ml-card em{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c2410c;margin:0 4px;display:block}' +
     '.ml-th{height:236px;border-radius:12px;background:#e9ebee;overflow:hidden;padding:14px 22px 0;display:block}.ml-wf{display:block;background:#fff;border-radius:8px 8px 0 0;height:100%;overflow:hidden;box-shadow:0 2px 12px rgba(20,24,28,.10)}.ml-th.real{padding:0;position:relative}.ml-th.real iframe{width:680px;height:800px;border:0;transform:scale(.34);transform-origin:0 0;pointer-events:none;display:block;position:absolute;left:50%;margin-left:-116px;top:0}' +
     '.ml-gh{padding:4px 20px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}.ml-gt{padding:14px 20px 0;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5f656c}.ml-lk{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin:0 0 8px}.ml-lk input{font:inherit;border:1px solid #c9ced3;border-radius:12px;padding:9px 12px;width:100%;box-sizing:border-box;background:#fff}.ml-h4{margin:18px 0 10px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#5f656c}';
+  css += '.ml-card{position:relative}.ml-fav{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:50%;background:#fff;border:1px solid #e3e6e9;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;color:#9aa1a9;cursor:pointer;z-index:2}.ml-fav.on{color:#f08a24;border-color:#f08a24}.ml-fav:hover{border-color:#1d2126}' +
+    '.ml-pv{position:fixed;inset:0;z-index:4000;background:rgba(16,18,22,.5);display:flex;align-items:center;justify-content:center;padding:18px}.ml-pvb{background:#fff;border-radius:24px;width:min(1080px,100%);height:min(900px,100%);display:grid;grid-template-columns:minmax(0,1fr) 300px;overflow:hidden}.ml-pvb iframe{width:100%;height:100%;border:0;background:#f2f3f5;display:block}.ml-pvs{padding:24px 22px;display:flex;flex-direction:column;gap:10px;border-left:1px solid #e3e6e9;min-width:0}.ml-pvs h3{margin:0;font-size:20px}.ml-pvs p{margin:0;color:#5f656c;font-size:13.5px;line-height:1.5}.ml-pvs .sp{flex:1}.ml-pvs .btn{justify-content:center;width:100%}.ml-pvf{background:#f2f3f5;min-width:0;display:flex;justify-content:center}.ml-pvf.m iframe{width:390px}@media(max-width:860px){.ml-pvb{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto}.ml-pvs{border-left:0;border-top:1px solid #e3e6e9}}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var TYPES = [['heading', 'Heading'], ['text', 'Text'], ['products', 'Products'], ['banner', 'Banner'], ['button', 'Button'], ['image', 'Image'], ['divider', 'Line'], ['spacer', 'Space']];
@@ -82,17 +84,27 @@
   }
 
   // ------------------------------------------------------------------ new e-mail: layout suggestions with a small picture each
+  function favs() { try { return JSON.parse(localStorage.getItem('mx-mail-fav') || '[]'); } catch (e) { return []; } }
+  function favToggle(k) { var f = favs(), i = f.indexOf(k); if (i >= 0) f.splice(i, 1); else f.push(k); try { localStorage.setItem('mx-mail-fav', JSON.stringify(f)); } catch (e) { /* stays for this visit only */ } }
+  function pvOpen(kind, key) { var m = M(), P = m.pv = { kind: kind, key: key, html: '', dev: 'd' };
+    var body = kind === 't' ? { id: key } : (function () { var s = SX.STARTERS[+key]; return { name: s[0], subject: s[3], content: { mode: 'free', html: s[5](), blocks: [], noHeader: !!(s[6] && s[6].noHeader) } }; })();
+    A.draw(); A.api('mail-preview', body).then(function (r) { if (M().pv !== P) return; P.html = r._status === 200 ? r.html : ''; P.err = r._status === 200 ? '' : (r.error || 'Could not draw the preview.'); A.draw(); }); }
+  function viewPv(L) { var P = M().pv, t = P.kind === 't', s = t ? null : SX.STARTERS[+P.key], c = t ? L.campaigns.filter(function (x) { return x.id === P.key; })[0] || {} : null, fk = t ? 't:' + P.key : s[0], on = favs().indexOf(fk) >= 0;
+    return '<div class="ml-pv" data-ml="pv-x"><div class="ml-pvb" data-ml="pv-keep"><div class="ml-pvf' + (P.dev === 'm' ? ' m' : '') + '">' + (P.html ? '<iframe sandbox="" title="Preview" srcdoc="' + esc(P.html) + '"></iframe>' : '<div style="align-self:center;color:#5f656c">' + (P.err ? esc(P.err) : 'Drawing the e-mail with real parts…') + '</div>') + '</div><div class="ml-pvs"><small style="color:#c2410c;font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:11.5px">' + (t ? 'Your template' : esc(s[2])) + '</small><h3>' + esc(t ? c.name : s[0]) + '</h3><p>' + esc(t ? (c.subject || 'No subject yet') : s[1]) + '</p><p>Shown with the real parts and photos of the store, as a sample customer would receive it. Everything can be changed in the designer.</p>' + seg('p.dev', P.dev, [['d', 'Desktop'], ['m', 'Phone']]) + '<span class="sp"></span><button class="btn acc" data-ml="pv-use">Use this layout</button><button class="btn ghost" data-ml="pv-fav">' + (on ? '★ In your favourites' : '☆ Mark as favourite') + '</button><button class="btn ghost" data-ml="pv-x">Close</button></div></div></div>'; }
   function viewPick(L) {
     var m = M(), g = m.pg || 'All', ST = SX ? SX.STARTERS : [], mine = L.campaigns.filter(function (c) { return c.is_template; });
-    var groups = ['All', 'Products', 'Promotions', 'News'].concat(mine.length ? ['Your templates'] : []);
-    var h = '<section class="card flush"><div class="fbar"><h2>Start a new e-mail</h2><span class="sp"></span><button class="btn ghost sm" data-ml="pick-x">Cancel</button></div><div class="ml-gh"><div class="seg" style="background:var(--soft)">' + groups.map(function (x) { return '<button data-ml="pg" data-v="' + x + '" class="' + (g === x ? 'on' : '') + '">' + x + '</button>'; }).join('') + '</div><span class="ml-note" style="margin:0 0 0 6px">Pick a layout. It opens in the designer with sample parts, ready to change.</span></div>';
+    var fv = favs(), groups = ['All'].concat(fv.length ? ['Favourites'] : [], ['Products', 'Promotions', 'News'], mine.length ? ['Your templates'] : []); if (g === 'Favourites' && !fv.length) g = 'All';
+    var h = '<section class="card flush"><div class="fbar"><h2>Start a new e-mail</h2><span class="sp"></span><button class="btn ghost sm" data-ml="pick-x">Cancel</button></div><div class="ml-gh"><div class="seg" style="background:var(--soft)">' + groups.map(function (x) { return '<button data-ml="pg" data-v="' + x + '" class="' + (g === x ? 'on' : '') + '">' + x + '</button>'; }).join('') + '</div><span class="ml-note" style="margin:0 0 0 6px">Click a layout to see it with real parts. The star keeps your favourites first.</span></div>';
     if (!SX) return h + A.ld() + '</section>';
-    var cards = ST.map(function (s, i) { return g === 'All' || g === s[2] ? '<button class="ml-card" data-ml="new" data-i="' + i + '">' + wire(s[4]) + '<b>' + esc(s[0]) + '</b><small>' + esc(s[1]) + '</small></button>' : ''; }).join('');
+    var star = function (k) { var on = fv.indexOf(k) >= 0; return '<span class="ml-fav' + (on ? ' on' : '') + '" data-ml="fav" data-k="' + esc(k) + '" role="button" tabindex="0" title="' + (on ? 'Remove from favourites' : 'Mark as favourite') + '">' + (on ? '★' : '☆') + '</span>'; };
+    var order = ST.map(function (s, i) { return i; }).sort(function (a, b) { return (fv.indexOf(ST[b][0]) >= 0) - (fv.indexOf(ST[a][0]) >= 0) || a - b; });
+    var cards = order.map(function (i) { var s = ST[i]; return g === 'All' || g === s[2] || (g === 'Favourites' && fv.indexOf(s[0]) >= 0) ? '<div class="ml-card" role="button" tabindex="0" data-ml="pv" data-k="s" data-i="' + i + '">' + star(s[0]) + wire(s[4]) + '<b>' + esc(s[0]) + '</b><small>' + esc(s[1]) + '</small></div>' : ''; }).join('');
     if (g !== 'Your templates' && cards) h += '<div class="ml-gal">' + cards + '</div>';
-    if (mine.length && (g === 'All' || g === 'Your templates')) { m.tp = m.tp || {};
-      h += (g === 'All' ? '<div class="ml-gt">Your templates</div>' : '') + '<div class="ml-gal">' + mine.map(function (c) { var pv = m.tp[c.id]; return '<div class="ml-card" role="button" tabindex="0" data-ml="from" data-id="' + c.id + '"><span class="ml-th real">' + (pv && pv !== 1 ? '<iframe sandbox="" tabindex="-1" title="" srcdoc="' + esc(pv) + '"></iframe>' : '') + '</span><b>' + esc(c.name) + '</b><small>' + esc(c.subject || 'No subject yet') + '</small></div>'; }).join('') + '</div>';
+    if (g === 'Favourites') mine = mine.filter(function (c) { return fv.indexOf('t:' + c.id) >= 0; });
+    if (mine.length && (g === 'All' || g === 'Your templates' || g === 'Favourites')) { m.tp = m.tp || {};
+      h += (g === 'All' ? '<div class="ml-gt">Your templates</div>' : '') + '<div class="ml-gal">' + mine.map(function (c) { var pv = m.tp[c.id]; return '<div class="ml-card" role="button" tabindex="0" data-ml="pv" data-k="t" data-id="' + c.id + '">' + star('t:' + c.id) + '<span class="ml-th real">' + (pv && pv !== 1 ? '<iframe sandbox="" tabindex="-1" title="" srcdoc="' + esc(pv) + '"></iframe>' : '') + '</span><b>' + esc(c.name) + '</b><small>' + esc(c.subject || 'No subject yet') + '</small></div>'; }).join('') + '</div>';
       mine.slice(0, 12).forEach(function (c) { if (m.tp[c.id]) return; m.tp[c.id] = 1; A.api('mail-preview', { id: c.id }).then(function (r) { if (r._status === 200 && r.html) { m.tp[c.id] = r.html; if (M().pick) A.draw(); } }); }); }
-    return h + '</section>';
+    return h + '</section>' + (m.pv ? viewPv(L) : '');
   }
 
   // ------------------------------------------------------------------ header and footer, the same in every e-mail
@@ -231,6 +243,7 @@
   // ------------------------------------------------------------------ events
   function setPath(path, v) { var m = M(), E = m.ed, k = path.split('.');
     if (k[0] === 'c') { E.c[k[1]] = v; E.dirty = true; return 1; } if (k[0] === 'a') { E.c.audience[k[1]] = v; E.aud = null; E.dirty = true; return 2; }
+    if (k[0] === 'p') { m.pv[k[1]] = v; return 0; }
     if (k[0] === 'x') { m.tx.f[k[1]] = v; return 3; }
     if (k[0] === 'y') { if (k[1] === 'dev') { m.lay.dev = v; return 0; } var o = m.lay.L; for (var i = 1; i < k.length - 1; i++) o = o[k[i]]; o[k[k.length - 1]] = v; return 4; }
     if (k[0] === 'e') { E[k[1]] = v; return 0; } if (k[0] === 'r') { m.rep[k[1]] = v; return 0; }
@@ -250,8 +263,15 @@
     if (t.tagName === 'TR' && e.target.closest('button')) return; // a button inside the row has its own action
     e.preventDefault();
     if (act === 'tab') { m.tab = t.dataset.v; return A.draw(); }
-    if (act === 'pick') { m.pick = true; return A.draw(); } if (act === 'pick-x') { m.pick = false; return A.draw(); }
+    if (act === 'pick') { m.pick = true; m.pv = null; return A.draw(); } if (act === 'pick-x') { m.pick = false; m.pv = null; return A.draw(); }
     if (act === 'pg') { m.pg = t.dataset.v; return A.draw(); }
+    if (act === 'fav') { e.stopPropagation(); favToggle(t.dataset.k); return A.draw(); }
+    if (act === 'pv') return pvOpen(t.dataset.k, t.dataset.k === 't' ? id : t.dataset.i);
+    if (act === 'pv-keep') return;
+    if (act === 'pv-x') { m.pv = null; return A.draw(); }
+    if (act === 'pv-fav') { var pvk = m.pv.kind === 't' ? 't:' + m.pv.key : SX.STARTERS[+m.pv.key][0]; favToggle(pvk); return A.draw(); }
+    if (act === 'set' && m.pv && t.dataset.p === 'p.dev') { m.pv.dev = t.dataset.v; return A.draw(); }
+    if (act === 'pv-use') { var pvv = m.pv; m.pv = null; if (pvv.kind === 't') return A.api('mail-copy', { id: pvv.key }).then(function (r) { if (r._status === 200) { m.list = null; openEd(r.campaign.id); } else A.toast(r.error || 'Could not copy.'); }); var s = SX.STARTERS[+pvv.key]; cover(); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: s[3], html: s[5](), noHeader: !!(s[6] && s[6].noHeader), design: true }); }
     if (act === 'lay') return openLay();
     if (act === 'lay-save') { m.lay.saving = true; A.draw(); return A.api('mail-layout-save', { layout: m.lay.L }).then(function (r) { if (r._status === 200) { m.lay = null; m.tp = null; A.toast('Saved. Every e-mail uses it from now on.', true); A.draw(); } else { m.lay.saving = false; A.draw(); A.toast(r.error || 'Could not save.'); } }); }
     if (act === 'new') { if (!SX) return; var s = SX.STARTERS[+t.dataset.i]; cover(); return openEd(null, { name: s[0] === 'Blank' ? 'New e-mail' : s[0], subject: s[3], html: s[5](), noHeader: !!(s[6] && s[6].noHeader), design: true }); }

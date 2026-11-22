@@ -928,7 +928,7 @@ A['catalog-all'] = async (req, res) => {
   let rows = Array.isArray(live) && live.length ? live : JSON.parse(require('fs').readFileSync(require('path').join(process.cwd(), 'data', 'catalog.json'), 'utf8'));
   const FIX = require('../lib/catalog-fix'), fixed = await FIX.overrides(true), links = {};
   rows = await FIX.apply(rows);
-  (await db.selectAll('product_links', 'select=code,related_code,pos&order=pos').catch(() => [])).forEach((x) => { (links[x.code] = links[x.code] || []).push(x.related_code); });
+  (await db.selectAll('product_links', 'select=code,related_code,pos,excluded&order=pos').catch(() => [])).forEach((x) => { if (!x.excluded) (links[x.code] = links[x.code] || []).push(x.related_code); });
   const H = {}; hid.forEach((h) => { H[h.code] = [h.reason || '', h.hidden_by || '', h.created_at]; });
   const Q = (stock && stock.qty) || {};
   res.setHeader('Cache-Control', 'private, no-store');
@@ -1768,10 +1768,32 @@ A['product-links'] = async (req, res) => {
   const { readJson } = require('../lib/store');
   const live = await readJson('catalog/live.json').catch(() => null), known = new Set((Array.isArray(live) && live.length ? live : JSON.parse(require('fs').readFileSync(require('path').join(process.cwd(), 'data', 'catalog.json'), 'utf8'))).map((r) => r[0]));
   const bad = rel.filter((c) => !known.has(c)); if (bad.length) return res.status(400).json({ error: 'Not in the catalog: ' + bad.slice(0, 5).join(', ') });
+  // suggestions of the system taken out by hand for this part (kept as rows marked excluded)
+  const exc = [...new Set((Array.isArray(b.excluded) ? b.excluded : []).map((c) => clean(c, 60)).filter((c) => c && c !== code && rel.indexOf(c) < 0))].slice(0, 60);
   await db.remove('product_links', 'code=eq.' + encodeURIComponent(code));
-  if (rel.length) await db.insert('product_links', rel.map((r, i) => ({ code, related_code: r, pos: i, created_by: w.email })));
-  await PS.audit(w.email, 'product.links', 'product', code, null, { related: rel });
+  const ins = rel.map((r, i) => ({ code, related_code: r, pos: i, excluded: false, created_by: w.email })).concat(exc.map((r, i) => ({ code, related_code: r, pos: 100 + i, excluded: true, created_by: w.email })));
+  if (ins.length) await db.insert('product_links', ins);
+  await PS.audit(w.email, 'product.links', 'product', code, null, { related: rel, excluded: exc });
   return res.json({ ok: true, n: rel.length });
+};
+
+// one part, for the catalog drawer: its prices by tier, a live campaign, and the parts offered with it
+// (set by hand, suggested by the system, and the suggestions taken out)
+A['product-card'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const code = clean(req.query.code, 60); if (!code) return res.status(400).json({ error: 'code' });
+  const { readJson, cached } = require('../lib/store'), CAMP = require('../lib/campaigns');
+  const [prod, relj, rows, camps] = await Promise.all([cached('portal/products.json', 10 * 60 * 1000).catch(() => null), cached('portal/related.json', 60 * 60 * 1000).catch(() => null),
+    db.selectAll('product_links', 'select=related_code,pos,excluded&code=eq.' + encodeURIComponent(code) + '&order=pos').catch(() => []), CAMP.live().catch(() => [])]);
+  const p = (prod && prod.items && prod.items[code]) || null, d = p && p.d > 0 ? Math.round(p.d * 100) / 100 : null;
+  const deal = d && camps.length ? CAMP.bestFor(camps, code, d) : null;
+  let fit = {}, specs = {}; try { fit = require('../data/fitment.json').rel || {}; specs = require('../data/specs.json'); } catch (e) { /* suggestions from the sales history only */ }
+  const manual = rows.filter((x) => !x.excluded).map((x) => x.related_code), excluded = rows.filter((x) => x.excluded).map((x) => x.related_code);
+  const sr = specs[code] && specs[code].rel ? String(specs[code].rel).split(/\s*,\s*/) : [], hist = ((relj && relj.rel && relj.rel[code]) || []).map((a) => (Array.isArray(a) ? a[0] : a));
+  const auto = [...new Set((fit[code] || []).concat(sr, hist))].filter((c) => c && c !== code && manual.indexOf(c) < 0).slice(0, 24);
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ code, tiers: (prod && prod.tiers) || [], price: p ? { d, t: (p.t || []).map((x) => (x > 0 ? Math.round(x * 100) / 100 : null)), unit: p.u || null } : null, campaign: deal ? { name: deal.name, price: deal.price } : null, manual, excluded, auto });
 };
 
 A['crm-cust'] = async (req, res) => {
@@ -2333,7 +2355,7 @@ const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'],
   crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
   'mail-list': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
-  loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
+  loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
   events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],

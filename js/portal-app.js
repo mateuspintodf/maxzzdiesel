@@ -2709,8 +2709,8 @@
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
     get related() {
       var self = this, p = this.product; if (!p) return [];
-      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], codes = (this.fit.rel[p[0]] || []).concat(sr, (this.buy && this.buy[p[0]]) || []), seen = {};
-      return codes.filter(function (c) { if (seen[c] || c === p[0]) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
+      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], ex = (this.relEx && this.relEx[p[0]]) || [], codes = ((this.relMan && this.relMan[p[0]]) || []).concat(this.fit.rel[p[0]] || [], sr, (this.buy && this.buy[p[0]]) || []), seen = {};
+      return codes.filter(function (c) { if (seen[c] || c === p[0] || ex.indexOf(c) >= 0) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
     },
     // cross-sell on the cart and quote list: bought-together history first, then parts for the same vehicles and engines in complementary categories
     get forgot() {
@@ -2723,7 +2723,7 @@
       var bump = function (c, n) { if (!c || have[c] || !self.map[c]) return; sc[c] = (sc[c] || 0) + n; };
       mine.forEach(function (p) {
         ((self.buy && self.buy[p[0]]) || []).forEach(function (c) { bump(c, 6); });
-        (self.fit.rel[p[0]] || []).forEach(function (c) { bump(c, 5); });
+        (self.fit.rel[p[0]] || []).forEach(function (c) { if (!(self.relEx && self.relEx[p[0]] && self.relEx[p[0]].indexOf(c) >= 0)) bump(c, 5); });
         var comp = COMP[p[3]] || [], f = self.fit.items[p[0]], gens = f ? f[0] : [], eng = String(p[6] || ''); var et = etok(self.title(p));
         self.cat.forEach(function (r) {
           if (have[r[0]] || comp.indexOf(r[3]) < 0) return;
@@ -2999,7 +2999,7 @@
       fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
-      if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) self.buy = j.rel; }).catch(function () {}); }
+      if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) { self.relMan = j.man || {}; self.relEx = j.ex || {}; self.buy = j.rel; } }).catch(function () {}); }
       fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; if (d && d.prices) self.pub = d.prices; }).catch(function () {});
       fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
@@ -3062,7 +3062,7 @@
       if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
-      if ((r === 'p' || r === 'cart' || r === 'quote' || r === 'home') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
+      if ((r === 'p' || r === 'cart' || r === 'quote' || r === 'home') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) { me3.relMan = j.man || {}; me3.relEx = j.ex || {}; me3.buy = j.rel; } }); }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
       if (r === 'p' && a && this.cat.length && !this.map[a] && this.fixPart()) return;
