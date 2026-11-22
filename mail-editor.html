@@ -97,12 +97,15 @@ button,input,select{font:inherit;color:inherit}
   var editor = grapesjs.init({ container: '#gjs', height: '100%', width: 'auto', fromElement: false, storageManager: false, noticeOnUnload: false, plugins: preset ? [preset] : [], assetManager: { upload: false, embedAsBase64: false },
     blockManager: { appendTo: '#blocks' }, canvas: { styles: [] }, deviceManager: { devices: [{ name: 'Desktop', width: '' }, { name: 'Mobile portrait', width: '390px' }] } });
   editor.DomComponents.addType('image', { model: { defaults: { resizable: false } } });
-  var PAGE = { bg: '#f2f3f5', card: '#ffffff', img: '', width: 680 };
-  function applyPage() { var b = editor.Canvas.getBody(), d = editor.Canvas.getDocument(); if (!b || !d) return; b.style.background = PAGE.card; b.style.maxWidth = PAGE.width + 'px'; var h = d.documentElement.style; h.backgroundColor = PAGE.bg; h.backgroundImage = PAGE.img ? "url('" + PAGE.img + "')" : 'none'; h.backgroundSize = 'cover'; h.backgroundPosition = 'center top'; }
+  var PAGE = { bg: '#f2f3f5', card: '#ffffff', img: '', width: 680, align: 'center', radius: 20, pad: 28 };
+  // The page is drawn by one style sheet inside the canvas, with !important: opening a saved e-mail rewrites the styles
+  // of the body, and the e-mail used to jump to the left edge.
+  function applyPage() { var d = editor.Canvas.getDocument(); if (!d || !d.head) return; var st = d.getElementById('mx-page'); if (!st) { st = d.createElement('style'); st.id = 'mx-page'; d.head.appendChild(st); }
+    var m = PAGE.align === 'left' ? '0 auto 0 12px' : PAGE.align === 'right' ? '0 12px 0 auto' : '0 auto';
+    st.textContent = 'html{background-color:' + PAGE.bg + '!important;background-image:' + (PAGE.img ? "url('" + PAGE.img + "')" : 'none') + '!important;background-size:cover!important;background-position:center top!important;overflow-y:auto!important;padding:' + PAGE.pad + 'px 0!important}' +
+      'body{background:' + PAGE.card + '!important;max-width:' + PAGE.width + 'px!important;margin:' + m + '!important;border-radius:' + PAGE.radius + 'px!important;min-height:200px;font-family:' + F + '}'; }
   editor.on('load', function () {
     var b = editor.Canvas.getBody(), d = editor.Canvas.getDocument();
-    if (b) { b.style.background = '#ffffff'; b.style.maxWidth = '680px'; b.style.margin = '22px auto'; b.style.fontFamily = F; b.style.minHeight = '200px'; }
-    if (d && d.documentElement) { d.documentElement.style.background = '#e9ebee'; d.documentElement.style.overflowY = 'auto'; }
     if (d && d.head) { var st = d.createElement('style'); st.textContent = '@media (max-width:520px){.mx-col{display:block!important;width:100%!important;padding:0 0 12px 0!important}.mx-gap{display:none!important}}[data-mx-chrome]{pointer-events:none}'; d.head.appendChild(st); }
     applyPage();
   });
@@ -230,7 +233,7 @@ button,input,select{font:inherit;color:inherit}
   function panel() {
     var c = SEL, el = $('p-style');
     var upRow = function (label, has, a, b) { return '<div class="row"><label>' + label + (has ? '<em>in use</em>' : '') + '</label><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm" data-do="' + a + '">' + (has ? 'Change the picture' : 'Upload a picture') + '</button>' + (has ? '<button class="btn sm" data-do="' + b + '">Remove</button>' : '') + '</div><em class="upm" style="display:block;font-style:normal;color:var(--mut);font-size:12px;margin-top:6px"></em></div>'; };
-    if (!c) { el.innerHTML = '<div class="st-h"><h3>The whole e-mail</h3><p style="margin:6px 0 0;color:var(--mut);font-size:12.5px;line-height:1.5">Nothing is selected, so these are the settings of the page. Click a text, a button, a picture or a box in the e-mail to change that element.</p></div><div class="grp"><h4>Page</h4>' + cSeg('Width of the e-mail', 'pg:width', PAGE.width, [[600, '600'], [640, '640'], [680, '680'], [720, '720']]) + cColor('Colour of the e-mail', 'pg:card', PAGE.card) + cColor('Colour around it', 'pg:bg', PAGE.bg) + upRow('Picture around it', !!PAGE.img, 'pgup', 'pgrm') + '<p style="margin:0 0 12px;color:var(--mut);font-size:12px;line-height:1.5">Many mail programs on the phone show the e-mail from edge to edge, so the colour and the picture around it appear mostly on a computer.</p></div>'; return; }
+    if (!c) { el.innerHTML = '<div class="st-h"><h3>The whole e-mail</h3><p style="margin:6px 0 0;color:var(--mut);font-size:12.5px;line-height:1.5">Nothing is selected, so these are the settings of the page. Click a text, a button, a picture or a box in the e-mail to change that element.</p></div><div class="grp"><h4>Page</h4>' + cSeg('Width of the e-mail', 'pg:width', PAGE.width, [[600, '600'], [640, '640'], [680, '680'], [720, '720']]) + cColor('Colour of the e-mail', 'pg:card', PAGE.card) + cColor('Colour around it', 'pg:bg', PAGE.bg) + cSeg('Position of the e-mail', 'pg:align', PAGE.align, [['left', ALIGN[0][1]], ['center', ALIGN[1][1]], ['right', ALIGN[2][1]]]) + cNum('Rounded corners of the e-mail', 'pg:radius', PAGE.radius, 0, 32) + cNum('Space above and below', 'pg:pad', PAGE.pad, 0, 80) + upRow('Picture around it', !!PAGE.img, 'pgup', 'pgrm') + '<p style="margin:0 0 12px;color:var(--mut);font-size:12px;line-height:1.5">Many mail programs on the phone show the e-mail from edge to edge, so the colour and the picture around it appear mostly on a computer.</p></div>'; return; }
     var k = kind(c), st = c.getStyle() || {}, at = c.getAttributes() || {}, ch = chain(c), h = '';
     h += '<div class="st-h">' + (ch.length ? '<div class="crumb">' + ch.map(function (p, i) { return '<button data-up="' + i + '" title="Select the ' + NAME[kind(p)].toLowerCase() + ' around it">' + NAME[kind(p)] + '</button>›'; }).join('') + '<span>' + NAME[k] + '</span></div>' : '') + '<h3>' + NAME[k] + '</h3><div class="st-a">' + (k === 'products' ? '<button class="btn dark sm" data-do="pick">Choose parts and layout</button>' : '') + '<button class="btn sm" data-do="dup">Duplicate</button><button class="btn sm" data-do="del">Remove</button></div></div>';
     if (k === 'products') { var lk = getLook(c), lay = at['data-layout'] || 'grid2';
@@ -249,7 +252,7 @@ button,input,select{font:inherit;color:inherit}
   $('t-add').onclick = function () { tab('add'); }; $('t-style').onclick = function () { tab('style'); };
   $('p-style').addEventListener('input', function (e) { var t = e.target, d = t.dataset, c = SEL;
     var mirror = function (sel) { var sl = t.closest('.sl'); if (sl) [].forEach.call(sl.querySelectorAll(sel), function (x) { if (x !== t) x.value = t.value; }); };
-    if (d.sp && d.sp.indexOf('pg:') === 0) { PAGE[d.sp.slice(3)] = t.value; applyPage(); clearTimeout(pt); pt = setTimeout(panel, 500); return; }
+    if (d.sp && d.sp.indexOf('pg:') === 0) { PAGE[d.sp.slice(3)] = d.raw ? t.value : num(t.value); applyPage(); if (d.raw) { clearTimeout(pt); pt = setTimeout(panel, 500); } else mirror('[data-sp]'); return; }
     if (!c) return;
     if (d.sp && d.sp.indexOf('lk:') === 0) { var lv = d.raw ? t.value : String(num(t.value)); if (!d.raw) mirror('[data-sp]'); clearTimeout(lookT); lookT = setTimeout(function () { setLook(c, d.sp.slice(3), lv); if (d.raw) panel(); }, 300); return; }
     if (d.sp === 'imgw') { mirror('[data-sp]'); c.removeStyle('max-width'); c.addStyle({ width: Math.max(10, Math.min(100, num(t.value))) + '%', height: 'auto' }); var at2 = Object.assign({}, c.getAttributes()); delete at2.width; delete at2.height; c.setAttributes(at2); return; }
@@ -324,7 +327,7 @@ button,input,select{font:inherit;color:inherit}
   function ready() { var b = $('boot'); if (b) b.remove(); }
   var layout = call('mail-layout').then(function (r) { CHROME = { header: (r && r.header) || '', footer: (r && r.footer) || '' }; }).catch(function () {});
   window.addEventListener('message', function (e) { if (e.origin !== ORIGIN || !e.data || e.data.type !== 'mx-load') return;
-    HDR = !e.data.noHeader; hdrBtn(); if (e.data.page) PAGE = { bg: e.data.page.bg || PAGE.bg, card: e.data.page.card || PAGE.card, img: e.data.page.img || '', width: +e.data.page.width || 680 };
+    HDR = !e.data.noHeader; hdrBtn(); if (e.data.page) PAGE = { bg: e.data.page.bg || PAGE.bg, card: e.data.page.card || PAGE.card, img: e.data.page.img || '', width: +e.data.page.width || 680, align: e.data.page.align || 'center', radius: e.data.page.radius != null ? +e.data.page.radius : 20, pad: e.data.page.pad != null ? +e.data.page.pad : 28 };
     var go = function () { try { if (e.data.project) editor.loadProjectData(e.data.project); else editor.setComponents(e.data.html || ''); } catch (x) { editor.setComponents(e.data.html || ''); }
       layout.then(function () { fixChrome(); applyPage(); editor.UndoManager.clear(); editor.select(null); panel(); ready(); }); };
     if (editor.Canvas.getBody()) go(); else editor.on('load', go); });

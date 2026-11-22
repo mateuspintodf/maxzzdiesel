@@ -142,7 +142,7 @@
   function cover() { if (ov) return; ov = document.createElement('div'); ov.style.cssText = 'position:fixed;inset:0;z-index:5000;background:#e9ebee;display:flex;align-items:center;justify-content:center;color:#5f656c;font-size:14px'; ov.innerHTML = '<span>Opening the designer…</span>'; document.body.appendChild(ov); document.documentElement.style.overflow = 'hidden'; }
   function design() {
     var E = M().ed; if (!E || E.lock || (ov && ov._data)) return; var c = E.c; cover();
-    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; data.page = c.content.page || null; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=6" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
+    var start = function (data) { if (!ov) return; data.noHeader = !!c.content.noHeader; data.page = c.content.page || null; ov._data = data; ov.innerHTML = '<iframe src="/mail-editor.html?v=7" title="E-mail designer" style="border:0;width:100%;height:100%;display:block"></iframe>'; };
     if (c.content.mode === 'free' && (c.content.project || c.content.html)) return start({ project: c.content.project || null, html: c.content.html || '' });
     A.api('mail-seed', payload()).then(function (r) { start({ project: null, html: (r && r.html) || '' }); });
   }
