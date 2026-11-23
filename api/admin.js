@@ -2374,16 +2374,18 @@ A.audit = async (req, res) => {
 };
 
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
-const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'emails', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
+const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'emails', 'social', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
   crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
+  'social-list': ['social'], 'social-save': ['social'], 'social-img': ['social'],
   'mail-list': ['emails'], 'mail-insights': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-exceptions-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
   events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
   prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
+require('../lib/admin-social')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}) });
 require('../lib/admin-mail')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}), base, names });
 const scrMemo = new Map();
 async function screensOf(email) {
