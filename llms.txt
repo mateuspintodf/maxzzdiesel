@@ -28,7 +28,7 @@
 - [Who we serve](https://www.maxzzdiesel.com/who-we-serve)
 - [Partners: Denso, Robiel, SLP and more](https://www.maxzzdiesel.com/partners)
 - [Shipping, returns and warranty](https://www.maxzzdiesel.com/policies)
-- [Request a quote](https://www.maxzzdiesel.com/quote)
+- [Request a quote](https://www.maxzzdiesel.com/portal)
 
 ## Systems (part numbers, tooling and training by engine)
 - [Cummins ISX15 XPI](https://www.maxzzdiesel.com/systems/cummins-isx15-xpi): Cummins ISX15, X15 and ISX / QSX15 heavy-duty engines
@@ -57,7 +57,7 @@
 ## History
 - Founded in 1992 as TW Diesel in Sao Paulo, Brazil by Waldyr Mazzer. In the United States since 2013 as DRM Diesel Parts dba Maxzz Diesel, run by Waldyr, Douglas and Michael Mazzer. Member of the Association of Diesel Specialists (ADS).
 - Stocked in Coconut Creek, FL. Most in-stock orders ship the same business day.
-- Quote channels: B2B quote at https://www.maxzzdiesel.com/quote (paste a list of part numbers and quantities), phone +1 (954) 586-4158, sales@maxzzdiesel.com.
+- Quote channels: B2B quote at https://www.maxzzdiesel.com/portal (paste a list of part numbers and quantities), phone +1 (954) 586-4158, sales@maxzzdiesel.com.
 
 ## Languages
 - Spanish (Latin America): https://www.maxzzdiesel.com/es

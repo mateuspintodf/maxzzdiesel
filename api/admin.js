@@ -277,7 +277,7 @@ A.reject = async (req, res) => {
   for (const u of people) await SDB.revokeEmail(u.email, w.email, 'customer').catch(() => {});
   await PS.audit(w.email, 'company.reject', 'company', acc.id, null, { reason: acc.reason });
   if (b.notify) for (const u of people) await send(u.email, 'About your Maxzz B2B portal request', 'About your request',
-    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/quote or reply to this e-mail.</p>`, null, { name: u.name, greet: true }).catch(() => {});
+    `<p>We could not open a portal account for ${esc(acc.company)} at this time.${acc.reason ? ' ' + esc(acc.reason) : ''}</p><p>You can still request quotes at maxzzdiesel.com/portal or reply to this e-mail.</p>`, null, { name: u.name, greet: true }).catch(() => {});
   return res.json({ ok: true });
 };
 // ends every open customer session of one person
@@ -926,10 +926,14 @@ A['catalog-all'] = async (req, res) => {
   const { readJson } = require('../lib/store');
   const [live, hid, stock, sales, std] = await Promise.all([readJson('catalog/live.json').catch(() => null), db.selectAll('hidden_products', 'select=code,reason,hidden_by,created_at'), readJson('portal/stock.json').catch(() => null), db.rpc('product_sales_12m').catch(() => ({})), db.selectAll('hidden_standard', 'select=code,saved_by,saved_at').catch(() => [])]);
   let rows = Array.isArray(live) && live.length ? live : JSON.parse(require('fs').readFileSync(require('path').join(process.cwd(), 'data', 'catalog.json'), 'utf8'));
+  const FIX = require('../lib/catalog-fix'), fixed = await FIX.overrides(true), links = {};
+  rows = await FIX.apply(rows);
+  (await db.selectAll('product_links', 'select=code,related_code,pos,excluded&order=pos').catch(() => [])).forEach((x) => { if (!x.excluded) (links[x.code] = links[x.code] || []).push(x.related_code); });
   const H = {}; hid.forEach((h) => { H[h.code] = [h.reason || '', h.hidden_by || '', h.created_at]; });
   const Q = (stock && stock.qty) || {};
   res.setHeader('Cache-Control', 'private, no-store');
   return res.json({ rows: rows.map((r) => [r[0], r[1], r[3], r[4] || '', r[5] || '', r[6] || '', Q[r[0]] != null ? Number(Q[r[0]]) : null, (sales || {})[r[0]] || null, H[r[0]] || null]),
+    fixed: Object.keys(fixed), links,
     standard: { n: std.length, by: std[0] ? std[0].saved_by : null, at: std[0] ? std[0].saved_at : null }, hiddenNotInCatalog: hid.filter((h) => !rows.some((r) => r[0] === h.code)).map((h) => h.code), stockAt: stock && stock.at });
 };
 A['behavior-companies'] = async (req, res) => {
@@ -1268,6 +1272,30 @@ A.customer = async (req, res) => {
   (aud || []).forEach((a) => { const m = AUD[a.action]; if (!m) return; push(a.at, m[0], m[1], [a.after && a.after.email, 'by ' + a.admin_email].filter(Boolean).join(' · ')); });
   users.forEach((u) => { if (u.terms_accepted_at) push(u.terms_accepted_at, 'account', 'Accepted the terms of use', u.email); if (u.created_at && !(aud || []).length) push(u.created_at, 'account', 'Person added: ' + (u.name || u.email), u.invited_by ? 'invited by ' + u.invited_by : ''); });
   segl.forEach((x) => push(x.at, 'segment', 'Added to segment ' + (segN[x.segment_id] || ''), x.added_by ? 'by ' + x.added_by : ''));
+  // marketing e-mails this customer received and what they did with them (sent, opened, clicked, unsubscribed)
+  let mail = null;
+  try {
+    const em = [...new Set([...(users || []).map((x) => x.email), co && co.contact_email, ulc[0] && ulc[0].email].map((x) => String(x || '').trim().toLowerCase()).filter((x) => /^[^\s"'(),]+@[^\s"'(),]+$/.test(x)))].slice(0, 40);
+    const qs = (f) => db.select('email_sends', 'select=id,campaign_id,email,status,sent_at,delivered_at,opened_at,open_count,clicked_at,click_count,unsubscribed_at&status=in.(sent,bounced,complained)&' + f + '&order=sent_at.desc&limit=200').catch(() => []);
+    const got = [].concat(c ? await qs('customer_code=eq.' + encodeURIComponent(c)) : [], em.length ? await qs('email=in.(' + em.map((x) => encodeURIComponent('"' + x + '"')).join(',') + ')') : []);
+    const seen = {}, ms = got.filter((x) => (seen[x.id] ? false : (seen[x.id] = 1)));
+    if (ms.length) {
+      const cid = [...new Set(ms.map((x) => x.campaign_id))], cn = {};
+      (await db.select('email_campaigns', 'select=id,name,subject&id=in.(' + cid.join(',') + ')').catch(() => [])).forEach((x) => { cn[x.id] = x; });
+      const ck = {}; const clicked = ms.filter((x) => x.clicked_at).map((x) => x.id);
+      if (clicked.length) (await db.select('email_clicks', 'select=send_id,url,code,at&send_id=in.(' + clicked.join(',') + ')&order=at&limit=1500').catch(() => [])).forEach((k) => { (ck[k.send_id] = ck[k.send_id] || []).push(k); });
+      const last = (k) => ms.map((x) => x[k]).filter(Boolean).sort().pop() || null;
+      mail = { received: ms.length, opened: ms.filter((x) => x.opened_at).length, clicked: ms.filter((x) => x.clicked_at).length, bounced: ms.filter((x) => x.status === 'bounced').length, unsubscribed: ms.some((x) => x.unsubscribed_at), lastSent: last('sent_at'), lastOpen: last('opened_at'), lastClick: last('clicked_at'), parts: [] };
+      const pc = {};
+      ms.forEach((x) => { const nm = (cn[x.campaign_id] && (cn[x.campaign_id].name || cn[x.campaign_id].subject)) || 'campaign', sj = cn[x.campaign_id] && cn[x.campaign_id].subject;
+        push(x.sent_at, 'email', 'E-mail sent: ' + nm, [x.email, x.status === 'bounced' ? 'bounced' : x.status === 'complained' ? 'marked as spam' : x.delivered_at ? 'delivered' : '', sj ? 'subject: ' + sj : ''].filter(Boolean).join(' · '));
+        if (x.opened_at) push(x.opened_at, 'email', 'Opened the e-mail: ' + nm, x.email + (x.open_count > 1 ? ' · opened ' + x.open_count + ' times' : ''));
+        if (x.clicked_at) push(x.clicked_at, 'email', 'Clicked in the e-mail: ' + nm, pl(x.click_count || 1, 'click') + ' · ' + x.email,
+          (ck[x.id] || []).slice(0, 40).map((k) => { if (k.code) pc[k.code] = (pc[k.code] || 0) + 1; return [new Date(k.at).toISOString().slice(5, 16).replace('T', ' '), k.code ? 'part' : 'link', k.code || String(k.url || '').replace(/^https?:\/\/(www\.)?/, '').replace(/[?&]utm_[a-z]+=[^&#]*/g, '').replace(/\?$/, '').slice(0, 70), (k.code && N[k.code] && N[k.code].t) || '']; }));
+        if (x.unsubscribed_at) push(x.unsubscribed_at, 'email', 'Unsubscribed from marketing e-mails', x.email); });
+      mail.parts = Object.keys(pc).sort((a, z) => pc[z] - pc[a]).slice(0, 8).map((k) => ({ code: k, t: (N[k] && N[k].t) || '', n: pc[k] }));
+    }
+  } catch (e) { console.error('customer mail', e.message); }
   const NK = { call: 'Call', email: 'E-mail', meeting: 'Meeting', note: 'Note' };
   (notes || []).forEach((n) => T.push({ at: n.created_at, kind: 'note', title: (NK[n.kind] || 'Note') + ' by ' + String(n.created_by).split('@')[0], desc: n.body, det: null, note: { id: n.id, follow_up: n.follow_up, done: !!n.done_at, done_by: n.done_by, outcome: n.outcome, done_outcome: n.done_outcome } }));
   const u = ulc[0] || null;
@@ -1282,7 +1310,7 @@ A.customer = async (req, res) => {
   contact.tags = c ? (await db.select('customer_tags', 'select=tag&code=eq.' + encodeURIComponent(c)).catch(() => [])).map((x) => x.tag) : [];
   contact.allTags = [...new Set((await db.selectAll('customer_tags', 'select=tag').catch(() => [])).map((x) => x.tag))].sort();
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
-    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, timeline: T.slice(0, 300) });
+    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, mail, timeline: T.slice(0, 300) });
 };
 // edit a customer: read it live from Unleashed, change only the fields that differ, write it back, then update our copy.
 // Not editable here on purpose: price tier, salesperson, payment terms, stop credit (those stay in Unleashed).
@@ -1462,14 +1490,22 @@ let crmSyncAt = 0;
 async function crmSync() {
   if (Date.now() - crmSyncAt < 90e3 || !configured()) return;
   crmSyncAt = Date.now();
-  const parked = await loadParked(false).catch(() => null); if (!parked) return;
-  const marks = await db.selectAll('pipeline_marks', 'select=number,status,reason').catch(() => []), mk = {}; marks.forEach((m) => { mk[m.number] = m; });
-  const deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value,created_at,updated_at,stage_at&ref=not.is.null').catch(() => []), by = {}; deals.forEach((d) => { by[d.ref] = d; });
+  const parked = await loadParked(false).catch((e) => { console.error('crmSync: Unleashed read failed', e.message); crmSyncAt = 0; return null; }); if (!parked) return;
+  // without the marks or the deals already on record, a sync would create or rewrite deals it should leave alone: stop and try again on the next open
+  let marks, deals;
+  try { marks = await db.selectAll('pipeline_marks', 'select=number,status,reason'); deals = await db.selectAll('crm_deals', 'select=id,ref,stage,value,created_at,updated_at,stage_at&ref=not.is.null'); }
+  catch (e) { console.error('crmSync: database read failed, nothing changed', e.message); crmSyncAt = 0; return; }
+  const mk = {}; marks.forEach((m) => { mk[m.number] = m; });
+  const by = {}; deals.forEach((d) => { by[d.ref] = d; });
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
   const ctOf = {};
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
   const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.name) : null) || (ctOf[r.code] || {}).contact_name || null, contact_email: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.email) : null) || (ctOf[r.code] || {}).email || null, contact_phone: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.phone) : null) || (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
-  if (fresh.length) { const ins = await db.insert('crm_deals', fresh, { onConflict: 'ref' }).catch(() => null); if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
+  if (fresh.length) {
+    // one bad row must not lose the whole batch: on a failure each order is tried on its own and the one that fails is named in the log
+    let ins = await db.insert('crm_deals', fresh, { onConflict: 'ref', ignoreDuplicates: true }).catch((e) => { console.error('crmSync: batch insert failed, retrying one by one', e.message); return null; });
+    if (!ins) { ins = []; for (const row of fresh) { try { const r1 = await db.insert('crm_deals', [row], { onConflict: 'ref', ignoreDuplicates: true }); if (Array.isArray(r1)) ins.push(...r1); } catch (e) { console.error('crmSync: could not import', row.ref, e.message); } } }
+    if (ins) await db.insert('crm_activities', (Array.isArray(ins) ? ins : []).map((d) => ({ deal_id: d.id, kind: 'stage', body: 'Created from Unleashed (' + d.source + ')', created_by: 'auto' }))).catch(() => {}); }
   // a deal is as old as its order in Unleashed, not as the moment the CRM first saw it. Deals made by an earlier sync that nobody touched since get their order date back.
   for (const r of parked) { const d = by[r.number]; if (!d || !r.at || d.stage === 'won' || d.stage === 'lost') continue; const cr = Date.parse(d.created_at), up = Date.parse(d.updated_at);
     const sa = Date.parse(d.stage_at);
@@ -1700,8 +1736,90 @@ A['crm-deal'] = async (req, res) => {
   let attr = null; // where the lead came from (UTM, click ids, referrer), matched by contact e-mail
   try { const em = String(d.contact_email || (cust[0] && cust[0].email) || '').trim().toLowerCase();
     if (em && /^[^\s@]+@[^\s@]+$/.test(em)) attr = (await db.select('lead_attribution', 'select=kind,ref,first,last,device,country,created_at&email=eq.' + encodeURIComponent(em) + '&order=created_at.asc&limit=1'))[0] || null; } catch (e) { attr = null; }
-  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others, lines, attr });
+  let porder = null; // the portal order behind this deal: lines above stock or without a price wait for a lead time written here
+  try { if (d.ref) { const po = (await db.select('orders', 'select=id,number,unleashed_number,status&or=(unleashed_number.eq.' + encodeURIComponent(d.ref) + ',number.eq.' + encodeURIComponent(d.ref) + ')&limit=1'))[0];
+    if (po) porder = { id: po.id, number: po.unleashed_number || po.number, lines: (await db.select('order_lines', 'select=line_no,code,name,qty,price,backorder,stock_at_order,lead_note,line_state&order_id=eq.' + po.id + '&order=line_no')).map((l) => ({ no: l.line_no, code: l.code, name: l.name, qty: l.qty, price: l.price == null ? null : Number(l.price), short: !!l.backorder, stock: l.stock_at_order, lead: l.lead_note || '', state: l.line_state || '' })) }; } } catch (e) { console.error('deal portal order', e.message); }
+  return res.json({ deal: d, acts, cust: cust[0] || null, orders, life: { sales: tot, orders: life.length, last: last || null }, others, lines, attr, porder });
 };
+// sales writes the lead time (or the price) of one order line; the customer gets an e-mail and accepts it or takes the line out in the portal
+A['order-lead'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), oid = clean(b.order, 40), no = parseInt(b.no, 10), note = clean(b.note, 300);
+  if (!PS.isUuid(oid) || !(no > 0) || note.length < 3) return res.status(400).json({ error: 'Write the lead time for this part, for example: ships in 3 weeks.' });
+  const o = (await db.select('orders', 'select=id,number,unleashed_number,placed_by,company_id&id=eq.' + oid + '&limit=1'))[0];
+  if (!o) return res.status(404).json({ error: 'order' });
+  const up = await PS.setLineLead(o.id, no, note, w.email);
+  if (!Array.isArray(up) || !up.length) return res.status(404).json({ error: 'line' });
+  const num = o.unleashed_number || o.number, line = up[0];
+  await PS.audit(w.email, 'order.lead_time', 'order', num, null, { code: line.code, note }).catch(() => {});
+  let mailed = false;
+  try { const u = o.placed_by ? (await db.select('users', 'select=email,name&id=eq.' + o.placed_by + '&limit=1'))[0] : null;
+    if (u && u.email) { await send(u.email, 'Order ' + num + ': please confirm the lead time of one part', 'One part needs your answer',
+      '<p>The rest of your order <b>' + esc(num) + '</b> is not affected and keeps moving.</p><p><b>' + esc(line.code) + '</b> × ' + line.qty + '<br><span style="color:#5f656c">' + esc(line.name || '') + '</span></p><p><b>Lead time:</b> ' + esc(note) + '</p><p>Open the order to accept this lead time or to take the part out of the order.</p>',
+      { url: base(req) + '/portal#/o/' + o.id, label: 'Open my order' }, { name: u.name, greet: true }); mailed = true; } } catch (e) { console.error('lead time mail', e.message); }
+  return res.json({ ok: true, mailed });
+};
+
+// category fixed by hand for one or more parts (wins over the Unleashed product group); an empty category goes back to automatic
+A['catalog-category'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const FIX = require('../lib/catalog-fix'), b = readBody(req), cat = clean(b.category, 20);
+  const codes = [...new Set((Array.isArray(b.codes) ? b.codes : []).map((c) => clean(c, 60)).filter(Boolean))].slice(0, 2000);
+  if (!codes.length || (cat && !FIX.CATS[cat])) return res.status(400).json({ error: 'Pick the parts and a category.' });
+  for (let i = 0; i < codes.length; i += 200) { const part = codes.slice(i, i + 200);
+    if (cat) await db.insert('product_overrides', part.map((code) => ({ code, category: cat, updated_by: w.email, updated_at: new Date().toISOString() })), { onConflict: 'code' });
+    else await db.remove('product_overrides', 'code=' + inList(part)); }
+  FIX.clear();
+  await PS.audit(w.email, 'product.category', 'product', codes.join(',').slice(0, 200), null, { n: codes.length, category: cat || 'automatic' });
+  return res.json({ ok: true, n: codes.length });
+};
+
+// parts linked by hand to one part: offered first in the store, before the automatic suggestions
+A['product-links'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  if (req.method === 'GET') { const code = clean(req.query.code, 60);
+    const rows = await db.selectAll('product_links', 'select=code,related_code,pos,created_by,created_at' + (code ? '&code=eq.' + encodeURIComponent(code) : '') + '&order=code,pos');
+    return res.json({ links: rows }); }
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const b = readBody(req), code = clean(b.code, 60);
+  const rel = [...new Set((Array.isArray(b.related) ? b.related : String(b.related || '').split(/[\s,;]+/)).map((c) => clean(c, 60)).filter((c) => c && c !== code))].slice(0, 12);
+  if (!code) return res.status(400).json({ error: 'Pick the part first.' });
+  const { readJson } = require('../lib/store');
+  const live = await readJson('catalog/live.json').catch(() => null), known = new Set((Array.isArray(live) && live.length ? live : JSON.parse(require('fs').readFileSync(require('path').join(process.cwd(), 'data', 'catalog.json'), 'utf8'))).map((r) => r[0]));
+  const bad = rel.filter((c) => !known.has(c)); if (bad.length) return res.status(400).json({ error: 'Not in the catalog: ' + bad.slice(0, 5).join(', ') });
+  // suggestions of the system taken out by hand for this part (kept as rows marked excluded)
+  const exc = [...new Set((Array.isArray(b.excluded) ? b.excluded : []).map((c) => clean(c, 60)).filter((c) => c && c !== code && rel.indexOf(c) < 0))].slice(0, 60);
+  await db.remove('product_links', 'code=eq.' + encodeURIComponent(code));
+  const ins = rel.map((r, i) => ({ code, related_code: r, pos: i, excluded: false, created_by: w.email })).concat(exc.map((r, i) => ({ code, related_code: r, pos: 100 + i, excluded: true, created_by: w.email })));
+  if (ins.length) await db.insert('product_links', ins);
+  await PS.audit(w.email, 'product.links', 'product', code, null, { related: rel, excluded: exc });
+  return res.json({ ok: true, n: rel.length });
+};
+
+// one part, for the catalog drawer: its prices by tier, a live campaign, and the parts offered with it
+// (set by hand, suggested by the system, and the suggestions taken out)
+A['product-card'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const code = clean(req.query.code, 60); if (!code) return res.status(400).json({ error: 'code' });
+  const { readJson, cached } = require('../lib/store'), CAMP = require('../lib/campaigns');
+  const [prod, relj, rows, camps] = await Promise.all([cached('portal/products.json', 10 * 60 * 1000).catch(() => null), cached('portal/related.json', 60 * 60 * 1000).catch(() => null),
+    db.selectAll('product_links', 'select=related_code,pos,excluded&code=eq.' + encodeURIComponent(code) + '&order=pos').catch(() => []), CAMP.live().catch(() => [])]);
+  const p = (prod && prod.items && prod.items[code]) || null, d = p && p.d > 0 ? Math.round(p.d * 100) / 100 : null;
+  const deal = d && camps.length ? CAMP.bestFor(camps, code, d) : null;
+  let fit = {}, specs = {}; try { fit = require('../data/fitment.json').rel || {}; specs = require('../data/specs.json'); } catch (e) { /* suggestions from the sales history only */ }
+  const manual = rows.filter((x) => !x.excluded).map((x) => x.related_code), excluded = rows.filter((x) => x.excluded).map((x) => x.related_code);
+  const sr = specs[code] && specs[code].rel ? String(specs[code].rel).split(/\s*,\s*/) : [], hist = ((relj && relj.rel && relj.rel[code]) || []).map((a) => (Array.isArray(a) ? a[0] : a));
+  const auto = [...new Set((fit[code] || []).concat(sr, hist))].filter((c) => c && c !== code && manual.indexOf(c) < 0).slice(0, 24);
+  res.setHeader('Cache-Control', 'private, no-store');
+  return res.json({ code, tiers: (prod && prod.tiers) || [], price: p ? { d, t: (p.t || []).map((x) => (x > 0 ? Math.round(x * 100) / 100 : null)), unit: p.u || null } : null, campaign: deal ? { name: deal.name, price: deal.price } : null, manual, excluded, auto });
+};
+
 A['crm-cust'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
@@ -1966,7 +2084,7 @@ A['sales-data'] = async (req, res) => {
   };
   const group = (d, key, extra) => { const m = {}; d.orders.forEach((r) => { const k = r[key]; const g = m[k] || (m[k] = Object.assign({ k, sales: 0, cost: 0, cov: 0, cnt: 0, months: {} }, extra ? extra(r) : {})); g.sales += Number(r.sales) || 0; g.cost += Number(r.cost) || 0; g.cov += Number(r.cov) || 0; g.cnt += Number(r.cnt) || 0; g.months[r.ym] = (g.months[r.ym] || 0) + (Number(r.sales) || 0); if (key === 'c') { g.sps = g.sps || {}; g.sps[r.sp] = (g.sps[r.sp] || 0) + (Number(r.sales) || 0); g.comm = (g.comm || 0) + comOf(r.sp, Number(r.sales) || 0, prof(r)); } }); return m; };
   const cu = group(cur, 'c', (r) => ({ n: r.n })), pc = group(prv, 'c'), su = group(cur, 'sp'), sp0 = group(prv, 'sp');
-  const customers = Object.values(cu).sort((a, b) => b.sales - a.sales).slice(0, 600).map((g) => ({ c: g.k, n: g.n, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: g.comm || 0, sp: Object.keys(g.sps || {}).sort((a, b) => g.sps[b] - g.sps[a])[0] || '', months: g.months, prev: pc[g.k] ? pc[g.k].sales : 0 }));
+  const customers = Object.values(cu).sort((a, b) => b.sales - a.sales).slice(0, 3000).map((g) => ({ c: g.k, n: g.n, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: g.comm || 0, sp: Object.keys(g.sps || {}).sort((a, b) => g.sps[b] - g.sps[a])[0] || '', months: g.months, prev: pc[g.k] ? pc[g.k].sales : 0 }));
   const people = Object.values(su).sort((a, b) => b.sales - a.sales).map((g) => ({ sp: g.k, sales: g.sales, profit: g.cov - g.cost, cov: g.cov, orders: g.cnt, comm: comOf(g.k, g.sales, g.cov - g.cost), prev: sp0[g.k] ? sp0[g.k].sales : 0, rule: rule[g.k] ? { basis: rule[g.k].basis, pct: Number(rule[g.k].pct) } : null }));
   const pp = {}; (prv.parts || []).forEach((r) => { pp[r.code] = r; });
   const parts = (cur.parts || []).slice(0, 120).map((r) => ({ code: r.code, name: (N[r.code] && N[r.code].t) || '', qty: r.qty, sales: r.sales, profit: (Number(r.cov) || 0) - (Number(r.cost) || 0), prev: pp[r.code] ? pp[r.code].sales : 0 }));
@@ -1996,7 +2114,17 @@ A['sales-data'] = async (req, res) => {
   if (k0.sales > 0 && k0.coverage != null && k0.coverage < 0.7) signals.push({ id: 'cost', sev: 'info', title: 'Profit covers part of the sales', n: 1, tip: 'Only ' + Math.round(k0.coverage * 100) + '% of the sales in this period have a recorded cost.', text: 'The cost at the time of the sale is being loaded from Unleashed for older orders. Profit and margin firm up as the history load finishes.', rows: [] });
   let everyone = [];
   if (sc.all) everyone = [...new Set([...people.map((x) => x.sp), ...comm.map((x) => x.salesperson), ...(await db.selectAll('ul_customers', 'select=salesperson&salesperson=not.is.null').catch(() => [])).map((x) => x.salesperson)])].sort();
-  return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
+  // week by week: the same aggregate, asked once per week (Monday to Sunday, at most the last 27 weeks of the period)
+  let weeks = null;
+  if (req.query.g === 'week' && !sc.none) {
+    const ws = []; let mon = addDays(to, -((new Date(to + 'T00:00:00Z').getUTCDay() + 6) % 7));
+    while (mon >= addDays(from, -6) && ws.length < 27) { const a0 = mon < from ? from : mon, b0 = addDays(mon, 6) > to ? to : addDays(mon, 6); if (a0 <= b0) ws.unshift([mon, a0, b0]); mon = addDays(mon, -7); }
+    const per = await Promise.all(ws.map((x) => db.rpc('sales_agg', { p_from: x[1], p_to: x[2], p_sp: sc.sp }).catch((e) => { console.error('sales week', x[0], e.message); return null; })));
+    if (per.every(Boolean)) { const byC = {}; customers.forEach((c) => { c.weeks = {}; byC[c.c] = c; });
+      per.forEach((d, i) => { (d.orders || []).forEach((r) => { const c = byC[r.c]; if (c) c.weeks[ws[i][0]] = (c.weeks[ws[i][0]] || 0) + (Number(r.sales) || 0); }); });
+      weeks = ws.map((x) => x[0]); }
+  }
+  return res.json({ from, to, pf, pt, cmp, scope: sc.all ? (sc.sp || 'all') : (sc.sp || null), none: !!sc.none, role: w.role, weeks, kpi: kpi(cur), prev: cmp === 'none' ? null : kpi(prv),
     days: (cur.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]), pdays: (prv.days || []).map((r) => [r.d, Number(r.sales) || 0, (Number(r.cov) || 0) - (Number(r.cost) || 0)]),
     customers, people, parts, signals, everyone, rules: sc.all ? comm.map((r) => ({ sp: r.salesperson, basis: r.basis, pct: Number(r.pct) })) : null });
 };
@@ -2246,19 +2374,21 @@ A.audit = async (req, res) => {
 };
 
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
-const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
+const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'emails', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
   crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
-  loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
+  'mail-list': ['emails'], 'mail-insights': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
+  loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
   events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
   prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
+require('../lib/admin-mail')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}), base, names });
 const scrMemo = new Map();
 async function screensOf(email) {
   const k = String(email).toLowerCase(), hit = scrMemo.get(k); if (hit && Date.now() - hit.t < 20000) return hit.v;
-  let v = null; try { const r = (await db.select('admins', 'select=role,screens&email=eq.' + encodeURIComponent(k) + '&limit=1'))[0]; if (r && r.role !== 'superadmin' && Array.isArray(r.screens)) v = r.screens; } catch (e) { v = null; }
+  let v = null; try { const r = (await db.select('admins', 'select=role,screens&email=eq.' + encodeURIComponent(k) + '&limit=1'))[0]; if (r && r.role !== 'superadmin' && Array.isArray(r.screens)) v = r.screens; } catch (e) { console.error('screens lookup', e.message); return false; } // unknown: the caller refuses instead of opening everything
   scrMemo.set(k, { t: Date.now(), v }); return v;
 }
 module.exports = async (req, res) => {
@@ -2267,7 +2397,7 @@ module.exports = async (req, res) => {
   const fn = A[String(req.query.a || '')];
   if (!fn) return res.status(404).json({ error: 'not found' });
   const need = API_SCREEN[String(req.query.a || '')];
-  if (need) { const s0 = await SDB.lookup(req, 'admin').catch(() => null), allow = s0 && s0.email ? await screensOf(s0.email) : null; if (allow && !need.some((x) => allow.includes(x))) return res.status(403).json({ error: 'This screen is not enabled for your login.' }); }
+  if (need) { const s0 = await SDB.lookup(req, 'admin').catch(() => null), allow = s0 && s0.email ? await screensOf(s0.email) : null; if (allow === false) return res.status(503).json({ error: 'Could not check your access right now. Try again in a moment.' }); if (allow && !need.some((x) => allow.includes(x))) return res.status(403).json({ error: 'This screen is not enabled for your login.' }); }
   try { return await fn(req, res); }
   catch (e) { console.error('admin', req.query.a, e.message); return res.status(500).json({ error: 'server' }); }
 };

@@ -109,7 +109,7 @@ detail = re.sub(r'<div class="l-main".*</div>\n</div></section>$', lambda m: art
 assert '<article' in detail, 'article not placed'
 
 # ---- FAQ
-NEED = "Still need something? Call <a href=\"tel:+19545864158\">+1 (954) 586-4158</a> or <a href=\"/quote\">send us your part numbers</a>."
+NEED = "Still need something? Call <a href=\"tel:+19545864158\">+1 (954) 586-4158</a> or <a href=\"/portal\">send us your part numbers</a>."
 items, ld = [], []
 for i, (en, e, p) in enumerate(G.FAQ):
     q, ans = en; es[q], es[ans] = e; pt[q], pt[ans] = p

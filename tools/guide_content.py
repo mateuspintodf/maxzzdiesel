@@ -53,9 +53,9 @@ SECTIONS = [
      [('Electronic unit injector', 'Inyector unitario electrónico', 'Unidade injetora eletrônica'), ('Camshaft drives a plunger inside each injector', 'El árbol de levas mueve un émbolo dentro de cada inyector', 'O comando de válvulas aciona um êmbolo dentro de cada bico'), ('Detroit Series 60, Caterpillar C15, Volvo D12', 'Detroit Series 60, Caterpillar C15, Volvo D12', 'Detroit Series 60, Caterpillar C15, Volvo D12')],
      [('Cummins XPI', 'Cummins XPI', 'Cummins XPI'), ('Common rail developed by Cummins and Scania', 'Common rail desarrollado por Cummins y Scania', 'Common rail desenvolvido pela Cummins e pela Scania'), ('Cummins ISX15 (2010 and later), X15', 'Cummins ISX15 (2010 en adelante), X15', 'Cummins ISX15 (2010 em diante), X15')],
      [('Mechanical pump', 'Bomba mecánica', 'Bomba mecânica'), ('Inline or rotary pump meters and times fuel mechanically', 'Bomba en línea o rotativa dosifica y sincroniza el combustible mecánicamente', 'Bomba em linha ou rotativa dosa e sincroniza o combustível mecanicamente'), ('Cummins 5.9 12-valve (Bosch P7100), older heavy duty', 'Cummins 5.9 de 12 válvulas (Bosch P7100), pesados antiguos', 'Cummins 5.9 12 válvulas (Bosch P7100), pesados antigos')]]),
-   ('p', ('Find parts by engine: <a href="/quote?make=ram">Dodge / Ram Cummins</a>, <a href="/quote?make=gm">Chevy / GMC Duramax</a>, <a href="/quote?make=ford">Ford Power Stroke</a> and <a href="/quote?make=hd">heavy duty</a>.',
-          'Busca repuestos por motor: <a href="/quote?make=ram">Dodge / Ram Cummins</a>, <a href="/quote?make=gm">Chevy / GMC Duramax</a>, <a href="/quote?make=ford">Ford Power Stroke</a> y <a href="/quote?make=hd">pesados</a>.',
-          'Busque peças por motor: <a href="/quote?make=ram">Dodge / Ram Cummins</a>, <a href="/quote?make=gm">Chevy / GMC Duramax</a>, <a href="/quote?make=ford">Ford Power Stroke</a> e <a href="/quote?make=hd">pesados</a>.'))]),
+   ('p', ('Find parts by engine: <a href="/portal?make=ram">Dodge / Ram Cummins</a>, <a href="/portal?make=gm">Chevy / GMC Duramax</a>, <a href="/portal?make=ford">Ford Power Stroke</a> and <a href="/portal?make=hd">heavy duty</a>.',
+          'Busca repuestos por motor: <a href="/portal?make=ram">Dodge / Ram Cummins</a>, <a href="/portal?make=gm">Chevy / GMC Duramax</a>, <a href="/portal?make=ford">Ford Power Stroke</a> y <a href="/portal?make=hd">pesados</a>.',
+          'Busque peças por motor: <a href="/portal?make=ram">Dodge / Ram Cummins</a>, <a href="/portal?make=gm">Chevy / GMC Duramax</a>, <a href="/portal?make=ford">Ford Power Stroke</a> e <a href="/portal?make=hd">pesados</a>.'))]),
  ('failures',
   ('What makes injectors and pumps fail', 'Por qué fallan inyectores y bombas', 'Por que bicos e bombas falham'),
   ('<strong>Most injection failures start with fuel quality, not with the part.</strong> Water, abrasive dirt and low lubricity fuel wear the internal clearances of pumps and injectors, which are measured in microns. Electrical faults in solenoids and harnesses come second. Clean fuel and filters changed on schedule are the cheapest way to make injection parts last.',
@@ -101,7 +101,7 @@ SECTIONS = [
   ('<strong>The fastest way is the number printed on the injector or pump body.</strong> Bosch common rail injectors start with 0445 110 or 0445 120, Bosch common rail pumps with 0445 010 or 0445 020, and Bosch remanufactured units with 0986. If the body number cannot be read, use the engine model, model year and VIN.',
    '<strong>La forma más rápida es el número grabado en el cuerpo del inyector o de la bomba.</strong> Los inyectores common rail Bosch empiezan con 0445 110 o 0445 120, las bombas common rail Bosch con 0445 010 o 0445 020 y las unidades remanufacturadas Bosch con 0986. Si no se puede leer el número, usa el modelo del motor, el año y el VIN.',
    '<strong>O jeito mais rápido é o número gravado no corpo do bico ou da bomba.</strong> Bicos common rail Bosch começam com 0445 110 ou 0445 120, bombas common rail Bosch com 0445 010 ou 0445 020 e unidades remanufaturadas Bosch com 0986. Se não der para ler o número, use o modelo do motor, o ano e o VIN.'),
-  [('p', ('Search a part number or pick your engine on the <a href="/quote">quote page</a>.', 'Busca un número de parte o elige tu motor en la <a href="/quote">página de cotización</a>.', 'Busque um part number ou escolha seu motor na <a href="/quote">página de cotação</a>.'))]),
+  [('p', ('Search a part number or pick your engine on the <a href="/portal">quote page</a>.', 'Busca un número de parte o elige tu motor en la <a href="/portal">página de cotización</a>.', 'Busque um part number ou escolha seu motor na <a href="/portal">página de cotação</a>.'))]),
 ]
 
 FAQ_H2 = ('Questions about <span style="color:#d32a37">diesel injection.</span>', 'Preguntas sobre <span style="color:#d32a37">inyección diésel.</span>', 'Perguntas sobre <span style="color:#d32a37">injeção diesel.</span>')
@@ -128,18 +128,18 @@ FAQ = [
 # Internal links: first plain-text mention per page (never inside <strong> or an existing link) -> quote search or product page.
 # Parts go to the quote page, not to /parts.
 LINKS = [
- (('CP3', 'CP3', 'CP3'), '/quote?q=CP3'),
- (('CP4', 'CP4', 'CP4'), '/quote?q=CP4'),
- (('Cummins 6.7', 'Cummins 6.7', 'Cummins 6.7'), '/quote?make=ram'),
- (('Duramax', 'Duramax', 'Duramax'), '/quote?make=gm'),
- (('Power Stroke', 'Power Stroke', 'Power Stroke'), '/quote?make=ford'),
- (('control valves', 'válvulas de control', 'válvulas de controle'), '/quote?q=control+valve'),
- (('nozzles', 'toberas', 'bicos injetores'), '/quote?q=nozzle'),
- (('solenoids', 'solenoides', 'solenoides'), '/quote?q=solenoid'),
+ (('CP3', 'CP3', 'CP3'), '/portal?q=CP3'),
+ (('CP4', 'CP4', 'CP4'), '/portal?q=CP4'),
+ (('Cummins 6.7', 'Cummins 6.7', 'Cummins 6.7'), '/portal?make=ram'),
+ (('Duramax', 'Duramax', 'Duramax'), '/portal?make=gm'),
+ (('Power Stroke', 'Power Stroke', 'Power Stroke'), '/portal?make=ford'),
+ (('control valves', 'válvulas de control', 'válvulas de controle'), '/portal?q=control+valve'),
+ (('nozzles', 'toberas', 'bicos injetores'), '/portal?q=nozzle'),
+ (('solenoids', 'solenoides', 'solenoides'), '/portal?q=solenoid'),
  (('repair parts', 'repuestos de calidad', 'peças de qualidade'), '/injection-parts'),
  (('ISO 4113', 'ISO 4113', 'ISO 4113'), '/fluids'),
  (('tool set', 'herramienta correcta', 'ferramenta certa'), '/tool-sets'),
- (('remanufactured', 'remanufacturado', 'remanufaturado'), '/quote?q=reman'),
+ (('remanufactured', 'remanufacturado', 'remanufaturado'), '/portal?q=reman'),
 ]
 
 TAKE_T = ('Key takeaways', 'Puntos clave', 'Pontos principais')
@@ -170,5 +170,5 @@ HUB = [
  (('Test bench fluids', 'Fluidos para banco de pruebas', 'Fluidos para bancada'), ('ISO 4113 calibration fluid and degreasers', 'Fluido de calibración ISO 4113 y desengrasantes', 'Fluido de calibração ISO 4113 e desengraxantes'), '/fluids'),
  (('Robiel tool sets', 'Herramientas Robiel', 'Ferramentas Robiel'), ('26 kits for injectors and pumps', '26 kits para inyectores y bombas', '26 kits para bicos e bombas'), '/tool-sets'),
  (('Aftertreatment testing', 'Pruebas de postratamiento', 'Testes de pós-tratamento'), ('SCR, DEF pump and NOx sensor testers', 'Probadores de SCR, bomba de urea y sensor de NOx', 'Testadores de SCR, bomba de ARLA 32 e sensor de NOx'), '/aftertreatment'),
- (('Request a quote', 'Pedir cotización', 'Pedir cotação'), ('Search by part number or engine', 'Busca por número de parte o motor', 'Busque por part number ou motor'), '/quote'),
+ (('Request a quote', 'Pedir cotización', 'Pedir cotação'), ('Search by part number or engine', 'Busca por número de parte o motor', 'Busque por part number ou motor'), '/portal'),
 ]

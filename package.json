@@ -10,7 +10,8 @@
     "@simplewebauthn/server": "13.3.3",
     "@vercel/blob": "2.9.0",
     "pdfkit": "^0.15.0",
-    "qrcode": "1.5.4"
+    "qrcode": "1.5.4",
+    "sharp": "^0.34.5"
   },
   "overrides": {
     "zod": "^4.6.6"

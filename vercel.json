@@ -7,7 +7,7 @@
       "maxDuration": 30
     },
     "api/quote.js": {
-      "maxDuration": 20
+      "maxDuration": 60
     },
     "api/account.js": {
       "maxDuration": 20
@@ -41,17 +41,25 @@
       "maxDuration": 300
     },
     "api/img.js": {
-      "includeFiles": "data/photos.json",
+      "includeFiles": "{data/photos.json,js/portal-app.js}",
       "maxDuration": 15
     },
     "api/cron-sales.js": {
       "maxDuration": 300
     },
     "api/admin.js": {
+      "includeFiles": "js/portal-app.js",
       "maxDuration": 60
     },
     "api/cron-digest.js": {
       "maxDuration": 60
+    },
+    "api/cron-email.js": {
+      "includeFiles": "js/portal-app.js",
+      "maxDuration": 60
+    },
+    "api/e.js": {
+      "maxDuration": 15
     }
   },
   "headers": [
@@ -139,6 +147,16 @@
     }
   ],
   "redirects": [
+    {
+      "source": "/quote",
+      "destination": "/portal",
+      "permanent": true
+    },
+    {
+      "source": "/parts/c/engine-parts",
+      "destination": "https://volvoenginekits.com/",
+      "permanent": true
+    },
     {
       "source": "/product/tool-set-cp3-pump",
       "destination": "/parts/rb-323-50-34",
@@ -306,12 +324,12 @@
     },
     {
       "source": "/contact-us/",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
       "source": "/contact-us",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
@@ -491,7 +509,7 @@
     },
     {
       "source": "/contact",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
@@ -581,12 +599,12 @@
     },
     {
       "source": "/cart/:path*",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
       "source": "/purchase-completion/:path*",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     },
     {
@@ -1126,7 +1144,7 @@
     },
     {
       "source": "/contact/",
-      "destination": "/quote",
+      "destination": "/portal",
       "permanent": true
     }
   ],
@@ -1170,6 +1188,10 @@
     {
       "path": "/api/cron-digest?when=pm",
       "schedule": "0 23 * * 1-5"
+    },
+    {
+      "path": "/api/cron-email",
+      "schedule": "*/5 * * * *"
     }
   ],
   "rewrites": [

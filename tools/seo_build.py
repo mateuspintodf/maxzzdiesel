@@ -134,7 +134,7 @@ def tabs_html(tabs):
         if t.get('rows'): out.append('<table>' + ''.join(f'<tr><th>{E(r[0])}</th><td>{E(r[1])}</td></tr>' for r in t['rows']) + '</table>')
         if t.get('chips'): out.append(f'<p>{E(t.get("chipsLabel") or "")}</p><ul>' + ''.join((f'<li><a href="{CHIP_HREF[c]}">{E(c)}</a></li>' if c in CHIP_HREF else f'<li>{E(c)}</li>') for c in t['chips']) + '</ul>')
         if t.get('code'): out.append(f'<p>{E(t.get("codeEyebrow", ""))} {E(t["code"])} {E(t.get("codeSub", ""))}</p>')
-        href = t.get('ctaHref') or '/quote'
+        href = t.get('ctaHref') or '/portal'
         out.append(f'<p><a href="{E(href)}">{E(t.get("ctaLabel") or "Add to my quote")}</a></p>')
         out.append('</article>')
     return ''.join(out)

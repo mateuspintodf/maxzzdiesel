@@ -9,7 +9,7 @@
   function read(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   // what the browser remembers belongs to one signed-in person: it is wiped on sign-out, on a revoked session and when a different person signs in
-  function forget() { try { ['mx-portal-cart', 'mx-portal-ship', 'mx-portal-recent', 'mx-portal-who'].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} }
+  function forget(all) { try { ['mx-portal-cart', 'mx-portal-ship', 'mx-portal-recent', 'mx-portal-who'].concat(all ? ['mx-quote'] : []).forEach(function (k) { localStorage.removeItem(k); }); } catch (e) {} }
   function norm(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
   function api(path, opts) {
     opts = opts || {};
@@ -114,7 +114,7 @@
   var CATS = [
     { k: 'Injector', label: 'Injectors', ic: 'inj' }, { k: 'Pump', label: 'Pumps', ic: 'pump' }, { k: 'Nozzle', label: 'Nozzles', ic: 'noz' },
     { k: 'Rail', label: 'Rails', ic: 'rail' }, { k: 'Repair part', label: 'Repair parts', ic: 'rep' }, { k: 'Tool', label: 'Tool sets', ic: 'tool' },
-    { k: 'Engine parts', label: 'Engine parts', ic: 'eng' }, { k: 'Fluid', label: 'Fluids', ic: 'fl' }, { k: 'Kit', label: 'Contamination kits', ic: 'kit' }
+    { k: 'Fluid', label: 'Fluids', ic: 'fl' }, { k: 'Kit', label: 'Contamination kits', ic: 'kit' }
   ];
   var ENG = [{ k: 'f', label: 'Ford · Power Stroke' }, { k: 'c', label: 'Ram / Dodge · Cummins' }, { k: 'd', label: 'Chevy / GMC · Duramax' }, { k: 'h', label: 'Heavy duty trucks' }];
   // bench photos, validation batch for Mike (generated from the Unleashed photo of each part); key = part number
@@ -2431,9 +2431,9 @@
 
   var app = PetiteVue.reactive({
     route: 'home', arg: '', prop: null, camps: [], pub: {}, mOpen: false, mQ: '', mMake: '', me: null, book: null, cat: [], map: {}, fit: { tree: [], items: {}, rel: {} }, buy: null, imgs: {}, bad: {}, pasteWarn: false, exBase: 0, qOpenId: '', pasteMiss: [], autoC: '', autoPrev: '', coTried: false, mbarOn: false, narrow: window.innerWidth <= 760,
-    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, idem: '', vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
-    rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '' }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
-    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '' },
+    err: '', busy: false, toast: '', toastKind: '', ordersLoaded: false, ad: { k: '', items: [], idx: -1, on: true }, idem: '', _saved: JSON.stringify(read(CK, [])), vch: { code: '', ok: false, discount: 0, total: 0, msg: '' }, meLoaded: false, lt: '', iv: null, myQuotes: [], hbg: 0, email: '', sentPending: false,
+    rq: { name: '', company: '', email: '', phone: '', city: '', state: '', zip: '', country: 'United States', type: '', customerNumber: '', notes: '', optin: false }, rqStep: 1, rqTried: false, rqTried2: false, zipMsg: '',
+    q: '', qInput: '', limit: 24, picks: {}, cart: read(CK, []), quote: read(QK, []), qOpen: false, qClosing: false, qSent: null, justPlaced: '', qd: { name: '', company: '', email: '', phone: '', type: '', country: 'United States', city: '', state: '', zip: '', po: '', notes: '', needBy: '', dest: 'same', street: '', optin: false },
     countries: ['United States', 'Puerto Rico', 'Canada', 'Mexico', 'Brazil', 'Colombia', 'Chile', 'Peru', 'Ecuador', 'Argentina', 'Uruguay', 'Paraguay', 'Bolivia', 'Venezuela', 'Panama', 'Costa Rica', 'Guatemala', 'Honduras', 'El Salvador', 'Nicaragua', 'Dominican Republic', 'Other'], usual: [], rep: '', REWARDS: { on: false, demo: true, points: 12480, rate: 1, levels: [
       { k: 'app', n: 'Apprentice', at: 0, c: '#8a9097', perk: 'Points on every order', perks: ['1 point per US$ 1 invoiced', 'Member pricing alerts', 'Order tracking in the store'] },
       { k: 'tech', n: 'Technician', at: 10000, c: '#c87533', perk: 'Free ground freight over US$ 1,500', perks: ['Everything in Apprentice', 'Free ground freight on orders over US$ 1,500', 'Early access to new part lines'] },
@@ -2709,8 +2709,8 @@
     get product() { return this.route === 'p' ? this.map[this.arg] || null : null; },
     get related() {
       var self = this, p = this.product; if (!p) return [];
-      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], codes = (this.fit.rel[p[0]] || []).concat(sr, (this.buy && this.buy[p[0]]) || []), seen = {};
-      return codes.filter(function (c) { if (seen[c] || c === p[0]) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
+      var sr = this.spec && this.spec.rel ? this.spec.rel.split(/\s*,\s*/) : [], ex = (this.relEx && this.relEx[p[0]]) || [], codes = ((this.relMan && this.relMan[p[0]]) || []).concat(this.fit.rel[p[0]] || [], sr, (this.buy && this.buy[p[0]]) || []), seen = {};
+      return codes.filter(function (c) { if (seen[c] || c === p[0] || ex.indexOf(c) >= 0) return false; seen[c] = 1; return true; }).map(function (c) { return self.map[c]; }).filter(Boolean).slice(0, 8);
     },
     // cross-sell on the cart and quote list: bought-together history first, then parts for the same vehicles and engines in complementary categories
     get forgot() {
@@ -2723,7 +2723,7 @@
       var bump = function (c, n) { if (!c || have[c] || !self.map[c]) return; sc[c] = (sc[c] || 0) + n; };
       mine.forEach(function (p) {
         ((self.buy && self.buy[p[0]]) || []).forEach(function (c) { bump(c, 6); });
-        (self.fit.rel[p[0]] || []).forEach(function (c) { bump(c, 5); });
+        (self.fit.rel[p[0]] || []).forEach(function (c) { if (!(self.relEx && self.relEx[p[0]] && self.relEx[p[0]].indexOf(c) >= 0)) bump(c, 5); });
         var comp = COMP[p[3]] || [], f = self.fit.items[p[0]], gens = f ? f[0] : [], eng = String(p[6] || ''); var et = etok(self.title(p));
         self.cat.forEach(function (r) {
           if (have[r[0]] || comp.indexOf(r[3]) < 0) return;
@@ -2767,7 +2767,7 @@
       var self = this, nq = 0, nc = 0;
       list.forEach(function (r) {
         var c = r[0];
-        if (self.canOrder && self.price(c) != null) { if (!self.inCart(c)) { self.cart.push({ code: c, qty: self.usualQty(c) }); nc++; } }
+        if (self.canOrder) { if (!self.inCart(c)) { self.cart.push({ code: c, qty: self.usualQty(c) }); nc++; } }
         else if (!self.inQuote(c)) { self.quote.push({ id: c, name: r[1], pn: c, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: 1 }); nq++; }
       });
       this.save(); write(QK, this.quote); this.pop();
@@ -2809,10 +2809,10 @@
       var who = function () { return me ? [(me.name || self.firstName), acc ? acc.company + (acc.code ? ' · ' + acc.code : '') : 'Maxzz Diesel team', me.email] : [self.qd.name, self.qd.company, self.qd.email, self.qd.phone]; };
       if (this.route === 'o' && this.cur) {
         var o = this.cur, sh = o.ship || {};
-        return { kind: 'order', number: o.number, email: o.by || (me && me.email), billTo: who().filter(Boolean),
+        return { kind: 'order', id: o.id, number: o.number, email: o.by || (me && me.email), billTo: who().filter(Boolean),
           shipTo: /will call/i.test(sh.method || '') ? ['Will call', 'Pick up in Coconut Creek, FL'] : [sh.name, sh.street, [sh.city, sh.state, sh.zip].filter(Boolean).join(', '), sh.country].filter(Boolean),
           refs: ['Date ' + this.date(o.created), o.po ? 'PO ' + o.po : 'No PO', sh.method || '', o.unleashedNumber ? 'Ref ' + o.unleashedNumber : ''].filter(Boolean),
-          lines: o.lines.map(function (l) { return { code: l.code, name: self.name(l.code) || l.name, qty: l.qty, price: l.price }; }), priced: true, total: o.total, units: o.lines.reduce(function (a, l) { return a + l.qty; }, 0), notes: o.notes };
+          lines: o.lines.map(function (l) { return { no: l.no, code: l.code, name: self.name(l.code) || l.name, qty: l.qty, price: l.price, lead: l.lead, state: l.state }; }), priced: true, total: o.total, units: o.lines.reduce(function (a, l) { return a + l.qty; }, 0), notes: o.notes };
       }
       if (this.route === 'quote' && this.qSent) {
         var q = this.qSent;
@@ -2837,7 +2837,7 @@
     next: function () {
       this.err = '';
       if (this.step === 1) {
-        if (this.flow === 'order' && this.noPriceLines.length) { this.err = ''; this.flash('Move the parts without online price to a quote first'); return; }
+        
         if (!this.extras && this.forgot.length) { this.exBase = this.lines.length; return this.nav(this.flow === 'order' ? 'cart' : 'quote', 'extras'); }
         return this.nav(this.flow === 'order' ? 'checkout' : 'quote', this.flow === 'order' ? '' : 'details');
       }
@@ -2856,7 +2856,7 @@
       var d = this.doc; if (!d || d.none) return TRK0;
       if (d.kind === 'order') {
         var st = this.cur ? this.stepOf(this.cur) : 1;
-        return { label: 'Your order number', steps: ['Order placed', 'In review', 'Approved', 'Shipped', 'Invoiced'], at: st };
+        return { label: 'Your order number', steps: ['Order sent', this.cur && this.needsAnswer(this.cur) ? 'Your answer needed' : 'In review', 'Confirmed', 'Shipped and invoiced'], at: st };
       }
       return { label: 'Your quote number', steps: ['Request sent', 'In review', 'Quote sent to you', 'Accepted', 'Shipped'], at: 1 };
     },
@@ -2991,15 +2991,18 @@
       var self = this, h = location.search;
       if (/e=link/.test(h)) this.err = 'That sign-in link expired or was already used. Ask for a new one below.';
       if (/e=access/.test(h)) this.err = 'Your access is not approved yet.';
+      var ad = h.match(/[?&]add=([^&]+)/); if (ad) this.pendAdd = decodeURIComponent(ad[1]).split(',').map(function (x) { var k = x.split(':'); return [String(k[0] || '').trim().slice(0, 60), Math.max(1, Math.min(9999, parseInt(k[1], 10) || 1))]; }).filter(function (x) { return x[0]; }).slice(0, 60);
+      var mk = h.match(/[?&]make=([a-z]+)/), sq = h.match(/[?&]q=([^&]+)/), MK = mk && { ram: 'c', gm: 'd', ford: 'f', hd: 'h' }[mk[1]];
+      if (MK) { this.pendEng = MK; location.hash = '#/all'; } else if (sq) { try { location.hash = '#/s/' + encodeURIComponent(decodeURIComponent(sq[1].replace(/\+/g, ' ')).slice(0, 80)); } catch (e) { /* bad link, open the store */ } }
       var iv = h.match(/[?&]iv=([^&]+)/);
       if (iv) { this.iv = { t: decodeURIComponent(iv[1]), info: null, agree: false, name: '' }; location.hash = '#/login'; api('invite-info?t=' + encodeURIComponent(this.iv.t)).then(function (r) { if (r._status === 200) { self.iv.info = r; self.iv.name = r.name || ''; } else { self.iv = null; self.err = 'That invitation link expired or was already used. Ask us for a new one.'; } }); }
       var lt = h.match(/[?&]lt=([^&]+)/);
       if (lt) { this.lt = decodeURIComponent(lt[1]); location.hash = '#/login'; }
       if (h) history.replaceState(null, '', location.pathname + location.hash);
-      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); });
+      fetch('/api/catalog').then(function (r) { return r.json(); }).then(function (rows) { self.cat = rows; var m = {}; rows.forEach(function (r) { m[r[0]] = r; if (!r[4]) { var bp = String(r[0]).match(/^([A-Z]{2,3})[.\-]/); if (bp && BRP[bp[1]]) r[4] = BRP[bp[1]]; } }); self.map = m; if (self.route === 'p' && !m[self.arg]) self.fixPart(); self.takeAdd(); });
       fetch('/data/fitment.json?v=1').then(function (r) { return r.json(); }).then(function (f) { self.fit = f; }).catch(function () {});
       fetch('/data/specs.json?v=1').then(function (r) { return r.json(); }).then(function (d) { self.specs = d; }).catch(function () {});
-      if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) self.buy = j.rel; }).catch(function () {}); }
+      if (!self.buy) { self.buy = {}; api('related').then(function (j) { if (j && j.rel) { self.relMan = j.man || {}; self.relEx = j.ex || {}; self.buy = j.rel; } }).catch(function () {}); }
       fetch('/api/portal/campaigns').then(function (r) { return r.json(); }).then(function (d) { if (d && d.campaigns) self.camps = d.campaigns; if (d && d.prices) self.pub = d.prices; }).catch(function () {});
       fetch('/api/instock').then(function (r) { return r.json(); }).then(function (d) { if (d && d.codes && d.codes.length) { var m = {}; d.codes.forEach(function (c, i) { m[c] = i; }); self.rank = m; } }).catch(function () {});
       fetch('/api/portal/images').then(function (r) { return r.json(); }).then(function (m) { self.imgs = m || {}; }).catch(function () {});
@@ -3010,16 +3013,19 @@
           if (read('mx-portal-who', '') !== me.email) { forget(); self.cart = []; self.recent = []; self.co.street = self.co.city = self.co.state = self.co.zip = self.co.fwd = ''; }
           write('mx-portal-who', me.email);
           if (self.logged && (self.route === 'login' || self.route === 'request')) location.replace('#/');
-          if (me.account) self.co.name = me.account.company;
-          api('prices').then(function (b) { if (b._status === 200) self.book = b; });
+          if (me.account) self.co.name = self.co.name || me.account.company;
+          var sv0 = me.account && me.account.ship; if (sv0 && typeof sv0 === 'object' && sv0.street && !self.co.street) { self.co.name = sv0.name || self.co.name; self.co.street = sv0.street; self.co.city = sv0.city || ''; self.co.state = sv0.state || ''; self.co.zip = sv0.zip || ''; if (sv0.country && self.countries.indexOf(sv0.country) >= 0) self.co.country = sv0.country; }
+          self.loadBook(0); self.oneList();
           if (self.route === 'account') self.acLoad(); try { if (sessionStorage.getItem('px-login')) { sessionStorage.removeItem('px-login'); track('login', { method: 'email_link' }); } } catch (e) {} if (me.account) api('orders').then(function (o) { if (o.orders) { self.orders = o.orders; if (self.route === 'o') self.cur = o.orders.filter(function (x) { return x.id === self.arg; })[0] || null; } self.ordersLoaded = true; });
           if (me.admin) self.loadAdmin();
           api('quotes').then(function (q) { if (q.quotes) self.myQuotes = q.quotes; });
           self.loadRewards();
           if (me.account) api('usual').then(function (u) { if (u._status === 200) { self.usual = u.parts || []; self.rep = u.rep || ''; } });
-        } else if (me._status === 401) forget();
+        }
       });
       window.addEventListener('hashchange', function () { self.readHash(); });
+      window.addEventListener('storage', function (e) { self.syncLists(e); });
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') self.syncLists(); });
       // account menu: close on a click outside it, on Escape and on navigation
       var closeMenus = function (e) { [].forEach.call(document.querySelectorAll('details.pxh-me[open]'), function (d) { if (!e || !d.contains(e.target)) d.removeAttribute('open'); }); };
       document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.pxh-menu a, .pxh-menu button')) { var d = e.target.closest('details'); if (d) d.removeAttribute('open'); return; } closeMenus(e); }); window.addEventListener('hashchange', function () { closeMenus(); });
@@ -3047,7 +3053,7 @@
       if ((r === 'login' || r === 'request') && this.logged) { location.replace('#/'); return; }
       if (r === 'g' && this.fit.tree.length && !this.genOf(a)) { location.replace('#/all'); return; }
       if (r === 'c') this.f = { cat: [a], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
-      if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false };
+      if (r === 's' || r === 'g' || r === 'all' || r === 'promo' || !r) this.f = { cat: [], brand: [], eng: [], gen: [], sub: [], photo: false, stock: false, out: false }; if (this.pendEng && r === 'all') { this.f.eng = [this.pendEng]; this.pendEng = null; }
       if (r === 'account' && this.me) this.acLoad();
       if ((r === 'orders' || r === 'account') && this.me) { var s3 = this; api('quotes').then(function (q) { if (q.quotes) s3.myQuotes = q.quotes; }); }
       if ((r === 'orders' || r === 'account') && this.me && this.me.account) { var self = this; api('orders').then(function (o) { if (o.orders) self.orders = o.orders; }); }
@@ -3059,7 +3065,7 @@
       if (r === 'quote' && a && !this.quote.length && !this.qSent) { location.hash = '#/quote'; return; }
       this.qOpen = false; if (r !== 'quote') this.qSent = null;
       if (r === 'quote' && this.me) { var acc = this.me.account; if (!this.qd.email) this.qd.email = this.me.email; if (!this.qd.name) this.qd.name = this.me.name || ''; if (!this.qd.company && acc) this.qd.company = acc.company; }
-      if ((r === 'p' || r === 'cart' || r === 'quote' || r === 'home') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) me3.buy = j.rel; }); }
+      if ((r === 'p' || r === 'cart' || r === 'quote' || r === 'home') && !this.buy) { var me3 = this; this.buy = {}; api('related').then(function (j) { if (j && j.rel) { me3.relMan = j.man || {}; me3.relEx = j.ex || {}; me3.buy = j.rel; } }); }
       if (r === 'p' && !this.specs) { var me2 = this; this.specs = {}; fetch('/data/specs.json?v=1').then(function (x) { return x.json(); }).then(function (d) { me2.specs = d; }).catch(function () {}); }
       if (r === 'p') this.dtab = '';
       if (r === 'p' && a && this.cat.length && !this.map[a] && this.fixPart()) return;
@@ -3128,7 +3134,7 @@
     hasImg: function (code) { if (BENCH[code]) return true; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return !!(u && /^https:/.test(u)); },
     img: function (code) { if (this.bad[code]) return ''; if (BENCH[code]) return BENCH[code]; var u = this.imgs[code] || (this.book && this.book.items[code] && this.book.items[code][2]); return u && /^https:/.test(u) ? u : ''; },
     price: function (code) { var p = this.book && this.book.items[code]; return p ? p[0] : null; },
-    get hideOut() { return !!(this.logged && this.me && !this.me.admin && this.book); },
+    get hideOut() { return false; },
     noBuy: function (code) { return this.hideOut && this.hid(code); },
     hid: function (code) { var n = this.qty(code); return n != null && n <= 0; },
     qty: function (code) { var p = this.book && this.book.items[code]; return p ? p[1] : null; },
@@ -3144,12 +3150,57 @@
       api('proposal-accept', { body: { t: this.arg, ship: P.ship, contact: { name: P.contact.name, phone: P.contact.phone }, bill: P.bill, billSame: P.billSame, po: P.po, note: P.note, agree: true } }).then(function (r) { P.busy = false; if (r.ok) { P.done = true; P.v.status = 'accepted'; window.scrollTo({ top: 0, behavior: 'smooth' }); } else P.err = r.error || 'Something went wrong. Please try again or call us.'; });
     },
     propPrint: function () { window.print(); },
-    fmt: function (n) { return n == null ? 'Price on request' : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
+    fmt: function (n) { return n == null ? (this.canOrder ? 'Price confirmed by sales' : 'Ask sales') : '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); },
     ago: function (t) { if (!t) return 'recently'; var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; },
     date: function (t) { return new Date(t).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
-    label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Approved', Backordered: 'Backordered', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
+    label: function (s) { return { Received: 'Received', Parked: 'In review', Placed: 'Confirmed', Backordered: 'Confirmed', Completed: 'Shipped and invoiced', Deleted: 'Cancelled' }[s] || s; },
+    needsAnswer: function (o) { return !!(o && o.lines && o.lines.some(function (l) { return l.state === 'needs_answer'; })); },
+    lineAnswer: function (id, l, action) {
+      var self = this; if (this.busy) return;
+      if (action === 'remove' && !confirm('Remove ' + l.code + ' from this order? The other parts are not affected.')) return;
+      this.busy = true;
+      api('order-line', { body: { order: id, no: l.no, action: action } }).then(function (r) {
+        self.busy = false;
+        if (r._status !== 200 || !r.order) { self.flash(r.error || 'We could not save your answer. Try again.'); return; }
+        self.orders = self.orders.map(function (o) { return o.id === r.order.id ? r.order : o; }); if (self.cur && self.cur.id === r.order.id) self.cur = r.order;
+        self.flash(action === 'accept' ? 'Lead time accepted. We ship that part as soon as it arrives.' : 'Part removed from this order.');
+      }).catch(function () { self.busy = false; self.flash('Connection problem. Try again.'); });
+    },
+    // street autocomplete (Google Places through /api/address): o is the address being typed (street, city, state, zip, country)
+    adIn: function (k, o) {
+      var self = this, ad = this.ad, q = String(o.street || '').trim(); clearTimeout(this._adt); ad.idx = -1; ad.k = k;
+      if (!ad.on || q.length < 4 || q === this._adPicked) { ad.items = []; return; }
+      if (!this._ads) this._ads = (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+      var codes = { 'United States': ['US'], 'Puerto Rico': ['PR'], 'Canada': ['CA'], 'Mexico': ['MX'], 'Brazil': ['BR'], 'Colombia': ['CO'], 'Chile': ['CL'], 'Peru': ['PE'] };
+      var regions = codes[o.country] || (o.country && o.country !== 'United States' ? [] : ['US', 'PR']);
+      this._adt = setTimeout(function () {
+        fetch('/api/address', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q: q, session: self._ads, regions: regions }) })
+          .then(function (r) { if (r.status === 503 || r.status === 403) { ad.on = false; throw 0; } if (!r.ok) throw 0; return r.json(); })
+          .then(function (x) { if (String(o.street || '').trim() === q && ad.k === k) ad.items = x.items || []; })
+          .catch(function () { ad.items = []; });
+      }, 260);
+    },
+    adKey: function (e, o) {
+      var ad = this.ad; if (!ad.items.length) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); ad.idx = (ad.idx + 1) % ad.items.length; }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); ad.idx = (ad.idx - 1 + ad.items.length) % ad.items.length; }
+      else if (e.key === 'Enter' && ad.idx >= 0) { e.preventDefault(); this.adPick(o, ad.items[ad.idx]); }
+      else if (e.key === 'Escape') ad.items = [];
+    },
+    adBlur: function () { var ad = this.ad; setTimeout(function () { ad.items = []; }, 180); },
+    adPick: function (o, a) {
+      var self = this, sess = this._ads; this.ad.items = []; this._ads = null; o.street = a.main; this._adPicked = a.main;
+      fetch('/api/address', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: a.id, session: sess }) })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (x) {
+          var names = { US: 'United States', PR: 'Puerto Rico', CA: 'Canada', MX: 'Mexico', BR: 'Brazil', CO: 'Colombia', CL: 'Chile', PE: 'Peru' };
+          if (x.street) { o.street = x.street + (x.sub ? ' ' + x.sub : ''); self._adPicked = o.street; }
+          if (x.city) o.city = x.city; if (x.state) o.state = x.state; if (x.zip) o.zip = x.zip;
+          if (x.country && names[x.country] && self.countries.indexOf(names[x.country]) >= 0) o.country = names[x.country];
+        }).catch(function () {});
+    },
     // tracker steps filled: Order placed, In review, Approved, Shipped, Invoiced (matches the status pill)
-    stepOf: function (o) { return { Received: 1, Parked: 2, Placed: 3, Backordered: 3, Completed: 5 }[o.status] || 1; },
+    stepOf: function (o) { return { Received: 1, Parked: 2, Placed: 3, Backordered: 3, Completed: 4 }[o.status] || 1; },
     bench: function (code) { return !!BENCH[code]; },
     title: function (r) {
       if (!r || !r[0]) return '';
@@ -3192,6 +3243,14 @@
       }).catch(function () { self.rwBusy = ''; self.flash('Could not redeem now, try again'); });
     },
     pts: function (code) { var p = this.price(code); return p == null ? 0 : Math.round(p * this.REWARDS.rate); },
+    // the price list can answer 503 while the catalog syncs: try again instead of leaving every part without a price
+    loadBook: function (n) { var self = this; api('prices').then(function (b) { if (b._status === 200) { self.book = b; return; } if (n < 4 && b._status !== 401 && b._status !== 403) setTimeout(function () { self.loadBook(n + 1); }, 1500 * (n + 1)); }).catch(function () { if (n < 4) setTimeout(function () { self.loadBook(n + 1); }, 1500 * (n + 1)); }); },
+    // approved customers have one list: whatever was in the quote list before signing in moves into the cart
+    oneList: function () { var self = this; if (!this.canOrder || !this.quote.length) return; var cl = this.quote.filter(function (q) { return q.custom; }).map(function (q) { return q.qty + ' x ' + q.id; }); if (cl.length && (this.co.notes || '').indexOf(cl[0]) < 0) this.co.notes = ((this.co.notes ? this.co.notes + '\n' : '') + 'Not listed online, please check: ' + cl.join(', ')).slice(0, 780);
+      this.quote.filter(function (q) { return !q.custom; }).forEach(function (q) { var l = self.cart.filter(function (x) { return x.code === q.id; })[0]; if (l) l.qty = Math.max(l.qty, q.qty || 1); else self.cart.push({ code: q.id, qty: q.qty || 1 }); }); this.quote.splice(0); write(QK, []); this.save(); if (this.route === 'quote') location.hash = '#/cart'; },
+    // another tab changed a list: take its copy instead of overwriting it later with a stale one
+    syncLists: function (e) { if (e && e.key && e.key !== CK && e.key !== QK) return; var c = read(CK, []), q = read(QK, []); if (JSON.stringify(c) !== JSON.stringify(this.cart)) this.cart = c; if (JSON.stringify(q) !== JSON.stringify(this.quote)) this.quote = q; },
+    get seeStock() { return !!(this.me && this.me.admin); },
     copy: function (txt) { var self = this; try { navigator.clipboard.writeText(txt).then(function () { self.flash('Part number copied'); }); } catch (e) {} },
     pick: function (code) { return this.picks[code] || 1; },
     setPick: function (code, v) { this.picks[code] = Math.max(1, Math.min(9999, parseInt(v, 10) || 1)); },
@@ -3222,6 +3281,17 @@
     ph: function (k) { return '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[this.catIc(k)] || '') + '</svg><span>Photo on request</span>'; },
     wa: function (line, code) { var t = 'Hi Maxzz, ' + (code ? 'about part ' + code + ': ' : '') + 'I would like to check price and availability.'; return 'https://wa.me/' + (line === 'latam' ? '17862412167' : '19543716996') + '?text=' + encodeURIComponent(t); },
     quoteQty: function (code) { var l = this.quote.filter(function (x) { return x.id === code; })[0]; return l ? l.qty : 0; },
+    takeAdd: function () {
+      var self = this, L = this.pendAdd; if (!L || !L.length) return; this.pendAdd = null;
+      L.forEach(function (x) { var hit = self.find(x[0]) || (self.map[x[0]] ? x[0] : null); self.putQuote(hit || x[0], x[1], !hit); });
+      write(QK, this.quote); this.oneList(); location.hash = this.canOrder ? '#/cart' : '#/quote';
+    },
+    // one line of the quote list; custom = a number we do not list online, kept as typed so sales can check it
+    putQuote: function (id, n, custom) {
+      var r = this.map[id], q = this.quote.filter(function (x) { return x.id === id; })[0];
+      if (q) q.qty += n; else if (r && !custom) this.quote.push({ id: id, name: r[1], pn: id, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: n });
+      else this.quote.push({ id: id, name: 'Not listed online, sales will check', pn: id, app: 'Custom line', cat: 'Other', slug: 'other', img: '', pos: '', qty: n, custom: true });
+    },
     addQuote: function (code, n) {
       var r = this.map[code]; if (!r) return; n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.quote.filter(function (x) { return x.id === code; })[0];
@@ -3229,10 +3299,10 @@
       write(QK, this.quote); this.picks[code] = 1;
       this.flash(n + ' added to your quote list', 'quote'); this.pop(); track('quote_add_item', { item_id: code, quantity: n, source: 'store' });
     },
-    save: function () { write(CK, this.cart); if (this.vch && this.vch.ok) { this.vch.ok = false; this.vch.msg = 'Your cart changed. Apply the voucher again.'; } },
+    save: function () { var now = JSON.stringify(this.cart), same = now === this._saved; this._saved = now; write(CK, this.cart); if (same) return; this.idem = ''; if (this.vch && this.vch.ok) { this.vch.ok = false; this.vch.msg = 'Your cart changed. Apply the voucher again.'; } },
     inCart: function (code) { return this.cart.some(function (l) { return l.code === code; }); },
     add: function (code, n) {
-      if (!this.canOrder) return this.addQuote(code);
+      if (!this.canOrder) return this.addQuote(code, n);
       n = Math.max(1, parseInt(n, 10) || 1);
       var l = this.cart.filter(function (x) { return x.code === code; })[0];
       if (l) l.qty += n; else this.cart.push({ code: code, qty: n });
@@ -3250,12 +3320,13 @@
       return hit ? hit[0] : null;
     },
     addPaste: function () {
-      var self = this, ok = 0, miss = [], noPrice = [];
+      var self = this, ok = 0, miss = [], noPrice = [], custom = [];
       this.paste.split(/\n+/).forEach(function (line) {
         line = line.trim(); if (!line) return;
         var m = line.match(/^(.*?)[\s,;\t]+(\d{1,5})\s*$/), code = m ? m[1] : line, n = m ? Math.min(9999, parseInt(m[2], 10)) : 1, hit = self.find(code);
+        if (!hit && self.flow === 'quote' && code.replace(/[^A-Za-z0-9]/g, '').length >= 4) { self.putQuote(code.slice(0, 60), n, true); custom.push(code); return; }
         if (!hit) { miss.push(code); return; }
-        if (self.flow === 'quote' || self.price(hit) == null) {
+        if (self.flow === 'quote' || !self.canOrder) {
           var r = self.map[hit], q = self.quote.filter(function (x) { return x.id === hit; })[0];
           if (q) q.qty += n; else if (r) self.quote.push({ id: hit, name: r[1], pn: hit, app: r[3], cat: r[3], slug: r[2], img: '', pos: '', qty: n });
           if (self.flow === 'quote') ok++; else noPrice.push(hit); return;
@@ -3269,6 +3340,7 @@
       var pm = [];
       if (ok) pm.push(ok + (ok === 1 ? ' part added' : ' parts added'));
       if (miss.length) pm.push((ok ? 'Not found: ' : 'Not listed online: ') + miss.slice(0, 6).join(', ') + (miss.length > 6 ? '...' : '') + (this.flow === 'quote' && this.lines.length ? '. We added them to your notes so sales can check them' : '. Send them to our sales team'));
+      if (custom.length) pm.push(custom.length + (custom.length === 1 ? ' number is' : ' numbers are') + ' not listed online and stayed in the list for sales to check');
       if (noPrice.length) pm.push('No online price, moved to your quote list: ' + noPrice.slice(0, 6).join(', '));
       this.pasteMsg = pm.length ? pm.join('. ') + '.' : 'Nothing to add.';
       this.pasteWarn = !!miss.length;
@@ -3279,7 +3351,7 @@
       var self = this;
       var skipped = 0;
       o.lines.forEach(function (x) {
-        if (self.price(x.code) == null) {
+        if (!self.canOrder) {
           var r = self.map[x.code], q = self.quote.filter(function (z) { return z.id === x.code; })[0];
           if (q) q.qty += x.qty; else self.quote.push({ id: x.code, name: r ? r[1] : (x.name || x.code), pn: x.code, app: r ? r[3] : '', cat: r ? r[3] : '', slug: r ? r[2] : '', img: '', pos: '', qty: x.qty });
           skipped++; return;
@@ -3300,7 +3372,6 @@
     clearVoucher: function () { this.vch = { code: '', ok: false, discount: 0, total: 0, msg: '' }; },
     placeOrder: function () {
       var self = this; if (this.busy) return; this.busy = true; this.err = '';
-      if (this.noPriceLines.length) { this.busy = false; this.err = 'Remove the parts without online price first (' + this.noPriceLines.join(', ') + '). You can send them as a quote request.'; return; }
       if (!this.idem) this.idem = Math.random().toString(36).slice(2) + Date.now().toString(36);
       Beacon.send('checkout', { value: this.flowTotal });
       var body = { idem: this.idem, voucher: this.vch.ok ? this.vch.code : undefined, po: this.co.po, notes: this.co.notes, lines: this.cart.map(function (l) { return { code: l.code, qty: l.qty }; }),
@@ -3363,9 +3434,9 @@
       if (me) { d.name = me.name || this.firstName; d.email = me.email; d.company = acc ? acc.company : 'Maxzz Diesel (internal)'; if (!d.phone) d.phone = me.phone || ''; d.type = d.type || (acc ? 'Approved B2B account ' + (acc.code || '') : 'Internal'); }
       var snap = this.doc; if (snap && snap.none) snap = null;
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
-      var lines = this.quote.map(function (l) { return { pn: l.id, name: String(self.title(self.map[l.id]) || l.name || '').replace(/\u2011/g, '-'), qty: l.qty }; });
+      var lines = this.quote.map(function (l) { return { pn: l.id, name: String((self.map[l.id] && self.title(self.map[l.id])) || (l.custom ? 'Custom line, not listed online' : l.name) || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
-      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
+      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', optin: !!this.qd.optin, attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
         customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, this.qShip), lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (res) {
@@ -3379,7 +3450,7 @@
         })
         .catch(function () { self.busy = false; self.err = 'We could not send it right now. Try again, or e-mail the list to sales@maxzzdiesel.com.'; });
     },
-    logout: function () { forget(); api('logout', { body: {} }).then(function () { location.href = '/portal'; }); },
+    logout: function () { forget(true); api('logout', { body: {} }).then(function () { location.href = '/portal'; }); },
 
     // admin
     lookup: function (a) { var self = this; if (!a._q.trim()) return; a._busy = true; api('admin-lookup?code=' + encodeURIComponent(a._q.trim())).then(function (r) { a._busy = false; a._res = r.customers || []; if (r.error) self.flash(r.error); }); },
