@@ -299,10 +299,12 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 .ri:hover>.fly,.ri:has(:focus-visible)>.fly{opacity:1;visibility:visible;transform:none;transition:opacity var(--mo-open) var(--mo-ease) 80ms,transform var(--mo-open) var(--mo-ease) 80ms,visibility 0s linear 80ms}
 .rail.shut .fly{opacity:0!important;visibility:hidden!important;transition:none!important}
 .ri.rset .fly{top:auto;bottom:-8px;transform-origin:left bottom}
-.fly b{display:block;padding:9px 12px 7px;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
-.fly button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:none;padding:9px 12px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--ink2);text-align:left;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease}
+.fly b{display:block;margin:0 4px 6px;padding:10px 8px 10px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);border-bottom:1px solid var(--line2)}
+.fly button{display:flex;align-items:center;gap:10px;width:100%;border:0;background:none;padding:6px 12px 6px 6px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--ink2);text-align:left;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease}
 .fly button:hover{background:var(--soft);color:var(--ink)}.fly button:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
-.fly button.on{background:var(--accs);color:var(--ink);font-weight:600}.fly button.on:after{content:'';width:6px;height:6px;border-radius:50%;background:var(--acc);flex:none}
+.fly .fi{width:30px;height:30px;flex:none;border-radius:9px;background:var(--soft);color:var(--ink2);display:flex;align-items:center;justify-content:center;transition:background .15s ease,color .15s ease}.fly .fn{flex:1}
+.fly button:hover .fi{background:#fff;color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.fly button.on{background:var(--accs);color:var(--ink);font-weight:600}.fly button.on .fi{background:var(--acc);color:#fff;box-shadow:none}
 .fly .ct{font-style:normal;font-size:11px;font-weight:600;line-height:1;background:var(--red);color:#fff;border-radius:999px;padding:3px 7px}
 .rail .menu{position:fixed;left:84px!important;right:auto!important;top:16px!important;bottom:auto;max-height:calc(100vh - 32px)!important;overflow:auto;transform-origin:left top}
 .rail .rs .menu{top:auto!important;bottom:16px;transform-origin:left bottom}
@@ -491,6 +493,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     bell: '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20a2 2 0 0 0 4 0"/>', camera: '<path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>', plus: '<path d="M12 5v14M5 12h14"/>', cal: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>', eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>', eyeoff: '<path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.6 0 3-.4 4.3-1"/>',
     filter: '<path d="M3 5h18l-7 8v6l-4 2v-8z"/>', trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/>', upload: '<path d="M12 16V4M6 9l6-6 6 6M4 20h16"/>',
     phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>', pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+    ticket: '<path d="M4 7.5h16v2.8a2 2 0 0 0 0 3.4v2.8H4v-2.8a2 2 0 0 0 0-3.4z"/><path d="M14.5 8v1.5M14.5 11.3v1.4M14.5 14.5V16"/>',
     cart: '<circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h12L22 7H6"/>', globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18"/>', user: '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>', copy: '<rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V4H3v13h5"/>'
   };
   function ic(k, s) { if (k === 'truck') { var w = Math.round((s || 18) * 1.3); return '<svg width="' + w + '" height="' + (s || 18) + '" viewBox="0 0 345.53 208.72" aria-hidden="true"><path fill="currentColor" d="M192.67,0H12.21C5.47,0,0,5.47,0,12.21v146.49c0,10.55,8.55,19.11,19.11,19.11h30.52c1.48-21.89,19.74-39.25,41.99-39.25s40.52,17.36,41.99,39.25h71.27V12.21C204.88,5.47,199.41,0,192.67,0Z"/><circle fill="currentColor" cx="91.62" cy="180.66" r="28.06"/><path fill="#d32a37" d="M338.65,95.45l-44.14-54c-5.79-7.08-14.45-11.19-23.6-11.19h-50.11v147.54h10.28c.67-21.97,18.74-39.64,40.87-39.64s40.2,17.67,40.87,39.64h15.06c9.75,0,17.65-7.9,17.65-17.65v-45.41C345.53,107.71,343.1,100.89,338.65,95.45ZM311.17,98.46h-68.48v-47.37h23.38c5.61,0,10.95,2.4,14.68,6.59l30.42,34.21V98.46Z"/><circle fill="currentColor" cx="271.95" cy="179.07" r="26.87"/></svg>'; } return '<svg width="' + (s || 18) + '" height="' + (s || 18) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[k] || '') + '</svg>'; }
@@ -534,12 +537,13 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   };
   function rico(k) { return '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + RICO[k] + '</svg>'; }
   // the pages of a section, as the page tabs and the flyout show them (Overview and Sales by customer are two views of one page)
+  var PICO = { overview: 'monitor', customers: 'users', sa: 'chart', events: 'activity', bcomp: 'eye', stream: 'list', crm: 'board', pipe: 'cart', dir: 'users', goals: 'award', clients: 'user', prospects: 'plus', segments: 'send', emails: 'mail', social: 'camera', campaigns: 'tag', vouchers: 'ticket', loyalty: 'award', products: 'box', profile: 'user', terms: 'file', admins: 'shield', audit: 'clock' };
   function pagesOf(g, pend) { var out = [];
     g[2].forEach(function (t) {
-      if (t[0] === 'dash') { var dv = S.dview || 'overview'; DVIEWS.forEach(function (x) { out.push({ n: x[1], a: 'data-act="dview" data-v="' + x[0] + '"', on: S.tab === 'dash' && dv === x[0] }); }); return; }
-      out.push({ n: t[1], a: 'data-tab="' + t[0] + '"', on: S.tab === t[0], c: t[0] === 'clients' && pend ? pend : 0 }); });
+      if (t[0] === 'dash') { var dv = S.dview || 'overview'; DVIEWS.forEach(function (x) { out.push({ n: x[1], k: PICO[x[0]], a: 'data-act="dview" data-v="' + x[0] + '"', on: S.tab === 'dash' && dv === x[0] }); }); return; }
+      out.push({ n: t[1], k: PICO[t[0]], a: 'data-tab="' + t[0] + '"', on: S.tab === t[0], c: t[0] === 'clients' && pend ? pend : 0 }); });
     return out; }
-  function flyOut(g, pend) { return '<div class="fly"><b>' + esc(g[1]) + '</b>' + pagesOf(g, pend).map(function (p) { return '<button ' + p.a + (p.on ? ' class="on" aria-current="page"' : '') + '><span>' + esc(p.n) + '</span>' + (p.c ? '<i class="ct">' + p.c + '</i>' : '') + '</button>'; }).join('') + '</div>'; }
+  function flyOut(g, pend) { return '<div class="fly"><b>' + esc(g[1]) + '</b>' + pagesOf(g, pend).map(function (p) { return '<button ' + p.a + (p.on ? ' class="on" aria-current="page"' : '') + '><span class="fi">' + ic(p.k || 'list', 16) + '</span><span class="fn">' + esc(p.n) + '</span>' + (p.c ? '<i class="ct">' + p.c + '</i>' : '') + '</button>'; }).join('') + '</div>'; }
   function drawRail(P, pend) {
     var G = navF(), st = G.filter(function (g) { return g[0] === 'set'; })[0];
     var h = '<aside class="rail' + (RAILSHUT ? ' shut' : '') + '"><a class="rl-logo" href="#" data-tab="dash" aria-label="Maxzz Admin, Overview"><img src="/assets/favicon.svg" alt=""><span>Admin</span></a><nav class="rp nv" aria-label="Sections">';
