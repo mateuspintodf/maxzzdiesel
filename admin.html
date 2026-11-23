@@ -265,6 +265,9 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 /* success check in the toast: blur and rotate in, then the stroke draws */
 .tck{width:22px;height:22px;border-radius:50%;background:var(--ok);display:inline-flex;align-items:center;justify-content:center;flex:none;animation:tck .45s cubic-bezier(.34,1.56,.64,1) both}.tck svg{stroke-dasharray:24;stroke-dashoffset:24;animation:drw .35s .18s ease forwards}
 @keyframes tck{from{transform:rotate(-90deg) scale(.4);filter:blur(4px);opacity:0}}@keyframes drw{to{stroke-dashoffset:0}}
+/* panel reveal for what appears after a click, and a short stagger for grids of cards */
+.rvl{animation:rvl .28s cubic-bezier(.2,.9,.25,1) both}@keyframes rvl{from{opacity:0;transform:translateY(8px);filter:blur(3px)}}
+.stg>*{animation:rvl .34s cubic-bezier(.2,.9,.25,1) both}.stg>*:nth-child(2){animation-delay:28ms}.stg>*:nth-child(3){animation-delay:56ms}.stg>*:nth-child(4){animation-delay:84ms}.stg>*:nth-child(5){animation-delay:112ms}.stg>*:nth-child(6){animation-delay:140ms}.stg>*:nth-child(7){animation-delay:168ms}.stg>*:nth-child(8){animation-delay:196ms}.stg>*:nth-child(9){animation-delay:224ms}.stg>*:nth-child(10){animation-delay:252ms}.stg>*:nth-child(11){animation-delay:280ms}.stg>*:nth-child(12){animation-delay:308ms}.stg>*:nth-child(n+13){animation-delay:336ms}
 /* spinner inside busy buttons */
 .spn{display:inline-block;width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}@keyframes spin{to{transform:rotate(360deg)}}
 /* accordion: details open with height and the chevron turns */
@@ -2047,7 +2050,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (!app.querySelector('.skel') && !S.sdBusy) app.style.minHeight = '';
     enhance();
   }
-  var NUMSEL = '.kpi>b,.mk b,.fst b,.segn b,.stat b';
+  var NUMSEL = '.kpi>b,.mk b,.fst b,.segn b,.stat b,.ml-sumn b';
   function fitBoard() {
     var kb = app.querySelector('.kb'), wide = window.innerWidth > 760;
     document.body.style.overflowY = document.documentElement.style.overflowY = kb && wide ? 'hidden' : '';
@@ -2468,9 +2471,9 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var gd = location.search.match(/[?&]deal=([0-9a-f-]{36})/i); if (gd) { try { sessionStorage.setItem('mz_godeal', gd[1]); } catch (e) {} history.replaceState(null, '', location.pathname); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
-  window.MXA = { S: S, api: api, draw: draw, esc: esc, ic: ic, tbl: tbl, th: th, h0: h0, hr: hr, n0: n0, opt: opt, toast: toast, tile: tile, sortRows: sortRows, fmtAt: fmtAt, ld: ld };
-  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-social.js?v=2'; sc.onload = function () { if (S.tab === 'social' && S.me) { loadTab('social'); } }; document.head.appendChild(sc); })();
-  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-mail.js?v=12'; sc.onload = function () { if (S.tab === 'emails' && S.me) { loadTab('emails'); } }; document.head.appendChild(sc); })();
+  window.MXA = { go: go, S: S, api: api, draw: draw, esc: esc, ic: ic, tbl: tbl, th: th, h0: h0, hr: hr, n0: n0, opt: opt, toast: toast, tile: tile, sortRows: sortRows, fmtAt: fmtAt, ld: ld };
+  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-social.js?v=3'; sc.onload = function () { if (S.tab === 'social' && S.me) { loadTab('social'); } }; document.head.appendChild(sc); })();
+  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-mail.js?v=13'; sc.onload = function () { if (S.tab === 'emails' && S.me) { loadTab('emails'); } }; document.head.appendChild(sc); })();
 })();
 </script>
 </body>
