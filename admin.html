@@ -281,6 +281,43 @@ html[data-dir=back]::view-transition-old(root){animation:pgOutR .24s cubic-bezie
 @keyframes tgOff{0%{transform:translateX(16px)}55%{transform:translateX(-3px) scaleX(1.12)}75%{transform:translateX(2px)}90%{transform:translateX(-1px)}100%{transform:translateX(0)}}
 /* tooltip: delayed in, travels between targets, instant out */
 #tip{position:fixed;z-index:95;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;font-weight:500;padding:6px 10px;border-radius:8px;white-space:nowrap;opacity:0;transform:translate(-50%,-4px);transition:opacity .12s ease,transform .12s ease,left .18s cubic-bezier(.3,1.2,.5,1),top .18s cubic-bezier(.3,1.2,.5,1)}#tip.on{opacity:1;transform:translate(-50%,-8px)}#tip.jump{transition:opacity .12s ease,transform .12s ease}
+/* ---------- side rail: floating pills, icons only; the section's pages open on hover ---------- */
+.rail{position:fixed;z-index:55;left:16px;top:16px;bottom:16px;width:52px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.rl-logo{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;padding:2px 0 4px}.rl-logo img{width:40px;height:40px;display:block;border-radius:12px}.rl-logo span{font-size:8.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:#fff;border-radius:6px;padding:2px 5px}
+.rp{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;background:#fff;border-radius:999px;box-shadow:0 1px 2px rgba(22,25,29,.05),0 8px 24px rgba(22,25,29,.06)}
+.rail .sp{flex:1}.ri,.rw{position:relative}
+.rb{position:relative;z-index:1;width:40px;height:40px;border-radius:50%;border:0;background:none;color:var(--ink2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;transition:background .15s ease,color .2s ease}
+.rb:hover:not(.on),.ri:hover>.rb:not(.on){background:var(--soft);color:var(--ink)}.rb:focus-visible{outline:none;box-shadow:0 0 0 2px var(--ink)}
+.rb.on{color:#fff}.rb.on .ac{stroke:var(--acc)}.rb.on .af{stroke:var(--acc);fill:var(--acc)}.rb.solo.on,.rp.nv:not(.ind) .rb.on{background:var(--ink)}
+.rp.nv:before{content:'';position:absolute;left:0;top:0;width:40px;height:40px;border-radius:50%;background:var(--ink);transform:translate(var(--ix,6px),var(--iy,6px));opacity:var(--io,0);transition:transform .32s cubic-bezier(.3,1.25,.5,1),opacity .2s ease;pointer-events:none}.rp.nv.nofx:before{transition:none}
+.rdot{position:absolute;top:7px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px #fff}
+.rail .cb{width:40px;height:40px;border:0;background:none;color:var(--ink2)}.rail .cb i{top:7px;right:8px;width:8px;height:8px}
+.rail .who{border-radius:50%}.rail .who .av{width:40px;height:40px;margin:0;font-size:13px}
+/* flyout: opens after a short pause (250ms in, 150ms out), a bridge keeps it open while the pointer crosses the gap */
+.fly{position:absolute;left:calc(100% + 16px);top:-8px;min-width:236px;background:#fff;border-radius:18px;padding:6px;box-shadow:0 1px 2px rgba(22,25,29,.06),0 18px 44px rgba(22,25,29,.16);opacity:0;visibility:hidden;transform:translateX(-6px) scale(.97);transform-origin:left top;transition:opacity var(--mo-close) var(--mo-ease),transform var(--mo-close) var(--mo-ease),visibility 0s linear var(--mo-close);z-index:70}
+.fly:before{content:'';position:absolute;right:100%;top:0;bottom:0;width:20px}
+.ri:hover>.fly,.ri:has(:focus-visible)>.fly{opacity:1;visibility:visible;transform:none;transition:opacity var(--mo-open) var(--mo-ease) 80ms,transform var(--mo-open) var(--mo-ease) 80ms,visibility 0s linear 80ms}
+.rail.shut .fly{opacity:0!important;visibility:hidden!important;transition:none!important}
+.ri.rset .fly{top:auto;bottom:-8px;transform-origin:left bottom}
+.fly b{display:block;padding:9px 12px 7px;font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
+.fly button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;border:0;background:none;padding:9px 12px;border-radius:12px;font-size:13.5px;font-weight:500;color:var(--ink2);text-align:left;cursor:pointer;white-space:nowrap;transition:background .15s ease,color .15s ease}
+.fly button:hover{background:var(--soft);color:var(--ink)}.fly button:focus-visible{outline:none;box-shadow:inset 0 0 0 2px var(--ink)}
+.fly button.on{background:var(--accs);color:var(--ink);font-weight:600}.fly button.on:after{content:'';width:6px;height:6px;border-radius:50%;background:var(--acc);flex:none}
+.fly .ct{font-style:normal;font-size:11px;font-weight:600;line-height:1;background:var(--red);color:#fff;border-radius:999px;padding:3px 7px}
+.rail .menu{position:fixed;left:84px!important;right:auto!important;top:16px!important;bottom:auto;max-height:calc(100vh - 32px)!important;overflow:auto;transform-origin:left top}
+.rail .rs .menu{top:auto!important;bottom:16px;transform-origin:left bottom}
+#tip.side{transform:translate(0,-50%)}#tip.side.on{transform:translate(4px,-50%)}
+/* page head on one line: section, date, page tabs, then the page's own controls */
+.ph{margin:20px 4px 18px;gap:12px 18px}.ph .t{flex:none;min-width:0;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.ph .t h1{font-size:22px;letter-spacing:-.02em}.ph .t small{margin:0;font-size:12.5px}
+.ph .acts{flex:1 1 420px;min-width:0}.ph .acts .sp{flex:1}.seg.pg{flex-wrap:nowrap}
+@media(min-width:901px){.rail~.app{margin-left:max(84px,calc((100% - 1480px) / 2));padding-top:16px}}
+@media(max-width:900px){
+.rail{top:auto;left:10px;right:10px;bottom:10px;width:auto;flex-direction:row;justify-content:center;gap:8px}
+.rail .rl-logo,.rail .sp,.rail .ri.rset,.rail .rw.bf,.fly{display:none}
+.rp{flex-direction:row}
+.rail .menu{left:10px!important;right:10px!important;top:auto!important;bottom:76px!important;width:auto!important;max-height:70vh!important;transform-origin:bottom center}
+.rail~.app{padding-bottom:100px}.ph .t h1{font-size:20px}
+}
 @media (prefers-reduced-motion: reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 .apvh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px}.apvh small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;max-width:520px}.btn.dang{color:var(--red);border-color:#f2c4c8}.btn.dang:hover{background:#fdecee}
 .tgc{padding-right:4px;background:#eef0ff;color:var(--blue)}.tgc button{border:0;background:none;color:inherit;cursor:pointer;padding:0 2px;display:inline-flex;opacity:.6}.tgc button:hover{opacity:1}
@@ -463,7 +500,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   // five groups, the daily sales work first; screen ids are the same as before, so saved permissions keep working
   var NAV = [
     ['sales', 'Sales', [['crm', 'CRM'], ['pipe', 'Quotes & orders'], ['dir', 'Customers'], ['goals', 'Goals & rewards']]],
-    ['ana', 'Analytics', [['sa', 'Sales'], ['dash', 'Overview'], ['events', 'Portal behavior'], ['bcomp', 'Behavior by customer'], ['stream', 'Event stream']]],
+    ['ana', 'Analytics', [['dash', 'Overview'], ['sa', 'Sales'], ['events', 'Portal behavior'], ['bcomp', 'Behavior by customer'], ['stream', 'Event stream']]],
     ['portal', 'Portal', [['clients', 'Accounts'], ['prospects', 'Add by hand'], ['segments', 'Lists & invites']]],
     ['mkt', 'Marketing', [['emails', 'Email campaigns'], ['social', 'Social media'], ['campaigns', 'Price campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['cat', 'Catalog', [['products', 'Products']]],
@@ -474,7 +511,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var PAGE = {}; NAV.forEach(function (g) { g[2].forEach(function (t) { PAGE[t[0]] = { g: g[0], gn: g[1], n: t[1] }; }); }); PAGE.sec = PAGE.profile;
   var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer']];
   var HEAD = {
-    dash: function () { var v = S.dview || 'overview'; return '<div class="seg">' + DVIEWS.map(function (x) { return '<button data-act="dview" data-v="' + x[0] + '" class="' + (v === x[0] ? 'on' : '') + '">' + x[1] + '</button>'; }).join('') + '</div>' +
+    dash: function () { var v = S.dview || 'overview'; return '' +
       // the period box stays in place on every view; the customer and parts views are always the last 12 months
       ((v === 'portal' || v === 'overview') ? '<select class="sel" data-act-change="days" aria-label="Period">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + (d === 365 ? '12 months' : d + ' days') + '</option>'; }).join('') + '</select>'
         : '<span class="sel per-fixed" data-tip="This view always uses the last 12 months, compared with the 12 before">Period: last 12 months</span>'); },
@@ -483,6 +520,45 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   };
   function daysSel() { return '<select class="sel" data-act-change="bdays">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.bdays || 30) === d ? ' selected' : '') + '>Last ' + d + ' days</option>'; }).join('') + '</select>'; }
   function hello() { var h = new Date().getHours(), n = S.me.email.split('@')[0]; n = n.charAt(0).toUpperCase() + n.slice(1); return (h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ', ' + n; }
+  // side rail: floating pills with icons only; hovering an icon opens its pages (flyout)
+  var RAILSHUT = '';
+  var RICO = {
+    sales: '<path d="M5.2 8.5h13.6l-.9 10.2a2 2 0 0 1-2 1.8H8.1a2 2 0 0 1-2-1.8z"/><path class="ac" d="M9 10.5V7a3 3 0 0 1 6 0v3.5"/>',
+    ana: '<rect x="4" y="11" width="4" height="9" rx="1.6"/><rect class="af" x="10" y="4" width="4" height="16" rx="1.6"/><rect x="16" y="14" width="4" height="6" rx="1.6"/>',
+    portal: '<path d="M4.5 11v7.5a1.5 1.5 0 0 0 1.5 1.5h12a1.5 1.5 0 0 0 1.5-1.5V11"/><path d="M3.5 9.2 5 4.5h14l1.5 4.7a2.6 2.6 0 0 1-5.1.8 2.6 2.6 0 0 1-5.1 0 2.6 2.6 0 0 1-5.1 0 2.6 2.6 0 0 1-1.7-.8z"/><path class="ac" d="M10 20v-4.5a2 2 0 0 1 4 0V20"/>',
+    mkt: '<path d="M4 10.6v2.8A1.6 1.6 0 0 0 5.6 15H7l7.2 4.2a.8.8 0 0 0 1.2-.7V5.5a.8.8 0 0 0-1.2-.7L7 9H5.6A1.6 1.6 0 0 0 4 10.6z"/><path d="M8 15.2l.9 3.6"/><path class="ac" d="M18.5 9.5a3.6 3.6 0 0 1 0 5"/>',
+    cat: '<rect x="4" y="4" width="7" height="7" rx="2.2"/><rect x="13" y="4" width="7" height="7" rx="2.2"/><rect x="4" y="13" width="7" height="7" rx="2.2"/><circle class="af" cx="16.5" cy="16.5" r="3.5"/>',
+    set: '<path d="M4 7.5h9M19 7.5h1M4 16.5h2M12 16.5h8"/><circle class="af" cx="16" cy="7.5" r="2.5"/><circle cx="9" cy="16.5" r="2.5"/>',
+    bell: '<path d="M6 10.5a6 6 0 0 1 12 0c0 3.6 1.2 5.2 1.9 5.9a.6.6 0 0 1-.4 1.1H4.5a.6.6 0 0 1-.4-1.1c.7-.7 1.9-2.3 1.9-5.9z"/><path d="M10 20a2.1 2.1 0 0 0 4 0"/>',
+    spark: '<path d="M11 3.5c.6 4 2.5 5.9 6.5 6.5-4 .6-5.9 2.5-6.5 6.5-.6-4-2.5-5.9-6.5-6.5 4-.6 5.9-2.5 6.5-6.5z"/><path d="M18 14.5c.3 1.7 1.1 2.5 2.8 2.8-1.7.3-2.5 1.1-2.8 2.8-.3-1.7-1.1-2.5-2.8-2.8 1.7-.3 2.5-1.1 2.8-2.8z"/>'
+  };
+  function rico(k) { return '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + RICO[k] + '</svg>'; }
+  // the pages of a section, as the page tabs and the flyout show them (Overview and Sales by customer are two views of one page)
+  function pagesOf(g, pend) { var out = [];
+    g[2].forEach(function (t) {
+      if (t[0] === 'dash') { var dv = S.dview || 'overview'; DVIEWS.forEach(function (x) { out.push({ n: x[1], a: 'data-act="dview" data-v="' + x[0] + '"', on: S.tab === 'dash' && dv === x[0] }); }); return; }
+      out.push({ n: t[1], a: 'data-tab="' + t[0] + '"', on: S.tab === t[0], c: t[0] === 'clients' && pend ? pend : 0 }); });
+    return out; }
+  function flyOut(g, pend) { return '<div class="fly"><b>' + esc(g[1]) + '</b>' + pagesOf(g, pend).map(function (p) { return '<button ' + p.a + (p.on ? ' class="on" aria-current="page"' : '') + '><span>' + esc(p.n) + '</span>' + (p.c ? '<i class="ct">' + p.c + '</i>' : '') + '</button>'; }).join('') + '</div>'; }
+  function drawRail(P, pend) {
+    var G = navF(), st = G.filter(function (g) { return g[0] === 'set'; })[0];
+    var h = '<aside class="rail' + (RAILSHUT ? ' shut' : '') + '"><a class="rl-logo" href="#" data-tab="dash" aria-label="Maxzz Admin, Overview"><img src="/assets/favicon.svg" alt=""><span>Admin</span></a><nav class="rp nv" aria-label="Sections">';
+    G.forEach(function (g) { if (g[0] === 'set' || !RICO[g[0]]) return; var on = P.g === g[0];
+      h += '<div class="ri" data-g="' + g[0] + '"><button class="rb' + (on ? ' on' : '') + '" data-tab="' + g[2][0][0] + '" aria-label="' + esc(g[1]) + '"' + (on ? ' aria-current="true"' : '') + '>' + rico(g[0]) + (g[0] === 'portal' && pend ? '<i class="rdot"></i>' : '') + '</button>' + flyOut(g, pend) + '</div>'; });
+    h += '</nav><div class="rp ra">';
+    if (S.me.role === 'superadmin') h += '<div class="rw bf"><button class="rb cb" data-act="brief" data-tip="Daily briefing" aria-label="Daily briefing">' + rico('spark') + '</button>' + (S.bfOpen ? '<div class="menu nfp" style="width:440px;max-width:92vw;padding:0">' + drawBrief() + '</div>' : '') + '</div>';
+    h += '<div class="rw"><button class="rb cb" data-act="bell" data-tip="Notifications" aria-label="Notifications">' + rico('bell') + (pend || nfUn() ? '<i></i>' : '') + '</button>' + (S.nfOpen ? nfPanel(pend) : '') + '</div></div><span class="sp"></span><div class="rp rs">';
+    if (st) { var son = P.g === 'set'; h += '<div class="ri rset" data-g="set"><button class="rb solo' + (son ? ' on' : '') + '" data-tab="' + st[2][0][0] + '" aria-label="Settings"' + (son ? ' aria-current="true"' : '') + '>' + rico('set') + '</button>' + flyOut(st, pend) + '</div>'; }
+    h += '<div class="rw"><button class="who" data-act="me" data-tip="Account" aria-label="Account"><span class="av">' + avIn(S.me) + '</span></button>' +
+      (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="profile">' + ic('user', 16) + 'My account</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></aside>';
+    return h; }
+  // the dark circle glides to the active section (tabs sliding), down the rail or across the phone bar
+  function railInd() { var rn = app.querySelector('.rp.nv'); if (!rn) return; var ro = rn.querySelector('.rb.on'); if (!ro) { rn.style.setProperty('--io', '0'); return; }
+    var rf = !rn.classList.contains('ind'); if (rf) rn.classList.add('nofx'); rn.style.setProperty('--ix', ro.parentNode.offsetLeft + 'px'); rn.style.setProperty('--iy', ro.parentNode.offsetTop + 'px'); rn.style.setProperty('--io', '1'); rn.classList.add('ind'); if (rf) requestAnimationFrame(function () { rn.classList.remove('nofx'); }); }
+  window.addEventListener('resize', function () { var rn = app.querySelector('.rp.nv'); if (rn) { rn.classList.add('nofx'); railInd(); requestAnimationFrame(function () { rn.classList.remove('nofx'); }); } });
+  // after a click in the rail the flyout stays shut until the pointer (or keyboard focus) moves to another item
+  function railReopen(e) { if (!RAILSHUT) return; var ri = e.target.closest && e.target.closest('.rail .ri'); if (ri && ri.dataset.g === RAILSHUT) return; RAILSHUT = ''; var rl = app.querySelector('.rail'); if (rl) rl.classList.remove('shut'); }
+  document.addEventListener('mouseover', railReopen); document.addEventListener('focusin', railReopen);
   function draw() {
     var mp = document.getElementById('mn-pop'); if (mp && !(document.activeElement && document.activeElement.id === 'crm-note')) mp.remove();
     ECS = {}; ECN = 0;
@@ -490,12 +566,9 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     document.body.classList.remove('is-login');
     if (!okTab(S.tab) && navF().length) { S.tab = navF()[0][2][0][0]; setTimeout(function () { loadTab(S.tab); }, 0); }
     var pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0, P = PAGE[S.tab] || PAGE.dash, grp = navF().filter(function (g) { return g[0] === P.g; })[0];
-    var h = '<div class="app"><header class="top"><a class="logo" href="#" data-tab="dash"><img src="/assets/logo-positive.svg" alt="Maxzz Diesel"><span>Admin</span></a><nav class="nav">';
-    navF().forEach(function (g) { if (g[0] === 'set') return; h += '<button data-tab="' + g[2][0][0] + '" class="' + (P.g === g[0] ? 'on' : '') + '">' + g[1] + '</button>'; });
-    h += '</nav><div class="tools">' + (S.me.role === 'superadmin' ? '<div style="position:relative"><button class="cb" data-act="brief" title="Daily briefing" aria-label="Daily briefing">' + ic('spark') + '</button>' + (S.bfOpen ? '<div class="menu nfp" style="right:0;left:auto;width:440px;max-width:92vw;padding:0;max-height:78vh;overflow:auto">' + drawBrief() + '</div>' : '') + '</div>' : '') + '<div style="position:relative"><button class="cb" data-act="bell" title="Notifications" aria-label="Notifications">' + ic('bell') + (pend || nfUn() ? '<i></i>' : '') + '</button>' + (S.nfOpen ? nfPanel(pend) : '') + '</div><div style="position:relative"><button class="who" data-act="me" aria-label="Account"><span class="av">' + avIn(S.me) + '</span>' + ic('dn', 14) + '</button>' +
-      (S.meOpen ? '<div class="menu"><div class="hd"><b>' + esc(S.me.name || S.me.email) + '</b>' + (S.me.name ? '<small style="display:block">' + esc(S.me.email) + '</small>' : '') + '<small>' + esc(S.me.role) + '</small></div><button data-tab="profile">' + ic('user', 16) + 'My account</button><button data-tab="terms">' + ic('file', 16) + 'Terms of use</button><button data-tab="admins">' + ic('shield', 16) + 'Admin users</button><button data-tab="audit">' + ic('clock', 16) + 'Activity log</button><button data-act="out">' + ic('out', 16) + 'Sign out</button></div>' : '') + '</div></div></header>';
-    var title = S.tab === 'dash' ? hello() : P.n, sub = S.tab === 'dash' ? 'Maxzz Diesel · ' + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) : P.gn;
-    h += '<div class="ph"><div class="t"><small>' + esc(sub) + '</small><h1>' + esc(title) + '</h1></div><div class="acts">' + (HEAD[S.tab] ? HEAD[S.tab]() : '') + (grp && grp[2].length > 1 ? '<div class="seg">' + grp[2].map(function (t) { return '<button data-tab="' + t[0] + '" class="' + (S.tab === t[0] ? 'on' : '') + '">' + t[1] + (t[0] === 'clients' && pend ? ' (' + pend + ')' : '') + '</button>'; }).join('') + '</div>' : '') + '</div></div>';
+    var h = drawRail(P, pend) + '<div class="app">';
+    var pages = grp ? pagesOf(grp, pend) : [], title = P.gn, sub = (pages.length > 1 ? '' : P.n + ' · ') + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    h += '<div class="ph"><div class="t"><h1>' + esc(title) + '</h1><small>' + esc(sub) + '</small></div><div class="acts">' + (pages.length > 1 ? '<div class="seg pg">' + pages.map(function (p) { return '<button ' + p.a + ' class="' + (p.on ? 'on' : '') + '">' + esc(p.n) + (p.c ? ' (' + p.c + ')' : '') + '</button>'; }).join('') + '</div>' : '') + '<span class="sp"></span>' + (HEAD[S.tab] ? HEAD[S.tab]() : '') + '</div></div>';
     if (S.me && S.me.mailOn === 'pilot' && /segments|clients|prospects|dir/.test(S.tab)) h += '<div class="note warn">' + ic('shield', 18) + '<span><b>Pilot mode.</b> Only the addresses in the pilot list and @maxzzdiesel.com get e-mail. Invites to anyone else are skipped.</span></div>';
     if (S.me && S.me.mailOn === false && /segments|clients|prospects|dir/.test(S.tab)) h += '<div class="note warn">' + ic('shield', 18) + '<span><b>Customer e-mails are off.</b> Invites, sign-in links and order e-mails to customers are not sent from any environment. Only @maxzzdiesel.com addresses get e-mail. You can still prepare lists and texts.</span></div>';
     if (S.err) h += '<div class="alert">' + esc(S.err) + '</div>';
@@ -2046,7 +2119,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function paint(html) {
     var keepH = window.scrollY > 0 ? window.scrollY + window.innerHeight : 0; if (keepH) app.style.minHeight = keepH + 'px';
     if (!window.morphdom) { app.innerHTML = html; if (!app.querySelector('.skel')) app.style.minHeight = ''; return enhance(); }
-    window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onNodeDiscarded: function (nd) { if (nd.classList && nd.classList.contains('ec') && window.echarts) { var ei = echarts.getInstanceByDom(nd); if (ei) ei.dispose(); } }, onBeforeElUpdated: function (from, to) { if (from.classList && from.classList.contains('ec') && to.classList.contains('ec')) { from.setAttribute('data-ec', to.getAttribute('data-ec')); from.style.height = to.style.height; from.className = to.className; return false; } if (from.classList && from.classList.contains('ind') && to.classList.contains('seg')) { to.classList.add('ind'); to.style.setProperty('--ix', from.style.getPropertyValue('--ix')); to.style.setProperty('--iw', from.style.getPropertyValue('--iw')); } if (from.isEqualNode(to)) return false; if (from.id === 'ml-fr' && to.id === 'ml-fr') { from.className = to.className; return false; } if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
+    window.morphdom(app, '<div>' + html + '</div>', { childrenOnly: true, onNodeDiscarded: function (nd) { if (nd.classList && nd.classList.contains('ec') && window.echarts) { var ei = echarts.getInstanceByDom(nd); if (ei) ei.dispose(); } }, onBeforeElUpdated: function (from, to) { if (from.classList && from.classList.contains('ec') && to.classList.contains('ec')) { from.setAttribute('data-ec', to.getAttribute('data-ec')); from.style.height = to.style.height; from.className = to.className; return false; } if (from.classList && from.classList.contains('ind') && to.classList.contains('seg')) { to.classList.add('ind'); to.style.setProperty('--ix', from.style.getPropertyValue('--ix')); to.style.setProperty('--iw', from.style.getPropertyValue('--iw')); } if (from.classList && from.classList.contains('nv') && to.classList.contains('nv')) { if (from.classList.contains('ind')) to.classList.add('ind'); ['--ix', '--iy', '--io'].forEach(function (k) { to.style.setProperty(k, from.style.getPropertyValue(k)); }); } if (from.isEqualNode(to)) return false; if (from.id === 'ml-fr' && to.id === 'ml-fr') { from.className = to.className; return false; } if (from.tagName === 'IFRAME' && from.getAttribute('srcdoc') === to.getAttribute('srcdoc')) return false; return true; } });
     if (!app.querySelector('.skel') && !S.sdBusy) app.style.minHeight = '';
     enhance();
   }
@@ -2066,6 +2139,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function enhance() {
     ecMount(); fitBoard();
     [].forEach.call(app.querySelectorAll('.chips'), function (g) { var on = g.querySelector('button.on'); if (!on) { g.classList.remove('ind'); return; } var first = !g.classList.contains('ind'); if (first) g.classList.add('nofx'); g.style.setProperty('--ix', on.offsetLeft + 'px'); g.style.setProperty('--iy', on.offsetTop + 'px'); g.style.setProperty('--iw', on.offsetWidth + 'px'); g.style.setProperty('--ih', on.offsetHeight + 'px'); g.classList.add('ind'); if (first) requestAnimationFrame(function () { g.classList.remove('nofx'); }); });
+    railInd();
     [].forEach.call(app.querySelectorAll('.seg'), function (g) { var on = g.querySelector('button.on'); if (!on) { g.classList.remove('ind'); return; } var first = !g.classList.contains('ind'); if (first) g.classList.add('nofx'); g.style.setProperty('--ix', (on.offsetLeft - 0) + 'px'); g.style.setProperty('--iw', on.offsetWidth + 'px'); g.classList.add('ind'); if (first) requestAnimationFrame(function () { g.classList.remove('nofx'); }); });
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     [].forEach.call(app.querySelectorAll(NUMSEL), function (b) { var tx = b.textContent; if (b.__t === tx || b.querySelector('.drum')) { b.__t = tx; return; } var was = b.__t; b.__t = tx; if (b.children.length || !/\d/.test(tx) || tx.length > 14) return;
@@ -2076,7 +2150,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   // tooltips: title attributes become a small dark label (delayed in, travels between buttons, instant out)
   (function () { var tip = document.createElement('div'), tmr = null, last = 0; tip.id = 'tip'; document.body.appendChild(tip);
     document.addEventListener('mouseover', function (e) { var el = e.target.closest && e.target.closest('[title],[data-tip]'); if (!el || !app.contains(el)) return; if (el.title) { el.setAttribute('data-tip', el.title); el.removeAttribute('title'); } var txt = el.getAttribute('data-tip'); if (!txt) return;
-      var show = function () { var r = el.getBoundingClientRect(); tip.textContent = txt; var moving = tip.classList.contains('on'); tip.classList.toggle('jump', !moving); tip.style.left = Math.max(60, Math.min(innerWidth - 60, r.left + r.width / 2)) + 'px'; tip.style.top = (r.top - 4) + 'px'; tip.classList.add('on'); };
+      var show = function () { var r = el.getBoundingClientRect(), side = !!el.closest('.rail') && innerWidth > 900; tip.textContent = txt; var moving = tip.classList.contains('on') && tip.classList.contains('side') === side; tip.classList.toggle('jump', !moving); tip.classList.toggle('side', side); if (side) { tip.style.left = (r.right + 10) + 'px'; tip.style.top = (r.top + r.height / 2) + 'px'; } else { tip.style.left = Math.max(60, Math.min(innerWidth - 60, r.left + r.width / 2)) + 'px'; tip.style.top = (r.top - 4) + 'px'; } tip.classList.add('on'); };
       clearTimeout(tmr); if (Date.now() - last < 400 || tip.classList.contains('on')) show(); else tmr = setTimeout(show, 380); });
     document.addEventListener('mouseout', function (e) { var el = e.target.closest && e.target.closest('[data-tip]'); if (!el || (e.relatedTarget && el.contains(e.relatedTarget))) return; clearTimeout(tmr); if (tip.classList.contains('on')) last = Date.now(); tip.classList.remove('on'); });
     document.addEventListener('mousedown', function () { clearTimeout(tmr); tip.classList.remove('on'); }); })();
@@ -2114,6 +2188,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function tplNow() { var g = (S.seg || {}).segment || {}, T = S.tpl || {}; return { subject: T.subject != null ? T.subject : g.subject, title: T.title != null ? T.title : g.title, body: T.body != null ? T.body : g.body, cta: T.cta != null ? T.cta : g.cta }; }
   function loadDc() { api('dash-customers').then(function (r) { if (r._status === 200) { S.dc = r.rows.map(function (x) { x.chg = pct(x.r12, x.p12); return x; }); draw(); } else fail(r); }); }
   app.addEventListener('click', function (e) {
+    var rri = e.target.closest && e.target.closest('.rail .ri'); if (rri) RAILSHUT = rri.dataset.g;
     if (!S.replaying) S.okKey = null; var t0 = e.target.closest('[data-act],[data-tab]'); if (t0 && !/^m-/.test(t0.dataset.act || '')) S.curEv = { type: 'click', sel: selOf(t0) };
     if (S.segMenu && !e.target.closest('.segw')) { S.segMenu = false; if (!e.target.closest('[data-act],[data-tab]')) return draw(); }
     var inPop = e.target.closest('.ms, .menu, .who, .cb');
@@ -2264,7 +2339,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'v-co') { Object.assign(S.ex.v, grp('v')); S.ex.v.company_code = t.dataset.c; S.ex.v.company_name = t.dataset.n; S.vcq = ''; return draw(); }
     if (act === 'nav') { S.navOpen = !S.navOpen; return draw(); }
     if (act === 'nav-x') { S.navOpen = false; return draw(); }
-    if (act === 'dview') { S.dview = t.dataset.v; if (t.dataset.st || t.dataset.sg) { S.cf = { st: t.dataset.st || '', sg: t.dataset.sg || '' }; S.cn = 60; } if (S.dview === 'customers' && !S.dc) loadDc(); window.scrollTo(0, 0); return draw(); }
+    if (act === 'dview') { if (S.tab !== 'dash') { S.tab = 'dash'; S.dr = null; S.cd = null; S.pop = null; if (!S.dash) loadTab('dash'); } S.dview = t.dataset.v; if (t.dataset.st || t.dataset.sg) { S.cf = { st: t.dataset.st || '', sg: t.dataset.sg || '' }; S.cn = 60; } if (S.dview === 'customers' && !S.dc) loadDc(); window.scrollTo(0, 0); return draw(); }
     if (act === 'pg-cycle') { S.pgc = t.dataset.v; return draw(); }
     if (act === 'pg-sel') { S.pgsel = t.dataset.sp; return draw(); }
     if (act === 'pg-tab') { S.pgt = t.dataset.v; window.scrollTo(0, 0); return draw(); }
