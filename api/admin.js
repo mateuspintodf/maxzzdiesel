@@ -1272,6 +1272,30 @@ A.customer = async (req, res) => {
   (aud || []).forEach((a) => { const m = AUD[a.action]; if (!m) return; push(a.at, m[0], m[1], [a.after && a.after.email, 'by ' + a.admin_email].filter(Boolean).join(' · ')); });
   users.forEach((u) => { if (u.terms_accepted_at) push(u.terms_accepted_at, 'account', 'Accepted the terms of use', u.email); if (u.created_at && !(aud || []).length) push(u.created_at, 'account', 'Person added: ' + (u.name || u.email), u.invited_by ? 'invited by ' + u.invited_by : ''); });
   segl.forEach((x) => push(x.at, 'segment', 'Added to segment ' + (segN[x.segment_id] || ''), x.added_by ? 'by ' + x.added_by : ''));
+  // marketing e-mails this customer received and what they did with them (sent, opened, clicked, unsubscribed)
+  let mail = null;
+  try {
+    const em = [...new Set([...(users || []).map((x) => x.email), co && co.contact_email, ulc[0] && ulc[0].email].map((x) => String(x || '').trim().toLowerCase()).filter((x) => /^[^\s"'(),]+@[^\s"'(),]+$/.test(x)))].slice(0, 40);
+    const qs = (f) => db.select('email_sends', 'select=id,campaign_id,email,status,sent_at,delivered_at,opened_at,open_count,clicked_at,click_count,unsubscribed_at&status=in.(sent,bounced,complained)&' + f + '&order=sent_at.desc&limit=200').catch(() => []);
+    const got = [].concat(c ? await qs('customer_code=eq.' + encodeURIComponent(c)) : [], em.length ? await qs('email=in.(' + em.map((x) => encodeURIComponent('"' + x + '"')).join(',') + ')') : []);
+    const seen = {}, ms = got.filter((x) => (seen[x.id] ? false : (seen[x.id] = 1)));
+    if (ms.length) {
+      const cid = [...new Set(ms.map((x) => x.campaign_id))], cn = {};
+      (await db.select('email_campaigns', 'select=id,name,subject&id=in.(' + cid.join(',') + ')').catch(() => [])).forEach((x) => { cn[x.id] = x; });
+      const ck = {}; const clicked = ms.filter((x) => x.clicked_at).map((x) => x.id);
+      if (clicked.length) (await db.select('email_clicks', 'select=send_id,url,code,at&send_id=in.(' + clicked.join(',') + ')&order=at&limit=1500').catch(() => [])).forEach((k) => { (ck[k.send_id] = ck[k.send_id] || []).push(k); });
+      const last = (k) => ms.map((x) => x[k]).filter(Boolean).sort().pop() || null;
+      mail = { received: ms.length, opened: ms.filter((x) => x.opened_at).length, clicked: ms.filter((x) => x.clicked_at).length, bounced: ms.filter((x) => x.status === 'bounced').length, unsubscribed: ms.some((x) => x.unsubscribed_at), lastSent: last('sent_at'), lastOpen: last('opened_at'), lastClick: last('clicked_at'), parts: [] };
+      const pc = {};
+      ms.forEach((x) => { const nm = (cn[x.campaign_id] && (cn[x.campaign_id].name || cn[x.campaign_id].subject)) || 'campaign', sj = cn[x.campaign_id] && cn[x.campaign_id].subject;
+        push(x.sent_at, 'email', 'E-mail sent: ' + nm, [x.email, x.status === 'bounced' ? 'bounced' : x.status === 'complained' ? 'marked as spam' : x.delivered_at ? 'delivered' : '', sj ? 'subject: ' + sj : ''].filter(Boolean).join(' · '));
+        if (x.opened_at) push(x.opened_at, 'email', 'Opened the e-mail: ' + nm, x.email + (x.open_count > 1 ? ' · opened ' + x.open_count + ' times' : ''));
+        if (x.clicked_at) push(x.clicked_at, 'email', 'Clicked in the e-mail: ' + nm, pl(x.click_count || 1, 'click') + ' · ' + x.email,
+          (ck[x.id] || []).slice(0, 40).map((k) => { if (k.code) pc[k.code] = (pc[k.code] || 0) + 1; return [new Date(k.at).toISOString().slice(5, 16).replace('T', ' '), k.code ? 'part' : 'link', k.code || String(k.url || '').replace(/^https?:\/\/(www\.)?/, '').replace(/[?&]utm_[a-z]+=[^&#]*/g, '').replace(/\?$/, '').slice(0, 70), (k.code && N[k.code] && N[k.code].t) || '']; }));
+        if (x.unsubscribed_at) push(x.unsubscribed_at, 'email', 'Unsubscribed from marketing e-mails', x.email); });
+      mail.parts = Object.keys(pc).sort((a, z) => pc[z] - pc[a]).slice(0, 8).map((k) => ({ code: k, t: (N[k] && N[k].t) || '', n: pc[k] }));
+    }
+  } catch (e) { console.error('customer mail', e.message); }
   const NK = { call: 'Call', email: 'E-mail', meeting: 'Meeting', note: 'Note' };
   (notes || []).forEach((n) => T.push({ at: n.created_at, kind: 'note', title: (NK[n.kind] || 'Note') + ' by ' + String(n.created_by).split('@')[0], desc: n.body, det: null, note: { id: n.id, follow_up: n.follow_up, done: !!n.done_at, done_by: n.done_by, outcome: n.outcome, done_outcome: n.done_outcome } }));
   const u = ulc[0] || null;
@@ -1286,7 +1310,7 @@ A.customer = async (req, res) => {
   contact.tags = c ? (await db.select('customer_tags', 'select=tag&code=eq.' + encodeURIComponent(c)).catch(() => [])).map((x) => x.tag) : [];
   contact.allTags = [...new Set((await db.selectAll('customer_tags', 'select=tag').catch(() => [])).map((x) => x.tag))].sort();
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
-    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, timeline: T.slice(0, 300) });
+    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, mail, timeline: T.slice(0, 300) });
 };
 // edit a customer: read it live from Unleashed, change only the fields that differ, write it back, then update our copy.
 // Not editable here on purpose: price tier, salesperson, payment terms, stop credit (those stay in Unleashed).
@@ -2354,13 +2378,13 @@ const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa'
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
   crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
-  'mail-list': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
+  'mail-list': ['emails'], 'mail-insights': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
   events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
   prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
-require('../lib/admin-mail')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}), base });
+require('../lib/admin-mail')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}), base, names });
 const scrMemo = new Map();
 async function screensOf(email) {
   const k = String(email).toLowerCase(), hit = scrMemo.get(k); if (hit && Date.now() - hit.t < 20000) return hit.v;
