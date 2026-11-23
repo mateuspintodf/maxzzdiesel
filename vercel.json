@@ -48,7 +48,7 @@
       "maxDuration": 300
     },
     "api/admin.js": {
-      "includeFiles": "js/portal-app.js",
+      "includeFiles": "{js/portal-app.js,agenda/index.html,agenda/m/*.jpg}",
       "maxDuration": 60
     },
     "api/cron-digest.js": {

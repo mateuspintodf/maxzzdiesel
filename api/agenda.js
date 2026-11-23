@@ -4,7 +4,7 @@
 // POST /api/agenda {c, id, op, data} -> op 'set' replaces, 'update' merges
 const { put, get, head } = require('@vercel/blob');
 
-const COLS = new Set(['aprovacoes', 'fila', 'historico', 'stories']);
+const COLS = new Set(['aprovacoes', 'fila', 'historico', 'stories', 'edicoes']);
 const ID = /^[A-Za-z0-9_\-.:@+]{1,120}$/;
 
 async function readCol(c) {
@@ -34,6 +34,17 @@ async function body(req) {
   const chunks = [];
   for await (const ch of req) chunks.push(ch);
   return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}');
+}
+
+// one change to one document, retried when someone else wrote at the same moment
+async function mutate(c, id, op, data) {
+  for (let i = 0; i < 4; i++) {
+    const { docs, etag } = await readCol(c);
+    docs[id] = op === 'set' ? data : { ...(docs[id] || {}), ...data };
+    try { await writeCol(c, docs, etag); return true; }
+    catch (e) { if (!(e && /precondition|etag|412/i.test(String(e.name) + ' ' + String(e.message)))) throw e; await new Promise((r) => setTimeout(r, 150 + Math.random() * 300)); }
+  }
+  throw new Error('busy');
 }
 
 module.exports = async (req, res) => {
@@ -71,3 +82,5 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'storage error' });
   }
 };
+module.exports.readCol = readCol;
+module.exports.mutate = mutate;
