@@ -178,6 +178,7 @@ def js_localize():
     out = {}
     for lang, idx in (('es', 0), ('pt', 1)):
         for f in ('quote-app.js', 'forms.js', 'gate.js', 'motion.js'):
+            if not (ROOT / 'js' / f).exists(): continue  # quote-app.js was retired with /quote
             src = (ROOT / 'js' / f).read_text(encoding='utf-8')
             # exact quoted literals only (a regex scan over a whole file can lose track of quotes in comments)
             for k in sorted(JS.T, key=len, reverse=True):
