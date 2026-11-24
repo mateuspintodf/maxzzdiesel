@@ -267,6 +267,7 @@ nav[aria-label="Main"] img{height:32px !important}
 <span class="sx-pill" style="margin-top:22px">Technical guide</span>
 <h1 style="margin:16px 0 0;font-family:'BDO Grotesk', 'Helvetica Neue', Arial, sans-serif;font-weight:700;color:#1d2126;font-size:clamp(28px,3.4vw,46px);line-height:1.1;letter-spacing:-.02em;max-width:1000px">Why Bosch Piezo Injector Bodies (0445115/116/117) Must Never Go in an Ultrasonic Cleaner: Safe Cleaning &amp; Testing Protocol</h1>
 <p style="margin:16px 0 0;font-size:14px;max-width:900px"><b style="color:#1d2126">By the Maxzz Diesel technical team.</b> Technical review: Waldyr Mazzer (40+ years in diesel injection, former Bosch and Delphi senior instructor) and Arthur Bonachella (Robiel and Diesel Tech Academy instructor).</p>
+<p style="margin:10px 0 0;font-size:14px">Applies to: <a href="/systems/ford-6-7-powerstroke-cp4" style="color:#d32a37;font-weight:600">Ford 6.7L Power Stroke CP4</a> &middot; New to common rail? <a href="/guides/diesel-fuel-injection" style="color:#d32a37;font-weight:600">Start with the basics</a></p>
 </div></section>
 <section class="sx" style="padding: 40px 20px 0; box-sizing: border-box;"><div class="sx-wrap sx-art-grid" style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start">
 <article class="sx-art" style="min-width:0">
@@ -279,7 +280,7 @@ nav[aria-label="Main"] img{height:32px !important}
 </div></section>
 <section class="sx" style="padding: 80px 20px 120px; box-sizing: border-box;"><div class="sx-wrap">
 <h2 class="sx-h2" style="margin-bottom:24px">Next steps for this repair</h2><div class="sx-grid3"><div class="sx-mini"><b>1. Quote the parts in this guide</b><p>Part numbers from the table, matched by number.</p><a class="sx-btn red" href="/systems/ford-6-7-powerstroke-cp4#parts">See the parts table</a></div><div class="sx-mini"><b>2. Quote Robiel tools and Maxzz fluids</b><p>4113 CAL, 2271 Sonic and 2221S Solv.</p><div style="display:flex;flex-wrap:wrap;gap:8px"><button type="button" class="sx-add" data-add="RB.323.50.091" data-name="Robiel 323.50.091 Tool Set: Bosch CRI 3.0 piezo / Denso G3.3 piezo" data-pn="RB.323.50.091" data-cat="Tool sets and tools" data-slug="rb-323-50-091">Add Robiel tool set</button> <button type="button" class="sx-add" data-add="ST.4113/5.3gal" data-name="Settori 4113/5.3gal: ISO 4113 calibration fluid, 20 L" data-pn="ST.4113/5.3gal" data-cat="Fluids" data-slug="st-4113-5-3gal">Add 4113 CAL</button> <button type="button" class="sx-add" data-add="ST.2271" data-name="Settori 2271: Ultrasonic degreaser, 24 x 1 L" data-pn="ST.2271" data-cat="Fluids" data-slug="st-2271">Add 2271 Sonic</button> <button type="button" class="sx-add" data-add="ST.2221S" data-name="Settori 2221S: Biodegradable degreaser, 20 L" data-pn="ST.2221S" data-cat="Fluids" data-slug="st-2221s">Add 2221S Solv</button></div></div><div class="sx-mini" style="background:#1e1e87;color:#dfe0ff"><b style="color:#fff">3. Enroll in the course ($297)</b><p>Bosch Piezo Injector (0445115/116/117), with Arthur Bonachella.</p><a class="sx-btn wh" href="https://www.dieseltechacademy.com/?utm_source=maxzzdiesel&utm_medium=guide&utm_campaign=bosch-piezo-injector-ultrasonic-cleaning" target="_blank" rel="noopener">Enroll Now ($297) &#8599;</a></div></div>
-<p style="margin:24px 0 0;font-size:14px">More on this engine: <a href="/systems/ford-6-7-powerstroke-cp4">Ford 6.7L Power Stroke CP4 part numbers and tooling</a>.</p></div></section>
+<p style="margin:24px 0 0;font-size:14px">More on this engine: <a href="/systems/ford-6-7-powerstroke-cp4">Ford 6.7L Power Stroke CP4 part numbers and tooling</a>. Other guides: <a href="/resources/detroit-dd15-bosch-crin-4-2-rebuild-solenoid-guide">Bosch CRIN 4.2 (Detroit DD15) rebuild guide</a>, <a href="/resources/cummins-isx15-xpi-injector-failure-symptoms-repair-parts">Cummins ISX15 XPI injector failure symptoms and repair</a>, <a href="/resources/cp4-pump-failure-ford-6-7-powerstroke-ram-cummins-solution">CP4 pump failure and fuel system restoration guide</a>. Basics: <a href="/guides/diesel-fuel-injection">Diesel fuel injection guide</a>.</p></div></section>
 </main>
 <footer style="box-sizing: border-box;">
 <div style="background: #1d2126; border-radius: 30px 30px 0 0; padding: 40px clamp(20px, 3.5vw, 40px) 0; box-sizing: border-box;">
@@ -334,6 +335,8 @@ nav[aria-label="Main"] img{height:32px !important}
 </div>
 
 </div>
+
+
 
 
 
@@ -417,6 +420,7 @@ mountDC(Component);
 </script>
 <script src="/js/motion.js?v=8" defer></script>
 <script src="/js/track.js?v=1" defer></script>
+<script src="/js/attrib.js" defer></script>
 <script>(function(){var QK='mx-quote';function rd(){try{var v=JSON.parse(localStorage.getItem(QK)||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}}
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-add]');if(!b)return;e.preventDefault();
 var id=b.getAttribute('data-add'),ls=rd(),i=-1;for(var k=0;k<ls.length;k++){if(ls[k].id===id){i=k;break}}
@@ -425,6 +429,5 @@ try{localStorage.setItem(QK,JSON.stringify(ls))}catch(x){}
 try{window.dispatchEvent(new StorageEvent('storage',{key:QK}))}catch(x){}
 var t=b.getAttribute('data-l')||b.textContent;b.setAttribute('data-l',t);b.textContent='Added to your list';b.classList.add('ok');
 setTimeout(function(){b.textContent=t;b.classList.remove('ok')},1800)});})();</script>
-<script src="/js/attrib.js" defer></script>
 </body>
 </html>
