@@ -259,6 +259,7 @@ A.approve = async (req, res) => {
   catch (e) { console.error('admin approve', e.message); return res.status(409).json({ error: 'Could not save. The customer code may already be linked.' }); }
   await PS.audit(w.email, 'company.approve', 'company', acc.id, null, { code, tier: acc.tier });
   const people = Object.values(d.users).filter((u) => u.account === acc.id);
+  await require('../lib/visitors').claimForCompany(people, acc.id);
   for (const u of people) await send(u.email, 'Your Maxzz B2B portal access is ready', 'Welcome to the Maxzz B2B portal',
     `<p>Your account for <b>${esc(acc.company)}</b> is approved. You can now see your prices and stock, place orders and track them.</p>`,
     { url: base(req) + '/portal', label: 'Open the portal' }, { name: u.name, greet: true }).catch((e) => console.error('mail', e.message));
@@ -687,11 +688,16 @@ A.invite = async (req, res) => {
 A.dir = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  const [rows, segs, st, tg, cs] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => []), db.selectAll('customer_segments', 'select=code,segment,status,confidence,evidence').catch(() => [])]);
+  const [rows, segs, st, tg, cs, rh] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => []), db.selectAll('customer_segments', 'select=code,segment,status,confidence,evidence').catch(() => []), db.rpc('dash_customers').catch(() => [])]);
   const T = {}; tg.forEach((x) => { (T[x.code] = T[x.code] || []).push(x.tag); });
   const G = {}; cs.forEach((x) => { G[x.code] = x; });
-  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; const g = G[r.c]; if (g) { r.sg = g.segment; r.sgs = g.status; r.sgc = g.confidence; r.sge = g.evidence; } });
-  return res.json({ rows: rows || [], segments: segs, synced: st[0] && st[0].customers_at });
+  // buying rhythm (orders, interval, expected next order, last year) from the sales history
+  const R = {}; (rh || []).forEach((x) => { R[x.c] = x; });
+  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; const g = G[r.c]; if (g) { r.sg = g.segment; r.sgs = g.status; r.sgc = g.confidence; r.sge = g.evidence; } const x = R[r.c]; if (x) { r.orders = x.orders; r.med = x.med; r.next = x.next; r.p12 = x.p12; } });
+  // a salesperson sees only their own customers; superadmin, admin and marketing see everyone
+  let out = rows || [], scope;
+  if (w.role === 'sales') { const sc = await salesScope(w, { query: {} }); scope = sc.sp || ''; out = sc.sp ? out.filter((r) => r.sp === sc.sp) : []; }
+  return res.json({ rows: out, segments: segs, synced: st[0] && st[0].customers_at, scope });
 };
 A['dir-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -941,6 +947,26 @@ A['behavior-companies'] = async (req, res) => {
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
   const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
   return res.json({ days, rows: (await db.rpc('dash_behavior_companies', { p_days: days })) || [] });
+};
+// people browsing without signing in, one row per browser; a quote or access request adds their e-mail
+A['behavior-visitors'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30)), since = new Date(Date.now() - days * 864e5).toISOString();
+  const ev = await db.select('events', 'select=at,visitor_id,session_id,type,code,query,device,city,region,country,utm,referrer,who&company_id=is.null&user_id=is.null&type=neq.page&at=gte.' + since + '&order=at.desc&limit=5000');
+  const V = {};
+  ev.forEach((e) => {
+    const v = V[e.visitor_id] = V[e.visitor_id] || { v: e.visitor_id, last: e.at, first: e.at, s: new Set(), pv: 0, se: 0, empty: 0, ca: 0, qu: 0, codes: {}, qs: {}, place: [e.city, e.region, e.country].filter(Boolean).join(', '), device: e.device || '', src: '', who: null };
+    v.first = e.at; if (e.session_id) v.s.add(e.session_id); if (e.who && !v.who) v.who = e.who;
+    if (e.type === 'product') { v.pv++; if (e.code) v.codes[e.code] = (v.codes[e.code] || 0) + 1; }
+    if (e.type === 'search' || e.type === 'search_empty') { if (e.type === 'search') v.se++; else v.empty++; if (e.query) v.qs[e.query] = 1; }
+    if (e.type === 'cart_add') { v.ca++; if (e.code) v.codes[e.code] = (v.codes[e.code] || 0) + 2; }
+    if (e.type === 'quote') v.qu++;
+    v.src = (e.utm && e.utm.source) || (e.referrer ? e.referrer : '') || 'direct';
+  });
+  const rows = Object.values(V).map((v) => ({ v: v.v, who: v.who, first: v.first, last: v.last, visits: v.s.size || 1, pv: v.pv, se: v.se, empty: v.empty, ca: v.ca, qu: v.qu, place: v.place, device: v.device, src: v.src,
+    codes: Object.entries(v.codes).sort((a, b) => b[1] - a[1]).slice(0, 4).map((x) => x[0]), qs: Object.keys(v.qs).slice(0, 3) }));
+  return res.json({ days, rows, sample: ev.length >= 5000 });
 };
 // raw event stream with filters (type, company, text), newest first
 A['behavior-stream'] = async (req, res) => {
@@ -2382,7 +2408,7 @@ const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'],
   'mail-list': ['emails'], 'mail-insights': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-exceptions-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
   dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
-  events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
+  events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-visitors': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
   prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
 require('../lib/admin-social')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}) });

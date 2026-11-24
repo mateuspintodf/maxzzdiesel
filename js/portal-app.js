@@ -3420,7 +3420,7 @@
       this.rqTried2 = true; if (!this.rq.company.trim()) { setTimeout(function () { var c = document.querySelector('[autocomplete=organization]'); if (c) c.focus(); }, 30); return; }
       this.busy = true; this.err = '';
       this.rq.phone = this.maskPhone(this.rq.phone, this.rq.country, true);
-      api('request', { body: Object.assign({}, this.rq, { hp: hp ? hp.value : '', t: Date.now() - T0 }) }).then(function (r) {
+      api('request', { body: Object.assign({}, this.rq, { hp: hp ? hp.value : '', t: Date.now() - T0, visitor: (function () { try { return localStorage.getItem('mx-vid'); } catch (e) { return null; } })() }) }).then(function (r) {
         self.busy = false;
         if (r._status === 200) { track('b2b_access_request', { form: 'portal' }); self.nav('requested'); }
         else self.err = r._status === 429 ? 'Too many requests from this connection. Try later or call us.' : 'Please fill in name, company, e-mail and phone.';
@@ -3436,7 +3436,7 @@
       var number = 'QR-' + String(t.getFullYear()).slice(2) + ('0' + (t.getMonth() + 1)).slice(-2) + ('0' + t.getDate()).slice(-2) + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
       var lines = this.quote.map(function (l) { return { pn: l.id, name: String((self.map[l.id] && self.title(self.map[l.id])) || (l.custom ? 'Custom line, not listed online' : l.name) || '').replace(/\u2011/g, '-'), qty: l.qty }; });
       this.busy = true; this.err = '';
-      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', optin: !!this.qd.optin, attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
+      fetch('/api/quote', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ visitor: (function () { try { return localStorage.getItem('mx-vid'); } catch (e) { return null; } })(), number: number, source: 'B2B store' + (this.me && this.me.account ? ' · account ' + (this.me.account.code || this.me.account.company) : ''), hp: hp ? hp.value : '', optin: !!this.qd.optin, attribution: window.mzAttr ? window.mzAttr() : null, t: Date.now() - T0,
         customer: { name: d.name, company: d.company, email: d.email, phone: d.phone, type: d.type, notes: d.notes }, shipping: Object.assign({ po: d.po, needBy: d.needBy }, this.qShip), lines: lines }) })
         .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
         .then(function (res) {

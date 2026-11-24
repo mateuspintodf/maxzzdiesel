@@ -276,6 +276,7 @@ A.request = async (req, res) => {
     }
     catch (e) { console.error('unleashed prospect', e.message); }
   }
+  await require('../lib/visitors').tagVisitor(clean(b.visitor, 40), f.email);
   if (PS.on()) await PS.createRequest(f);
   else {
   const db = await loadDb();
