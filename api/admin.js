@@ -962,7 +962,7 @@ A['behavior-visitors'] = async (req, res) => {
     if (e.type === 'search' || e.type === 'search_empty') { if (e.type === 'search') v.se++; else v.empty++; if (e.query) v.qs[e.query] = 1; }
     if (e.type === 'cart_add') { v.ca++; if (e.code) v.codes[e.code] = (v.codes[e.code] || 0) + 2; }
     if (e.type === 'quote') v.qu++;
-    v.src = (e.utm && e.utm.source) || (e.referrer ? e.referrer : '') || 'direct';
+    const sl = srcLabel(e.utm, e.referrer); if (sl) v.src = sl; else if (!v.src) v.src = 'direct';
   });
   const rows = Object.values(V).map((v) => ({ v: v.v, who: v.who, first: v.first, last: v.last, visits: v.s.size || 1, pv: v.pv, se: v.se, empty: v.empty, ca: v.ca, qu: v.qu, place: v.place, device: v.device, src: v.src,
     codes: Object.entries(v.codes).sort((a, b) => b[1] - a[1]).slice(0, 4).map((x) => x[0]), qs: Object.keys(v.qs).slice(0, 3) }));
@@ -981,7 +981,7 @@ A['behavior-stream'] = async (req, res) => {
   const us = uids.length ? await db.select('users', 'select=id,name,email&id=in.(' + uids.join(',') + ')') : [];
   const C = {}, U = {}; cos.forEach((c) => { C[c.id] = c; }); us.forEach((u) => { U[u.id] = u; });
   const N = await names();
-  return res.json({ rows: ev.map((e) => ({ at: e.at, type: e.type, code: e.code, t: e.code && N[e.code] ? N[e.code].t : '', query: e.query, device: e.device, place: [e.city, e.region, e.country].filter(Boolean).join(', '), src: (e.utm && e.utm.source) || e.referrer || '', visitor: String(e.visitor_id || '').slice(0, 6),
+  return res.json({ rows: ev.map((e) => ({ at: e.at, type: e.type, code: e.code, t: e.code && N[e.code] ? N[e.code].t : '', query: e.query, device: e.device, place: [e.city, e.region, e.country].filter(Boolean).join(', '), src: srcLabel(e.utm, e.referrer), visitor: String(e.visitor_id || '').slice(0, 6),
     company: e.company_id && C[e.company_id] ? C[e.company_id].name : '', cid: e.company_id, code_c: e.company_id && C[e.company_id] ? C[e.company_id].unleashed_code : '', person: e.user_id && U[e.user_id] ? (U[e.user_id].name || U[e.user_id].email) : '' })) });
 };
 
@@ -1466,6 +1466,15 @@ A.followups = async (req, res) => {
 };
 // who is behind one funnel step: visitors (with what they did) or companies, newest first
 const FSTEPS = ['visitors', 'browsed', 'carted', 'requests', 'approved', 'bought', 'inv_invited', 'inv_accepted', 'inv_used', 'inv_bought'];
+// a visit's source in words: ad click, campaign tags, then the referring site; '' means no source was sent (typed link, app, bookmark)
+const REFN = [[/android\.gm$|mail\.google/, 'Gmail'], [/(^|\.)google\./, 'Google search'], [/(^|\.)bing\.com$/, 'Bing search'], [/duckduckgo|yahoo\.|ecosia/, 'Web search'], [/(^|\.)facebook\.com$|^fb\.me$/, 'Facebook'], [/instagram/, 'Instagram'], [/linkedin|lnkd\.in/, 'LinkedIn'], [/youtube|youtu\.be/, 'YouTube'], [/^t\.co$|twitter|x\.com$/, 'X'], [/outlook|live\.com|office\.com/, 'Outlook'], [/whatsapp|wa\.me/, 'WhatsApp'], [/chatgpt|openai|perplexity|claude\.ai|gemini/, 'AI assistant']];
+function srcLabel(u, ref) {
+  u = u && typeof u === 'object' ? u : {}; const camp = u.campaign ? ' · ' + u.campaign : '';
+  if (u.gclid) return 'Google Ads' + camp; if (u.msclkid) return 'Microsoft Ads' + camp; if (u.ttclid) return 'TikTok ads' + camp;
+  if (u.source) { const s = String(u.source).toLowerCase(), m = String(u.medium || '').toLowerCase(); return (s === 'maxzz_email' ? 'Maxzz e-mail' : u.source + (m ? ' / ' + u.medium : '')) + camp; }
+  if (u.fbclid) return 'Facebook or Instagram link' + camp;
+  const r = String(ref || '').toLowerCase().replace(/^www\./, ''); if (!r) return ''; const hit = REFN.find((x) => x[0].test(r)); return hit ? hit[1] : r;
+}
 A['funnel-step'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
@@ -1473,6 +1482,10 @@ A['funnel-step'] = async (req, res) => {
   if (!FSTEPS.includes(step)) return res.status(400).json({ error: 'step' });
   const [rows, N] = await Promise.all([db.rpc('dash_funnel_step', { p_days: days, p_step: step }), names()]);
   (rows || []).forEach((r) => (r.trail || []).forEach((e) => { if (e.code && N[e.code]) e.t = N[e.code].t; }));
+  // the visit's first known source, with campaign and ad click, in words
+  const vids = [...new Set((rows || []).map((r) => r.visitor).filter(Boolean))].slice(0, 400), first = {};
+  for (let i = 0; i < vids.length; i += 100) (await db.select('events', 'select=visitor_id,utm,referrer,at&visitor_id=in.(' + vids.slice(i, i + 100).map((v) => encodeURIComponent('"' + v + '"')).join(',') + ')&or=(utm.not.is.null,referrer.not.is.null)&order=at.asc&limit=3000').catch(() => [])).forEach((e) => { if (!first[e.visitor_id]) first[e.visitor_id] = e; });
+  (rows || []).forEach((r) => { const e = first[r.visitor]; r.src = e ? srcLabel(e.utm, e.referrer) : ''; r.landing = e && e.utm && e.utm.landing || ''; });
   return res.json({ step, days, rows: rows || [] });
 };
 // quotes and portal orders waiting for the team: the Parked sales orders in Unleashed (website quotes, B2B store quotes,
