@@ -503,18 +503,19 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   // five groups, the daily sales work first; screen ids are the same as before, so saved permissions keep working
   // a fourth item true = reached from a button on another page, so it stays out of the menus (its id and permission stay)
   var NAV = [
-    ['sales', 'Sales', [['crm', 'Deals'], ['pipe', 'Quotes & orders'], ['dir', 'Customers'], ['goals', 'Sales goals']]],
+    ['sales', 'Sales', [['today', 'Today', false, 'derived'], ['crm', 'Deals'], ['pipe', 'Quotes & orders'], ['dir', 'Customers'], ['goals', 'Sales goals']]],
     ['ana', 'Analytics', [['dash', 'Overview'], ['sa', 'Revenue'], ['events', 'Portal activity'], ['bcomp', 'Activity by company'], ['stream', 'Raw events']]],
     ['mkt', 'Marketing', [['emails', 'Email campaigns'], ['segments', 'Lists & invites'], ['social', 'Social media'], ['campaigns', 'Price campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
     ['portal', 'Portal', [['clients', 'Accounts'], ['prospects', 'Add prospect', true], ['terms', 'Terms of use']]],
     ['cat', 'Catalog', [['products', 'Products']]],
     ['set', 'Settings', [['profile', 'My account'], ['admins', 'Admin users'], ['audit', 'Audit log']]]];
-  function okTab(id) { var sc = S.me && S.me.screens; return !sc || sc.indexOf(id) >= 0 || ['profile', 'sec', 'admins', 'audit'].indexOf(id) >= 0; }
+  function okTab(id) { if (id === 'today') return okTab('crm') || okTab('sa') || okTab('dash'); var sc = S.me && S.me.screens; return !sc || sc.indexOf(id) >= 0 || ['profile', 'sec', 'admins', 'audit'].indexOf(id) >= 0; }
   function navF() { return NAV.map(function (g) { return [g[0], g[1], g[2].filter(function (t) { return okTab(t[0]); })]; }).filter(function (g) { return g[2].length; }); }
   var SCR_PRESETS = { all: null, sales: ['dash', 'dir', 'pipe', 'sa', 'crm', 'goals'], marketing: ['dash', 'dir', 'segments', 'clients', 'prospects', 'emails', 'social', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'] };
   var PAGE = {}; NAV.forEach(function (g) { g[2].forEach(function (t) { PAGE[t[0]] = { g: g[0], gn: g[1], n: t[1] }; }); }); PAGE.sec = PAGE.profile;
   var DVIEWS = [['overview', 'Overview'], ['customers', 'Sales by customer']];
   var HEAD = {
+    today: function () { var mySp = (S.crm && S.crm.mySp) || (S.fus && S.fus.mySp) || (S.me && S.me.salesperson) || '', sc = S.tdScope || (mySp ? 'mine' : 'all'); return mySp ? '<div class="seg">' + '<button data-act="td-scope" data-v="mine" class="' + (sc === 'mine' ? 'on' : '') + '">My accounts</button><button data-act="td-scope" data-v="all" class="' + (sc === 'all' ? 'on' : '') + '">Everyone</button></div>' : ''; },
     dash: function () { var v = S.dview || 'overview'; return '' +
       // the period box stays in place on every view; the customer and parts views are always the last 12 months
       ((v === 'portal' || v === 'overview') ? '<select class="sel" data-act-change="days" aria-label="Period">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + (d === 365 ? '12 months' : d + ' days') + '</option>'; }).join('') + '</select>'
@@ -538,7 +539,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   };
   function rico(k) { return '<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + RICO[k] + '</svg>'; }
   // the pages of a section, as the page tabs and the flyout show them (Overview and Sales by customer are two views of one page)
-  var PICO = { overview: 'monitor', customers: 'users', sa: 'chart', events: 'activity', bcomp: 'eye', stream: 'list', crm: 'board', pipe: 'cart', dir: 'users', goals: 'award', clients: 'user', prospects: 'plus', segments: 'send', emails: 'mail', social: 'camera', campaigns: 'tag', vouchers: 'ticket', loyalty: 'award', products: 'box', profile: 'user', terms: 'file', admins: 'shield', audit: 'clock' };
+  var PICO = { today: 'check', overview: 'monitor', customers: 'users', sa: 'chart', events: 'activity', bcomp: 'eye', stream: 'list', crm: 'board', pipe: 'cart', dir: 'users', goals: 'award', clients: 'user', prospects: 'plus', segments: 'send', emails: 'mail', social: 'camera', campaigns: 'tag', vouchers: 'ticket', loyalty: 'award', products: 'box', profile: 'user', terms: 'file', admins: 'shield', audit: 'clock' };
   function pagesOf(g, pend) { var out = [];
     g[2].forEach(function (t) {
       if (t[2] && S.tab !== t[0] && g[2].some(function (x) { return !x[2]; })) return;
@@ -584,10 +585,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     [].forEach.call(app.querySelectorAll('[data-ind]'), function (x) { x.indeterminate = true; });
     var sk = !!app.querySelector('.skel'), ap = app.querySelector('.app'); if (S._sk && !sk && ap && S._rvl !== S.tab) { S._rvl = S.tab; ap.classList.add('rvl'); setTimeout(function () { ap.classList.remove('rvl'); }, 800); } S._sk = sk;
   }
-  var VIEWS = { emails: function () { return window.MXMail ? window.MXMail.view() : ld(); }, social: function () { return window.MXSocial ? window.MXSocial.view() : ld(); }, profile: function () { return '<div class="acct">' + drawProfile() + drawSec() + '</div>'; }, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
+  var VIEWS = { today: drawToday, emails: function () { return window.MXMail ? window.MXMail.view() : ld(); }, social: function () { return window.MXSocial ? window.MXSocial.view() : ld(); }, profile: function () { return '<div class="acct">' + drawProfile() + drawSec() + '</div>'; }, sec: drawSec, pipe: drawPipe, dash: drawDash, clients: drawClients, prospects: drawProspects, audit: drawAudit, import: drawImport, terms: drawTerms, vouchers: drawVouchers, products: drawProducts, events: drawEvents, loyalty: drawLoyalty, admins: drawAdmins, dir: drawDir, segments: drawSegments, campaigns: drawCampaigns, bcomp: drawBComp, stream: drawStream, sa: drawSA, goals: drawGoals, crm: drawCrm };
   function loadTab(t) {
     var bd = '&days=' + (S.bdays || 30), sf = S.sf || {};
     if (t === 'dash') { api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); api('dash', null, '&days=' + (S.days || 30)).then(function (r) { if (r._status === 200) { S.dash = r; draw(); } else fail(r); }); api('dash-ai').then(function (r) { if (r._status === 200) { S.ai = r; draw(); } }); if (S.dview === 'customers' && !S.dc) loadDc(); return; }
+    if (t === 'today') { S.tabErr = null; if (okTab('crm')) crmLoad(true); api('followups').then(function (r) { if (r._status === 200) { S.fus = r; draw(); } }); if (okTab('pipe')) api('pipeline').then(function (r) { if (r._status === 200) { S.pipe = r; draw(); } }); if (okTab('clients') && !S.data) load(); return; }
     if (t === 'emails') { S.tabErr = null; return window.MXMail && window.MXMail.load(); }
     if (t === 'social') { S.tabErr = null; return window.MXSocial && window.MXSocial.load(); }
     if (t === 'sa') return slLoad();
@@ -705,7 +707,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       sec('Customer health', (function () { var stt = s.status || {}, tot = 0; ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].forEach(function (x) { tot += (stt[x] || {}).n || 0; });
         return '<div class="hb">' + ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].filter(function (x) { return stt[x]; }).map(function (x) { return '<i class="' + x + '" style="flex:' + stt[x].n + '" title="' + STL[x] + ': ' + stt[x].n + '"></i>'; }).join('') + '</div>' +
           ['active', 'due', 'overdue', 'new', 'one_time', 'lost'].filter(function (x) { return stt[x]; }).map(function (x) { return '<a class="hl" data-act="dview" data-v="customers" data-st="' + x + '"><span>' + st(x) + '</span><b>' + n0(stt[x].n) + '</b><small>' + k$(stt[x].r12) + '</small></a>'; }).join('') || '<div class="empty">No customers yet.</div>'; })()) + '</div>';
-    h += drawFollowups();
+    h += todayMini();
     h += drawFunnels(D.funnel, pl);
     var mySp = S.me && S.me.salesperson, acts = D.actions || [], ch = S.ach || '', shown = acts.filter(function (a) { return (!ch || a.channel === ch) && (!S.actMine || !mySp || a.sp === mySp); });
     var chans = ['', 'call', 'campaign', 'content', 'review'].filter(function (c) { return !c || acts.some(function (a) { return a.channel === c; }); });
@@ -772,11 +774,11 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
         '<td class="nw" data-stop="1"><button class="btn sm" data-act="pf-log" data-code="' + esc(r.code || '') + '" data-n="' + esc(r.number) + '">' + ic('phone', 14) + ' Log</button> <button class="btn ghost sm" data-act="pf-done" data-n="' + esc(r.number) + '" data-code="' + esc(r.code || '') + '" data-name="' + esc(r.name || '') + '" title="Released or answered: take it off the board">Handled</button> <button class="btn ghost sm dang" data-act="pf-lost" data-n="' + esc(r.number) + '" data-code="' + esc(r.code || '') + '" data-name="' + esc(r.name || '') + '">Lost</button></td></tr>'; }));
     return h + '<p class="muted" style="padding:0 20px 16px;font-size:12.5px">Release, add freight or delete the order in Unleashed. "Handled" and "Lost" only take it off this board and log it on the customer.</p></section>';
   }
-  function drawFollowups() {
+  function drawFollowups(noSeg) {
     var F = S.fus; if (!F) return '';
     var sc = S.fuScope || (F.mySp ? 'acc' : 'all'), today = new Date().toISOString().slice(0, 10), L = (F.rows || []).filter(function (r) { return sc === 'all' || (sc === 'acc' ? r.sp === F.mySp || r.created_by === F.me : r.created_by === F.me); });
     var g = { Overdue: [], Today: [], 'Next 7 days': [] }; L.forEach(function (r) { (r.follow_up < today ? g.Overdue : r.follow_up === today ? g.Today : g['Next 7 days']).push(r); });
-    var h = '<section class="card"><div class="ch"><h2>Follow-ups <span class="cnt">' + L.length + '</span></h2><div class="seg" style="background:var(--soft)">' + (F.mySp ? '<button data-act="fu-scope" data-v="acc" class="' + (sc === 'acc' ? 'on' : '') + '">My accounts</button>' : '') + '<button data-act="fu-scope" data-v="mine" class="' + (sc === 'mine' ? 'on' : '') + '">Logged by me</button><button data-act="fu-scope" data-v="all" class="' + (sc === 'all' ? 'on' : '') + '">Everyone</button></div></div>' + (F.autoClosed ? '<p class="muted" style="margin:0 0 6px;font-size:12.5px">' + F.autoClosed + ' follow-up' + (F.autoClosed === 1 ? '' : 's') + ' closed on their own: the customer ordered.</p>' : '') + (!F.mySp ? '<p class="muted" style="margin:0 0 6px;font-size:12.5px">Set your Unleashed salesperson in Settings &gt; Admin users to see My accounts.</p>' : '');
+    var h = '<section class="card"><div class="ch"><h2>Follow-ups <span class="cnt">' + L.length + '</span></h2>' + (noSeg ? '' : '<div class="seg" style="background:var(--soft)">' + (F.mySp ? '<button data-act="fu-scope" data-v="acc" class="' + (sc === 'acc' ? 'on' : '') + '">My accounts</button>' : '') + '<button data-act="fu-scope" data-v="mine" class="' + (sc === 'mine' ? 'on' : '') + '">Logged by me</button><button data-act="fu-scope" data-v="all" class="' + (sc === 'all' ? 'on' : '') + '">Everyone</button></div>') + '</div>' + (F.autoClosed ? '<p class="muted" style="margin:0 0 6px;font-size:12.5px">' + F.autoClosed + ' follow-up' + (F.autoClosed === 1 ? '' : 's') + ' closed on their own: the customer ordered.</p>' : '') + (!F.mySp ? '<p class="muted" style="margin:0 0 6px;font-size:12.5px">Set your Unleashed salesperson in Settings &gt; Admin users to see My accounts.</p>' : '');
     if (!L.length) return h + '<div class="empty">Nothing to follow up. Log a call on a customer page and pick a date, and it shows here on the day.</div></section>';
     Object.keys(g).forEach(function (k) { if (!g[k].length) return; h += '<h3 class="fh' + (k === 'Overdue' ? ' red' : '') + '">' + k + ' · ' + g[k].length + '</h3>' + g[k].map(function (r) {
       return '<div class="fur"><span class="fud">' + esc(fmtAt(r.follow_up)) + '</span><div class="fub"><a data-act="cust" data-code="' + esc(r.customer_code || '') + '" data-cid="' + esc(r.company_id || '') + '"><b>' + esc(r.customer_name || r.customer_code || 'Customer') + '</b></a><p>' + esc(String(r.body).slice(0, 180)) + '</p><small>' + esc(String(r.created_by).split('@')[0]) + ' · ' + esc(fmtAt(r.created_at)) + '</small></div><div class="fua"><button class="btn ghost sm" data-act="fu-snooze" data-id="' + esc(r.id) + '">+3 days</button><button class="btn sm" data-act="fu-done" data-id="' + esc(r.id) + '">Done</button></div></div>'; }).join(''); });
@@ -1627,7 +1629,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     h += '<div class="satop"><div class="kpis k6">' + tile('Sales', m0(K.sales), P ? delta(K.sales, P.sales) + ' <span class="muted">vs ' + m0(P.sales) + '</span>' : '', '', 'dark') +
       tile('Profit', cost ? m0(K.profit) : '-', cost ? (P && P.coverage ? delta(K.profit, P.profit) + ' ' : '') + 'margin ' + pc1(K.margin) + ' on ' + pc1(K.coverage) + ' of sales' : 'Cost at the time of sale is still syncing') +
       tile('Orders', n0(K.orders), P ? delta(K.orders, P.orders) : '') + tile('Customers', n0(K.customers), P ? delta(K.customers, P.customers) : '') +
-      tile('Average order', K.aov == null ? '-' : m0(K.aov), P ? delta(K.aov, P.aov) : '') + tile('Commission', m0(K.commission), P ? delta(K.commission, P.commission) : 'by the rule set for each salesperson') + '</div>' + slToday(who) + '</div>';
+      tile('Average order', K.aov == null ? '-' : m0(K.aov), P ? delta(K.aov, P.aov) : '') + tile('Commission', m0(K.commission), P ? delta(K.commission, P.commission) : 'by the rule set for each salesperson') + '</div>' + todayMini(who) + '</div>';
     if (S.pg && S.pg.race) h = pgRace(S.pg.race) + h;
     h += slSignals(D);
     h += '<section class="card"><h3 style="margin:0 0 10px">Sales over time</h3>' + slChart(D) + '</section>';
@@ -1639,23 +1641,42 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     return h + slCustomers(D, L);
   }
   // "Today": what the salesperson should do next, from the CRM deals and the follow-ups logged on customers
-  function slToday(who) {
+  function slItems(who, noFu) {
     var C = S.crm, F = S.fus, td = new Date().toISOString().slice(0, 10), it = [], day = 864e5;
     ((C && C.deals) || []).forEach(function (d) { var st = crmStage(d.stage); if (!st || st.kind !== 'open' || (who && d.owner !== who)) return;
       var since = Math.floor((Date.now() - Date.parse(d.stage_at)) / day), idle = Math.floor((Date.now() - Date.parse(d.updated_at)) / day);
-      if (d.next && d.next.due <= td) it.push({ lvl: d.next.due < td ? 'red' : 'amb', t: d.next.body || 'Task', s: d.title + ' · ' + (d.next.due < td ? 'overdue since ' : 'due ') + fmtAt(d.next.due), id: d.id, w: d.next.due < td ? 0 : 2 });
-      else if (d.stage === 'new' && since >= 1) it.push({ lvl: since >= 3 ? 'red' : 'amb', t: 'Reply to ' + (d.customer_name || d.title), s: (CRMSRC[d.source] || 'Deal') + ' waiting ' + crmAge(d.stage_at) + (d.value ? ' · ' + k$(d.value) : ''), id: d.id, w: since >= 3 ? 1 : 3 });
-      else if ((d.stage === 'quote' || d.stage === 'negotiation') && idle >= 3) it.push({ lvl: idle >= 7 ? 'red' : 'amb', t: 'Follow up on ' + (d.customer_name || d.title), s: 'No update for ' + crmAge(d.updated_at) + (d.value ? ' · ' + k$(d.value) : ''), id: d.id, w: idle >= 7 ? 1 : 4 }); });
-    ((F && F.rows) || []).forEach(function (r) { if (r.follow_up > td || (who && r.sp !== who)) return; it.push({ lvl: r.follow_up < td ? 'red' : 'amb', t: 'Call ' + (r.customer_name || r.customer_code), s: String(r.body || '').slice(0, 70) + ' · ' + (r.follow_up < td ? 'overdue since ' : 'due ') + fmtAt(r.follow_up), code: r.customer_code, cid: r.company_id, w: r.follow_up < td ? 0 : 2 }); });
-    it.sort(function (a, b) { return a.w - b.w; });
-    var late = it.filter(function (x) { return x.lvl === 'red'; }).length;
+      if (d.next && d.next.due <= td) it.push({ lvl: d.next.due < td ? 'red' : 'amb', t: d.next.body || 'Task', s: d.title + ' · ' + (d.next.due < td ? 'overdue since ' : 'due ') + fmtAt(d.next.due), id: d.id, v: +d.value || 0, w: d.next.due < td ? 0 : 2 });
+      else if (d.stage === 'new' && since >= 1) it.push({ lvl: since >= 3 ? 'red' : 'amb', t: 'Reply to ' + (d.customer_name || d.title), s: (CRMSRC[d.source] || 'Deal') + ' waiting ' + crmAge(d.stage_at) + (d.value ? ' · ' + k$(d.value) : ''), id: d.id, v: +d.value || 0, w: since >= 3 ? 1 : 3 });
+      else if ((d.stage === 'quote' || d.stage === 'negotiation') && idle >= 3) it.push({ lvl: idle >= 7 ? 'red' : 'amb', t: 'Follow up on ' + (d.customer_name || d.title), s: 'No update for ' + crmAge(d.updated_at) + (d.value ? ' · ' + k$(d.value) : ''), id: d.id, v: +d.value || 0, w: idle >= 7 ? 1 : 4 }); });
+    if (!noFu) ((F && F.rows) || []).forEach(function (r) { if (r.follow_up > td || (who && r.sp !== who)) return; it.push({ lvl: r.follow_up < td ? 'red' : 'amb', t: 'Call ' + (r.customer_name || r.customer_code), s: String(r.body || '').slice(0, 70) + ' · ' + (r.follow_up < td ? 'overdue since ' : 'due ') + fmtAt(r.follow_up), code: r.customer_code, cid: r.company_id, w: r.follow_up < td ? 0 : 2 }); });
+    it.sort(function (a, b) { return a.w - b.w || (b.v || 0) - (a.v || 0); });
+    return it; }
+  function tdBtn(x) { return '<button class="tdi ' + x.lvl + '" ' + (x.id ? 'data-act="crm-open" data-id="' + esc(x.id) + '"' : x.a ? x.a : 'data-act="cust" data-code="' + esc(x.code || '') + '" data-cid="' + esc(x.cid || '') + '"') + '><i></i><span><b>' + esc(x.t) + '</b><small>' + esc(x.s) + '</small></span></button>'; }
+  // small card on Overview and Revenue: how much is waiting, with the way to Today
+  function todayMini(who) {
+    if (!okTab('today')) return '';
+    var it = slItems(who), late = it.filter(function (x) { return x.lvl === 'red'; }).length, C = S.crm, F = S.fus;
     var h = '<section class="card today"><div class="ch"><h2>Today</h2>' + (it.length ? '<span class="cnt' + (late ? ' red' : '') + '">' + it.length + (late ? ' · ' + late + ' late' : '') + '</span>' : '') + '</div>';
     if (!C && !F) return h + tload('Loading', true) + '</section>';
-    if (!it.length) return h + '<div class="empty">Nothing waiting on you. New quotes and follow-ups show up here.</div></section>';
-    h += '<div class="tdl">' + it.slice(0, 7).map(function (x) { return '<button class="tdi ' + x.lvl + '" ' + (x.id ? 'data-act="crm-open" data-id="' + esc(x.id) + '"' : 'data-act="cust" data-code="' + esc(x.code || '') + '" data-cid="' + esc(x.cid || '') + '"') + '><i></i><span><b>' + esc(x.t) + '</b><small>' + esc(x.s) + '</small></span></button>'; }).join('') + '</div>';
-    if (it.length > 7) h += '<a class="lnk" data-tab="crm" style="display:inline-block;margin-top:8px">See all ' + it.length + ' in the CRM</a>';
-    return h + '</section>';
-  }
+    h += it.length ? '<div class="tdl">' + it.slice(0, 3).map(tdBtn).join('') + '</div>' : '<div class="empty">Nothing waiting. New quotes and follow-ups show up in Today.</div>';
+    return h + '<a class="lnk" data-tab="today" style="display:inline-block;margin-top:10px">Open Today' + (it.length > 3 ? ', ' + it.length + ' waiting' : '') + '</a></section>'; }
+  // Today: the one place for what needs doing now (deals, quotes waiting in Unleashed, access requests) and the follow-ups
+  function drawToday() {
+    var C = S.crm, mySp = (C && C.mySp) || (S.fus && S.fus.mySp) || (S.me && S.me.salesperson) || '', isSuper = S.me && S.me.role === 'superadmin';
+    var sc = S.tdScope || (mySp ? 'mine' : 'all'), who = sc === 'mine' && mySp ? mySp : '';
+    var it = slItems(who, true), now = Date.now(), pend = S.data ? S.data.accounts.filter(function (a) { return a.status === 'pending'; }).length : 0;
+    ((S.pipe && S.pipe.rows) || []).forEach(function (r) { var k = PK[r.kind] || PK.parked, hrs = r.at ? (now - Date.parse(r.at)) / 36e5 : 0; if (hrs < k[1] || (who && r.sp !== who)) return;
+      var red = hrs >= k[2], ag = hrs < 48 ? Math.round(hrs) + ' h' : Math.round(hrs / 24) + ' days';
+      it.push({ lvl: red ? 'red' : 'amb', t: 'Release ' + k[0].toLowerCase() + ' ' + (r.number || ''), s: (r.name || r.code || '') + ' · waiting ' + ag + (r.value ? ' · ' + k$(r.value) : ''), a: 'data-tab="pipe"', v: +r.value || 0, w: red ? 1 : 3 }); });
+    if (pend && okTab('clients')) it.push({ lvl: 'red', t: pend + ' access request' + (pend === 1 ? '' : 's') + ' waiting', s: 'A company wants to buy on the portal. Approve or decline.', a: 'data-act="cst" data-s="pending"', w: 0 });
+    it.sort(function (a, b) { return a.w - b.w || (b.v || 0) - (a.v || 0); });
+    var late = it.filter(function (x) { return x.lvl === 'red'; }).length, loading = !C && !S.pipe && okTab('crm');
+    var h = '';
+    h += '<div class="g21"><section class="card today"><div class="ch"><h2>Needs action now</h2>' + (it.length ? '<span class="cnt' + (late ? ' red' : '') + '">' + (late === it.length ? late + ' late' : it.length + (late ? ' · ' + late + ' late' : '')) + '</span>' : '') + '</div>';
+    h += loading ? tload('Loading', true) : it.length ? '<div class="tdl">' + it.map(tdBtn).join('') + '</div><p class="muted" style="margin:12px 0 0;font-size:12.5px">Most urgent first, then the biggest value.</p>' : '<div class="empty">Nothing waiting. New quotes, idle deals and access requests show up here.</div>';
+    h += '</section>';
+    var keep = S.fuScope; S.fuScope = who ? 'acc' : 'all'; h += drawFollowups(true) || '<section class="card"><div class="ch"><h2>Follow-ups</h2></div>' + tload('Loading', true) + '</section>'; S.fuScope = keep;
+    return h + '</div>'; }
   function slSignals(D) {
     var g = D.signals || []; if (!g.length) return '';
     var open = g.filter(function (x) { return x.id === S.sigOpen; })[0];
@@ -2066,14 +2087,14 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function drawAdmins() {
     if (!S.adm) return ld();
     var f = S.ex.ad || {};
-    var scrBlk = '<div class="tmsec" id="tm-scr"><div class="tmh"><div><b>Screens this person can open</b><div class="muted">Unchecked screens are hidden and the server refuses them.</div></div><div class="row" style="gap:6px"><button class="btn ghost sm" data-act="ad-preset" data-p="all">All</button><button class="btn ghost sm" data-act="ad-preset" data-p="sales">Sales profile</button><button class="btn ghost sm" data-act="ad-preset" data-p="marketing">Marketing profile</button></div></div><div class="tmscr">' + NAV.filter(function (g) { return g[0] !== 'set'; }).map(function (g) { return '<div class="tmg"><b>' + g[1] + '</b>' + g[2].map(function (t) { return '<label class="mck"><input type="checkbox" data-g="ad" data-k="scr:' + t[0] + '"' + (!f.screens || f.screens.indexOf(t[0]) >= 0 ? ' checked' : '') + '> ' + t[1] + '</label>'; }).join('') + '</div>'; }).join('') + '</div></div>';
+    var scrBlk = '<div class="tmsec" id="tm-scr"><div class="tmh"><div><b>Screens this person can open</b><div class="muted">Unchecked screens are hidden and the server refuses them.</div></div><div class="row" style="gap:6px"><button class="btn ghost sm" data-act="ad-preset" data-p="all">All</button><button class="btn ghost sm" data-act="ad-preset" data-p="sales">Sales profile</button><button class="btn ghost sm" data-act="ad-preset" data-p="marketing">Marketing profile</button></div></div><div class="tmscr">' + NAV.filter(function (g) { return g[0] !== 'set'; }).map(function (g) { return '<div class="tmg"><b>' + g[1] + '</b>' + g[2].filter(function (t) { return !t[3]; }).map(function (t) { return '<label class="mck"><input type="checkbox" data-g="ad" data-k="scr:' + t[0] + '"' + (!f.screens || f.screens.indexOf(t[0]) >= 0 ? ' checked' : '') + '> ' + t[1] + '</label>'; }).join('') + '</div>'; }).join('') + '</div></div>';
 
     var rl = f.role || ((S.adm.roles || []).indexOf('sales') >= 0 ? 'sales' : ''), ph0 = (S.adPhoto === undefined ? f.photo : S.adPhoto);
     var FI = '<div class="tmsec"><div class="tmtop"><div class="tmph"><span class="av adbig">' + avIn(S.adPhoto === undefined ? f : { photo: S.adPhoto, name: f.name, email: f.email }) + '</span><label class="btn ghost sm" style="cursor:pointer">' + (ph0 ? 'Change' : 'Add photo') + '<input type="file" accept="image/*" data-adph="1" hidden></label>' + (ph0 ? '<button class="btn ghost sm" data-act="ad-ph-rm">Remove</button>' : '') + '</div>' +
       '<div class="tmgrid">' + fld('ad', 'email', 'E-mail *', f.email, 'text') + fld('ad', 'first_name', 'First name', f.first_name) + fld('ad', 'last_name', 'Last name', f.last_name) + fld('ad', 'phone', 'Phone', f.phone, 'tel', '+1 555 123 4567') +
       '<div><label class="l">Role</label><select data-g="ad" data-k="role">' + (S.adm.roles || []).map(function (r) { return '<option' + (rl === r ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select></div><div><label class="l">Salesperson in Unleashed (for My accounts)</label><select data-g="ad" data-k="salesperson"><option value="">None</option>' + (S.adm.salespeople || []).map(function (x) { return '<option' + (f.salesperson === x ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select></div></div></div>' +
       '<p class="muted tmrole">Superadmin: everything (all screens get checked). Sales: customers, invites, vouchers, products, behavior. Marketing: invites, import, vouchers, behavior.</p></div>' + scrBlk;
-    var admins = S.adm.admins || [], aq = (S.adq || '').toLowerCase(), ar = S.adrole || '', total = NAV.filter(function (g) { return g[0] !== 'set'; }).reduce(function (n, g) { return n + g[2].length; }, 0);
+    var admins = S.adm.admins || [], aq = (S.adq || '').toLowerCase(), ar = S.adrole || '', total = NAV.filter(function (g) { return g[0] !== 'set'; }).reduce(function (n, g) { return n + g[2].filter(function (t) { return !t[3]; }).length; }, 0);
     var list = admins.filter(function (a) { return (!ar || a.role === ar) && (!aq || qhas((a.name || '') + ' ' + a.email + ' ' + (a.phone || '') + ' ' + (a.salesperson || ''), aq)); });
     var h = '<div class="card"><div class="row" style="align-items:center;gap:10px"><div style="flex:1;min-width:220px"><h2 style="margin:0">Admin users</h2><p class="muted" style="margin:4px 0 0">' + admins.length + ' people with access. A role change takes effect at the next sign-in.</p></div><button class="btn" data-act="ad-invite">' + ic('plus', 15) + ' Invite</button></div>' +
       '<div class="fbar" style="padding:14px 0 0;border:0"><input type="search" class="srch" data-m="adq" value="' + esc(S.adq || '') + '" placeholder="Search name, e-mail or phone" style="max-width:300px"><div class="row" style="gap:6px">' + [['', 'Everyone'], ['superadmin', 'Superadmin'], ['sales', 'Sales'], ['marketing', 'Marketing']].map(function (c) { return '<button class="btn ghost sm' + (ar === c[0] ? ' on' : '') + '" data-act="ad-role" data-r="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div></div></div>';
@@ -2092,7 +2113,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function drawInvite() {
     var h = '';
     if (S.inv) {
-      var I = S.inv, scrI = NAV.filter(function (g) { return g[0] !== 'set'; }).map(function (g) { return '<div class="tmg"><b>' + g[1] + '</b>' + g[2].map(function (t) { var pr = SCR_PRESETS[I.role === 'marketing' ? 'marketing' : I.role === 'sales' ? 'sales' : 'all']; return '<label class="mck"><input type="checkbox" data-g="inv" data-k="scr:' + t[0] + '"' + (!pr || pr.indexOf(t[0]) >= 0 ? ' checked' : '') + '> ' + t[1] + '</label>'; }).join('') + '</div>'; }).join('');
+      var I = S.inv, scrI = NAV.filter(function (g) { return g[0] !== 'set'; }).map(function (g) { return '<div class="tmg"><b>' + g[1] + '</b>' + g[2].filter(function (t) { return !t[3]; }).map(function (t) { var pr = SCR_PRESETS[I.role === 'marketing' ? 'marketing' : I.role === 'sales' ? 'sales' : 'all']; return '<label class="mck"><input type="checkbox" data-g="inv" data-k="scr:' + t[0] + '"' + (!pr || pr.indexOf(t[0]) >= 0 ? ' checked' : '') + '> ' + t[1] + '</label>'; }).join('') + '</div>'; }).join('');
       h += '<div class="mscrim" data-act="inv-close"></div><div class="mdl tminv" role="dialog" aria-modal="true" aria-label="Invite to the Maxzz admin"><div class="tminvh"><h2>Invite to the Maxzz admin</h2><button class="btn ghost sm" data-act="inv-close" aria-label="Close">' + ic('x', 14) + '</button></div>' +
         '<label class="l">E-mails (one or more, separated by comma, space or line)</label><textarea data-g="inv" data-k="emails" rows="3" placeholder="name@maxzzdiesel.com, name@twdiesel.com.br">' + esc(I.emails || '') + '</textarea>' +
         '<div class="tmgrid2"><div><label class="l">Role</label><select data-g="inv" data-k="role">' + (S.adm.roles || []).map(function (r) { return '<option' + (I.role === r ? ' selected' : '') + '>' + r + '</option>'; }).join('') + '</select></div><div><label class="l">Salesperson in Unleashed (optional)</label><select data-g="inv" data-k="salesperson"><option value="">None</option>' + (S.adm.salespeople || []).map(function (x) { return '<option>' + esc(x) + '</option>'; }).join('') + '</select></div></div>' +
@@ -2236,6 +2257,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
     if (act === 'pf-done' || act === 'pf-lost') { var lostR = null; if (act === 'pf-lost') { lostR = pick('Why was it lost? It is saved on the customer.', [['price', 'Price'], ['stock', 'No stock or lead time'], ['competitor', 'Bought elsewhere'], ['no_answer', 'Never answered'], ['not_needed', 'Not needed anymore'], ['other', 'Other']], { title: 'Mark ' + t.dataset.n + ' as lost', ok: 'Mark lost', danger: true }); if (lostR === null) return; }
       api('pipeline-mark', { number: t.dataset.n, status: act === 'pf-lost' ? 'lost' : 'handled', code: t.dataset.code, name: t.dataset.name, reason: lostR || '' }).then(function (r) { if (r.ok) { S.pipe.rows = S.pipe.rows.filter(function (x) { return x.number !== t.dataset.n; }); toast(t.dataset.n + (act === 'pf-lost' ? ' marked lost.' : ' off the board.'), act !== 'pf-lost'); } else fail(r); }); return; }
     if (act === 'fu-scope') { S.fuScope = t.dataset.v; return draw(); }
+    if (act === 'td-scope') { S.tdScope = t.dataset.v; S.fuScope = t.dataset.v === 'mine' ? 'acc' : 'all'; return draw(); }
     if (act === 'act-mine') { S.actMine = !S.actMine; return draw(); }
     if (act === 'logcall') { S.dtab = 'act'; openCust(t.dataset.code, null); S.nf = { kind: 'call' }; setTimeout(function () { var ta = document.querySelector('[data-m="nf.body"]'); if (ta) ta.focus(); }, 700); return; }
     if (act === 'm-no') { var MR = S.modal && S.modal.replay; if (MR && MR.type === 'change' && MR.value != null) { var mel = document.querySelector(MR.sel); if (mel && mel.tagName === 'SELECT') mel.value = ''; } return closeL('.mdl,.mscrim', function () { S.modal = null; }); }
@@ -2548,7 +2570,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   document.addEventListener('keydown', function (e) { if (!S.modal) { if (e.key === 'Escape' && !e.defaultPrevented && S.fd && !S.dr) { S.fd = null; draw(); } return; } if (e.key === 'Escape') { S.modal = null; draw(); } if (e.key === 'Enter' && (e.target.matches('.mdl input[type=text]') || e.target.classList.contains('mok') || !e.target.closest('.mdl'))) { e.preventDefault(); modalOk(); }
     if (e.key === 'Tab') { var fs = [].slice.call(document.querySelectorAll('.mdl input,.mdl button')); if (fs.length) { var i = fs.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && i === fs.length - 1) { e.preventDefault(); fs[0].focus(); } else if (i < 0) { e.preventDefault(); fs[0].focus(); } } } });
   function goDeal() { var id = null; try { id = sessionStorage.getItem('mz_godeal'); sessionStorage.removeItem('mz_godeal'); } catch (e) {} if (id && /^[0-9a-f-]{36}$/i.test(id)) { S.tab = 'crm'; loadTab('crm'); S.cd = { id: id, loading: true, k: 'note' }; draw(); crmDeal(); } }
-  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); nfLoad(); goDeal(); if (S.tab === 'dash' && m.role === 'marketing' && (!m.screens || m.screens.indexOf('emails') >= 0)) S.tab = 'emails'; if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; if (m._status === 401 && m.error === 'mfa') return api('mfa').then(function (d) { S.mfa = d._status === 200 ? d : null; draw(); }); S.mfa = null; draw(); } }); }
+  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); nfLoad(); goDeal(); if (S.tab === 'dash' && m.role === 'sales') { S.tab = 'today'; loadTab('today'); } if (S.tab === 'dash' && m.role === 'marketing' && (!m.screens || m.screens.indexOf('emails') >= 0)) S.tab = 'emails'; if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; if (m._status === 401 && m.error === 'mfa') return api('mfa').then(function (d) { S.mfa = d._status === 200 ? d : null; draw(); }); S.mfa = null; draw(); } }); }
   var gd = location.search.match(/[?&]deal=([0-9a-f-]{36})/i); if (gd) { try { sessionStorage.setItem('mz_godeal', gd[1]); } catch (e) {} history.replaceState(null, '', location.pathname); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
