@@ -30,10 +30,17 @@ const CATS = {
   Kit: { s: 'contamination-kits', l: 'Contamination kits', d: 'Fuel system contamination kits.' }
 };
 
-function load() {
-  if (DB) return DB;
-  const rows = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'catalog.json'), 'utf8')).filter((r) => r[2] !== 'engine'); // engine parts are sold on volvoenginekits.com, not here
-  const specs = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'specs.json'), 'utf8'));
+// the same catalog the store shows (live copy from Unleashed, engine parts left out), rebuilt when the store's copy changes
+let DB_AT = 0, SPECS = null;
+async function load() {
+  const c = await require('../lib/catalog-live').rows();
+  if (DB && DB_AT === c.at) return DB;
+  DB = null; DB_AT = c.at;
+  return build(c.rows);
+}
+function build(all) {
+  const rows = all.filter((r) => r[2] !== 'engine'); // engine parts are sold on volvoenginekits.com, not here
+  const specs = SPECS || (SPECS = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'specs.json'), 'utf8')));
   const bySlug = {}, byCode = {}, cats = {}, makes = {}, engs = {}, oem = {};
   const clean = (sp) => {
     if (!sp) return null;
@@ -138,7 +145,7 @@ function itemCard(p) {
   return `<a class="it" href="/parts/${p.slug}"><code>${esc(p.code)}</code><b>${esc(p.title)}</b>${p.sp && p.sp.fit ? `<span style="font-size:13px;color:#6b7178">${esc(p.sp.fit)}</span>` : ''}</a>`;
 }
 
-function partPage(p, db, lv) {
+function partData(p, db, lv) {
   const sp = p.sp || {};
   lv = lv || {};
   const qty = lv.qty ? Number(lv.qty[p.code]) || 0 : null, inStock = qty > 0;
@@ -174,34 +181,59 @@ function partPage(p, db, lv) {
   if (rel.length) product.isRelatedTo = rel.map((r) => ({ '@id': SITE + '/parts/' + r.slug + '#product' }));
   const ld = [product];
   if (faqs.length) ld.push({ '@type': 'FAQPage', mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
-  const keyf = [['Engine', sp.eng], ['Vehicles', sp.models], ['Years', sp.y0 && sp.y1 ? sp.y0 + '–' + sp.y1 : ''], ['Condition', sp.cond], ['Brand', p.brand]].filter((r) => r[1]).slice(0, 4);
-  const stockLine = inStock ? '<span class="st ok"><i></i>In stock in Florida · ships the same day if ordered by 3 pm ET</span>'
-    : qty === 0 ? '<span class="st"><i></i>Available to order · we confirm the lead time within one business day</span>'
-    : '<span class="st"><i></i>Ask for stock and lead time · we reply within one business day</span>';
-  const body = `<div class="crumb">${crumbs.slice(0, -1).map((c) => `<a href="${c[1]}">${esc(c[0])}</a>`).join(' / ')} / ${esc(p.code)}</div>
-<div class="pp">
-<div class="pp-ph">${img ? `<img src="${img}" alt="${esc(p.title)}" width="640" height="480" fetchpriority="high">` : `<div class="pp-no"><b>${esc(p.oem)}</b><span>${esc(typ)}</span></div>`}</div>
-<div class="pp-in">
-<span class="tag"><a href="/parts/c/${cat.s}" style="color:inherit">${esc(cat.l)}</a>${p.brand ? ' · ' + esc(p.brand) : ''}</span>
-<h1>${esc(p.title)}</h1>
-<div class="pp-pn"><span class="pn">${esc(p.code)}</span>${p.oem !== p.code ? `<span class="pp-oem">OEM ${esc(p.oem)}</span>` : ''}</div>
-${stockLine}
-${keyf.length ? `<dl class="pp-k">${keyf.map((f) => `<div><dt>${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>` : ''}
-<div class="pp-cta"><a class="btn red" href="/portal?add=${encodeURIComponent(p.code)}">Add to a quote request</a><a class="btn ghost dk" href="/portal#/p/${encodeURIComponent(p.code)}">See price in the wholesale store</a></div>
-<p class="pp-note">Wholesale prices and live stock for approved repair shops, injection labs, distributors and fleets. Questions? <a href="tel:+19545864158">+1 (954) 586-4158</a> · <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a></p>
-</div></div>
-<p class="lead" style="font-size:17px;margin-top:28px">${esc(answer)}</p>
-<p style="font-size:14px;color:#5f656c;margin:-8px 0 16px">Also listed as: ${aka.map(esc).join(' · ')}</p>
-<div class="g2"><div>
-${sp.desc ? `<div class="card desc" style="margin-top:0">${sp.desc}</div>` : `<div class="card" style="margin-top:0"><p style="margin:0">${esc(tidy(p.name))}. Part number ${esc(p.code)}. Ask our team to confirm fitment with your current part number or VIN.</p></div>`}
-${xref.length ? `<div class="card"><h2>Cross references</h2><ul class="ul">${xref.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
-${faqs.length ? `<div class="card faq"><h2>Questions about ${esc(p.oem)}</h2>${faqs.map((f) => `<details><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}</div>` : ''}
-</div><aside><div class="card" style="margin-top:0"><h2>Specifications</h2><table>${facts.map((f) => `<tr><th>${f[0]}</th><td>${esc(f[1])}</td></tr>`).join('')}</table></div>
-<div class="chips" style="margin-top:14px"><a href="/parts/c/${cat.s}">All ${esc(cat.l.toLowerCase())}</a>${makeKey ? `<a href="/parts/v/${makeKey}">${esc(sp.make)} parts</a>` : ''}${engKey && db.engs[engKey] && db.engs[engKey].items.length >= 3 ? `<a href="/parts/e/${engKey}">${esc(sp.engHub)}</a>` : ''}</div>
-</aside></div>
-${rel.length ? `<h2 style="margin-top:36px">Often needed with this part</h2><div class="grid">${rel.map(itemCard).join('')}</div>` : ''}
-${more.length ? `<h2 style="margin-top:36px">More ${esc(cat.l.toLowerCase())}</h2><div class="grid">${more.map(itemCard).join('')}</div>` : ''}`;
-  return page({ title: short + ' | Maxzz Diesel', desc, canon: '/parts/' + p.slug, body, ld, index: goodPage(p), crumbs });
+  return { sp, cat, typ, desc, short, facts, xref, faqs, rel, more, engKey, makeKey, aka, answer, crumbs, ld, img, inStock, qty };
+}
+
+// One page per part: the store's own product screen, opened at /parts/<part>. The server writes the title, description,
+// structured data and the part's text into the page, so search engines and AI crawlers read it without running scripts;
+// the store then draws the real screen (price, stock and cart for signed-in customers) over it.
+let SHELL = null;
+function shell() {
+  if (SHELL) return SHELL;
+  SHELL = fs.readFileSync(path.join(process.cwd(), 'portal.html'), 'utf8');
+  return SHELL;
+}
+function storePage(p, db, lv, opts) {
+  opts = opts || {};
+  const d = p ? partData(p, db, lv) : null;
+  const url = SITE + (p ? '/parts/' + p.slug : opts.canon || '/portal');
+  const title = p ? d.short + ' | Maxzz Diesel' : opts.title;
+  const desc = p ? d.desc : opts.desc;
+  const robots = !p || !goodPage(p) || noindexAll() ? 'noindex, follow' : 'index, follow, max-image-preview:large';
+  const bc = p ? { '@type': 'BreadcrumbList', itemListElement: d.crumbs.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c[0], item: SITE + c[1] })) } : null;
+  const graph = p ? [ORG, WEBSITE].concat(d.ld, [bc]) : [ORG, WEBSITE];
+  let h = shell().replace(/<meta name="robots" content="[^"]*">/g, '');
+  const set = (re, val) => { h = re.test(h) ? h.replace(re, val) : h; };
+  set(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
+  set(/<meta name="description" content="[^"]*">/, `<meta name="description" content="${esc(desc)}"><meta name="robots" content="${robots}">`);
+  set(/<link rel="canonical" href="[^"]*">/, `<link rel="canonical" href="${url}">`);
+  h = h.replace(/<link rel="alternate" hreflang="[^"]*" href="[^"]*">/g, '');
+  h = h.replace(/<meta property="og:title" content="[^"]*">/g, '').replace(/<meta property="og:description" content="[^"]*">/g, '').replace(/<meta name="twitter:title" content="[^"]*">/g, '');
+  set(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta name="twitter:title" content="${esc(title)}">`);
+  if (p && d.img) { set(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${SITE + d.img}">`); h = h.replace(/<meta property="og:image:(width|height|alt)" content="[^"]*">/g, '').replace(/<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${SITE + d.img}">`); }
+  h = h.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
+  const ld = `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>`;
+  const boot = `<script>window.MX_PART=${JSON.stringify(p ? p.code : (opts.code || ''))};</script>`;
+  h = h.replace('</head>', ld + boot + '\n</head>');
+  if (p) h = h.replace('<div id="app" v-cloak>', '<div id="app" v-cloak>\n' + ssrBlock(p, db, d));
+  return h;
+}
+// the part in plain HTML for crawlers; the store removes it when it starts (v-if="false") and draws the same facts itself
+function ssrBlock(p, db, d) {
+  const li = (x) => `<li><a href="/parts/${x.slug}">${esc(x.code)}</a> ${esc(x.title)}</li>`;
+  return `<article class="px-ssr" v-if="false" style="max-width:1100px;margin:0 auto;padding:120px 24px 40px">
+<nav aria-label="Breadcrumb">${d.crumbs.map((c) => `<a href="${c[1]}">${esc(c[0])}</a>`).join(' / ')}</nav>
+<h1>${esc(p.title)}</h1><p><b>Part number ${esc(p.code)}</b>${p.oem !== p.code ? ' · OEM ' + esc(p.oem) : ''}${p.brand ? ' · ' + esc(p.brand) : ''}</p>
+<p>${esc(d.answer)}</p><p>Also listed as: ${d.aka.map(esc).join(', ')}</p>
+${d.img ? `<img src="${d.img}" alt="${esc(p.title)}" width="640" height="480">` : ''}
+<table>${d.facts.map((f) => `<tr><th>${f[0]}</th><td>${esc(f[1])}</td></tr>`).join('')}</table>
+${d.sp.desc ? `<section>${d.sp.desc}</section>` : ''}
+${d.xref.length ? `<h2>Cross references</h2><ul>${d.xref.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+${d.faqs.length ? `<h2>Questions about ${esc(p.oem)}</h2>${d.faqs.map((f) => `<h3>${esc(f[0])}</h3><p>${esc(f[1])}</p>`).join('')}` : ''}
+${d.rel.length ? `<h2>Often needed with this part</h2><ul>${d.rel.map(li).join('')}</ul>` : ''}
+${d.more.length ? `<h2>More ${esc(d.cat.l.toLowerCase())}</h2><ul>${d.more.map(li).join('')}</ul>` : ''}
+<p><a href="/parts/c/${d.cat.s}">All ${esc(d.cat.l.toLowerCase())}</a> · <a href="/portal?add=${encodeURIComponent(p.code)}">Add to a quote request</a> · Call +1 (954) 586-4158 · sales@maxzzdiesel.com</p>
+</article>`;
 }
 
 const PER = 300;
@@ -264,7 +296,8 @@ function redirect(res, to) { res.statusCode = 301; res.setHeader('Location', to)
 module.exports = async (req, res) => {
   try {
     const hid = await require('../lib/hidden').hiddenSet();
-    const db = hid.size ? visible(load(), hid) : load();
+    const base0 = await load();
+    const db = hid.size ? visible(base0, hid) : base0;
     const u = new URL(req.url, 'http://x');
     const kind = u.searchParams.get('k') || '';
     const raw = u.searchParams.get('id') || '';
@@ -291,7 +324,9 @@ module.exports = async (req, res) => {
       const e = db.engs[id];
       html = listPage({ title: `${e.l} Injectors, Pumps and Parts`, h1: `${e.l} injection parts`, lead: `Fuel injectors, pumps and rebuild parts for the ${e.l}, by part number. Match your current part number or send us your VIN and we confirm fitment.`, canon: '/parts/e/' + id, items: e.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [e.l, '/parts/e/' + id]], pageNo, index: e.items.length >= 3 });
     } else if (kind === 'p') {
-      if (db.bySlug[id]) { const lv = await live().catch(() => ({})); res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400'); html = partPage(db.bySlug[id], db, lv); }
+      if (db.bySlug[id]) { const lv = await live().catch(() => ({})); res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400'); html = storePage(db.bySlug[id], db, lv); }
+      // a number we do not list: the store screen still opens, says so and offers to add it to a quote (not indexed)
+      else if (!db.oem[id.replace(/-/g, '')] && raw) { res.statusCode = 404; res.setHeader('Cache-Control', 'public, s-maxage=600'); html = storePage(null, db, {}, { code: String(raw).slice(0, 60), title: 'Part ' + String(raw).slice(0, 60) + ' | Maxzz Diesel', desc: 'We do not list this part online yet. Send us the number and we check stock and cross references.', canon: '/parts/' + id }); res.setHeader('Content-Type', 'text/html; charset=utf-8'); return res.end(html); }
       else { const o = db.oem[id.replace(/-/g, '')]; if (o) return redirect(res, '/parts/' + o); }
     }
     if (!html) {
