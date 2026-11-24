@@ -798,14 +798,15 @@ FINDER_BAND = f"""<!-- QUICK PART FINDER -->
 """
 
 
+def drop_finder(src):
+    """The site has one search, the magnifier in the header (js/sitesearch.js); the old quick part finder section is removed."""
+    src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->\s*', '', src, flags=re.S)
+    return re.sub(r'<script src="/js/finder\.js[^"]*" defer></script>\n?', '', src)
+
+
 def patch_home(src):
     src = re.sub(r'<!-- QUICK PART FINDER -->\s*<section id="finder-shortcut".*?</form></section>\s*', '', src, flags=re.S)
-    if '<!--pf-start-->' in src:
-        src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->', lambda m: FINDER_SECTION, src, flags=re.S)
-    else:
-        src = src.replace('<!-- PRODUCT LINES: The Maxzz', FINDER_SECTION + '<!-- PRODUCT LINES: The Maxzz', 1)
-    if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=3" defer></script>', 1)
+    src = drop_finder(src)
     src = re.sub(r'<section id="dta-testimonials".*?</section>\n?', '', src, flags=re.S)
     eb = f'display:inline-block;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:0 14px;font-family:{FONT};font-weight:600;font-size:12px;line-height:25px;letter-spacing:.6px;text-transform:uppercase'
     h2 = f'margin:18px 0 0;font-family:{FONT};font-weight:600;color:#fff;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.02em'
@@ -835,14 +836,7 @@ FINDER_SECTION = FINDER_SECTION.replace("@@PFCSS@@", '<style>#pf-out .pf-r{displ
 
 def patch_parts(src):
     src = re.sub(r'<!-- QUICK PART FINDER -->\s*<section id="finder".*?</style>\s*', '', src, count=1, flags=re.S)
-    if '<!--pf-start-->' in src:
-        src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->', lambda m: FINDER_SECTION, src, flags=re.S)
-    else:
-        # after the first hero section
-        i = src.index('</section>', src.index('<section style="position: relative; box-sizing: border-box;">')) + len('</section>')
-        src = src[:i] + '\n' + FINDER_SECTION + src[i:]
-    if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=3" defer></script>', 1)
+    src = drop_finder(src)
     # chips become links to the system hubs
     old = '<div style="display: contents" v-for="ch in cur.chips"><span style="border: 1px solid #d3d7dc;'
     if old in src and ':href="ch.href"' not in src:

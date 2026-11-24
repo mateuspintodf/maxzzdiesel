@@ -18,7 +18,7 @@ const dbm = require('../lib/db');
 const { hiddenSet } = require('../lib/hidden');
 const vouchers = require('../lib/vouchers');
 const { send, esc } = require('../lib/mail');
-const { upsertContact, addNote, addTask } = require('../lib/hubspot');
+const { upsertContact } = require('../lib/hubspot');
 const { notifyTeam, hubContact } = require('../lib/notify');
 const { EMAIL, clean, readBody } = require('../lib/validate');
 
@@ -285,19 +285,14 @@ A.request = async (req, res) => {
   db.users[f.email] = { email: f.email, name: f.name, phone: f.phone, role: 'owner', account: accId, status: 'pending', created: Date.now() };
   await writeJson(DB, db);
   }
-  let cid = null;
-  // each HubSpot step on its own: a rejected e-mail (typo in the domain) must not drop the follow-up task for the team
-  try { cid = await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company }); } catch (e) { console.error('hubspot contact', e.message); }
-  try {
-    if (cid) await addNote(`<p><b>B2B portal access request</b></p><p>${esc(f.company)} · ${esc(f.type)} · ${esc([f.city, f.state, f.zip, f.country].filter(Boolean).join(', '))}${f.customerNumber ? (prospect ? (prospect.existing ? ' · Existing Unleashed customer: ' : ' · Unleashed prospect created: ') : ' · Unleashed customer ') + esc(f.customerNumber) : ''}</p><p>${esc(f.notes)}</p>`, [{ id: cid, type: 202 }]);
-    await addTask('Approve B2B portal access: ' + f.company, 'Approve or decline at /portal (Admin).' + (cid ? '' : ' HubSpot did not accept the e-mail (' + f.email + '), check it with the customer. ' + f.name + ' · ' + f.phone), cid ? [{ id: cid, type: 204 }] : [], 4);
-  } catch (e) { console.error('hubspot', e.message); }
+  // Max Control is the CRM (the request is a deal there); HubSpot only receives the contact, best effort
+  try { await upsertContact({ email: f.email, name: f.name, phone: f.phone, company: f.company }); } catch (e) { console.error('hubspot contact', e.message); }
   await send(f.email, 'We received your Maxzz B2B portal request', 'Request received',
     `<p>Thanks for asking for access to the Maxzz Diesel B2B portal.</p><p>Our team reviews every account to connect it to your price list. You will get an e-mail as soon as it is approved, usually within one business day.</p>`, null, { name: f.name });
   await notifyTeam('New B2B access request: ' + f.company, 'New B2B access request from the website',
     [['Company', f.company], ['Contact', f.name], ['Email', f.email], ['Phone', f.phone], ['Location', [f.type, f.city, f.state, f.country].filter(Boolean).join(' · ')],
       ['Unleashed', f.customerNumber ? (prospect ? (prospect.existing ? 'Existing customer ' : 'Prospect created ') : 'Says customer ') + f.customerNumber : 'Not created'], ['Notes', f.notes]],
-    [{ label: 'Approve in the portal', url: base(req) + '/portal#admin' }, { label: 'Open the contact in HubSpot', url: hubContact(cid) }]);
+    [{ label: 'Review in Max Control', url: base(req) + '/admin?tab=clients' }]);
   return res.json({ ok: true });
 };
 

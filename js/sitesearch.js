@@ -78,8 +78,8 @@
     try { (window.dataLayer = window.dataLayer || []).push({ event: 'quote_add_item', item_id: item.pn, source: 'site_search' }); } catch (e) {}
   }
 
-  var CSS = '.mxs-b{display:inline-flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;cursor:pointer;flex:none;transition:background .2s,border-color .2s}' +
-    '.mxs-b:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.45)}.mxs-b svg{width:19px;height:19px}@media (min-width:1281px){.mxs-b.has-u{display:none}}' +
+  var CSS = '.mxs-b{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:transparent;color:#fff;cursor:pointer;flex:none;transition:background .2s,border-color .2s}' +
+    '.mxs-b:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.45)}.mxs-b svg{width:19px;height:19px}' +
     '.mxs{position:fixed;inset:0;z-index:9999;display:none;font-family:"BDO Grotesk","Helvetica Neue",Arial,sans-serif}.mxs.on{display:block}' +
     '.mxs-s{position:absolute;inset:0;background:rgba(14,15,17,.55);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);animation:mxsf .18s ease}' +
     '.mxs-p{position:relative;max-width:760px;margin:90px auto 0;background:#fff;border-radius:26px;box-shadow:0 30px 80px rgba(14,15,17,.35);overflow:hidden;animation:mxsu .22s cubic-bezier(.2,.8,.2,1);display:flex;flex-direction:column;max-height:calc(100vh - 130px)}' +
@@ -178,13 +178,6 @@
     if (slot) slot.outerHTML = btn;
     else if (cta && cta.parentNode && !cta.parentNode.querySelector('.mxs-b')) { cta.insertAdjacentHTML('beforebegin', btn); }
     else { var mn = document.querySelector('nav details.mnav'); if (mn && !mn.parentNode.querySelector('.mxs-b')) mn.insertAdjacentHTML('beforebegin', btn); }
-    // wide screens: the search sits in the top bar beside Technical guides, so the long ES/PT menus keep their room;
-    // where the menu links hide (1280px and less) the round button in the bar takes over
-    var util = [].slice.call(document.querySelectorAll('.lang-bar .util')).filter(function (u) { return !u.classList.contains('util-left'); })[0];
-    if (util && !util.querySelector('.mxs-u')) {
-      util.insertAdjacentHTML('afterbegin', '<a href="#" class="mxs-u mxs-b0" style="display:flex;align-items:center;gap:7px;white-space:nowrap">' + ICON.replace('width="20" height="20"', 'width="14" height="14"') + '<span>' + esc(T.btn) + '</span></a>');
-      var nb = document.querySelector('nav .mxs-b'); if (nb) nb.classList.add('has-u');
-    }
     if (!document.getElementById('mxs-css0')) { var s0 = document.createElement('style'); s0.id = 'mxs-css0'; s0.textContent = CSS.split('.mxs{')[0]; document.head.appendChild(s0); }
     document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.mxs-b, .mxs-u')) { e.preventDefault(); open(); } });
     document.addEventListener('keydown', function (e) {
@@ -193,7 +186,7 @@
       else if (e.key === '/' && !typing) { e.preventDefault(); open(); }
       else if (e.key === 'Escape' && root && root.classList.contains('on')) close();
     });
-    var m = /[?&]search=([^&]*)/.exec(location.search);
+    var m = /[?&](?:search|q)=([^&]*)/.exec(location.search);
     if (m) { open(); inp.value = decodeURIComponent(m[1].replace(/\+/g, ' ')); last = null; load().then(function () { render(inp.value); }); }
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount); else mount();

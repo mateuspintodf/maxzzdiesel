@@ -1,6 +1,6 @@
 // POST /api/quote
 // Creates or updates the contact in HubSpot, opens a deal "Quote request QR-..." and attaches the parts list as a note.
-const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubspot');
+const { upsertContact, esc } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
 const { guard } = require('../lib/guard');
 const { createSalesQuote } = require('../lib/unleashed-quote');
@@ -11,7 +11,7 @@ const attrib = require('../lib/attribution');
 const PS = require('../lib/portal-store');
 const dbm = require('../lib/db');
 const { send } = require('../lib/mail');
-const { notifyTeam, hubDeal, hubContact } = require('../lib/notify');
+const { notifyTeam } = require('../lib/notify');
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
@@ -63,42 +63,16 @@ module.exports = async (req, res) => {
       kept = true;
     } catch (e) { console.error('quote db', e.message); }
   }
-  const crmDown = async (why) => {
-    console.error('quote crm', why);
-    await notifyTeam(`ACTION: quote ${number} saved, HubSpot incomplete`, 'Website quote needs manual follow-up',
-      [['Quote', number], ['Customer', [customer.name, customer.company].filter(Boolean).join(' · ')], ['Email', customer.email], ['Phone', customer.phone], ['Parts', lines.length + ' lines'], ['Reason', why]], [],
-      `<p>${lines.slice(0, 40).map((l) => esc(l.pn) + ' x' + l.qty).join('<br>')}</p>`);
-    return res.status(200).json({ ok: true, id: number, crm: false });
-  };
-  if (!process.env.HUBSPOT_TOKEN) return kept ? crmDown('HubSpot not configured') : res.status(503).json({ error: 'crm not configured' });
+  // Max Control is the CRM: the quote is saved above, becomes a deal from the Unleashed order, and the team gets the e-mail below.
+  // HubSpot only receives the contact, best effort, so marketing keeps the person; a HubSpot failure never blocks the quote.
+  const units = lines.reduce((s, l) => s + l.qty, 0);
+  if (process.env.HUBSPOT_TOKEN) { try { await upsertContact(Object.assign({}, customer, { source: store ? 'B2B store quote' : 'Website quote request' })); } catch (e) { console.error('hubspot contact', e.message); } }
   try {
-    const contactId = await upsertContact(Object.assign({}, customer, { source: 'Website quote request' }));
-    const units = lines.reduce((s, l) => s + l.qty, 0);
-    const latam = /latin/i.test(customer.type) || (ship.country && !/united states|canada|puerto rico/i.test(ship.country));
-    const text = lines.map((l, i) => `${i + 1}. ${l.pn} | ${l.name} | qty ${l.qty}`).join('\n');
-    const deal = await hs('/crm/v3/objects/deals', 'POST', {
-      properties: {
-        dealname: `Quote request ${number} · ${customer.company}`,
-        hubspot_owner_id: OWNER(),
-        pipeline: latam ? (process.env.HUBSPOT_PIPELINE_LATAM || '71274341') : (process.env.HUBSPOT_PIPELINE || '71230012'),
-        dealstage: latam ? (process.env.HUBSPOT_DEALSTAGE_LATAM || '137586015') : (process.env.HUBSPOT_DEALSTAGE || '137533774'),
-        description: `${lines.length} lines, ${units} units. Business: ${customer.type}.${extra.length ? '\n' + extra.join('\n') : ''}\n\n${text}${customer.notes ? '\n\nNotes: ' + customer.notes : ''}`.slice(0, 65000)
-      },
-      associations: [{ to: { id: contactId }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] }]
-    });
-    const rows = lines.map((l, i) => `<tr><td>${i + 1}</td><td>${esc(l.pn)}</td><td>${esc(l.name)}</td><td style="text-align:right">${l.qty}</td></tr>`).join('');
-    const html = `<p><strong>Quote request ${esc(number)}</strong> from the website.</p>` +
-      `<p>${[customer.name, customer.company, customer.email, customer.phone, customer.type].filter(Boolean).map(esc).join(' · ')}</p>` +
-      (extra.length ? `<p>${extra.map(esc).join('<br>')}</p>` : '') +
-      `<table><thead><tr><th>#</th><th>Part number</th><th>Description</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table>` +
-      (customer.notes ? `<p><strong>Notes:</strong> ${esc(customer.notes)}</p>` : '');
-    await addNote(html, [{ id: deal.id, type: 214 }, { id: contactId, type: 202 }]);
-    await addTask(`Reply to quote ${number} · ${customer.company}${b2b ? ' · B2B interest' : ''}`, `${lines.length} lines, ${units} units. ${[customer.name, customer.email, customer.phone].filter(Boolean).join(' · ')}${shipText ? ' · ' + shipText : ''}`, [{ id: deal.id, type: 216 }, { id: contactId, type: 204 }], 2);
     // alert to the sales team with direct links to the deal and the contact
     await notifyTeam(`New quote request ${number} · ${customer.company}`, (store ? 'New B2B store quote' : 'New quote request from the website'),
       [['Quote', number], ['Customer', [customer.name, customer.company].filter(Boolean).join(' · ')], ['Email', customer.email], ['Phone', customer.phone],
         ['Ship to', shipText], ['Parts', `${lines.length} lines, ${units} units`], ['Unleashed', ulq.ok ? 'Parked sales order ' + (ulq.number || ulq.guid) + ' on ' + ulq.code + (ulq.matched ? ' (existing customer)' : '') : (ulq.error ? 'Not created: ' + ulq.error : '')], ['B2B access', b2b ? 'Asked for B2B portal access' : '']],
-      [{ label: 'Open the deal in HubSpot', url: hubDeal(deal.id) }, { label: 'Open the contact', url: hubContact(contactId) }],
+      [{ label: 'Open Deals in Max Control', url: 'https://www.maxzzdiesel.com/admin?tab=crm' }, { label: 'Quotes & orders', url: 'https://www.maxzzdiesel.com/admin?tab=pipe' }],
       `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #1d2126">${lines.slice(0, 40).map((l) => `<tr><td style="padding:6px 0;border-bottom:1px solid #eef0f2;font-size:13px"><b>${esc(l.pn)}</b> · ${esc(l.name)}</td><td align="right" style="padding:6px 0;border-bottom:1px solid #eef0f2;font-size:13px">x${l.qty}</td></tr>`).join('')}</table>`);
     // confirmation to the customer: number, status, every line; never blocks the answer
     try {
@@ -113,10 +87,9 @@ module.exports = async (req, res) => {
       await send(customer.email, 'Quote request ' + number + ' received', 'We received your quote request', body,
         who ? { url: host + '/portal#/orders', label: 'Follow it in My orders and quotes' } : null, { name: customer.name, greet: true });
     } catch (e) { console.error('quote mail', e.message); }
-    return res.status(200).json({ ok: true, id: number });
   } catch (e) {
-    console.error(e);
-    if (kept) return crmDown('HubSpot error: ' + String(e.message || e).slice(0, 120));
-    return res.status(502).json({ error: 'crm error' });
+    console.error('quote notify', e.message);
+    if (!kept) return res.status(502).json({ error: 'could not save the quote' });
   }
+  return res.status(200).json({ ok: true, id: number });
 };

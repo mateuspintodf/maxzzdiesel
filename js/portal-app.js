@@ -3219,6 +3219,7 @@ var MX_Q0 = location.search; // the landing query, read before the router tidies
         self.RWITEMS = d.catalog;
         // the program stays out of sight for customers while it is off; admins still see the preview
         self.REWARDS.on = !d.preview || !!(self.me && self.me.admin);
+        if (!self.REWARDS.on && self.route === 'rewards') location.replace('#/'); // hidden from customers until the program has rules
         if (d.preview && !d.balance && !(self.me && self.me.admin)) return;
         self.REWARDS.demo = false; self.REWARDS.points = d.balance || 0; self.REWARDS.year = d.year || 0; self.REWARDS.rate = d.rate || 1;
         self.REWARDS.history = d.history || []; self.REWARDS.live = !d.preview;

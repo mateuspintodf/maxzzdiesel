@@ -5,8 +5,8 @@ Skips the store (portal has its own search), the admin, the e-mail designer and 
 import re
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
-TAG = '<script src="/js/sitesearch.js?v=2" defer></script>'
-NAVFIT = '<style id="nav-fit">@media (min-width:1281px){nav[aria-label=Main] .nav-links{margin-left:26px !important}nav[aria-label=Main] .navl{padding:0 8px !important;letter-spacing:0 !important}nav[aria-label=Main]{padding-left:30px !important}}@media (min-width:1281px) and (max-width:1380px){nav[aria-label=Main] .nav-links{font-size:13px !important;margin-left:18px !important}nav[aria-label=Main] .navl{padding:0 6px !important}nav[aria-label=Main] .nav-cta{padding-left:20px !important;gap:10px !important}}</style>'
+TAG = '<script src="/js/sitesearch.js?v=3" defer></script>'
+NAVFIT = '<style id="nav-fit">@media (min-width:1281px){nav[aria-label=Main] .nav-links{margin-left:26px !important}nav[aria-label=Main] .navl{padding:0 8px !important;letter-spacing:0 !important}nav[aria-label=Main]{padding-left:30px !important}nav[aria-label=Main] .nav-cta{margin-left:-10px}}@media (min-width:1281px) and (max-width:1380px){nav[aria-label=Main] .nav-links{font-size:13px !important;margin-left:18px !important}nav[aria-label=Main] .navl{padding:0 6px !important}nav[aria-label=Main] .nav-cta{padding-left:20px !important;gap:10px !important}}@media (min-width:1281px){html[lang^=es] nav[aria-label=Main] .nav-links{font-size:13px !important;margin-left:18px !important}html[lang^=es] nav[aria-label=Main] .navl{padding:0 6px !important}html[lang^=es] nav[aria-label=Main] .nav-cta{padding-left:20px !important;gap:10px !important}}@media (min-width:1281px) and (max-width:1340px){html[lang^=es] nav[aria-label=Main] .navl{padding:0 4px !important}}</style>'
 SKIP = {'portal.html', 'admin.html', 'mail-editor.html', 'painel.html'}
 n = 0
 for p in sorted(ROOT.glob('*.html')) + sorted(ROOT.glob('*/*.html')) + sorted(ROOT.glob('*/*/*.html')):

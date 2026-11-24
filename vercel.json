@@ -12,9 +12,6 @@
     "api/account.js": {
       "maxDuration": 20
     },
-    "api/dash-data.js": {
-      "maxDuration": 30
-    },
     "api/agenda.js": {
       "maxDuration": 20
     },
@@ -152,6 +149,9 @@
       "destination": "/portal",
       "permanent": true
     },
+    { "source": "/es/quote", "destination": "/portal", "permanent": true },
+    { "source": "/painel", "destination": "/admin", "permanent": false },
+    { "source": "/pt/quote", "destination": "/portal", "permanent": true },
     {
       "source": "/parts/c/engine-parts",
       "destination": "https://volvoenginekits.com/",

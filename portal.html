@@ -9,7 +9,7 @@
 <title>Wholesale Diesel Injection Parts Store and Quotes | Maxzz Diesel</title>
 <meta name="description" content="Find diesel injectors, pumps, nozzles, valves and bench tools by part number, engine or vehicle. Build your list and get a wholesale quote in one business day. Approved accounts sign in for their prices and online ordering."><meta name="robots" content="index, follow">
 <link rel="canonical" href="https://www.maxzzdiesel.com/portal">
-<link rel="alternate" hreflang="en" href="https://www.maxzzdiesel.com/portal"><link rel="alternate" hreflang="es" href="https://www.maxzzdiesel.com/es/quote"><link rel="alternate" hreflang="pt-BR" href="https://www.maxzzdiesel.com/pt/quote"><link rel="alternate" hreflang="x-default" href="https://www.maxzzdiesel.com/portal">
+<link rel="alternate" hreflang="en" href="https://www.maxzzdiesel.com/portal"><link rel="alternate" hreflang="x-default" href="https://www.maxzzdiesel.com/portal">
 <meta property="og:title" content="Wholesale Diesel Injection Parts Store and Quotes"><meta property="og:description" content="Find diesel injection parts by part number, engine or vehicle, build your list and get a wholesale quote in one business day."><meta property="og:type" content="website"><meta property="og:url" content="https://www.maxzzdiesel.com/portal">
 <meta property="og:title" content="Maxzz B2B portal">
 <meta property="og:description" content="Find diesel injectors, pumps, nozzles, valves and bench tools by engine and year or by part number. Build your list and get wholesale pricing from Maxzz Diesel.">
@@ -1806,8 +1806,8 @@ input[type=search]::-webkit-search-cancel-button{-webkit-appearance:none;appeara
 </div>
 
 <!-- REWARDS -->
-<div class="px-card px-auth" v-if="route === 'rewards' && !logged"><h2>Max Rewards</h2><p class="px-muted">Points for approved wholesale customers. Sign in to see your balance.</p><a class="px-btn px-red" href="#/login" style="margin-top:14px">Sign in</a></div>
-<div class="px-rwp2" v-if="route === 'rewards' && logged">
+<div class="px-card px-auth" v-if="route === 'rewards' && !logged && REWARDS.on"><h2>Max Rewards</h2><p class="px-muted">Points for approved wholesale customers. Sign in to see your balance.</p><a class="px-btn px-red" href="#/login" style="margin-top:14px">Sign in</a></div>
+<div class="px-rwp2" v-if="route === 'rewards' && logged && REWARDS.on">
 <div class="px-crumb"><a href="#/">Store</a> / Max Rewards</div>
 <section class="px-rwhero" :style="'--lc:' + rwLevel.c">
 <div class="px-rwhero-l">
