@@ -5,7 +5,8 @@ Skips the store (portal has its own search), the admin, the e-mail designer and 
 import re
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
-TAG = '<script src="/js/sitesearch.js?v=1" defer></script>'
+TAG = '<script src="/js/sitesearch.js?v=2" defer></script>'
+NAVFIT = '<style id="nav-fit">@media (min-width:1281px){nav[aria-label=Main] .nav-links{margin-left:26px !important}nav[aria-label=Main] .navl{padding:0 8px !important;letter-spacing:0 !important}nav[aria-label=Main]{padding-left:30px !important}}@media (min-width:1281px) and (max-width:1380px){nav[aria-label=Main] .nav-links{font-size:13px !important;margin-left:18px !important}nav[aria-label=Main] .navl{padding:0 6px !important}nav[aria-label=Main] .nav-cta{padding-left:20px !important;gap:10px !important}}</style>'
 SKIP = {'portal.html', 'admin.html', 'mail-editor.html', 'painel.html'}
 n = 0
 for p in sorted(ROOT.glob('*.html')) + sorted(ROOT.glob('*/*.html')) + sorted(ROOT.glob('*/*/*.html')):
@@ -17,6 +18,9 @@ for p in sorted(ROOT.glob('*.html')) + sorted(ROOT.glob('*/*.html')) + sorted(RO
         continue
     new = re.sub(r'<script src="/js/sitesearch\.js[^"]*" defer></script>\n?', '', src)
     new = new.replace('</body>', TAG + '\n</body>', 1)
+    # long ES/PT menu labels: tighter menu spacing on mid-size screens so the quote button stays inside the bar
+    new = re.sub(r'<style id="nav-fit">.*?</style>\n?', '', new, flags=re.S)
+    new = new.replace('</head>', NAVFIT + '\n</head>', 1)
     if new != src:
         p.write_text(new, encoding='utf-8'); n += 1
 print('search added or refreshed on', n, 'pages')
