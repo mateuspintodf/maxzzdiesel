@@ -64,6 +64,18 @@ function load() {
 }
 
 const noindexAll = () => process.env.PARTS_NOINDEX === '1';
+// a part page is indexed only when it has reviewed copy worth reading: fitment and a real description (thin pages stay noindex, follow)
+const GOOD_DESC = 300;
+const goodPage = (p) => !!(p.sp && p.sp.fit && String(p.sp.desc || '').replace(/<[^>]+>/g, ' ').trim().length > GOOD_DESC);
+// stock on hand and photos, read from the private store the crons keep (10 min memo); a failure means "unknown", never "in stock"
+let LIVE = { at: 0, qty: null, items: null };
+async function live() {
+  if (LIVE.qty && Date.now() - LIVE.at < 10 * 60e3) return LIVE;
+  const { readJson, cached } = require('../lib/store');
+  const [st, prod] = await Promise.all([readJson('portal/stock.json').catch(() => null), cached('portal/products.json', 10 * 60e3).catch(() => null)]);
+  LIVE = { at: Date.now(), qty: (st && st.qty) || null, items: (prod && prod.items) || null };
+  return LIVE;
+}
 const UPDATED = '2026-11-14';
 const ORG = {
   '@type': ['Organization', 'WholesaleStore'], '@id': SITE + '/#org', name: 'Maxzz Diesel', url: SITE + '/', logo: SITE + '/assets/favicon.svg', image: SITE + '/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg',
@@ -94,6 +106,12 @@ h1{font-size:clamp(28px,4vw,42px);line-height:1.12;font-weight:500;letter-spacin
 .lead{font-size:18px;color:#3e444b;max-width:820px;margin:0 0 20px}.card{background:#fff;border-radius:12px;padding:28px;margin-top:16px}
 .g2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start}.pn{display:inline-block;font-family:ui-monospace,Menlo,Consolas,monospace;font-weight:600;font-size:20px;background:#f4f5f6;border-radius:6px;padding:8px 12px;margin:4px 0 16px}
 .tag{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#c25a12;font-weight:600}
+.pp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:28px;align-items:center;background:#fff;border-radius:20px;padding:24px}.pp-ph{background:#f4f5f6;border-radius:14px;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;overflow:hidden}.pp-ph img{width:100%;height:100%;object-fit:contain;display:block}
+.pp-no{display:flex;flex-direction:column;align-items:center;gap:6px;color:#8a9099;font-size:14px}.pp-no b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:22px;color:#5f656c}.pp-in h1{font-size:clamp(24px,3vw,34px);margin:8px 0 12px}
+.pp-pn{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}.pp-pn .pn{margin:0}.pp-oem{font-size:14px;color:#5f656c}.st{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:500;color:#5f656c;background:#f4f5f6;border-radius:50px;padding:7px 14px}.st i{width:8px;height:8px;border-radius:50%;background:#9aa1ab}.st.ok{color:#1a7f3c;background:#e8f5ec}.st.ok i{background:#1f9d55}
+.pp-k{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 20px;margin:18px 0 0}.pp-k div{min-width:0}.pp-k dt{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:#8a9099;font-weight:600}.pp-k dd{margin:2px 0 0;font-size:15px;color:#1d2126}
+.pp-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.btn.dk{background:#fff;color:#1d2126;border-color:#d3d7dc}.pp-note{font-size:13px;color:#6b7178;margin:12px 0 0}
+@media (max-width:820px){.pp{grid-template-columns:1fr;padding:16px}.pp-k{grid-template-columns:1fr 1fr}}
 table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:10px 8px;border-bottom:1px solid #eef0f2;text-align:left;vertical-align:top}th{font-weight:500;color:#5f656c;width:38%}
 .list td:first-child{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;white-space:nowrap}
 .cta{display:flex;flex-direction:column;gap:10px}.cta p{margin:0;color:#5f656c;font-size:14px}.ul{columns:2;gap:24px;padding-left:18px}.ul li{margin:0 0 4px;break-inside:avoid}
@@ -106,11 +124,12 @@ table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:10px 8px;
 </style></head><body>
 <header class="h"><div class="h-in"><a href="/" aria-label="Maxzz Diesel home"><img src="/assets/logo-negative.svg" alt="Maxzz Diesel" width="150" height="34"></a>
 <nav aria-label="Main"><a href="/injection-parts">Injection parts</a><a href="/parts">Parts catalog</a><a href="/aftertreatment">Aftertreatment</a><a href="/about">About</a></nav>
-<a class="btn ghost" href="/portal">Wholesale login</a><a class="btn red" href="/portal">Request a quote</a></div></header>
+<span data-search-slot></span><a class="btn ghost" href="/portal">Wholesale login</a><a class="btn red" href="/portal">Request a quote</a></div></header>
 <main class="w">${body}</main>
 <footer class="f"><div class="f-in"><div><b style="color:#fff">Maxzz Diesel</b><br>6601 Lyons Road, Ste H-6, Coconut Creek, FL 33073<br>In-stock orders placed by 3 pm Eastern ship the same day.</div><div><a href="tel:+19545864158">+1 (954) 586-4158</a><br><a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a><br><a href="/parts">Parts catalog</a> · <a href="/policies">Shipping and returns</a></div></div></footer>
 <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-T8J8922X"></script><script>window.dataLayer=window.dataLayer||[];dataLayer.push({'gtm.start':Date.now(),event:'gtm.js'});</script>
 <script type="text/javascript" id="hs-script-loader" async defer src="https://js.hs-scripts.com/14488732.js"></script>
+<script src="/js/sitesearch.js?v=1" defer></script>
 </body></html>`;
 }
 
@@ -119,13 +138,16 @@ function itemCard(p) {
   return `<a class="it" href="/parts/${p.slug}"><code>${esc(p.code)}</code><b>${esc(p.title)}</b>${p.sp && p.sp.fit ? `<span style="font-size:13px;color:#6b7178">${esc(p.sp.fit)}</span>` : ''}</a>`;
 }
 
-function partPage(p, db) {
+function partPage(p, db, lv) {
   const sp = p.sp || {};
+  lv = lv || {};
+  const qty = lv.qty ? Number(lv.qty[p.code]) || 0 : null, inStock = qty > 0;
+  const hasPhoto = require('../lib/photo').has(p.code, lv.items), img = hasPhoto ? '/api/img?c=' + encodeURIComponent(p.code) + '&s=l' : '';
   const cat = CATS[p.cat] || { s: slug(p.cat), l: p.cat };
   const typ = sp.type || cat.l;
   const brand = p.brand && !String(p.oem).toLowerCase().startsWith(p.brand.toLowerCase()) ? p.brand : '';
   const lead = (String(sp.desc || '').match(/<p>(.*?)<\/p>/) || [])[1] || '';
-  const desc = sp.desc ? clip(lead.replace(/<[^>]+>/g, '') + ' Wholesale from Florida, same-day shipping on in-stock orders.', 155)
+  const desc = sp.desc ? clip(lead.replace(/<[^>]+>/g, '') + ' Wholesale from Coconut Creek, Florida.', 155)
     : clip(`${tidy(p.name)}, part number ${p.code}. Wholesale from Maxzz Diesel in Coconut Creek, Florida. Request a quote and we reply within one business day.`, 155);
   let short = [p.oem, brand, typ].filter(Boolean).join(' ');
   if (sp.engHub && (short + ', ' + sp.engHub).length <= 66) short += ', ' + sp.engHub;
@@ -139,8 +161,8 @@ function partPage(p, db) {
   const spaced = /^\d{10}$/.test(digits) ? digits.replace(/^(\d)(\d{3})(\d{3})(\d{3})$/, '$1 $2 $3 $4') : '';
   const codeDigits = String(p.code).replace(/[^0-9a-z]/gi, ''), codeBare = codeDigits.replace(/^[a-z]{2,4}(?=\d)/i, '');
   const aka = [...new Set([p.oem, digits, spaced, p.code, codeDigits, codeBare.length >= 5 ? codeBare : ''].filter(Boolean))];
-  const answer = sp.fit ? `${p.oem} is a ${String(sp.cond || 'new').toLowerCase()} ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()} for ${sp.fit}. Maxzz Diesel stocks it in Coconut Creek, Florida, and in-stock orders placed by 3 pm Eastern ship the same day.`
-    : `${p.oem} is a ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()}. Maxzz Diesel stocks it in Coconut Creek, Florida, and in-stock orders placed by 3 pm Eastern ship the same day.`;
+  const ship = inStock ? 'Maxzz Diesel has it in stock in Coconut Creek, Florida, and orders placed by 3 pm Eastern ship the same day.' : 'Maxzz Diesel supplies it from Coconut Creek, Florida. Ask for a quote and we confirm stock and lead time within one business day.';
+  const answer = (sp.fit ? `${p.oem} is a ${String(sp.cond || 'new').toLowerCase()} ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()} for ${sp.fit}. ` : `${p.oem} is a ${p.brand ? p.brand + ' ' : ''}${typ.toLowerCase()}. `) + ship;
   const crumbs = [['Home', '/'], ['Parts catalog', '/parts'], [cat.l, '/parts/c/' + cat.s], [p.code, '/parts/' + p.slug]];
   const product = { '@type': 'Product', '@id': SITE + '/parts/' + p.slug + '#product', name: p.title, sku: p.code, mpn: p.oem, description: desc, category: typ, url: SITE + '/parts/' + p.slug };
   if (aka.length > 1) product.alternateName = aka.filter((x) => x !== p.title);
@@ -148,32 +170,38 @@ function partPage(p, db) {
   if (sp.cond) product.itemCondition = /reman/i.test(sp.cond) ? 'https://schema.org/RefurbishedCondition' : 'https://schema.org/NewCondition';
   const props = [sp.eng && { '@type': 'PropertyValue', name: 'Engine', value: sp.eng }, sp.y0 && { '@type': 'PropertyValue', name: 'Years', value: sp.y0 + '–' + sp.y1 }, sp.models && { '@type': 'PropertyValue', name: 'Vehicles', value: sp.models }].filter(Boolean);
   if (props.length) product.additionalProperty = props;
+  if (img) product.image = SITE + img;
   if (rel.length) product.isRelatedTo = rel.map((r) => ({ '@id': SITE + '/parts/' + r.slug + '#product' }));
   const ld = [product];
   if (faqs.length) ld.push({ '@type': 'FAQPage', mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f[0], acceptedAnswer: { '@type': 'Answer', text: f[1] } })) });
+  const keyf = [['Engine', sp.eng], ['Vehicles', sp.models], ['Years', sp.y0 && sp.y1 ? sp.y0 + '–' + sp.y1 : ''], ['Condition', sp.cond], ['Brand', p.brand]].filter((r) => r[1]).slice(0, 4);
+  const stockLine = inStock ? '<span class="st ok"><i></i>In stock in Florida · ships the same day if ordered by 3 pm ET</span>'
+    : qty === 0 ? '<span class="st"><i></i>Available to order · we confirm the lead time within one business day</span>'
+    : '<span class="st"><i></i>Ask for stock and lead time · we reply within one business day</span>';
   const body = `<div class="crumb">${crumbs.slice(0, -1).map((c) => `<a href="${c[1]}">${esc(c[0])}</a>`).join(' / ')} / ${esc(p.code)}</div>
-<div class="g2"><div>
-<span class="tag">${esc(typ)}${p.brand ? ' · ' + esc(p.brand) : ''}</span>
+<div class="pp">
+<div class="pp-ph">${img ? `<img src="${img}" alt="${esc(p.title)}" width="640" height="480" fetchpriority="high">` : `<div class="pp-no"><b>${esc(p.oem)}</b><span>${esc(typ)}</span></div>`}</div>
+<div class="pp-in">
+<span class="tag"><a href="/parts/c/${cat.s}" style="color:inherit">${esc(cat.l)}</a>${p.brand ? ' · ' + esc(p.brand) : ''}</span>
 <h1>${esc(p.title)}</h1>
-<span class="pn">${esc(p.code)}</span>
-<p class="lead" style="font-size:17px">${esc(answer)}</p>
+<div class="pp-pn"><span class="pn">${esc(p.code)}</span>${p.oem !== p.code ? `<span class="pp-oem">OEM ${esc(p.oem)}</span>` : ''}</div>
+${stockLine}
+${keyf.length ? `<dl class="pp-k">${keyf.map((f) => `<div><dt>${f[0]}</dt><dd>${esc(f[1])}</dd></div>`).join('')}</dl>` : ''}
+<div class="pp-cta"><a class="btn red" href="/portal?add=${encodeURIComponent(p.code)}">Add to a quote request</a><a class="btn ghost dk" href="/portal#/p/${encodeURIComponent(p.code)}">See price in the wholesale store</a></div>
+<p class="pp-note">Wholesale prices and live stock for approved repair shops, injection labs, distributors and fleets. Questions? <a href="tel:+19545864158">+1 (954) 586-4158</a> · <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a></p>
+</div></div>
+<p class="lead" style="font-size:17px;margin-top:28px">${esc(answer)}</p>
 <p style="font-size:14px;color:#5f656c;margin:-8px 0 16px">Also listed as: ${aka.map(esc).join(' · ')}</p>
-<div class="card" style="margin-top:0"><table>${facts.map((f) => `<tr><th>${f[0]}</th><td>${esc(f[1])}</td></tr>`).join('')}</table></div>
-${sp.desc ? `<div class="card desc">${sp.desc}</div>` : `<div class="card"><p style="margin:0">${esc(tidy(p.name))}. Part number ${esc(p.code)}. Ask our team to confirm fitment with your current part number or VIN.</p></div>`}
+<div class="g2"><div>
+${sp.desc ? `<div class="card desc" style="margin-top:0">${sp.desc}</div>` : `<div class="card" style="margin-top:0"><p style="margin:0">${esc(tidy(p.name))}. Part number ${esc(p.code)}. Ask our team to confirm fitment with your current part number or VIN.</p></div>`}
 ${xref.length ? `<div class="card"><h2>Cross references</h2><ul class="ul">${xref.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>` : ''}
 ${faqs.length ? `<div class="card faq"><h2>Questions about ${esc(p.oem)}</h2>${faqs.map((f) => `<details><summary>${esc(f[0])}</summary><p>${esc(f[1])}</p></details>`).join('')}</div>` : ''}
-</div><aside class="card cta" style="margin-top:0;position:sticky;top:16px">
-<h2 style="margin:0">Get a price</h2>
-<p>Wholesale prices and live stock for approved repair shops, injection labs, distributors and fleets.</p>
-<a class="btn red" href="/portal?add=${encodeURIComponent(p.code)}">Add to a quote request</a>
-<a class="btn ghost" href="/portal#/p/${encodeURIComponent(p.code)}">See price in the wholesale store</a>
-<p>We reply with price, stock and lead time within one business day. In-stock orders placed by 3 pm Eastern ship the same day.</p>
-<p>Questions? Call <a href="tel:+19545864158">+1 (954) 586-4158</a> or e-mail <a href="mailto:sales@maxzzdiesel.com">sales@maxzzdiesel.com</a>.</p>
-${engKey || makeKey ? `<div class="chips">${makeKey ? `<a href="/parts/v/${makeKey}">${esc(sp.make)} parts</a>` : ''}${engKey && db.engs[engKey] && db.engs[engKey].items.length >= 3 ? `<a href="/parts/e/${engKey}">${esc(sp.engHub)}</a>` : ''}</div>` : ''}
+</div><aside><div class="card" style="margin-top:0"><h2>Specifications</h2><table>${facts.map((f) => `<tr><th>${f[0]}</th><td>${esc(f[1])}</td></tr>`).join('')}</table></div>
+<div class="chips" style="margin-top:14px"><a href="/parts/c/${cat.s}">All ${esc(cat.l.toLowerCase())}</a>${makeKey ? `<a href="/parts/v/${makeKey}">${esc(sp.make)} parts</a>` : ''}${engKey && db.engs[engKey] && db.engs[engKey].items.length >= 3 ? `<a href="/parts/e/${engKey}">${esc(sp.engHub)}</a>` : ''}</div>
 </aside></div>
 ${rel.length ? `<h2 style="margin-top:36px">Often needed with this part</h2><div class="grid">${rel.map(itemCard).join('')}</div>` : ''}
 ${more.length ? `<h2 style="margin-top:36px">More ${esc(cat.l.toLowerCase())}</h2><div class="grid">${more.map(itemCard).join('')}</div>` : ''}`;
-  return page({ title: short + ' | Maxzz Diesel', desc, canon: '/parts/' + p.slug, body, ld, index: !!p.sp, crumbs });
+  return page({ title: short + ' | Maxzz Diesel', desc, canon: '/parts/' + p.slug, body, ld, index: goodPage(p), crumbs });
 }
 
 const PER = 300;
@@ -227,7 +255,7 @@ function sitemap(db) {
   Object.entries(CATS).forEach(([k, c]) => { if (db.cats[k]) { const n = Math.ceil(db.cats[k].length / PER); for (let i = 1; i <= n; i++) urls.push('/parts/c/' + c.s + (i > 1 ? '?page=' + i : '')); } });
   Object.keys(db.makes).forEach((k) => urls.push('/parts/v/' + k));
   bigEngs(db).forEach(([k]) => urls.push('/parts/e/' + k));
-  Object.values(db.bySlug).forEach((p) => { if (p.sp) urls.push('/parts/' + p.slug); });
+  Object.values(db.bySlug).forEach((p) => { if (goodPage(p)) urls.push('/parts/' + p.slug); });
   return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + urls.map((u) => `  <url><loc>${SITE}${esc(u)}</loc><lastmod>${UPDATED}</lastmod></url>`).join('\n') + '\n</urlset>\n';
 }
 
@@ -263,7 +291,7 @@ module.exports = async (req, res) => {
       const e = db.engs[id];
       html = listPage({ title: `${e.l} Injectors, Pumps and Parts`, h1: `${e.l} injection parts`, lead: `Fuel injectors, pumps and rebuild parts for the ${e.l}, by part number. Match your current part number or send us your VIN and we confirm fitment.`, canon: '/parts/e/' + id, items: e.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [e.l, '/parts/e/' + id]], pageNo, index: e.items.length >= 3 });
     } else if (kind === 'p') {
-      if (db.bySlug[id]) html = partPage(db.bySlug[id], db);
+      if (db.bySlug[id]) { const lv = await live().catch(() => ({})); res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400'); html = partPage(db.bySlug[id], db, lv); }
       else { const o = db.oem[id.replace(/-/g, '')]; if (o) return redirect(res, '/parts/' + o); }
     }
     if (!html) {

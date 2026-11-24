@@ -174,8 +174,9 @@
 
   function mount() {
     var btn = '<button type="button" class="mxs-b" aria-label="' + esc(T.btn) + '" title="' + esc(T.btn) + ' (/)">' + ICON + '</button>';
-    var cta = document.querySelector('nav .nav-cta');
-    if (cta && cta.parentNode && !cta.parentNode.querySelector('.mxs-b')) { cta.insertAdjacentHTML('beforebegin', btn); }
+    var slot = document.querySelector('[data-search-slot]'), cta = document.querySelector('nav .nav-cta');
+    if (slot) slot.outerHTML = btn;
+    else if (cta && cta.parentNode && !cta.parentNode.querySelector('.mxs-b')) { cta.insertAdjacentHTML('beforebegin', btn); }
     else { var mn = document.querySelector('nav details.mnav'); if (mn && !mn.parentNode.querySelector('.mxs-b')) mn.insertAdjacentHTML('beforebegin', btn); }
     if (!document.getElementById('mxs-css0')) { var s0 = document.createElement('style'); s0.id = 'mxs-css0'; s0.textContent = CSS.split('.mxs{')[0]; document.head.appendChild(s0); }
     document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.mxs-b')) { e.preventDefault(); open(); } });
