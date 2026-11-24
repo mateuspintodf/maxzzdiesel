@@ -42,7 +42,7 @@
 - [Technical Guides](https://www.maxzzdiesel.com/resources): rebuild procedures, failure symptoms and part numbers for common rail injectors and CP4 pumps
 
 ## Training
-- [Diesel Tech Academy: Official Training by Maxzz Diesel](https://www.maxzzdiesel.com/training): 10 online courses, $297 each, 50% off the second course, lifetime access, 7-day guarantee. Bundles: Titanium $697, Max $1,197, Complete $1,597. Private onsite training available. Enrollment: https://www.dieseltechacademy.com/
+- [Diesel Tech Academy: Official Training by Maxzz Diesel](https://www.maxzzdiesel.com/training): 10 online courses, $297 each, 50% off the second course, 1 year access, 7-day guarantee. Bundles: Titanium $697, Max $1,197, Complete $1,597. Private onsite training available. Enrollment: https://www.dieseltechacademy.com/
 - Bosch CRIN Injector: Commercial vehicle CRIN line: disassembly, assembly and validation
 - Denso G2S Injector: John Deere application: full rebuild and precision assembly steps
 - Continental (Siemens VDO) Injector: Piezo actuator teardown, high-precision assembly and validation
