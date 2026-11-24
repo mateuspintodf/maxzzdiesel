@@ -501,13 +501,14 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   function initials(e) { var p = String(e || '').split('@')[0].split(/[._-]/); return ((p[0] || '?')[0] + (p[1] ? p[1][0] : (p[0] || '?')[1] || '')).toUpperCase(); }
   // main sections (pills in the top bar) and their pages (pills under the title)
   // five groups, the daily sales work first; screen ids are the same as before, so saved permissions keep working
+  // a fourth item true = reached from a button on another page, so it stays out of the menus (its id and permission stay)
   var NAV = [
-    ['sales', 'Sales', [['crm', 'CRM'], ['pipe', 'Quotes & orders'], ['dir', 'Customers'], ['goals', 'Goals & rewards']]],
-    ['ana', 'Analytics', [['dash', 'Overview'], ['sa', 'Sales'], ['events', 'Portal behavior'], ['bcomp', 'Behavior by customer'], ['stream', 'Event stream']]],
-    ['portal', 'Portal', [['clients', 'Accounts'], ['prospects', 'Add by hand'], ['segments', 'Lists & invites']]],
-    ['mkt', 'Marketing', [['emails', 'Email campaigns'], ['social', 'Social media'], ['campaigns', 'Price campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
+    ['sales', 'Sales', [['crm', 'Deals'], ['pipe', 'Quotes & orders'], ['dir', 'Customers'], ['goals', 'Sales goals']]],
+    ['ana', 'Analytics', [['dash', 'Overview'], ['sa', 'Revenue'], ['events', 'Portal activity'], ['bcomp', 'Activity by company'], ['stream', 'Raw events']]],
+    ['mkt', 'Marketing', [['emails', 'Email campaigns'], ['segments', 'Lists & invites'], ['social', 'Social media'], ['campaigns', 'Price campaigns'], ['vouchers', 'Vouchers'], ['loyalty', 'Max Rewards']]],
+    ['portal', 'Portal', [['clients', 'Accounts'], ['prospects', 'Add prospect', true], ['terms', 'Terms of use']]],
     ['cat', 'Catalog', [['products', 'Products']]],
-    ['set', 'Settings', [['profile', 'My account'], ['terms', 'Terms of use'], ['admins', 'Admin users'], ['audit', 'Activity log']]]];
+    ['set', 'Settings', [['profile', 'My account'], ['admins', 'Admin users'], ['audit', 'Audit log']]]];
   function okTab(id) { var sc = S.me && S.me.screens; return !sc || sc.indexOf(id) >= 0 || ['profile', 'sec', 'admins', 'audit'].indexOf(id) >= 0; }
   function navF() { return NAV.map(function (g) { return [g[0], g[1], g[2].filter(function (t) { return okTab(t[0]); })]; }).filter(function (g) { return g[2].length; }); }
   var SCR_PRESETS = { all: null, sales: ['dash', 'dir', 'pipe', 'sa', 'crm', 'goals'], marketing: ['dash', 'dir', 'segments', 'clients', 'prospects', 'emails', 'social', 'campaigns', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'] };
@@ -518,7 +519,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
       // the period box stays in place on every view; the customer and parts views are always the last 12 months
       ((v === 'portal' || v === 'overview') ? '<select class="sel" data-act-change="days" aria-label="Period">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.days || 30) === d ? ' selected' : '') + '>Period: last ' + (d === 365 ? '12 months' : d + ' days') + '</option>'; }).join('') + '</select>'
         : '<span class="sel per-fixed" data-tip="This view always uses the last 12 months, compared with the 12 before">Period: last 12 months</span>'); },
-    clients: function () { return '<label class="srch">' + ic('search', 16) + '<input type="search" data-m="q" value="' + esc(S.q) + '" placeholder="Company, code or e-mail"></label>'; },
+    clients: function () { return '<label class="srch">' + ic('search', 16) + '<input type="search" data-m="q" value="' + esc(S.q) + '" placeholder="Company, code or e-mail"></label>' + (okTab('prospects') ? '<button class="btn" data-tab="prospects">' + ic('plus', 16) + 'Add prospect</button>' : ''); },
     events: daysSel, bcomp: daysSel, stream: daysSel, sa: slHead
   };
   function daysSel() { return '<select class="sel" data-act-change="bdays">' + [7, 30, 90, 365].map(function (d) { return '<option value="' + d + '"' + ((S.bdays || 30) === d ? ' selected' : '') + '>Last ' + d + ' days</option>'; }).join('') + '</select>'; }
@@ -540,6 +541,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var PICO = { overview: 'monitor', customers: 'users', sa: 'chart', events: 'activity', bcomp: 'eye', stream: 'list', crm: 'board', pipe: 'cart', dir: 'users', goals: 'award', clients: 'user', prospects: 'plus', segments: 'send', emails: 'mail', social: 'camera', campaigns: 'tag', vouchers: 'ticket', loyalty: 'award', products: 'box', profile: 'user', terms: 'file', admins: 'shield', audit: 'clock' };
   function pagesOf(g, pend) { var out = [];
     g[2].forEach(function (t) {
+      if (t[2] && S.tab !== t[0] && g[2].some(function (x) { return !x[2]; })) return;
       if (t[0] === 'dash') { var dv = S.dview || 'overview'; DVIEWS.forEach(function (x) { out.push({ n: x[1], k: PICO[x[0]], a: 'data-act="dview" data-v="' + x[0] + '"', on: S.tab === 'dash' && dv === x[0] }); }); return; }
       out.push({ n: t[1], k: PICO[t[0]], a: 'data-tab="' + t[0] + '"', on: S.tab === t[0], c: t[0] === 'clients' && pend ? pend : 0 }); });
     return out; }
@@ -2546,7 +2548,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   document.addEventListener('keydown', function (e) { if (!S.modal) { if (e.key === 'Escape' && !e.defaultPrevented && S.fd && !S.dr) { S.fd = null; draw(); } return; } if (e.key === 'Escape') { S.modal = null; draw(); } if (e.key === 'Enter' && (e.target.matches('.mdl input[type=text]') || e.target.classList.contains('mok') || !e.target.closest('.mdl'))) { e.preventDefault(); modalOk(); }
     if (e.key === 'Tab') { var fs = [].slice.call(document.querySelectorAll('.mdl input,.mdl button')); if (fs.length) { var i = fs.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); fs[fs.length - 1].focus(); } else if (!e.shiftKey && i === fs.length - 1) { e.preventDefault(); fs[0].focus(); } else if (i < 0) { e.preventDefault(); fs[0].focus(); } } } });
   function goDeal() { var id = null; try { id = sessionStorage.getItem('mz_godeal'); sessionStorage.removeItem('mz_godeal'); } catch (e) {} if (id && /^[0-9a-f-]{36}$/i.test(id)) { S.tab = 'crm'; loadTab('crm'); S.cd = { id: id, loading: true, k: 'note' }; draw(); crmDeal(); } }
-  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); nfLoad(); goDeal(); if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; if (m._status === 401 && m.error === 'mfa') return api('mfa').then(function (d) { S.mfa = d._status === 200 ? d : null; draw(); }); S.mfa = null; draw(); } }); }
+  function boot() { api('me').then(function (m) { if (m._status === 200) { S.me = m; load(); nfLoad(); goDeal(); if (S.tab === 'dash' && m.role === 'marketing' && (!m.screens || m.screens.indexOf('emails') >= 0)) S.tab = 'emails'; if (S.tab === 'dash') { if (m.role === 'superadmin' || m.role === 'sales' || m.role === 'marketing') loadTab('dash'); } } else { S.me = null; if (m._status === 503) S.err = 'Admin is not enabled in this environment yet.'; if (m._status === 401 && m.error === 'mfa') return api('mfa').then(function (d) { S.mfa = d._status === 200 ? d : null; draw(); }); S.mfa = null; draw(); } }); }
   var gd = location.search.match(/[?&]deal=([0-9a-f-]{36})/i); if (gd) { try { sessionStorage.setItem('mz_godeal', gd[1]); } catch (e) {} history.replaceState(null, '', location.pathname); }
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
