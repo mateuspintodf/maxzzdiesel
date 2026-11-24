@@ -2305,10 +2305,10 @@ A['sales-program'] = async (req, res) => {
   const sc = await salesScope(w, { query: {} }), isSuper = seesAll(w);
   const today = isoDay(new Date()), ym = today.slice(0, 7), wk = mondayOf(today), md = monthDays(ym), ms0 = ym + '-01';
   const weeks = [1, 2, 3, 4].map((i) => { const a = isoDay(new Date(Date.parse(wk + 'T00:00:00Z') - i * 7 * 864e5)); return [a, isoDay(new Date(Date.parse(a + 'T00:00:00Z') + 6 * 864e5))]; });
-  const [dayR, weekR, monR, months, goalRows, cfgRow, log, ...pastW] = await Promise.all([
+  const [dayR, weekR, monR, months, goalRows, cfgRow, log, yearR, ...pastW] = await Promise.all([
     db.rpc('sales_sp_period', { p_from: today, p_to: today }), db.rpc('sales_sp_period', { p_from: wk, p_to: today }), db.rpc('sales_sp_period', { p_from: ms0, p_to: today }),
     db.rpc('sales_sp_months'), db.select('sales_goals', 'select=salesperson,ym,target&limit=2000').catch(() => []), db.select('sales_program', 'select=config&id=eq.1').then((r) => r[0]).catch(() => null),
-    db.select('sales_award_log', 'select=*&order=cycle.desc&limit=400').catch(() => []), ...weeks.map((r) => db.rpc('sales_sp_period', { p_from: r[0], p_to: r[1] })),
+    db.select('sales_award_log', 'select=*&order=cycle.desc&limit=400').catch(() => []), db.rpc('sales_sp_period', { p_from: today.slice(0, 4) + '-01-01', p_to: today }), ...weeks.map((r) => db.rpc('sales_sp_period', { p_from: r[0], p_to: r[1] })),
   ]);
   const cfg = progCfg(cfgRow), P = cfg.pts;
   const goal = {}; goalRows.forEach((g) => { goal[g.salesperson + '|' + g.ym] = Number(g.target); });
@@ -2327,8 +2327,8 @@ A['sales-program'] = async (req, res) => {
     const prev = [1, 2, 3].map((i) => Number(((mon[sp] || {})[ymAdd(m, -i)] || {}).sales) || 0); const avg = prev.reduce((a, b) => a + b, 0) / 3; return avg > 0 ? { v: Math.round(avg * (1 + cfg.autoGoalPct / 100)), auto: true, src: 'auto' } : { v: null, auto: true, src: 'auto' }; };
   const pointsOf = (r, g) => { const sales = Number(r.sales) || 0, cov = Number(r.cov) || 0, margin = cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, cvg = sales > 0 ? cov / sales : 0;
     return Math.max(0, Math.floor(sales / 100 * P.per100)) + (g && sales >= g ? P.goal : 0) + (margin != null && margin >= cfg.marginTarget && cvg >= 0.7 ? P.margin : 0) + (Number(r.newc) || 0) * P.newc + (Number(r.back) || 0) * P.back; };
-  const board = (rows, scale) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; });
-    const out = people.map((sp) => { const r = by[sp] || { sales: 0, cost: 0, cov: 0, orders: 0, newc: 0, back: 0 }, g = goalOf(sp, ym), gv = g.v != null ? g.v * scale : null, sales = Number(r.sales) || 0, cov = Number(r.cov) || 0;
+  const board = (rows, scale, gFn) => { const by = {}; (rows || []).forEach((r) => { by[r.sp] = r; });
+    const out = people.map((sp) => { const r = by[sp] || { sales: 0, cost: 0, cov: 0, orders: 0, newc: 0, back: 0 }, g = gFn ? gFn(sp) : goalOf(sp, ym), gv = g.v != null ? g.v * scale : null, sales = Number(r.sales) || 0, cov = Number(r.cov) || 0;
       return { sp, sales, goal: gv != null ? Math.round(gv) : null, auto: g.auto, pct: gv ? sales / gv : null, orders: Number(r.orders) || 0, newc: Number(r.newc) || 0, back: Number(r.back) || 0, margin: cov > 0 ? (cov - (Number(r.cost) || 0)) / cov : null, points: pointsOf(r, gv) }; });
     out.sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales); out.forEach((r, i) => { r.rank = i + 1; }); return out; };
   // lifetime points and levels, streaks and badges from the monthly history
@@ -2341,7 +2341,9 @@ A['sales-program'] = async (req, res) => {
     life[sp] = pts; badges[sp] = { goal_crusher: hit, margin_keeper: mk, streak };
   });
   const lvl = (pts) => { let cur = cfg.levels[0], next = null; cfg.levels.forEach((l) => { if (pts >= l[1]) cur = l; }); next = cfg.levels.filter((l) => l[1] > pts)[0] || null; return { name: cur[0], pts, next: next ? next[0] : null, need: next ? next[1] - pts : 0, from: cur[1], to: next ? next[1] : null }; };
-  const dayB = board(dayR, 1 / md), weekB = board(weekR, 7 / md), monB = board(monR, 1);
+  const yearGoalOf = (sp) => { const Y0 = ym.slice(0, 4), ag = goal[sp + '|' + Y0 + '-00']; if (ag != null) return { v: ag, auto: false };
+    let tot = 0, n = 0, auto = false; for (let i = 1; i <= 12; i++) { const g = goalOf(sp, Y0 + '-' + pad2(i)); if (g.v != null) { tot += g.v; n++; if (g.auto) auto = true; } } return { v: n ? tot : null, auto }; };
+  const dayB = board(dayR, 1 / md), weekB = board(weekR, 7 / md), monB = board(monR, 1), yearB = board(yearR, 1, yearGoalOf);
   const BDG = { goal_crusher: ['Goal crusher', 'Months with the goal reached'], margin_keeper: ['Margin keeper', 'Months at or above the margin target'], streak: ['On a streak', 'Months in a row with the goal reached'], hunter: ['Hunter', '3 or more new customers this month'], comeback: ['Comeback', '2 or more customers back after 90 days or more this month'], closer: ['Closer', '8 or more orders this week'] };
   const mineName = sc.sp || null;
   const shape = (rows, self) => rows.map((r) => { const own = isSuper || r.sp === mineName, b = badges[r.sp] || {}, mrow = monB.filter((x) => x.sp === r.sp)[0] || {}, wrow = weekB.filter((x) => x.sp === r.sp)[0] || {}, earned = [];
@@ -2359,7 +2361,8 @@ A['sales-program'] = async (req, res) => {
       if (aw.rule === 'top') { const t = rows.slice().sort((a, b) => (b.pct == null ? -1 : b.pct) - (a.pct == null ? -1 : a.pct) || b.sales - a.sales)[0]; if (t) push('m' + m, label, aw, t.sp); } else rows.filter((r) => r.hit).forEach((r) => push('m' + m, label, aw, r.sp)); });
   });
   const visibleWins = isSuper ? wins : wins.filter((x) => x.sp === mineName);
-  const out = { today, week: wk, ym, daysInMonth: md, day: today.slice(8, 10) * 1, pace: (+today.slice(8, 10)) / md, boards: { day: shape(dayB), week: shape(weekB), month: shape(monB) }, wins: visibleWins, badges: BDG, role: w.role, me: mineName, none: !!sc.none,
+  const doy = Math.round((Date.parse(today + 'T00:00:00Z') - Date.parse(today.slice(0, 4) + '-01-01T00:00:00Z')) / 864e5) + 1, ydays = monthDays(today.slice(0, 4) + '-02') === 29 ? 366 : 365;
+  const out = { today, yearPace: doy / ydays, week: wk, ym, daysInMonth: md, day: today.slice(8, 10) * 1, pace: (+today.slice(8, 10)) / md, boards: { day: shape(dayB), week: shape(weekB), month: shape(monB), year: shape(yearB) }, wins: visibleWins, badges: BDG, role: w.role, me: mineName, none: !!sc.none,
     levels: cfg.levels, pts: P, marginTarget: cfg.marginTarget };
   const coSales = (m) => Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0);
   const cg = goalOf('*', ym), peopleNow = people.map((sp) => goalOf(sp, ym).v).filter((v) => v != null);
@@ -2379,7 +2382,12 @@ A['sales-program'] = async (req, res) => {
       const sOf = (m) => key === '*' ? Object.keys(mon).reduce((t, p) => t + (Number(((mon[p] || {})[m] || {}).sales) || 0), 0) : Number(((mon[key] || {})[m] || {}).sales) || 0;
       const months = Array.from({ length: 12 }, (_, i) => { const m = Yr + '-' + pad2(i + 1); return { ym: m, goal: gOf(m), sales: sOf(m) }; });
       const yg = months.reduce((t, r) => t + (r.goal || 0), 0), ytd = months.reduce((t, r) => t + r.sales, 0), cur = months[+ym.slice(5, 7) - 1];
-      out.race = { who: key === '*' ? 'Team' : key, ym, year: Yr, pace: out.pace, month: { goal: cur.goal, sales: cur.sales }, yearGoal: yg || null, ytd, months, annualSet: goal[key + '|' + Yr + '-00'] != null }; } }
+      const annualSet = goal[key + '|' + Yr + '-00'] != null, yGoal = annualSet ? goal[key + '|' + Yr + '-00'] : (yg || null);
+      const rs = (rows) => key === '*' ? sumBy(rows || [], (r) => r.sales) : Number(((rows || []).filter((r) => r.sp === key)[0] || {}).sales) || 0, dowN = ((new Date(today + 'T00:00:00Z').getUTCDay() + 6) % 7) + 1;
+      // one lane per period, the truck follows the period picked on the screen
+      const cycles = { day: { goal: cur.goal ? cur.goal / md : null, sales: rs(dayR), pace: null }, week: { goal: cur.goal ? cur.goal * 7 / md : null, sales: rs(weekR), pace: dowN / 7 },
+        month: { goal: cur.goal, sales: cur.sales, pace: out.pace }, year: { goal: yGoal, sales: ytd, pace: out.yearPace } };
+      out.race = { who: key === '*' ? 'Team' : key, ym, year: Yr, pace: out.pace, month: { goal: cur.goal, sales: cur.sales }, cycles, yearGoal: yGoal, ytd, months, annualSet }; } }
   return res.json(out);
 };
 A['sales-program-save'] = async (req, res) => {
