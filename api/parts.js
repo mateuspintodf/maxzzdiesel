@@ -55,7 +55,9 @@ function build(all) {
   };
   rows.forEach((r) => {
     const sp = clean(specs[r[0]]);
-    const p = { code: r[0], name: r[1], cat: r[3], brand: r[4] || '', sp, key: slug(r[0]), slug: partPath(r[0], r[1], r[4]) };
+    const p = { code: r[0], name: r[1], cat: r[3], brand: r[4] || '', sp, key: slug(r[0]) };
+    // address words from the reviewed title (data/specs.json) when the part has one, else from the Unleashed description
+    p.slug = partPath(r[0], sp && sp.title ? sp.title : r[1], sp && sp.title ? '' : r[4]);
     p.title = sp && sp.title ? sp.title : tidy(r[1]) + ' ' + r[0];
     const tok = (p.title.match(/^\S+\s+(\S+)/) || [])[1] || '';
     p.oem = sp && /\d/.test(tok) && tok.replace(/[^0-9a-z]/gi, '').length >= 5 ? tok.replace(/[:,]$/, '') : p.code;
@@ -85,7 +87,7 @@ async function live() {
   LIVE = { at: Date.now(), qty: (st && st.qty) || null, items: (prod && prod.items) || null };
   return LIVE;
 }
-const UPDATED = '2026-11-14';
+const UPDATED = '2026-11-24'; // part pages moved to descriptive addresses; bump when the pages change
 const ORG = {
   '@type': ['Organization', 'WholesaleStore'], '@id': SITE + '/#org', name: 'Maxzz Diesel', url: SITE + '/', logo: SITE + '/assets/favicon.svg', image: SITE + '/assets/mg/diesel-injectors-and-fuel-rails-test-bench.jpg',
   foundingDate: '1992', telephone: '+1-954-586-4158', email: 'sales@maxzzdiesel.com', areaServed: ['North America', 'Latin America'],
