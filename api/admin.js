@@ -36,7 +36,9 @@ async function whoPending(req, res) {
   if (!role) { res.status(401).json({ error: 'login' }); return null; }
   return { email: s.email, role, sid: s.id, verified: !!s.mfaAt, challenge: s.challenge, challengeAt: s.challengeAt };
 }
-const can = (w, ...roles) => w.role === 'superadmin' || roles.includes(w.role);
+// roles: superadmin (everything), admin (manager: sees and works on everything, but does not manage the team, send campaigns or override margins), sales, marketing
+const can = (w, ...roles) => w.role === 'superadmin' || roles.includes(w.role) || (w.role === 'admin' && (roles.includes('sales') || roles.includes('marketing')));
+const seesAll = (w) => w.role === 'superadmin' || w.role === 'admin';
 
 const A = {};
 // a PostgREST in() list of text values, quoted and URL-encoded (part codes can carry #, +, &, spaces, commas)
@@ -342,7 +344,7 @@ A.addprospect = async (req, res) => {
   return res.json({ ok: true, id: co.id });
 };
 // ---- admin people and roles (superadmin only). PORTAL_ADMINS stays as a read-only bootstrap list of superadmins.
-const ROLES = ['superadmin', 'sales', 'marketing'];
+const ROLES = ['superadmin', 'admin', 'sales', 'marketing'];
 A.admins = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w)) return res.status(403).json({ error: 'role' });
@@ -1632,7 +1634,7 @@ A.crm = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
   await crmSync().catch(() => {});
-  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  const sc = await salesScope(w, { query: {} }), isSuper = seesAll(w);
   if (!isSuper && sc.none) return res.json({ stages: [], deals: [], mySp: null, isSuper, owners: [] });
   const since = new Date(Date.now() - 60 * 864e5).toISOString(), dOk = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || '')), q = req.query || {}, own = isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp);
   // default: open deals plus what closed in the last 60 days. With a period (or all=1) the board holds every deal created in it, the imported Unleashed order history included.
@@ -1660,7 +1662,7 @@ async function dealFor(req, res, w, id) {
   const d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0];
   if (!d) { res.status(404).json({ error: 'deal' }); return null; }
   const sc = await salesScope(w, { query: {} });
-  if (w.role !== 'superadmin' && d.owner !== sc.sp) { res.status(403).json({ error: 'scope' }); return null; }
+  if (!seesAll(w) && d.owner !== sc.sp) { res.status(403).json({ error: 'scope' }); return null; }
   return d;
 }
 async function orderLinesOf(ref) {
@@ -1776,7 +1778,7 @@ A['crm-deal'] = async (req, res) => {
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
   const id = clean(req.query.id, 60), d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0];
   if (!d) return res.status(404).json({ error: 'deal' });
-  const sc = await salesScope(w, { query: {} }); if (w.role !== 'superadmin' && d.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
+  const sc = await salesScope(w, { query: {} }); if (!seesAll(w) && d.owner !== sc.sp) return res.status(403).json({ error: 'scope' });
   const code = d.customer_code, enc = code ? encodeURIComponent(code) : null;
   const [acts, cust, orders, life, others] = await Promise.all([
     db.select('crm_activities', 'select=*&deal_id=eq.' + d.id + '&order=created_at.desc&limit=200'),
@@ -1880,7 +1882,7 @@ A['crm-cust'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
   const code = clean(req.query.code, 60); if (!code) return res.json({ deals: [] });
-  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  const sc = await salesScope(w, { query: {} }), isSuper = seesAll(w);
   if (!isSuper && sc.none) return res.json({ deals: [] });
   const deals = await db.select('crm_deals', 'select=id,title,stage,value,owner,updated_at,expected_close&customer_code=eq.' + encodeURIComponent(code) + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp)) + '&order=updated_at.desc&limit=20').catch(() => []);
   return res.json({ deals, stages: await db.select('crm_stages', 'select=key,label,kind,color&order=pos.asc').catch(() => []) });
@@ -1889,7 +1891,7 @@ const crmAiMemo = {};
 A['crm-ai'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
-  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin', key = isSuper ? 'all' : sc.sp || 'none';
+  const sc = await salesScope(w, { query: {} }), isSuper = seesAll(w), key = isSuper ? 'all' : sc.sp || 'none';
   if (req.method !== 'POST') return res.json({ on: aiOn(req), last: crmAiMemo[key] || null });
   if (!originOk(req)) return res.status(405).json({ error: 'method' });
   if (!aiOn(req)) return res.status(409).json({ error: 'AI insights are not switched on yet. Turn on DASH_AI and add the AI Gateway key in Vercel.' });
@@ -1979,7 +1981,7 @@ const upsertContact = async (w, c, owner) => { try { const email = clean(c.email
 A['crm-contacts'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
-  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  const sc = await salesScope(w, { query: {} }), isSuper = seesAll(w);
   if (!isSuper && sc.none) return res.json({ contacts: [] });
   const [rows, deals] = await Promise.all([db.select('crm_contacts', 'select=*&order=updated_at.desc&limit=1500' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))), db.select('crm_deals', 'select=id,contact_email,stage,value&contact_email=not.is.null&limit=3000' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))).catch(() => [])]);
   const by = {}; deals.forEach((d) => { const k = String(d.contact_email).toLowerCase(); (by[k] = by[k] || { n: 0, open: 0, value: 0 }).n++; if (!['won', 'lost'].includes(d.stage)) { by[k].open++; by[k].value += Number(d.value) || 0; } });
@@ -2006,7 +2008,7 @@ A['contact-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
-  const b = readBody(req), isSuper = w.role === 'superadmin', sc = await salesScope(w, { query: {} });
+  const b = readBody(req), isSuper = seesAll(w), sc = await salesScope(w, { query: {} });
   if (!isSuper && sc.none) return res.status(403).json({ error: 'scope' });
   const id = clean(b.id, 60), cur = id ? (await db.select('crm_contacts', 'select=*&id=eq.' + encodeURIComponent(id) + '&limit=1'))[0] : null;
   if (id && !cur) return res.status(404).json({ error: 'contact' });
@@ -2026,7 +2028,7 @@ A['crm-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
-  const b = readBody(req), isSuper = w.role === 'superadmin', sc = await salesScope(w, { query: {} }), now = new Date().toISOString();
+  const b = readBody(req), isSuper = seesAll(w), sc = await salesScope(w, { query: {} }), now = new Date().toISOString();
   const st = await db.select('crm_stages', 'select=key,kind,label'), SK = {}; st.forEach((s) => { SK[s.key] = s; });
   const log = (id, kind, body, due) => db.insert('crm_activities', [{ deal_id: id, kind, body: clean(body, 1000) || null, due: due || null, created_by: w.email }]);
   const mine = async (id) => { const d = (await db.select('crm_deals', 'select=*&id=eq.' + encodeURIComponent(clean(id, 60)) + '&limit=1'))[0]; if (!d) return null; return isSuper || d.owner === sc.sp ? d : false; };
@@ -2122,7 +2124,7 @@ const ISO10 = /^\d{4}-\d{2}-\d{2}$/;
 const addDays = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 864e5).toISOString().slice(0, 10);
 const spanDays = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5) + 1;
 async function salesScope(w, req) {
-  if (w.role === 'superadmin') { const q = clean(req.query.sp, 120); return { sp: q && q !== 'all' ? q : null, all: true }; }
+  if (seesAll(w)) { const q = clean(req.query.sp, 120); return { sp: q && q !== 'all' ? q : null, all: true }; }
   const a = (await db.select('admins', 'select=salesperson&email=eq.' + encodeURIComponent(w.email) + '&limit=1').catch(() => []))[0] || {};
   return a.salesperson ? { sp: a.salesperson, all: false } : { sp: null, all: false, none: true };
 }
@@ -2300,7 +2302,7 @@ function progCfg(row) { const c = (row && row.config) || {}; return { pts: Objec
 A['sales-program'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales')) return res.status(403).json({ error: 'role' });
-  const sc = await salesScope(w, { query: {} }), isSuper = w.role === 'superadmin';
+  const sc = await salesScope(w, { query: {} }), isSuper = seesAll(w);
   const today = isoDay(new Date()), ym = today.slice(0, 7), wk = mondayOf(today), md = monthDays(ym), ms0 = ym + '-01';
   const weeks = [1, 2, 3, 4].map((i) => { const a = isoDay(new Date(Date.parse(wk + 'T00:00:00Z') - i * 7 * 864e5)); return [a, isoDay(new Date(Date.parse(a + 'T00:00:00Z') + 6 * 864e5))]; });
   const [dayR, weekR, monR, months, goalRows, cfgRow, log, ...pastW] = await Promise.all([

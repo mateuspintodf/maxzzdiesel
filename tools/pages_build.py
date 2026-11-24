@@ -61,6 +61,30 @@ def slug(s):
     return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
 
 
+PILLAR = ('/guides/diesel-fuel-injection', 'Diesel fuel injection guide', 'How common rail injection works, the parts in each system and how they fail. The place to start before a rebuild.')
+
+
+def guides_for(s):
+    """Guides that cover a system: the guide's own system, or the one the hub points to."""
+    return [g for g in C.GUIDES if g['sys'] == s['slug'] or (s.get('guide') or '').endswith('/' + g['slug'])]
+
+
+def guide_cards(gs, cols='sx-grid2'):
+    out = ''
+    for g in gs:
+        u = photo(GUIDE_PH.get(g['ph']))
+        im = (f'<img src="{u}" alt="" width="400" height="300" loading="lazy" decoding="async" style="width:64px;height:64px;object-fit:contain;flex:none;background:#f1f2f4;border-radius:14px;padding:6px;box-sizing:border-box">') if u else ''
+        out += (f'<a class="sx-card" href="/resources/{g["slug"]}" style="display:flex;gap:16px;align-items:flex-start;padding:22px 24px;color:#5a5a60 !important;text-decoration:none">{im}'
+                f'<span style="min-width:0"><b style="display:block;color:#1d2126;font-size:16px;line-height:1.35">{E(g["short"])}</b>'
+                f'<span style="display:block;margin-top:6px;font-size:14px;line-height:1.5">{E(g["meta"])}</span>'
+                f'<span style="display:inline-block;margin-top:10px;color:#d32a37;font-weight:600;font-size:14px">Read the guide &rarr;</span></span></a>')
+    return f'<div class="{cols}" style="margin-top:24px">{out}</div>'
+
+
+def pillar_line(lead='New to common rail?'):
+    return f'<p style="margin:18px 0 0;font-size:15px">{E(lead)} Start with our <a href="{PILLAR[0]}" style="color:#d32a37;font-weight:600">{PILLAR[1].lower().capitalize()}</a>: how injection works, the parts in each system and how they fail.</p>'
+
+
 def tidy(s):
     s = re.sub(r'\s+', ' ', str(s or '')).strip()
     s = re.sub(r'\s*/\s*(Application|Suitable for|Suitable)\s*:?\s*', ': ', s, flags=re.I)
@@ -396,7 +420,11 @@ def build_system(s, rel_links):
     tbl = parts_table(rows, s.get('extra_rows'))
     faq = ''.join(f'<details{" open" if i == 0 else ""}><summary>{E(q)}</summary><p>{E(a)}</p></details>' for i, (q, a) in enumerate(s['faq']))
     links = ''.join(f'<a class="sx-tag" href="/systems/{o["slug"]}">{E(o["crumb"])}</a> ' for o in rel_links if o['slug'] != s['slug'])
-    guide = f'<p style="margin:18px 0 0">Technical guide: <a href="{s["guide"]}">{E(C.GUIDE_BY[s["guide"].rsplit("/", 1)[1]]["short"])}</a></p>' if s.get('guide') and GUIDES_LIVE else ''
+    gs = guides_for(s) if GUIDES_LIVE else []
+    guide = ('<section class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">'
+             f'<span class="sx-pill">Technical guides</span><h2 class="sx-h2">Guides for the {E(s["crumb"])}</h2>'
+             + (guide_cards(gs) if gs else '<p style="margin:16px 0 0;max-width:760px">A guide for this system is on the way. Meanwhile, the general guide covers how these injectors and pumps work and fail.</p>')
+             + pillar_line() + '<p style="margin:10px 0 0;font-size:15px"><a href="/resources" style="color:#d32a37;font-weight:600">All technical guides &rarr;</a></p></div></section>')
     body = f"""{h}
 <section class="sx" style="padding: 70px 20px 0; box-sizing: border-box;"><div class="sx-wrap"><div class="sx-grid4">{facts}</div></div></section>
 <section id="parts" class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
@@ -409,9 +437,10 @@ def build_system(s, rel_links):
 <span class="sx-pill">The Maxzz ecosystem</span><h2 class="sx-h2">Parts, bench tooling and training in one place</h2>
 <p style="margin:16px 0 28px;max-width:760px">A rebuilder needs three things for this application: the right components, the right tools and fluids on the bench, and a procedure that works. We supply all three.</p>
 {triad(s)}</div></section>
+{guide}
 <section class="sx" style="padding: 100px 20px 120px; box-sizing: border-box;"><div class="sx-wrap" style="max-width:900px">
 <span class="sx-pill">Technical FAQ</span><h2 class="sx-h2">Questions rebuilders ask about the {E(s["crumb"])}</h2>
-<div class="sx-faq" style="margin-top:28px">{faq}</div>{guide}
+<div class="sx-faq" style="margin-top:28px">{faq}</div>
 <div style="margin-top:34px"><div style="font-weight:600;color:#1d2126;margin-bottom:10px">Other systems</div>{links}</div></div></section>
 {band('Send us your part numbers.', 'We check availability across our partners and answer in one business day. Stocked in Coconut Creek, FL.', band_ctas())}"""
     # JSON-LD
@@ -565,7 +594,7 @@ def build_resources():
         _u = photo(GUIDE_PH.get(g_['ph']))
         _img = (f'<div class="rg-img" style="background:{TINTS[C.GUIDES.index(g_) % len(TINTS)]}"><img src="{_u}" alt="{E(g_["short"])}" width="400" height="300" loading="lazy" decoding="async"></div>') if _u else ''
         cards += (f'<a class="sx-card rg-card" href="/resources/{g_["slug"]}" style="color:#5a5a60 !important;text-decoration:none">' + _img +
-                  f'<div class="rg-txt"><span class="sx-pill" style="align-self:flex-start">Technical guide</span>'
+                  f'<div class="rg-txt"><span class="sx-pill" style="align-self:flex-start">{E(C.SYS_BY[g_["sys"]]["crumb"])}</span>'
                   f'<h3 class="sx-h3" style="margin-top:14px">{E(g_["title"])}</h3>'
                   f'<p style="margin:10px 0 0;font-size:15px">{E(g_["meta"])}</p>'
                   f'<span style="margin-top:16px;color:#d32a37;font-weight:600">Read the guide &rarr;</span></div></a>')
@@ -573,12 +602,21 @@ def build_resources():
               '.rg-img{width:230px;height:230px;border-radius:16px;position:relative;overflow:hidden}.rg-txt .sx-h3{font-size:20px !important;line-height:1.25 !important}.rg-txt p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}'
               '.rg-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}'
               '.rg-txt{display:flex;flex-direction:column;min-width:0}'
-              '@media (max-width:560px){.rg-card{grid-template-columns:1fr !important}.rg-img{width:100%;height:auto;aspect-ratio:16/10}}</style>')
+              '.rg-start{grid-template-columns:320px minmax(0,1fr) !important}.rg-start .rg-img{width:320px;height:220px}.rg-start .rg-img img{object-fit:cover}'
+              '@media (max-width:560px){.rg-card,.rg-start{grid-template-columns:1fr !important}.rg-start .rg-img{width:100%}.rg-img{width:100%;height:auto;aspect-ratio:16/10}}</style>')
     sysl = ''.join(f'<a class="sx-tag" href="/systems/{s["slug"]}">{E(s["crumb"])}</a> ' for s in C.SYSTEMS)
+    start = (f'<a class="sx-card rg-card rg-start" href="{PILLAR[0]}" style="color:#5a5a60 !important;text-decoration:none;margin-top:30px">'
+             f'<div class="rg-img" style="background:#1d2126"><img src="/assets/mg/diesel-injection-common-rail-injector-bench.webp" alt="Common rail injector on a test bench" width="400" height="300" loading="lazy" decoding="async"></div>'
+             f'<div class="rg-txt"><span class="sx-pill" style="align-self:flex-start">Start here</span>'
+             f'<h3 class="sx-h3" style="margin-top:14px">{E(PILLAR[1])}: how it works, parts and failures</h3>'
+             f'<p style="margin:10px 0 0;font-size:15px">{E(PILLAR[2])}</p>'
+             f'<span style="margin-top:16px;color:#d32a37;font-weight:600">Read the guide &rarr;</span></div></a>')
     body = f"""{h}
 <section class="sx" style="padding: 100px 20px 0; box-sizing: border-box;"><div class="sx-wrap">
-<span class="sx-pill">Guides</span><h2 class="sx-h2">Start with the system you work on</h2>
-{rg_css}<div class="sx-grid2" style="margin-top:30px">{cards}</div></div></section>
+<span class="sx-pill">Start here</span><h2 class="sx-h2">New to common rail? Begin with the basics</h2>
+{rg_css}{start}
+<h2 class="sx-h2" style="margin-top:80px">Rebuild and failure guides</h2>
+<div class="sx-grid2" style="margin-top:30px">{cards}</div></div></section>
 <section class="sx" style="padding: 100px 20px 120px; box-sizing: border-box;"><div class="sx-wrap">
 <span class="sx-pill">System hubs</span><h2 class="sx-h2">Part numbers by engine</h2>
 <p style="margin:16px 0 20px;max-width:760px">Every hub has a cross-reference table, the matching Robiel tooling and the Diesel Tech Academy course for the injector.</p>{sysl}</div></section>
@@ -624,6 +662,7 @@ def build_guide(g):
     codes = codes[:g['parts']['n']]
     ptable = parts_table(codes, None)
     reviewed = REVIEWED
+    others = ', '.join(f'<a href="/resources/{o["slug"]}">{E(o["short"])}</a>' for o in C.GUIDES if o['slug'] != g['slug'])
     gph = photo(GUIDE_PH.get(g['ph']))
     byline = ('Technical review: ' if reviewed else 'Technical review pending: ') + (
         'Waldyr Mazzer (40+ years in diesel injection, former Bosch and Delphi senior instructor) and Arthur Bonachella (Robiel and Diesel Tech Academy instructor).')
@@ -639,7 +678,8 @@ def build_guide(g):
 <div style="font-size:14px;color:#5a6169"><a href="/" style="color:#5a6169">Home</a> / <a href="/resources" style="color:#5a6169">Technical guides</a> / <span style="color:#1d2126">{E(g["short"])}</span></div>
 <span class="sx-pill" style="margin-top:22px">Technical guide</span>
 <h1 style="margin:16px 0 0;font-family:{FONT};font-weight:700;color:#1d2126;font-size:clamp(28px,3.4vw,46px);line-height:1.1;letter-spacing:-.02em;max-width:1000px">{E(g["title"])}</h1>
-<p style="margin:16px 0 0;font-size:14px;max-width:900px"><b style="color:#1d2126">By the Maxzz Diesel technical team.</b> {E(byline)}</p>{draft}
+<p style="margin:16px 0 0;font-size:14px;max-width:900px"><b style="color:#1d2126">By the Maxzz Diesel technical team.</b> {E(byline)}</p>
+<p style="margin:10px 0 0;font-size:14px">Applies to: <a href="/systems/{s["slug"]}" style="color:#d32a37;font-weight:600">{E(s["crumb"])}</a> &middot; New to common rail? <a href="{PILLAR[0]}" style="color:#d32a37;font-weight:600">Start with the basics</a></p>{draft}
 </div></section>
 <section class="sx" style="padding: 40px 20px 0; box-sizing: border-box;"><div class="sx-wrap sx-art-grid" style="display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:start">
 <article class="sx-art" style="min-width:0">
@@ -652,7 +692,7 @@ def build_guide(g):
 </div></section>
 <section class="sx" style="padding: 80px 20px 120px; box-sizing: border-box;"><div class="sx-wrap">
 <h2 class="sx-h2" style="margin-bottom:24px">Next steps for this repair</h2><div class="sx-grid3">{triple_block(g)}</div>
-<p style="margin:24px 0 0;font-size:14px">More on this engine: <a href="/systems/{s["slug"]}">{E(s["crumb"])} part numbers and tooling</a>.</p></div></section>"""
+<p style="margin:24px 0 0;font-size:14px">More on this engine: <a href="/systems/{s["slug"]}">{E(s["crumb"])} part numbers and tooling</a>. Other guides: {others}. Basics: <a href="{PILLAR[0]}">{E(PILLAR[1])}</a>.</p></div></section>"""
     url = SITE + path
     gdesc = g['meta']
     graph = webpage(path, g['title'], gdesc, [('Home', '/'), ('Technical guides', '/resources'), (g['short'], path)], 'WebPage')
@@ -665,6 +705,26 @@ def build_guide(g):
 
 
 # ------------------------------------------------------------------ patches on existing pages
+PIL_A, PIL_B = '<!--pillar-next-->', '<!--/pillar-next-->'
+
+
+def patch_pillar(src):
+    """The pillar guide sends readers to the engine hubs and the rebuild guides (block between markers, rebuilt each run)."""
+    hubs = ''.join(f'<a href="/systems/{s["slug"]}" class="pn-card"><b>{E(s["crumb"])}</b><span>Part numbers, tooling and course</span></a>' for s in C.SYSTEMS)
+    gd = ''.join(f'<a href="/resources/{g["slug"]}" class="pn-card"><b>{E(g["short"])}</b><span>{E(C.SYS_BY[g["sys"]]["crumb"])}</span></a>' for g in C.GUIDES)
+    blk = (PIL_A + '<style>.pn{padding:0 20px 100px;box-sizing:border-box}.pn-w{max-width:1280px;margin:0 auto}.pn h2{margin:0;font-family:' + FONT + ';font-weight:600;color:#1d2126;font-size:clamp(26px,2.6vw,38px);letter-spacing:-.02em;line-height:1.15}'
+           '.pn p{margin:12px 0 0;color:#5a5a60;font-size:16px;max-width:760px}.pn-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:24px}'
+           '.pn-card{display:flex;flex-direction:column;gap:4px;background:#fff;border-radius:20px;padding:20px 22px;text-decoration:none;color:#5a5a60;font-size:14px;transition:transform .2s}.pn-card:hover{transform:translateY(-2px)}.pn-card b{color:#1d2126;font-size:16px}'
+           '.pn-h3{margin:48px 0 0;font-family:' + FONT + ';font-weight:600;color:#1d2126;font-size:22px}@media (max-width:900px){.pn-g{grid-template-columns:minmax(0,1fr)}}</style>'
+           '<section class="pn"><div class="pn-w"><h2>Go deeper on your engine</h2><p>Each hub lists the part numbers we stock for that system, the bench tooling and the matching Diesel Tech Academy course.</p>'
+           f'<div class="pn-g">{hubs}</div><h3 class="pn-h3">Rebuild and failure guides</h3><div class="pn-g">{gd}</div>'
+           '<p><a href="/resources" style="color:#d32a37;font-weight:600">All technical guides &rarr;</a> &nbsp; <a href="/training" style="color:#d32a37;font-weight:600">Diesel Tech Academy courses &rarr;</a></p></div></section>' + PIL_B)
+    if PIL_A in src:
+        return re.sub(re.escape(PIL_A) + '.*?' + re.escape(PIL_B), lambda m: blk, src, flags=re.S)
+    anchor = '<section id="faq" class="fq"'
+    return src.replace(anchor, blk + '\n' + anchor, 1) if anchor in src else src
+
+
 NAV_OLD = '<a class="navl" href="https://www.dieseltechacademy.com/" target="_blank" rel="noopener" style="padding: 0 11px; line-height: 100px;">Training</a>'
 NAV_NEW = ('<a class="navl" href="/training" style="padding: 0 11px; line-height: 100px;">Training</a>'
            '<a class="navl" href="/resources" style="padding: 0 11px; line-height: 100px;">Guides</a>')
@@ -738,14 +798,15 @@ FINDER_BAND = f"""<!-- QUICK PART FINDER -->
 """
 
 
+def drop_finder(src):
+    """The site has one search, the magnifier in the header (js/sitesearch.js); the old quick part finder section is removed."""
+    src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->\s*', '', src, flags=re.S)
+    return re.sub(r'<script src="/js/finder\.js[^"]*" defer></script>\n?', '', src)
+
+
 def patch_home(src):
     src = re.sub(r'<!-- QUICK PART FINDER -->\s*<section id="finder-shortcut".*?</form></section>\s*', '', src, flags=re.S)
-    if '<!--pf-start-->' in src:
-        src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->', lambda m: FINDER_SECTION, src, flags=re.S)
-    else:
-        src = src.replace('<!-- PRODUCT LINES: The Maxzz', FINDER_SECTION + '<!-- PRODUCT LINES: The Maxzz', 1)
-    if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=3" defer></script>', 1)
+    src = drop_finder(src)
     src = re.sub(r'<section id="dta-testimonials".*?</section>\n?', '', src, flags=re.S)
     eb = f'display:inline-block;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:50px;padding:0 14px;font-family:{FONT};font-weight:600;font-size:12px;line-height:25px;letter-spacing:.6px;text-transform:uppercase'
     h2 = f'margin:18px 0 0;font-family:{FONT};font-weight:600;color:#fff;font-size:clamp(28px,3vw,42px);line-height:1.12;letter-spacing:-.02em'
@@ -775,14 +836,7 @@ FINDER_SECTION = FINDER_SECTION.replace("@@PFCSS@@", '<style>#pf-out .pf-r{displ
 
 def patch_parts(src):
     src = re.sub(r'<!-- QUICK PART FINDER -->\s*<section id="finder".*?</style>\s*', '', src, count=1, flags=re.S)
-    if '<!--pf-start-->' in src:
-        src = re.sub(r'<!--pf-start-->.*?<!--pf-end-->', lambda m: FINDER_SECTION, src, flags=re.S)
-    else:
-        # after the first hero section
-        i = src.index('</section>', src.index('<section style="position: relative; box-sizing: border-box;">')) + len('</section>')
-        src = src[:i] + '\n' + FINDER_SECTION + src[i:]
-    if '/js/finder.js' not in src:
-        src = src.replace('<script src="/js/dc.js"></script>', '<script src="/js/dc.js"></script>\n<script src="/js/finder.js?v=3" defer></script>', 1)
+    src = drop_finder(src)
     # chips become links to the system hubs
     old = '<div style="display: contents" v-for="ch in cur.chips"><span style="border: 1px solid #d3d7dc;'
     if old in src and ':href="ch.href"' not in src:
@@ -840,6 +894,11 @@ def main():
         if new != src:
             p.write_text(new, encoding='utf-8')
             print('patched', pg)
+    pp = ROOT / 'guides/diesel-fuel-injection.html'
+    if pp.exists():
+        s0 = pp.read_text(encoding='utf-8'); s1 = patch_pillar(s0)
+        if s1 != s0:
+            pp.write_text(s1, encoding='utf-8'); print('patched pillar guide')
     # nav on the generated pages that live in sub folders
     for d in ('systems', 'resources'):
         for p in (ROOT / d).glob('*.html'):

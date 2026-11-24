@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parent.parent
 SITE = 'https://www.maxzzdiesel.com'
 LANGS = ('en', 'es', 'pt')
 PRE = {'en': '', 'es': '/es', 'pt': '/pt'}
-QUOTE = {'en': '/portal', 'es': '/es/quote', 'pt': '/pt/quote'}
+QUOTE = {'en': '/portal', 'es': '/portal', 'pt': '/portal'}  # the ES/PT quote pages were retired; the store is the only quote flow
 WA = 'https://wa.me/19543716996'
 
 specs = json.load(open(ROOT / 'data' / 'specs.json', encoding='utf-8'))

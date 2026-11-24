@@ -17,7 +17,7 @@ import re, json, sys, html
 from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PAGES = ['index', 'about', 'aftertreatment', 'contamination-kits', 'fluids', 'injection-parts', 'partners',
-         'quote', 'tool-sets', 'who-we-serve', 'guides/diesel-fuel-injection']
+         'tool-sets', 'who-we-serve', 'guides/diesel-fuel-injection']
 LANGS = {'es': ('es', 'es_ES', 'Español'), 'pt': ('pt-BR', 'pt_BR', 'Português')}
 SITE = 'https://www.maxzzdiesel.com'
 BLOCK = r'h1|h2|h3|h4|p|li|dt|dd|summary|label|button|th|td|figcaption|option'
