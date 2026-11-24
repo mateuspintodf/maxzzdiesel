@@ -129,6 +129,7 @@
       if (r._status !== 200) { m.ed = null; closeDesign(); A.toast(r.error || 'Could not open it.'); return; }
       var c = r.campaign || { name: seed && seed.name || 'New e-mail', subject: seed && seed.subject || '', preheader: '', lang: 'en', content: seed && seed.html ? { mode: 'free', html: seed.html, blocks: [], noHeader: !!seed.noHeader } : { blocks: seed && seed.blocks || [] }, audience: { segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, status: 'draft', is_template: false };
       c.content = c.content || { blocks: [] }; c.audience = Object.assign({ segments: [], exclude: [], customers: false, tiers: [], salespeople: [], consent: 'optin' }, c.audience || {});
+      if (!id && seed && seed.segments) c.audience.segments = seed.segments.slice();
       c.content.blocks.forEach(function (b) { if (b.type === 'products') b._txt = (b.codes || []).join('\n'); });
       m.ed = { c: c, canSend: !!r.canSend, simple: false, segs: r.segments, facets: r.facets, from: r.from, dev: 'd', fresh: !id && !!(seed && seed.design), dirty: !id, test: r.me || '', when: '', aud: null, html: '', miss: [], find: {}, lock: c.status !== 'draft' };
       A.draw(); preview(0); if (seed && seed.design) design(); else closeDesign();
@@ -369,5 +370,5 @@
     }
   });
 
-  window.MXMail = { view: view, load: function () { var m = M(); m.ed = null; m.rep = null; m.tx = null; m.lay = null; m.pick = false; load(); } };
+  window.MXMail = { compose: function (seed) { openEd(null, seed || {}); }, view: view, load: function () { var m = M(); m.ed = null; m.rep = null; m.tx = null; m.lay = null; m.pick = false; load(); } };
 })();

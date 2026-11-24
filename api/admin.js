@@ -259,6 +259,7 @@ A.approve = async (req, res) => {
   catch (e) { console.error('admin approve', e.message); return res.status(409).json({ error: 'Could not save. The customer code may already be linked.' }); }
   await PS.audit(w.email, 'company.approve', 'company', acc.id, null, { code, tier: acc.tier });
   const people = Object.values(d.users).filter((u) => u.account === acc.id);
+  await require('../lib/visitors').claimForCompany(people, acc.id);
   for (const u of people) await send(u.email, 'Your Maxzz B2B portal access is ready', 'Welcome to the Maxzz B2B portal',
     `<p>Your account for <b>${esc(acc.company)}</b> is approved. You can now see your prices and stock, place orders and track them.</p>`,
     { url: base(req) + '/portal', label: 'Open the portal' }, { name: u.name, greet: true }).catch((e) => console.error('mail', e.message));
@@ -687,11 +688,16 @@ A.invite = async (req, res) => {
 A.dir = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
-  const [rows, segs, st, tg, cs] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => []), db.selectAll('customer_segments', 'select=code,segment,status,confidence,evidence').catch(() => [])]);
+  const [rows, segs, st, tg, cs, rh] = await Promise.all([db.rpc('dir_customers'), db.select('segments', 'select=id,name&order=name'), db.select('sales_sync', 'select=customers_at&id=eq.1'), db.selectAll('customer_tags', 'select=code,tag').catch(() => []), db.selectAll('customer_segments', 'select=code,segment,status,confidence,evidence').catch(() => []), db.rpc('dash_customers').catch(() => [])]);
   const T = {}; tg.forEach((x) => { (T[x.code] = T[x.code] || []).push(x.tag); });
   const G = {}; cs.forEach((x) => { G[x.code] = x; });
-  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; const g = G[r.c]; if (g) { r.sg = g.segment; r.sgs = g.status; r.sgc = g.confidence; r.sge = g.evidence; } });
-  return res.json({ rows: rows || [], segments: segs, synced: st[0] && st[0].customers_at });
+  // buying rhythm (orders, interval, expected next order, last year) from the sales history
+  const R = {}; (rh || []).forEach((x) => { R[x.c] = x; });
+  (rows || []).forEach((r) => { if (T[r.c]) r.tags = T[r.c]; const g = G[r.c]; if (g) { r.sg = g.segment; r.sgs = g.status; r.sgc = g.confidence; r.sge = g.evidence; } const x = R[r.c]; if (x) { r.orders = x.orders; r.med = x.med; r.next = x.next; r.p12 = x.p12; } });
+  // a salesperson sees only their own customers; superadmin, admin and marketing see everyone
+  let out = rows || [], scope;
+  if (w.role === 'sales') { const sc = await salesScope(w, { query: {} }); scope = sc.sp || ''; out = sc.sp ? out.filter((r) => r.sp === sc.sp) : []; }
+  return res.json({ rows: out, segments: segs, synced: st[0] && st[0].customers_at, scope });
 };
 A['dir-sync'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -942,6 +948,26 @@ A['behavior-companies'] = async (req, res) => {
   const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30));
   return res.json({ days, rows: (await db.rpc('dash_behavior_companies', { p_days: days })) || [] });
 };
+// people browsing without signing in, one row per browser; a quote or access request adds their e-mail
+A['behavior-visitors'] = async (req, res) => {
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const days = Math.min(365, Math.max(1, parseInt(req.query.days, 10) || 30)), since = new Date(Date.now() - days * 864e5).toISOString();
+  const ev = await db.select('events', 'select=at,visitor_id,session_id,type,code,query,device,city,region,country,utm,referrer,who&company_id=is.null&user_id=is.null&type=neq.page&at=gte.' + since + '&order=at.desc&limit=5000');
+  const V = {};
+  ev.forEach((e) => {
+    const v = V[e.visitor_id] = V[e.visitor_id] || { v: e.visitor_id, last: e.at, first: e.at, s: new Set(), pv: 0, se: 0, empty: 0, ca: 0, qu: 0, codes: {}, qs: {}, place: [e.city, e.region, e.country].filter(Boolean).join(', '), device: e.device || '', src: '', who: null };
+    v.first = e.at; if (e.session_id) v.s.add(e.session_id); if (e.who && !v.who) v.who = e.who;
+    if (e.type === 'product') { v.pv++; if (e.code) v.codes[e.code] = (v.codes[e.code] || 0) + 1; }
+    if (e.type === 'search' || e.type === 'search_empty') { if (e.type === 'search') v.se++; else v.empty++; if (e.query) v.qs[e.query] = 1; }
+    if (e.type === 'cart_add') { v.ca++; if (e.code) v.codes[e.code] = (v.codes[e.code] || 0) + 2; }
+    if (e.type === 'quote') v.qu++;
+    v.src = (e.utm && e.utm.source) || (e.referrer ? e.referrer : '') || 'direct';
+  });
+  const rows = Object.values(V).map((v) => ({ v: v.v, who: v.who, first: v.first, last: v.last, visits: v.s.size || 1, pv: v.pv, se: v.se, empty: v.empty, ca: v.ca, qu: v.qu, place: v.place, device: v.device, src: v.src,
+    codes: Object.entries(v.codes).sort((a, b) => b[1] - a[1]).slice(0, 4).map((x) => x[0]), qs: Object.keys(v.qs).slice(0, 3) }));
+  return res.json({ days, rows, sample: ev.length >= 5000 });
+};
 // raw event stream with filters (type, company, text), newest first
 A['behavior-stream'] = async (req, res) => {
   const w = await who(req, res); if (!w) return;
@@ -1144,6 +1170,21 @@ function actions(S, B, portal, N, touched) {
     todo: 'Reach out today: help with the parts they looked at' + (u.codes && u.codes.length ? ' (' + u.codes.slice(0, 4).join(', ') + ')' : '') + ', price or stock questions.', who: [{ c: u.code, n: u.company, e: u.email }], codes: u.codes || [] }));
   return out.sort((a, b) => b.score - a.score).slice(0, 40).map((a) => { a.score = Math.round(a.score); return a; });
 }
+// what the team did with a suggested campaign: started (list or e-mail made), done, dismissed for a while, or cleared to show it again
+A['sug-mark'] = async (req, res) => {
+  if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
+  const w = await who(req, res); if (!w) return;
+  if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
+  const b = readBody(req), key = clean(b.key, 200), st = clean(b.status, 20), uid = (x) => /^[0-9a-f-]{36}$/i.test(String(x || '')) ? x : null;
+  if (!key) return res.status(400).json({ error: 'key' });
+  if (st === 'clear') { await db.remove('suggestion_marks', 'key=eq.' + encodeURIComponent(key)); return res.json({ ok: true }); }
+  if (['started', 'done', 'dismissed'].indexOf(st) < 0) return res.status(400).json({ error: 'status' });
+  const days = Math.min(365, Math.max(1, Number(b.days) || (st === 'dismissed' ? 30 : 21)));
+  const row = { key, status: st, until: new Date(Date.now() + days * 864e5).toISOString(), segment_id: uid(b.segment_id), campaign_id: uid(b.campaign_id), by_email: w.email, at: new Date().toISOString() };
+  await db.insert('suggestion_marks', [row], { onConflict: 'key' });
+  await PS.audit(w.email, 'suggestion.' + st, 'suggestion', null, null, { key });
+  return res.json({ ok: true, mark: row });
+};
 A.dash = async (req, res) => {
   const w = await who(req, res); if (!w) return;
   if (!can(w, 'sales', 'marketing')) return res.status(403).json({ error: 'role' });
@@ -1165,7 +1206,8 @@ A.dash = async (req, res) => {
   ['viewed', 'carted'].forEach((k) => (B[k] || []).forEach((p) => { p.t = title(p.k); }));
   const P = { orders: ord.length, order_value: Math.round(ord.reduce((a, o) => a + Number(o.total || 0), 0)), quotes: qts.length,
     companies: Object.values(portal).filter((s) => s === 'approved' || s === 'active').length, invited: Object.values(portal).filter((s) => s === 'invited').length };
-  return res.json({ days, period: PER, funnel: FUN, sales: S, behavior: B, portal: P, actions: actions(S, B, portal, N, new Set((await touchedP).map((x) => x.customer_code).filter(Boolean))), ai: aiOn(req), at: Date.now() });
+  const marks = await db.select('suggestion_marks', 'select=key,status,until,segment_id,campaign_id,by_email,at').catch(() => []);
+  return res.json({ days, period: PER, funnel: FUN, sales: S, behavior: B, portal: P, marks, actions: actions(S, B, portal, N, new Set((await touchedP).map((x) => x.customer_code).filter(Boolean))), ai: aiOn(req), at: Date.now() });
 };
 // AI read of the same numbers: campaigns for groups and one-to-one actions. Off until DASH_AI=1 (it has a cost per run).
 // Only business data goes out (company names, codes, totals, parts); no e-mails or phone numbers.
@@ -1441,7 +1483,8 @@ function commentContact(c) {
   const parts = String(c || '').split(' · '), i = parts.findIndex((x) => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(x.trim()));
   if (i < 0) return null;
   const ph = parts[i + 1] && /^[\d()+\-.\s]{7,}$/.test(parts[i + 1].trim()) ? parts[i + 1].trim() : null;
-  return { name: i > 0 ? parts[i - 1].trim().slice(0, 120) : null, email: parts[i].trim().toLowerCase(), phone: ph };
+  const co = i > 1 && !/WEB CUSTOMER|QUOTE REQUEST|review|freight/i.test(parts[i - 2]) ? parts[i - 2].trim().slice(0, 120) : null;
+  return { name: i > 0 ? parts[i - 1].trim().slice(0, 120) : null, email: parts[i].trim().toLowerCase(), phone: ph, company: co };
 }
 async function loadParked(fresh) {
   if (!pipeMemo.rows || Date.now() - pipeMemo.at > 3 * 60e3 || fresh) {
@@ -1500,7 +1543,7 @@ async function crmSync() {
   const live = new Set(parked.map((r) => r.number)), codes = [...new Set(parked.map((r) => r.code).filter(Boolean))], spOf = {};
   const ctOf = {};
   for (let i = 0; i < codes.length; i += 150) (await db.select('ul_customers', 'select=code,salesperson,contact_name,email,phone&code=' + inList(codes.slice(i, i + 150)))).forEach((x) => { spOf[x.code] = x.salesperson; ctOf[x.code] = x; });
-  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => ({ title: (r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: r.name || null, contact_name: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.name) : null) || (ctOf[r.code] || {}).contact_name || null, contact_email: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.email) : null) || (ctOf[r.code] || {}).email || null, contact_phone: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.phone) : null) || (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }));
+  const fresh = parked.filter((r) => !by[r.number] && !mk[r.number]).map((r) => { const wq = r.code === 'WEBQUOTE' && r.ct ? (r.ct.company || r.ct.name) : null; return { title: (wq || r.name || r.code || 'Customer') + ' · ' + r.number, stage: crmStageOf(r.kind), owner: r.sp || spOf[r.code] || CRM_OWNER, customer_code: r.code || null, customer_name: wq || r.name || null, contact_name: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.name) : null) || (ctOf[r.code] || {}).contact_name || null, contact_email: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.email) : null) || (ctOf[r.code] || {}).email || null, contact_phone: (r.web || r.code === 'WEBQUOTE' ? (r.ct && r.ct.phone) : null) || (ctOf[r.code] || {}).phone || null, value: r.value || 0, source: r.kind, ref: r.number, note: r.note || null, created_by: 'auto', ...(r.at ? { created_at: r.at, stage_at: r.at, updated_at: r.at } : {}) }; });
   if (fresh.length) {
     // one bad row must not lose the whole batch: on a failure each order is tried on its own and the one that fails is named in the log
     let ins = await db.insert('crm_deals', fresh, { onConflict: 'ref', ignoreDuplicates: true }).catch((e) => { console.error('crmSync: batch insert failed, retrying one by one', e.message); return null; });
@@ -1927,8 +1970,24 @@ A['crm-contacts'] = async (req, res) => {
   if (!isSuper && sc.none) return res.json({ contacts: [] });
   const [rows, deals] = await Promise.all([db.select('crm_contacts', 'select=*&order=updated_at.desc&limit=1500' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))), db.select('crm_deals', 'select=id,contact_email,stage,value&contact_email=not.is.null&limit=3000' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))).catch(() => [])]);
   const by = {}; deals.forEach((d) => { const k = String(d.contact_email).toLowerCase(); (by[k] = by[k] || { n: 0, open: 0, value: 0 }).n++; if (!['won', 'lost'].includes(d.stage)) { by[k].open++; by[k].value += Number(d.value) || 0; } });
-  rows.forEach((r) => { r.deals = by[r.email] || { n: 0, open: 0, value: 0 }; });
-  return res.json({ contacts: rows });
+  // one list of people, kept apart from the company record: contacts saved here, the contact on each Unleashed customer, portal logins and people on deals.
+  // Same e-mail means same person; a contact saved here wins, the others only fill gaps. Only rows saved here can be edited in place.
+  const sp = isSuper ? '' : '&salesperson=eq.' + encodeURIComponent(sc.sp);
+  const [ul, cos, us, dl] = await Promise.all([
+    db.selectAll('ul_customers', 'select=code,name,contact_name,email,phone,salesperson,obsolete' + sp).catch(() => []),
+    db.selectAll('companies', 'select=id,name,unleashed_code,salesperson' + sp).catch(() => []),
+    db.selectAll('users', 'select=name,email,phone,company_id,last_login_at').catch(() => db.selectAll('users', 'select=name,email,phone,company_id').catch(() => [])),
+    db.select('crm_deals', 'select=contact_name,contact_email,contact_phone,customer_code,customer_name,owner&contact_email=not.is.null&order=updated_at.desc&limit=3000' + (isSuper ? '' : '&owner=eq.' + encodeURIComponent(sc.sp))).catch(() => [])]);
+  const out = [], idx = {}, CO = {}; cos.forEach((c) => { CO[c.id] = c; });
+  const add = (src, r) => { const em = String(r.email || '').trim().toLowerCase(), k = em || (src + ':' + (r.customer_code || '') + ':' + String(r.name || '').toLowerCase()); if (!r.name && !em) return;
+    const cur = idx[k]; if (cur) { if (cur.src.indexOf(src) < 0) cur.src.push(src); ['name', 'phone', 'customer_code', 'company_name', 'owner'].forEach((f) => { if (!cur[f] && r[f]) cur[f] = r[f]; }); if (r.last_login_at && !cur.last_login_at) cur.last_login_at = r.last_login_at; return; }
+    const o = Object.assign({ key: src + ':' + k, src: [src] }, r, { email: em || null }); idx[k] = o; out.push(o); };
+  rows.forEach((r) => add('crm', r));
+  ul.filter((c) => !c.obsolete).forEach((c) => add('unleashed', { name: c.contact_name || null, email: c.email, phone: c.phone, customer_code: c.code, company_name: c.name, owner: c.salesperson }));
+  us.forEach((u) => { const c = CO[u.company_id]; if (!isSuper && !c) return; add('portal', { name: u.name, email: u.email, phone: u.phone, customer_code: c && c.unleashed_code, company_name: c && c.name, owner: c && c.salesperson, last_login_at: u.last_login_at || null }); });
+  dl.forEach((d) => { if (d.customer_code === 'WEBQUOTE') return; add('deal', { name: d.contact_name, email: d.contact_email, phone: d.contact_phone, customer_code: d.customer_code, company_name: d.customer_name, owner: d.owner }); });
+  out.forEach((r) => { r.deals = by[r.email] || { n: 0, open: 0, value: 0 }; });
+  return res.json({ contacts: out });
 };
 A['contact-save'] = async (req, res) => {
   if (req.method !== 'POST' || !originOk(req)) return res.status(405).json({ error: 'method' });
@@ -2381,8 +2440,8 @@ const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'],
   'social-list': ['social'], 'social-save': ['social'], 'social-upload': ['social'], 'social-img': ['social'],
   'mail-list': ['emails'], 'mail-insights': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-exceptions-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
-  dash: ['dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
-  events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
+  dash: ['dash', 'emails'], 'sug-mark': ['emails', 'dash'], 'dash-ai': ['dash', 'crm'], 'dash-customers': ['dash'], 'dash-sync': ['dash'], 'funnel-step': ['dash'], followups: ['dash', 'sa', 'crm'], 'note-add': ['dash', 'dir', 'crm', 'sa'], 'note-done': ['dash', 'dir', 'crm', 'sa'], customer: ['dir', 'crm', 'dash', 'sa', 'goals', 'bcomp', 'events', 'stream', 'pipe', 'clients'],
+  events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-visitors': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
   prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
 require('../lib/admin-social')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}) });

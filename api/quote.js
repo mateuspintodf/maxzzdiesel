@@ -28,6 +28,7 @@ module.exports = async (req, res) => {
   const ship = { street: clean(s.street, 160), country: clean(s.country, 60), state: clean(s.state, 60), city: clean(s.city, 80), zip: clean(s.zip, 20), method: clean(s.method, 60), needBy: clean(s.needBy, 20), po: clean(s.po, 60) };
   const b2b = b.b2b === true;
   await attrib.save('quote', customer.email, number, b.attribution, req);
+  if (EMAIL.test(customer.email)) await require('../lib/visitors').tagVisitor(clean(b.visitor, 40), customer.email);
   const source = clean(b.source, 300);
   const shipText = [ship.street, ship.city, ship.state, ship.zip, ship.country].filter(Boolean).join(', ');
   const extra = [shipText && ('Ship to: ' + shipText), ship.method && ('Delivery: ' + ship.method), ship.needBy && ('Needed by: ' + ship.needBy),
