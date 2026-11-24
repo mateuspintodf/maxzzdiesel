@@ -3043,7 +3043,8 @@ var MX_Q0 = location.search; // the landing query, read before the router tidies
       this.vMake = '';
       // the part page lives at /parts/<part>: it opens on that part; other store screens go back to /portal, other parts to their own page
       if (ON_PART) {
-        if (!raw) { r = 'p'; a = window.MX_PART; }
+        if (!location.hash) { r = 'p'; a = window.MX_PART; }
+        else if (!raw) { location.replace('/portal#/'); return; } // the logo and Store links (#/) go to the store home
         else if (r === 'p' && a && partSlug(a) !== partSlug(window.MX_PART)) { location.replace('/parts/' + partSlug(a)); return; }
         else if (r === 'p') { history.replaceState(null, '', location.pathname); r = 'p'; a = window.MX_PART; }
         else { location.replace('/portal#/' + raw); return; }

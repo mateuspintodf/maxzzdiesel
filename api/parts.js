@@ -15,6 +15,7 @@ const SITE = 'https://www.maxzzdiesel.com';
 let DB = null;
 
 const slug = (s) => String(s || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+const partPath = require('../lib/part-path');
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const tidy = (s) => String(s || '').replace(/\s+/g, ' ').trim().toLowerCase().replace(/(^|[\s\-/(])([a-z])/g, (m, a, b) => a + b.toUpperCase())
   .replace(/\b(Hp|Hd|Lb|Ll|Nox|Scr|Dpf|Def|Egr|Vgt|Cr|Hpcr|Heui|Hpop|Ecm|Pcm|Oem|Usa|Us|Bosch|Ii|Iii|Iv)\b/g, (m) => ({ Bosch: 'Bosch', Ii: 'II', Iii: 'III', Iv: 'IV' }[m] || m.toUpperCase()));
@@ -41,7 +42,7 @@ async function load() {
 function build(all) {
   const rows = all.filter((r) => r[2] !== 'engine'); // engine parts are sold on volvoenginekits.com, not here
   const specs = SPECS || (SPECS = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'data', 'specs.json'), 'utf8')));
-  const bySlug = {}, byCode = {}, cats = {}, makes = {}, engs = {}, oem = {};
+  const bySlug = {}, byPath = {}, byCode = {}, cats = {}, makes = {}, engs = {}, oem = {};
   const clean = (sp) => {
     if (!sp) return null;
     sp = Object.assign({}, sp);
@@ -54,19 +55,20 @@ function build(all) {
   };
   rows.forEach((r) => {
     const sp = clean(specs[r[0]]);
-    const p = { code: r[0], name: r[1], cat: r[3], brand: r[4] || '', sp, slug: slug(r[0]) };
+    const p = { code: r[0], name: r[1], cat: r[3], brand: r[4] || '', sp, key: slug(r[0]), slug: partPath(r[0], r[1], r[4]) };
     p.title = sp && sp.title ? sp.title : tidy(r[1]) + ' ' + r[0];
     const tok = (p.title.match(/^\S+\s+(\S+)/) || [])[1] || '';
     p.oem = sp && /\d/.test(tok) && tok.replace(/[^0-9a-z]/gi, '').length >= 5 ? tok.replace(/[:,]$/, '') : p.code;
-    if (bySlug[p.slug] && bySlug[p.slug].sp && !sp) return;
-    bySlug[p.slug] = p; byCode[p.code] = p;
+    if (bySlug[p.key] && bySlug[p.key].sp && !sp) return;
+    if (byPath[p.slug] && byPath[p.slug].code !== p.code) p.slug = (p.slug + '-' + p.key).slice(0, 110); // two parts, one address: the code tells them apart
+    bySlug[p.key] = p; byPath[p.slug] = p; byCode[p.code] = p;
     oem[slug(p.oem).replace(/-/g, '')] = oem[slug(p.oem).replace(/-/g, '')] || p.slug;
     (cats[r[3]] = cats[r[3]] || []).push(p);
     if (sp && sp.make && sp.make !== 'Rebuilder Supply') { const k = slug(sp.make); (makes[k] = makes[k] || { l: sp.make, items: [] }).items.push(p); }
     if (sp && sp.engHub) { const k = slug(sp.engHub); (engs[k] = engs[k] || { l: sp.engHub, make: sp.make, items: [] }).items.push(p); }
   });
   Object.values(cats).forEach((a) => a.sort((x, y) => (y.sp ? 1 : 0) - (x.sp ? 1 : 0) || x.code.localeCompare(y.code)));
-  DB = { bySlug, byCode, cats, makes, engs, oem };
+  DB = { bySlug, byPath, byCode, cats, makes, engs, oem };
   return DB;
 }
 
@@ -274,9 +276,10 @@ function hubPage(db) {
 // a copy of the index without the products an admin hid
 function visible(d, hid) {
   const keep = (arr) => arr.filter((p) => !hid.has(p.code));
-  const out = Object.assign({}, d, { bySlug: {}, byCode: {}, cats: {}, makes: {}, engs: {} });
+  const out = Object.assign({}, d, { bySlug: {}, byPath: {}, byCode: {}, cats: {}, makes: {}, engs: {} });
   Object.entries(d.bySlug).forEach(([k, p]) => { if (!hid.has(p.code)) out.bySlug[k] = p; });
   Object.entries(d.byCode).forEach(([k, p]) => { if (!hid.has(p.code)) out.byCode[k] = p; });
+  Object.entries(d.byPath).forEach(([k, p]) => { if (!hid.has(p.code)) out.byPath[k] = p; });
   Object.entries(d.cats).forEach(([k, a]) => { const v = keep(a); if (v.length) out.cats[k] = v; });
   Object.entries(d.makes).forEach(([k, m]) => { const v = keep(m.items); if (v.length) out.makes[k] = Object.assign({}, m, { items: v }); });
   Object.entries(d.engs).forEach(([k, e]) => { const v = keep(e.items); if (v.length) out.engs[k] = Object.assign({}, e, { items: v }); });
@@ -324,7 +327,8 @@ module.exports = async (req, res) => {
       const e = db.engs[id];
       html = listPage({ title: `${e.l} Injectors, Pumps and Parts`, h1: `${e.l} injection parts`, lead: `Fuel injectors, pumps and rebuild parts for the ${e.l}, by part number. Match your current part number or send us your VIN and we confirm fitment.`, canon: '/parts/e/' + id, items: e.items, crumbs: [['Home', '/'], ['Parts catalog', '/parts'], [e.l, '/parts/e/' + id]], pageNo, index: e.items.length >= 3 });
     } else if (kind === 'p') {
-      if (db.bySlug[id]) { const lv = await live().catch(() => ({})); res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400'); html = storePage(db.bySlug[id], db, lv); }
+      if (!db.byPath[id] && db.bySlug[id]) return redirect(res, '/parts/' + db.bySlug[id].slug); // older address (the code alone) or a store link
+      if (db.byPath[id]) { const lv = await live().catch(() => ({})); res.setHeader('Cache-Control', 'public, s-maxage=1800, stale-while-revalidate=86400'); html = storePage(db.byPath[id], db, lv); }
       // a number we do not list: the store screen still opens, says so and offers to add it to a quote (not indexed)
       else if (!db.oem[id.replace(/-/g, '')] && raw) { res.statusCode = 404; res.setHeader('Cache-Control', 'public, s-maxage=600'); html = storePage(null, db, {}, { code: String(raw).slice(0, 60), title: 'Part ' + String(raw).slice(0, 60) + ' | Maxzz Diesel', desc: 'We do not list this part online yet. Send us the number and we check stock and cross references.', canon: '/parts/' + id }); res.setHeader('Content-Type', 'text/html; charset=utf-8'); return res.end(html); }
       else { const o = db.oem[id.replace(/-/g, '')]; if (o) return redirect(res, '/parts/' + o); }
