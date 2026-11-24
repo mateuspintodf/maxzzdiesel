@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
     const ua = String(req.headers['user-agent'] || '');
     if (/bot|crawl|spider|headless|preview/i.test(ua)) return res.status(204).end();
     const geo = { country: clean(req.headers['x-vercel-ip-country'], 4) || null, region: clean(dec(req.headers['x-vercel-ip-country-region']), 60) || null, city: clean(dec(req.headers['x-vercel-ip-city']), 80) || null };
-    const utm = b.utm && typeof b.utm === 'object' ? Object.fromEntries(['source', 'medium', 'campaign', 'term', 'content'].filter((k) => b.utm[k]).map((k) => [k, clean(b.utm[k], 80)])) : null;
+    const utm = b.utm && typeof b.utm === 'object' ? Object.fromEntries(['source', 'medium', 'campaign', 'term', 'content', 'gclid', 'fbclid', 'msclkid', 'ttclid', 'landing'].filter((k) => b.utm[k]).map((k) => [k, clean(b.utm[k], 120)])) : null;
     const rows = list.filter((e) => e && TYPES.has(e.type)).map((e) => ({
       visitor_id: vid, session_id: clean(b.session, 40) || null, user_id: uid, company_id: cid, type: e.type,
       path: clean(e.path, 200) || null, code: clean(e.code, 60) || null,

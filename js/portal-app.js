@@ -1,6 +1,7 @@
 /* Maxzz B2B store (petite-vue).
    Open catalog for everyone; prices, stock, cart and orders only for signed-in, approved customers.
    Anonymous visitors can add parts to the quote list (/quote), the same list the rest of the site uses. */
+var MX_Q0 = location.search; // the landing query, read before the router tidies the address
 (function () {
   var CK = 'mx-portal-cart', QK = 'mx-quote', FGC = {};
   // featured parts whose Unleashed text reads badly; wording only, same part and numbers
@@ -29,9 +30,15 @@
       try { vis = JSON.parse(raw); } catch (e) {}
       if (!vis || now - vis.t > 30 * 60 * 1000) vis = { id: rnd(), t: now, ref: document.referrer ? (document.referrer.split('/')[2] || '') : '' };
       vis.t = now; put('mx-vis', JSON.stringify(vis), sessionStorage);
-      var utm = null; try { utm = JSON.parse(get('mx-utm') || 'null'); } catch (e) {}
-      if (!utm) { var sp = new URLSearchParams(location.search), u = {}; ['source', 'medium', 'campaign', 'term', 'content'].forEach(function (k) { var x = sp.get('utm_' + k); if (x) u[k] = x; }); if (Object.keys(u).length) { utm = u; put('mx-utm', JSON.stringify(u)); } }
-      ids = { visitor: v, session: vis.id, referrer: vis.ref && vis.ref !== location.host ? vis.ref : '', utm: utm };
+      // where this visit came from: campaign tags or ad click ids in the URL, else what the site remembered (attrib.js), else the referring site
+      if (!vis.src) { var sp = new URLSearchParams(MX_Q0 || location.search), u = {};
+        ['source', 'medium', 'campaign', 'term', 'content'].forEach(function (k) { var x = sp.get('utm_' + k); if (x) u[k] = x.slice(0, 80); });
+        ['gclid', 'fbclid', 'msclkid', 'ttclid'].forEach(function (k) { if (sp.get(k)) u[k] = sp.get(k).slice(0, 100); });
+        if (!Object.keys(u).length) { var at = null; try { at = JSON.parse(get('mz_attr') || 'null'); } catch (e) {} var L = at && at.last;
+          if (L && Date.now() - (L.t || 0) < 30 * 864e5) { ['source', 'medium', 'campaign', 'term', 'content', 'gclid', 'fbclid', 'msclkid', 'ttclid'].forEach(function (k) { if (L[k]) u[k] = String(L[k]).slice(0, 100); }); if (!vis.ref && L.ref) vis.ref = L.ref; if (L.landing && Object.keys(u).length) u.landing = String(L.landing).slice(0, 120); } }
+        else u.landing = location.pathname.slice(0, 120);
+        vis.src = Object.keys(u).length ? u : 'none'; put('mx-vis', JSON.stringify(vis), sessionStorage); }
+      ids = { visitor: v, session: vis.id, referrer: vis.ref && vis.ref !== location.host ? vis.ref : '', utm: vis.src && vis.src !== 'none' ? vis.src : null };
       return ids;
     }
     function flush() {
