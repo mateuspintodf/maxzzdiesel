@@ -19,7 +19,7 @@
     '.dt-lk{display:inline;border:0;background:none;padding:0;margin:0;font:inherit;font-weight:600;color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}' +
     '.dt-pl{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:#eef0f2;color:#3e444b;white-space:nowrap}.dt-pl.ok{background:#eaf6ee;color:#136c33}.dt-pl.bad{background:#fdecee;color:#b71f2b}.dt-pl.warn{background:#fff4e5;color:#9a4b00}' +
     '.dt-h{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px;padding:6px 20px 4px}.dt-h i{display:block;height:34px;border-radius:6px;background:#f08a24}.dt-hx{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:3px;padding:0 20px 14px;font-size:10.5px;color:#6b7480;text-align:center}' +
-    '.dt-note{font-size:12.5px;color:#6b7480;padding:8px 20px 14px;margin:0;line-height:1.5}.dt-or{line-height:1.3}.dt-or small{display:block;color:#6b7480;font-size:12px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}';
+    '.dt-pg{margin:0 0 14px}.dt-pg b{display:block;font-size:14px}.dt-pg .t{height:10px;border-radius:999px;background:#eef0f2;overflow:hidden;margin:7px 0 5px}.dt-pg .t i{display:block;height:100%;border-radius:999px;background:#f08a24;transition:width .7s cubic-bezier(.25,.8,.25,1)}.dt-pg.full .t i{background:#1c9a4b}.dt-pg small{color:#6b7480;font-size:12.5px}.dt-dh{font-size:13px;font-weight:700;margin:22px 0 10px;color:#16191d}.dt-kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 6px}.dt-kv div{background:var(--soft,#f4f5f7);border-radius:14px;padding:10px 12px}.dt-kv small{display:block;color:#6b7480;font-size:12px}.dt-kv b{font-size:15px}.dt-note{font-size:12.5px;color:#6b7480;padding:8px 20px 14px;margin:0;line-height:1.5}.dt-or{line-height:1.3}.dt-or small{display:block;color:#6b7480;font-size:12px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}';
   document.head.appendChild(css);
 
   function range() { var m = M(), to = new Date(), iso = function (d) { return d.toISOString().slice(0, 10); }, t = iso(to), f;
@@ -33,7 +33,7 @@
   function day(a) { return a ? A.fmtAt(String(a).slice(0, 10)) : ''; }
   function share(a, b) { return b ? Math.round(a / b * 100) + '%' : '-'; }
   function st(s) { var x = ST[s] || [s, 'off']; return '<span class="st ' + x[1] + '">' + esc(x[0]) + '</span>'; }
-  function person(x) { return esc(x.name || '-') + '<small>' + esc(x.email || '') + (x.phone ? ' · ' + esc(x.phone) : '') + '</small>'; }
+  function person(x) { return (x.email ? '<button class="dt-lk" data-dt="stu" data-v="' + esc(x.email) + '">' + esc(x.name || x.email) + '</button>' : esc(x.name || '-')) + '<small>' + esc(x.email || '') + (x.phone ? ' · ' + esc(x.phone) : '') + '</small>'; }
   function origin(t) { if (!t || !(t.source || t.campaign)) return '<span class="muted">not tagged</span>'; return '<div class="dt-or"><b>' + esc(t.source || '-') + '</b>' + (t.medium ? ' <span class="muted">' + esc(t.medium) + '</span>' : '') + (t.campaign ? '<small title="' + esc(t.campaign) + '">' + esc(t.campaign) + '</small>' : '') + (t.content ? '<small title="' + esc(t.content) + '">' + esc(t.content) + '</small>' : '') + '</div>'; }
   function cust(c, x) { if (!c) return '<span class="muted">Not a Max customer</span>';
     if (!c.code) return '<span class="dt-mx p">Max portal user</span>';
@@ -105,6 +105,36 @@
       return '<tr><td>' + esc(day(x.at)) + '</td><td><b>' + esc(x.company || '-') + '</b></td><td>' + person(x) + '</td><td>' + esc(D.Location || '') + '</td><td style="max-width:300px">' + esc(sys.join(', ')) + (D.Message ? '<small>' + esc(String(D.Message).slice(0, 160)) + '</small>' : '') + '</td><td>' + esc(D.Technicians || '') + (D.Timing ? '<small>' + esc(D.Timing) + '</small>' : '') + (/true/.test(D['Interested in ROBIEL tools and parts'] || '') ? '<small>wants ROBIEL tools and parts</small>' : '') + '</td><td>' + cust(x.customer) + '</td></tr>'; })) +
       '<p class="dt-note">Requests sent through the onsite training form of the DTA site.</p></section>'; }
 
+  // side drawer of one student or lead
+  function openStu(email) { var m = M(); m.stu = { email: email, loading: true }; A.draw(); A.api('dta-student', null, '&email=' + encodeURIComponent(email)).then(function (r) { if (!m.stu || m.stu.email !== email) return; m.stu = r._status === 200 ? r : { email: email, err: r.error || 'Could not load this person.' }; A.draw(); }); }
+  function drawer(m) { var x = m.stu; if (!x) return '';
+    var h = '<div class="dscrim" data-dt="stu-x"></div><aside class="drawer" role="dialog" aria-label="Student"><div class="dh"><div><small>DTA student</small><h2>' + esc(x.name || x.email) + '</h2>';
+    var close = '</div><button class="ib" data-dt="stu-x" aria-label="Close">' + (A.ic ? A.ic('x', 20) : 'x') + '</button></div><div class="dbody">';
+    if (x.loading) return h + close + A.ld() + '</div></aside>';
+    if (x.err) return h + close + '<p class="muted">' + esc(x.err) + '</p></div></aside>';
+    var paid = x.sales.filter(function (s) { return s.status === 'APPROVED' || s.status === 'COMPLETE'; });
+    h += '<div class="tags">' + (x.customer ? (x.customer.code ? '<span class="dt-mx">Max customer</span>' : '<span class="dt-mx p">Max portal user</span>') : '<span class="st">Not a Max customer</span>') + '<span class="st">' + n0(paid.length) + ' course' + (paid.length === 1 ? '' : 's') + ' bought</span></div>' + close;
+    h += '<div class="dt-kv"><div><small>E-mail</small><b style="font-size:13.5px;word-break:break-all">' + esc(x.email) + '</b></div>' + (x.phone ? '<div><small>Phone</small><b>' + esc(x.phone) + '</b></div>' : '') + (x.country ? '<div><small>Country</small><b>' + esc(x.country) + '</b></div>' : '') + '</div>';
+    // progress
+    var P = x.progress || { areas: [] };
+    h += '<div class="dt-dh">Progress in the courses</div>';
+    if (!P.areas.length) h += '<p class="muted" style="font-size:13.5px">' + (P.note ? esc(P.note) : paid.length ? 'Hotmart returned no access for this e-mail in the members area. The student may not have opened the course yet, or uses another e-mail there.' : 'No course bought yet, so there is nothing to follow.') + '</p>';
+    P.areas.forEach(function (a) {
+      h += '<div class="dt-kv"><div><small>Overall</small><b>' + (a.pct == null ? '-' : Math.round(a.pct) + '%') + '</b></div><div><small>Lessons done</small><b>' + (a.done == null ? '-' : n0(a.done) + ' of ' + n0(a.total)) + '</b></div><div><small>Last access</small><b>' + (a.last ? esc(day(a.last)) : 'never') + '</b></div><div><small>Visits</small><b>' + n0(a.visits) + '</b></div></div>';
+      a.modules.forEach(function (mo) { var pc = mo.total ? Math.round(mo.done / mo.total * 100) : 0; h += '<div class="dt-pg' + (pc >= 100 ? ' full' : '') + '"><b>' + esc(mo.name) + '</b><div class="t"><i style="width:' + Math.max(pc, 2) + '%"></i></div><small>' + pc + '% · ' + n0(mo.done) + ' of ' + n0(mo.total) + ' lessons' + (mo.last ? ' · last lesson finished ' + esc(day(mo.last)) : '') + (pc < 100 && mo.next ? ' · next: ' + esc(mo.next) : '') + '</small></div>'; });
+      if (a.first) h += '<p class="muted" style="font-size:12.5px;margin:0 0 6px">First access ' + esc(day(a.first)) + (a.engagement ? ' · engagement ' + esc(String(a.engagement).toLowerCase()) : '') + ' · area ' + esc(a.area) + '</p>'; });
+    // purchases
+    h += '<div class="dt-dh">Purchases</div>' + (x.sales.length ? A.tbl([A.h0('Date'), A.h0('Course'), A.hr('Paid'), A.h0('Status')], x.sales.map(function (s) { return '<tr><td>' + esc(day(s.at)) + '</td><td>' + esc(s.product || '') + (s.coupon ? '<small>coupon ' + esc(s.coupon) + '</small>' : '') + '</td><td class="r">' + cash(s.price, s.currency) + '</td><td>' + st(s.status) + '</td></tr>'; }), 'nosort') : '<p class="muted" style="font-size:13.5px">No purchase at Hotmart with this e-mail.</p>');
+    if (x.carts.length) h += '<p class="muted" style="font-size:12.5px">Left the checkout: ' + x.carts.map(function (c) { return esc(c.product || 'a course') + ' on ' + esc(day(c.at)); }).join(', ') + '</p>';
+    // on the site
+    var L = x.leads.filter(function (l) { return l.kind !== 'onsite'; });
+    if (L.length) h += '<div class="dt-dh">On the DTA site</div>' + A.tbl([A.h0('Date'), A.h0('Looking at'), A.h0('Came from')], L.map(function (l) { return '<tr><td>' + esc(day(l.at)) + '</td><td>' + esc(l.course || '') + (l.landing ? '<small>entered on ' + esc(l.landing) + '</small>' : '') + '</td><td>' + origin(l) + (l.term ? '<small class="muted" style="display:block;font-size:12px">' + esc(l.term) + '</small>' : '') + '</td></tr>'; }), 'nosort');
+    if (x.leads.some(function (l) { return l.kind === 'onsite'; })) h += '<p class="muted" style="font-size:12.5px">Also sent an onsite training request.</p>';
+    // Max
+    var c = x.customer;
+    if (c && c.code) h += '<div class="dt-dh">As a Max customer</div><div class="dt-kv"><div><small>Company</small><b><button class="dt-lk" data-act="cust" data-code="' + esc(c.code) + '">' + esc(c.name || c.code) + '</button></b></div>' + (c.type ? '<div><small>Type</small><b>' + esc(c.type) + '</b></div>' : '') + (c.tier ? '<div><small>Tier</small><b>' + esc(c.tier) + '</b></div>' : '') + '<div><small>Parts orders</small><b>' + n0((c.parts || {}).orders || 0) + '</b></div>' + ((c.parts || {}).last ? '<div><small>Last order</small><b>' + esc(day(c.parts.last)) + '</b></div>' : '') + (c.salesperson ? '<div><small>Salesperson</small><b>' + esc(c.salesperson) + '</b></div>' : '') + '</div>';
+    else if (!c) h += '<div class="dt-dh">As a Max customer</div><p class="muted" style="font-size:13.5px">This e-mail is not on a customer in Unleashed or on a portal user. A candidate for the kit offer.</p>';
+    return h + '</div></aside>'; }
   function view() {
     var m = M(), d = m.d; if (!d) return A.ld();
     var can = S.me && (S.me.role === 'superadmin' || S.me.role === 'admin');
@@ -121,10 +151,12 @@
     if ((d.onsite || []).length) tabs.push(['onsite', 'Onsite requests ' + n0(d.onsite.length)]);
     h += seg('tab', m.tab, tabs).replace('class="seg ', 'style="margin:6px 0 14px;flex-wrap:wrap" class="seg ');
     var V = { overview: vOverview, origin: vOrigin, leads: vLeads, sales: vSales, students: vStudents, lost: vLost, courses: vCourses, onsite: vOnsite };
-    return h + (V[m.tab] || vOverview)(d, m) + '<p class="muted" style="font-size:12.5px;margin:14px 0 0">Course revenue is shown here only. It is not added to the parts revenue, the sales goals or the commissions.</p>';
+    return h + (V[m.tab] || vOverview)(d, m) + '<p class="muted" style="font-size:12.5px;margin:14px 0 0">Course revenue is shown here only. It is not added to the parts revenue, the sales goals or the commissions.</p>' + drawer(m);
   }
   document.addEventListener('click', function (e) {
     if (S.tab !== 'dta') return; var t = e.target.closest && e.target.closest('[data-dt]'); if (!t) return; var m = M(), act = t.dataset.dt, v = t.dataset.v;
+    if (act === 'stu') return openStu(v);
+    if (act === 'stu-x') { m.stu = null; return A.draw(); }
     if (act === 'rng') { m.rng = v; A.draw(); return load(); }
     if (act === 'tab') { m.tab = v; window.scrollTo && 0; return A.draw(); }
     if (act === 'an' || act === 'sf' || act === 'lf') { m[act] = v; return A.draw(); }
@@ -133,5 +165,6 @@
         m.msg = r.ok ? { ok: true, t: n0(r.rows || 0) + ' sales read from Hotmart.' + (r.older ? ' ' + n0(r.older) + ' of them are from before the last 12 months.' : '') + (r.partial ? ' There is more to read: press the button again.' : '') + (f ? (f.error ? ' Forms: ' + f.error : ' ' + n0(f.rows || 0) + ' form answers read from Webflow.') : '') } : { ok: false, t: r.error || 'Could not read the sales from Hotmart.' };
         A.draw(); if (r.ok) load(); }); }
   });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && S.tab === 'dta' && M().stu) { M().stu = null; A.draw(); } });
   window.MXDta = { view: view, load: load };
 })();
