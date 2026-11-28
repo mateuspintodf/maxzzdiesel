@@ -76,7 +76,7 @@
     if (act === 'sf') { m.sf = t.dataset.v; return A.draw(); }
     if (act === 'sync') { if (m.busy) return; m.busy = true; m.msg = null; A.draw();
       A.api('dta-sync', {}).then(function (r) { m.busy = false;
-        m.msg = r.ok ? { ok: true, t: n0(r.rows || 0) + ' sales read from Hotmart.' + (r.partial ? ' There is more history to read: press the button again to continue.' : '') } : { ok: false, t: r.error || 'Could not read the sales from Hotmart.' };
+        m.msg = r.ok ? { ok: true, t: n0(r.rows || 0) + ' sales read from Hotmart.' + (r.partial ? ' There is more history to read: press the button again to continue.' : '') + (r.shape >= 3 ? ' Hotmart only accepted a shorter period, so older sales may be missing.' : '') } : { ok: false, t: r.error || 'Could not read the sales from Hotmart.' };
         A.draw(); if (r.ok) load(); }); }
   });
   window.MXDta = { view: view, load: load };
