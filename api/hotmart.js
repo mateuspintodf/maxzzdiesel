@@ -1,9 +1,11 @@
-// Hotmart webhook (v2): an approved DTA course sale becomes a HubSpot contact,
+// Hotmart webhook (v2). Every sale event (approved, complete, refunded, chargeback, cancelled) is kept in the table
+// hotmart_sales for the DTA block of the admin. An approved DTA course sale also becomes a HubSpot contact,
 // a "course kit offer" deal owned by Leise and a follow-up task.
 // Set HOTMART_HOTTOK in Vercel to the token shown in Hotmart > Tools > Webhook.
 const { hs, upsertContact, addNote, addTask, OWNER, esc } = require('../lib/hubspot');
 const { EMAIL, clean, readBody } = require('../lib/validate');
 const dbm = require('../lib/db');
+const HM = require('../lib/hotmart');
 
 // Robiel kit that matches each course family (first match wins).
 const KITS = [
@@ -21,9 +23,12 @@ module.exports = async (req, res) => {
   const token = req.headers['x-hotmart-hottok'];
   const b = readBody(req);
   if (!process.env.HOTMART_HOTTOK || (token || b.hottok) !== process.env.HOTMART_HOTTOK) return res.status(401).json({ error: 'token' });
-  if (!process.env.HUBSPOT_TOKEN) return res.status(503).json({ error: 'crm not configured' });
   const event = clean(b.event, 60);
-  if (!APPROVED.test(event)) return res.status(200).json({ ok: true, skipped: event });
+  // the sale goes to the database first, so the DTA numbers do not depend on HubSpot being up
+  let stored = false;
+  try { const row = HM.fromWebhook(b); if (row && dbm.configured()) { await HM.save([row]); stored = true; } } catch (e) { console.error('hotmart store', e.message); }
+  if (!APPROVED.test(event)) return res.status(200).json({ ok: true, stored, skipped: event });
+  if (!process.env.HUBSPOT_TOKEN) return res.status(stored ? 200 : 503).json(stored ? { ok: true, stored, crm: 'not configured' } : { error: 'crm not configured' });
   const d = b.data || {};
   const buyer = d.buyer || {};
   const product = d.product || {};

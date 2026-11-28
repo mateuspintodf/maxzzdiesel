@@ -1,0 +1,61 @@
+/* Analytics > DTA courses: the Hotmart sales of Diesel Tech Academy. Kept apart from the parts revenue on purpose.
+   Lives beside admin.html and uses its helpers through window.MXA. */
+(function () {
+  var A = window.MXA; if (!A) return;
+  var S = A.S, esc = A.esc, n0 = A.n0, SPN = '<i class="spn"></i>';
+  var ST = { APPROVED: ['Approved', 'ok'], COMPLETE: ['Complete', 'ok'], REFUNDED: ['Refunded', 'bad'], PARTIALLY_REFUNDED: ['Partly refunded', 'bad'], CHARGEBACK: ['Chargeback', 'bad'], PROTESTED: ['Disputed', 'bad'], CANCELLED: ['Cancelled', 'off'] };
+  var RNG = [['30', 'Last 30 days'], ['90', 'Last 90 days'], ['365', 'Last 12 months'], ['ytd', 'This year'], ['all', 'All time']];
+  function M() { if (!S.dta) S.dta = { d: null, rng: '365', tab: 'sales', busy: false, msg: null }; return S.dta; }
+  var css = document.createElement('style');
+  css.textContent = '.dt-st{display:inline-block;font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;background:#eef0f2;color:#3e444b}.dt-st.ok{background:#eaf6ee;color:#136c33}.dt-st.bad{background:#fdecee;color:#b71f2b}' +
+    '.dt-bar{display:flex;align-items:flex-end;gap:6px;height:150px;padding:16px 16px 0}.dt-bar>div{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;height:100%}.dt-bar i{display:block;width:100%;max-width:44px;border-radius:6px 6px 0 0;background:#1d2126;min-height:2px;transition:height .45s cubic-bezier(.2,.9,.25,1)}.dt-bar b{font-size:11px;font-weight:600;color:#3e444b}.dt-bx{display:flex;gap:6px;padding:6px 16px 14px}.dt-bx span{flex:1;min-width:0;text-align:center;font-size:11px;color:#6b7178;white-space:nowrap;overflow:hidden}' +
+    '.dt-box{margin:0 0 14px;padding:14px 16px;border-radius:12px;background:#fff4e5;color:#6b3a00;font-size:14px;line-height:1.55}.dt-box ol{margin:8px 0 0;padding-left:20px}.dt-box code{background:rgba(0,0,0,.07);border-radius:5px;padding:1px 6px;font-size:12.5px}.dt-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin:0 0 16px}@media(max-width:980px){.dt-2{grid-template-columns:1fr}}.dt-2 table.dt td,.dt-2 table.dt th{white-space:normal}.dt-2 table.dt td.r{white-space:nowrap}.dt-2 table.dt{min-width:0}.dt-note{font-size:12.5px;color:#6b7178;padding:0 16px 14px;margin:0}';
+  document.head.appendChild(css);
+
+  function range() { var m = M(), to = new Date(), iso = function (d) { return d.toISOString().slice(0, 10); }, t = iso(to), f;
+    if (m.rng === 'ytd') f = t.slice(0, 4) + '-01-01'; else if (m.rng === 'all') f = '2015-01-01'; else f = iso(new Date(to.getTime() - (Number(m.rng) - 1) * 864e5));
+    return '&from=' + f + '&to=' + t; }
+  function load() { A.api('dta-sales' + range()).then(function (r) { if (r._status === 200) { M().d = r; S.tabErr = null; } else { S.tabErr = r.error || 'Could not load the course sales.'; } A.draw(); }); }
+  function cash(v, c) { var n = Number(v) || 0; return (c === 'USD' || !c ? '$' : esc(c) + ' ') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function rev(o) { var k = Object.keys(o || {}); return k.length ? k.sort(function (a, b) { return o[b] - o[a]; }).map(function (c) { return cash(o[c], c); }).join('<br>') : '-'; }
+  function day(a) { return a ? A.fmtAt(String(a).slice(0, 10)) : ''; }
+  function st(s) { var x = ST[s] || [s, 'off']; return '<span class="dt-st ' + x[1] + '">' + esc(x[0]) + '</span>'; }
+  function cust(c) { return c ? (c.code ? '<button class="lnk" data-act="cust" data-code="' + esc(c.code) + '">' + esc(c.name || c.code) + '</button>' : '<span class="dt-st ok">Portal user</span>') : '<span class="muted">Not a parts customer</span>'; }
+  function setup(d) {
+    return '<div class="dt-box"><b>' + (d.connected ? 'Connected to Hotmart, but no sale was read yet.' : 'Hotmart is not connected yet.') + '</b>' + (d.connected ? ' Press Read the history from Hotmart to bring the past sales. New sales arrive by themselves through the webhook.' :
+      '<ol><li>In Hotmart, open Tools, Developer credentials, and create a credential for production.</li><li>In Vercel, Project settings, Environment variables, add <code>HOTMART_CLIENT_ID</code>, <code>HOTMART_CLIENT_SECRET</code> and <code>HOTMART_BASIC</code> with the three values Hotmart shows, then redeploy.</li><li>Come back here and press Read the history from Hotmart.</li></ol>New sales are already recorded from the moment the webhook fires, even before these keys exist.') + '</div>';
+  }
+  function view() {
+    var m = M(), d = m.d; if (!d) return A.ld();
+    var h = '<div class="fbar" style="margin:0 0 14px;padding:0"><div class="seg ind" style="background:var(--soft)">' + RNG.map(function (r) { return '<button data-dt="rng" data-v="' + r[0] + '" class="' + (m.rng === r[0] ? 'on' : '') + '">' + r[1] + '</button>'; }).join('') + '</div><span class="sp"></span>' +
+      (d.last ? '<span class="muted" style="font-size:12.5px">Last update ' + esc(A.fmtAt(d.last.updated_at)) + '</span>' : '') + (S.me && (S.me.role === 'superadmin' || S.me.role === 'admin') ? '<button class="btn ghost sm" data-dt="sync"' + (m.busy ? ' disabled' : '') + '>' + (m.busy ? SPN + 'Reading' : 'Read the history from Hotmart') + '</button>' : '') + '</div>';
+    if (m.msg) h += '<div class="dt-box" style="background:' + (m.msg.ok ? '#eaf6ee;color:#136c33' : '#fdecee;color:#8f1722') + '">' + esc(m.msg.t) + '</div>';
+    if (!d.ready) return h + '<div class="dt-box"><b>The sales table is not in the database yet.</b> It is created by the migration 0015_hotmart_sales.</div>';
+    if (d.empty || !d.connected) h += setup(d);
+    var T = d.totals, more = T.currencies.length > 1;
+    h += '<div class="kpis">' + A.tile('Course revenue', cash(T.main.revenue, T.main.currency), more ? 'plus ' + T.currencies.slice(1).map(function (c) { return cash(c.revenue, c.currency); }).join(', ') : 'approved sales in the period', '', 'dark') +
+      A.tile('Courses sold', n0(T.sales), n0(T.students) + ' students') + A.tile('Average ticket', cash(T.ticket, T.main.currency), 'per sale in ' + esc(T.main.currency)) +
+      A.tile('Refunds', n0(T.refunds), (T.refundRate * 100).toFixed(1) + '% of the sales', '', T.refundRate > 0.08 ? 'acc' : '') + A.tile('Students who buy parts', n0(T.customers), T.students ? Math.round(T.customers / T.students * 100) + '% of the students · ' + n0(T.repeat) + ' bought 2 or more courses' : 'matched by e-mail') + '</div>';
+    var mx = Math.max.apply(null, d.months.map(function (x) { return x.sales; }).concat([1]));
+    h += '<div class="dt-2"><section class="card flush"><div class="fbar"><h2>Sales by month</h2></div>' + (d.months.length ? '<div class="dt-bar">' + d.months.map(function (x) { return '<div title="' + esc(x.key) + ': ' + rev(x.revenue) + '"><b>' + n0(x.sales) + '</b><i style="height:' + Math.max(2, Math.round(x.sales / mx * 100)) + '%"></i></div>'; }).join('') + '</div><div class="dt-bx">' + d.months.map(function (x) { return '<span>' + esc(x.key.slice(5) + '/' + x.key.slice(2, 4)) + '</span>'; }).join('') + '</div>' : '<div class="empty">No sale in this period.</div>') + '</section>' +
+      '<section class="card flush"><div class="fbar"><h2>By course</h2></div>' + A.tbl([A.h0('Course'), A.h0('Area'), A.hr('Sold'), A.hr('Refunds'), A.hr('Revenue')], d.products.map(function (p) { return '<tr><td>' + esc(p.name) + '</td><td>' + esc(p.lang) + '</td><td class="r">' + n0(p.sales) + '</td><td class="r">' + n0(p.refunds) + '</td><td class="r">' + rev(p.revenue) + '</td></tr>'; })) + '</section></div>';
+    h += '<div class="dt-2"><section class="card flush"><div class="fbar"><h2>Where the sale came from</h2></div>' + A.tbl([A.h0('Source'), A.hr('Sold'), A.hr('Revenue')], d.sources.map(function (x) { return '<tr><td>' + esc(x.key) + '</td><td class="r">' + n0(x.sales) + '</td><td class="r">' + rev(x.revenue) + '</td></tr>'; })) + '<p class="dt-note">The source is the src or sck tag on the checkout link. Sales without a tag show as no source.</p></section>' +
+      '<section class="card flush"><div class="fbar"><h2>By language and country</h2></div>' + A.tbl([A.h0('Group'), A.hr('Sold'), A.hr('Revenue')], d.langs.map(function (x) { return '<tr><td><b>' + esc(x.key) + ' area</b></td><td class="r">' + n0(x.sales) + '</td><td class="r">' + rev(x.revenue) + '</td></tr>'; }).concat(d.countries.map(function (x) { return '<tr><td>' + esc(x.key) + '</td><td class="r">' + n0(x.sales) + '</td><td class="r">' + rev(x.revenue) + '</td></tr>'; })), 'nosort') + '</section></div>';
+    var tabs = [['sales', 'Latest sales', d.recent.length], ['students', 'Students', d.students.length], ['coupons', 'Sales with a coupon', d.coupons.length]];
+    h += '<section class="card flush"><div class="fbar"><div class="seg ind" style="background:var(--soft)">' + tabs.map(function (t) { return '<button data-dt="tab" data-v="' + t[0] + '" class="' + (m.tab === t[0] ? 'on' : '') + '">' + t[1] + ' ' + n0(t[2]) + '</button>'; }).join('') + '</div></div>';
+    if (m.tab === 'students') h += A.tbl([A.h0('Student'), A.h0('Country'), A.hr('Courses'), A.h0('Last purchase'), A.h0('Parts customer')], d.students.map(function (x) { return '<tr><td>' + esc(x.name || '-') + '<small>' + esc(x.email) + '</small></td><td>' + esc(x.country || '') + '</td><td class="r">' + n0(x.courses) + '</td><td>' + esc(day(x.last)) + '</td><td>' + cust(x.customer) + '</td></tr>'; })) + '<p class="dt-note">A student counts as a parts customer when the e-mail of the purchase is on a customer in Unleashed or on a portal user. Students who are not customers yet are the list for the kit offer.</p>';
+    else if (m.tab === 'coupons') h += A.tbl([A.h0('Date'), A.h0('Student'), A.h0('Course'), A.h0('Coupon'), A.hr('Paid'), A.h0('Earlier course in the 30 days before')], d.coupons.map(function (x) { return '<tr><td>' + esc(day(x.at)) + '</td><td>' + esc(x.name || '-') + '<small>' + esc(x.email) + '</small></td><td>' + esc(x.product || '') + '</td><td class="mono">' + esc(x.coupon) + '</td><td class="r">' + cash(x.price, x.currency) + '</td><td>' + (x.earlier ? '<span class="dt-st ok">Yes</span>' : '<span class="dt-st bad">No earlier purchase</span>') + '</td></tr>'; })) + '<p class="dt-note">Checks the second-course voucher: a sale with a coupon should have an earlier paid course on the same e-mail in the 30 days before it. The coupon code only comes through the webhook, so sales read from the history show without it.</p>';
+    else h += A.tbl([A.h0('Date'), A.h0('Student'), A.h0('Course'), A.h0('Source'), A.hr('Paid'), A.h0('Status'), A.h0('Parts customer')], d.recent.map(function (x) { return '<tr><td>' + esc(day(x.at)) + '</td><td>' + esc(x.name || '-') + '<small>' + esc(x.email || '') + '</small></td><td>' + esc(x.product || '') + '<small>' + esc(x.lang) + ' area</small></td><td>' + esc(x.source || '') + '</td><td class="r">' + cash(x.price, x.currency) + '</td><td>' + st(x.status) + '</td><td>' + cust(x.customer) + '</td></tr>'; }));
+    return h + '</section><p class="dt-note" style="padding:12px 0 0">Course revenue is shown here only. It is not added to the parts revenue, the sales goals or the commissions.</p>';
+  }
+  document.addEventListener('click', function (e) {
+    if (S.tab !== 'dta') return; var t = e.target.closest && e.target.closest('[data-dt]'); if (!t) return; var m = M(), act = t.dataset.dt;
+    if (act === 'rng') { m.rng = t.dataset.v; A.draw(); return load(); }
+    if (act === 'tab') { m.tab = t.dataset.v; return A.draw(); }
+    if (act === 'sync') { if (m.busy) return; m.busy = true; m.msg = null; A.draw();
+      A.api('dta-sync', {}).then(function (r) { m.busy = false;
+        m.msg = r.ok ? { ok: true, t: n0(r.rows || 0) + ' sales read from Hotmart.' + (r.partial ? ' There is more history to read: press the button again to continue.' : '') } : { ok: false, t: r.error || 'Could not read the sales from Hotmart.' };
+        A.draw(); if (r.ok) load(); }); }
+  });
+  window.MXDta = { view: view, load: load };
+})();
