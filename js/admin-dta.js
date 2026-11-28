@@ -44,12 +44,16 @@
   function bar(v, mx, pct) { return '<div class="dt-sb"><span><i style="width:' + Math.max(2, Math.round(v / (mx || 1) * 100)) + '%"></i></span><small>' + pct + '</small></div>'; }
 
   // ---- charts, drawn with the same wrapper as the Revenue screen
-  function chMonths(d) {
-    var m = d.months || []; if (!m.length) return '<div class="empty">No sale in this period.</div>'; if (!A.ec) return '';
-    var cur = d.totals.main.currency, val = function (x) { return Number((x.revenue || {})[cur]) || 0; }, top = 0; m.forEach(function (x, i) { if (val(x) >= val(m[top])) top = i; });
-    return A.ec(250, { grid: { left: 56, right: 10, top: 18, bottom: 26 }, xAxis: { type: 'category', data: m.map(function (x) { return x.key.slice(5) + '/' + x.key.slice(2, 4); }), axisTick: { show: false }, axisLine: { lineStyle: { color: C.line } }, axisLabel: { color: C.mut, fontSize: 12 } }, yAxis: A.ecAx(function (v) { return cash0(v, cur); }),
-      tooltip: A.ecTip(function (p) { var x = m[p[0].dataIndex]; return '<b>' + esc(x.key) + '</b><div style="margin:6px 0 2px">' + A.ecTipRow(C.acc, 'Revenue', rev(x.revenue).replace(/<br>/g, ' + ')) + A.ecTipRow(C.grey, 'Courses sold', n0(x.sales)) + '</div>'; }, { axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(22,25,29,.05)' } } }),
-      series: [{ type: 'bar', barMaxWidth: 34, data: m.map(function (x, i) { return { value: val(x), itemStyle: { color: i === top ? C.ink : C.acc, borderRadius: [8, 8, 0, 0] } }; }), label: { show: m.length <= 14, position: 'top', color: C.mut, fontSize: 11, formatter: function (p) { return n0(m[p.dataIndex].sales); } } }] });
+  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function grain(d, m) { if (m.gr) return m.gr; var n = (Date.parse(d.to) - Date.parse(d.from)) / 864e5; return n <= 200 ? 'week' : 'month'; }
+  function chMonths(d, m) {
+    var g = grain(d, m), list = (g === 'day' ? d.days : g === 'week' ? d.weeks : d.months) || []; if (!list.length) return '<div class="empty">No sale in this period.</div>'; if (!A.ec) return '';
+    var cur = d.totals.main.currency, val = function (x) { return Number((x.revenue || {})[cur]) || 0; }, top = 0; list.forEach(function (x, i) { if (val(x) >= val(list[top])) top = i; });
+    var lab = function (x) { var k = x.key; return g === 'month' ? k.slice(5) + '/' + k.slice(2, 4) : MON[+k.slice(5, 7) - 1] + ' ' + (+k.slice(8, 10)); };
+    var tip = function (x) { var k = x.key; if (g === 'month') return k; if (g === 'day') return lab(x) + ', ' + k.slice(0, 4); var e = new Date(k + 'T12:00:00Z'); e.setUTCDate(e.getUTCDate() + 6); var ek = e.toISOString().slice(0, 10); return 'Week of ' + lab(x) + ' to ' + MON[+ek.slice(5, 7) - 1] + ' ' + (+ek.slice(8, 10)); };
+    return A.ec(250, { grid: { left: 56, right: 10, top: 18, bottom: 26 }, xAxis: { type: 'category', data: list.map(lab), axisTick: { show: false }, axisLine: { lineStyle: { color: C.line } }, axisLabel: { color: C.mut, fontSize: 12, interval: 'auto', hideOverlap: true } }, yAxis: A.ecAx(function (v) { return cash0(v, cur); }),
+      tooltip: A.ecTip(function (p) { var x = list[p[0].dataIndex]; return '<b>' + esc(tip(x)) + '</b><div style="margin:6px 0 2px">' + A.ecTipRow(C.acc, 'Revenue', rev(x.revenue).replace(/<br>/g, ' + ')) + A.ecTipRow(C.grey, 'Courses sold', n0(x.sales)) + '</div>'; }, { axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(22,25,29,.05)' } } }),
+      series: [{ type: 'bar', barMaxWidth: 34, data: list.map(function (x, i) { return { value: val(x), itemStyle: { color: i === top ? C.ink : C.acc, borderRadius: [8, 8, 0, 0] } }; }), label: { show: list.length <= 20, position: 'top', color: C.mut, fontSize: 11, formatter: function (p) { var n = list[p.dataIndex].sales; return n ? n0(n) : ''; } } }] });
   }
   function chWeek(a) { if (!A.ec) return ''; var w = a.wd, top = 0; w.forEach(function (x, i) { if (x.sales > w[top].sales) top = i; });
     return A.ec(170, { grid: { left: 34, right: 10, top: 18, bottom: 24 }, xAxis: { type: 'category', data: w.map(function (x) { return x.key; }), axisTick: { show: false }, axisLine: { lineStyle: { color: C.line } }, axisLabel: { color: C.mut, fontSize: 12 } }, yAxis: A.ecAx(function (v) { return n0(v); }),
@@ -73,7 +77,7 @@
       return '<tr><td style="max-width:360px">' + (x.key === '(not tagged)' ? '<span class="muted">(not tagged)</span>' : '<b>' + esc(x.key) + '</b>') + '</td><td class="r">' + (x.leads == null ? '-' : n0(x.leads)) + '</td><td class="r">' + (x.leads ? n0(x.won || 0) : '-') + '</td><td class="r">' + (x.leads ? share(x.won || 0, x.leads) : '-') + '</td><td class="r">' + n0(x.students) + '</td><td class="r">' + n0(x.sales) + '</td><td class="r">' + rev(x.revenue) + '</td><td>' + bar(usd(x.revenue) || x.sales, mx, share(x.sales, tot)) + '</td><td class="r">' + n0(x.refunds) + '</td><td class="r">' + n0(x.max) + '</td></tr>'; })); }
 
   function vOverview(d, m) { var a = d.analytics || {};
-    return '<section class="card"><h3 style="margin:0 0 10px">Course sales over time</h3>' + chMonths(d) + '</section>' +
+    return '<section class="card"><div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 10px"><h3 style="margin:0">Course sales over time</h3><span style="flex:1"></span>' + seg('gr', grain(d, m), [['day', 'Day'], ['week', 'Week'], ['month', 'Month']].filter(function (t) { return t[0] !== 'day' || (d.days || []).length; })) + '</div>' + chMonths(d, m) + '</section>' +
       '<div class="dt-2"><section class="card"><h3 style="margin:0">From the site to the sale</h3>' + funnel(d, true) + '</section>' +
       '<section class="card flush"><div class="fbar"><h2>Top sources</h2><span class="sp"></span><button class="btn ghost sm" data-dt="tab" data-v="origin">Open Origin</button></div>' + (function () { var list = (a.source || []).slice(0, 6), mx = list.reduce(function (z, x) { return Math.max(z, usd(x.revenue) || x.sales); }, 0), tot = (a.source || []).reduce(function (z, x) { return z + x.sales; }, 0);
         return A.tbl([A.h0('Source'), A.hr('Leads'), A.hr('Courses sold'), A.h0('Share of sales')], list.map(function (x) { return '<tr><td>' + (x.key === '(not tagged)' ? '<span class="muted">(not tagged)</span>' : '<b>' + esc(x.key) + '</b>') + '</td><td class="r">' + (x.leads == null ? '-' : n0(x.leads)) + '</td><td class="r">' + n0(x.sales) + '</td><td>' + bar(usd(x.revenue) || x.sales, mx, share(x.sales, tot)) + '</td></tr>'; })); })() + '</section></div>'; }
@@ -157,9 +161,9 @@
     if (S.tab !== 'dta') return; var t = e.target.closest && e.target.closest('[data-dt]'); if (!t) return; var m = M(), act = t.dataset.dt, v = t.dataset.v;
     if (act === 'stu') return openStu(v);
     if (act === 'stu-x') { m.stu = null; return A.draw(); }
-    if (act === 'rng') { m.rng = v; A.draw(); return load(); }
+    if (act === 'rng') { m.rng = v; m.gr = null; A.draw(); return load(); }
     if (act === 'tab') { m.tab = v; window.scrollTo && 0; return A.draw(); }
-    if (act === 'an' || act === 'sf' || act === 'lf') { m[act] = v; return A.draw(); }
+    if (act === 'an' || act === 'sf' || act === 'lf' || act === 'gr') { m[act] = v; return A.draw(); }
     if (act === 'sync') { if (m.busy) return; m.busy = true; m.msg = null; A.draw();
       A.api('dta-sync', {}).then(function (r) { m.busy = false; var f = r.forms;
         m.msg = r.ok ? { ok: true, t: n0(r.rows || 0) + ' sales read from Hotmart.' + (r.older ? ' ' + n0(r.older) + ' of them are from before the last 12 months.' : '') + (r.partial ? ' There is more to read: press the button again.' : '') + (f ? (f.error ? ' Forms: ' + f.error : ' ' + n0(f.rows || 0) + ' form answers read from Webflow.') : '') } : { ok: false, t: r.error || 'Could not read the sales from Hotmart.' };
