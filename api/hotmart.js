@@ -26,7 +26,8 @@ module.exports = async (req, res) => {
   const event = clean(b.event, 60);
   // the sale goes to the database first, so the DTA numbers do not depend on HubSpot being up
   let stored = false;
-  try { const row = HM.fromWebhook(b); if (row && dbm.configured()) { await HM.save([row]); stored = true; } } catch (e) { console.error('hotmart store', e.message); }
+  try { const row = HM.fromWebhook(b); if (row && dbm.configured()) { await HM.save([row]); stored = true; }
+    const cart = HM.cartFromWebhook(b); if (cart && dbm.configured()) { await HM.saveCart(cart); stored = true; } } catch (e) { console.error('hotmart store', e.message); }
   if (!APPROVED.test(event)) return res.status(200).json({ ok: true, stored, skipped: event });
   if (!process.env.HUBSPOT_TOKEN) return res.status(stored ? 200 : 503).json(stored ? { ok: true, stored, crm: 'not configured' } : { error: 'crm not configured' });
   const d = b.data || {};
