@@ -26,8 +26,8 @@
     if (m.rng === 'ytd') f = t.slice(0, 4) + '-01-01'; else if (m.rng === 'all') f = '2015-01-01'; else f = iso(new Date(to.getTime() - (Number(m.rng) - 1) * 864e5));
     return '&from=' + f + '&to=' + t; }
   function load() { A.api('dta-sales', null, range()).then(function (r) { if (r._status === 200) { M().d = r; S.tabErr = null; } else { S.tabErr = r.error || 'Could not load the course sales.'; } A.draw(); }); }
-  function cash(v, c) { var n = Number(v) || 0; return (c === 'USD' || !c ? '$' : esc(c) + ' ') + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  function cash0(v, c) { return (c === 'USD' || !c ? '$' : esc(c) + ' ') + Math.round(Number(v) || 0).toLocaleString('en-US'); }
+  function cash(v, c) { var n = (Number(v) || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); return c === 'USD' || !c ? '$' + n : n + ' ' + esc(c); } // number first, so the column sorts by amount
+  function cash0(v, c) { var n = Math.round(Number(v) || 0).toLocaleString('en-US'); return c === 'USD' || !c ? '$' + n : n + ' ' + esc(c); }
   function rev(o) { var k = Object.keys(o || {}); return k.length ? k.sort(function (a, b) { return o[b] - o[a]; }).map(function (c) { return cash0(o[c], c); }).join('<br>') : '-'; }
   function usd(o) { return Number((o || {}).USD) || 0; }
   function day(a) { return a ? A.fmtAt(String(a).slice(0, 10)) : ''; }
