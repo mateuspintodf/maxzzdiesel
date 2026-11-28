@@ -2759,7 +2759,7 @@ tr[data-act="cust"]:hover>td:last-child::after,tr[data-act="v-edit"]:hover>td:la
   var lt = location.search.match(/[?&]lt=([^&]+)/);
   if (lt) { S.lt = decodeURIComponent(lt[1]); history.replaceState(null, '', location.pathname); draw(); } else boot();
   window.MXA = { ec: ec, ECC: ECC, ecTip: ecTip, ecAx: ecAx, ecTipRow: ecTipRow, go: go, S: S, api: api, draw: draw, esc: esc, ic: ic, tbl: tbl, th: th, h0: h0, hr: hr, n0: n0, opt: opt, toast: toast, tile: tile, sortRows: sortRows, fmtAt: fmtAt, ld: ld };
-  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-dta.js?v=14'; sc.onload = function () { if (S.tab === 'dta' && S.me) { loadTab('dta'); } }; document.head.appendChild(sc); })();
+  (function () { var sc = document.createElement('script'); sc.src = '/js/admin-dta.js?v=15'; sc.onload = function () { if (S.tab === 'dta' && S.me) { loadTab('dta'); } }; document.head.appendChild(sc); })();
   (function () { var sc = document.createElement('script'); sc.src = '/js/admin-social.js?v=3'; sc.onload = function () { if (S.tab === 'social' && S.me) { loadTab('social'); } }; document.head.appendChild(sc); })();
   (function () { var sc = document.createElement('script'); sc.src = '/js/admin-mail.js?v=14'; sc.onload = function () { if (S.tab === 'emails' && S.me) { loadTab('emails'); } }; document.head.appendChild(sc); })();
 })();
