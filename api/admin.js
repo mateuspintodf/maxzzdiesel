@@ -1664,7 +1664,7 @@ A.crm = async (req, res) => {
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
   // a photo is found by the mapped salesperson, or else by the admin's name (full name, then first name), so it shows before the mapping is done
   const photos = {}; (await db.select('admins', 'select=email,name,first_name,salesperson,photo&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (!ph) return; [r.salesperson, r.name, r.first_name, String(r.name||'').trim().split(/\s+/)[0]].forEach((k) => { k = String(k || '').trim(); if (k && !photos[k]) photos[k] = ph; }); });
-  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all.filter((d) => d.source !== 'onsite_training'), stages, isSuper), insOnsite: crmRules(all.filter((d) => d.source === 'onsite_training'), stages, isSuper), ai: aiOn(req) });
 };
 // ---------------------------------------------------------------- proposals (Sales > CRM > deal > Proposal)
 const PROP = require('../lib/proposal');
