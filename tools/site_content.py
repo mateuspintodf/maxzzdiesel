@@ -88,7 +88,7 @@ SYSTEMS = [
              ('Which Robiel tool set is listed for the CRIN 4.2?',
               'Robiel 323.50.40 is the tool set listed for the Bosch CRIN 4.2 injector. Add it to your quote list together with the control valves and the nozzle you need.'),
              ('Is there training for the DD15 injector?',
-              'Yes. The Diesel Tech Academy course Bosch CRIN 4.2 Injector (Detroit DD15) costs $297 with lifetime access and a 7-day guarantee. The second course is 50% off.')],
+              'Yes. The Diesel Tech Academy course Bosch CRIN 4.2 Injector (Detroit DD15) costs $297 with 1 year access and a 7-day guarantee. The second course is 50% off.')],
         guide='/resources/detroit-dd15-bosch-crin-4-2-rebuild-solenoid-guide'),
     dict(
         slug='duramax-l5p-denso-g4s', gens=['L5P'], course='denso-g4s',

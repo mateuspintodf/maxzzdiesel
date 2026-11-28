@@ -1340,6 +1340,17 @@ A.customer = async (req, res) => {
       mail.parts = Object.keys(pc).sort((a, z) => pc[z] - pc[a]).slice(0, 8).map((k) => ({ code: k, t: (N[k] && N[k].t) || '', n: pc[k] }));
     }
   } catch (e) { console.error('customer mail', e.message); }
+  // Diesel Tech Academy courses bought on Hotmart by an e-mail of this customer (kept apart from the parts revenue)
+  let courses = null;
+  try {
+    const em = [...new Set([...(users || []).map((x) => x.email), co && co.contact_email, ulc[0] && ulc[0].email].map((x) => String(x || '').trim().toLowerCase()).filter((x) => /^[^\s"'(),]+@[^\s"'(),]+$/.test(x)))].slice(0, 40);
+    const hs = em.length ? await db.select('hotmart_sales', 'select=transaction,status,product_name,price,currency,order_date,refunded_at,buyer_email&buyer_email=in.(' + em.map((x) => encodeURIComponent('"' + x + '"')).join(',') + ')&order=order_date.desc&limit=100').catch(() => []) : [];
+    if (hs.length) {
+      const PAIDS = ['APPROVED', 'COMPLETE'];
+      courses = { bought: hs.filter((x) => PAIDS.includes(x.status)).length, refunded: hs.filter((x) => !PAIDS.includes(x.status)).length, last: hs[0].order_date, list: hs.slice(0, 12).map((x) => ({ name: x.product_name, at: x.order_date, status: x.status })) };
+      hs.forEach((x) => { push(x.order_date, 'course', (PAIDS.includes(x.status) ? 'Bought the course: ' : 'Course purchase ' + String(x.status).toLowerCase().replace(/_/g, ' ') + ': ') + (x.product_name || 'DTA course'), x.buyer_email + ' · ' + (x.currency || '') + ' ' + Number(x.price || 0).toFixed(2)); });
+    }
+  } catch (e) { console.error('customer courses', e.message); }
   const NK = { call: 'Call', email: 'E-mail', meeting: 'Meeting', note: 'Note' };
   (notes || []).forEach((n) => T.push({ at: n.created_at, kind: 'note', title: (NK[n.kind] || 'Note') + ' by ' + String(n.created_by).split('@')[0], desc: n.body, det: null, note: { id: n.id, follow_up: n.follow_up, done: !!n.done_at, done_by: n.done_by, outcome: n.outcome, done_outcome: n.done_outcome } }));
   const u = ulc[0] || null;
@@ -1354,7 +1365,7 @@ A.customer = async (req, res) => {
   contact.tags = c ? (await db.select('customer_tags', 'select=tag&code=eq.' + encodeURIComponent(c)).catch(() => [])).map((x) => x.tag) : [];
   contact.allTags = [...new Set((await db.selectAll('customer_tags', 'select=tag').catch(() => [])).map((x) => x.tag))].sort();
   return res.json({ code: c, company: co && { id: co.id, name: co.name, status: co.status, tier: co.tier, city: co.city, state: co.state, country: co.country, contact_email: co.contact_email, contact_phone: co.contact_phone, salesperson: co.salesperson, created_at: co.created_at, source: co.source },
-    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, mail, timeline: T.slice(0, 300) });
+    contact, sales, users, events: ev.slice(0, 60), openFollowUps: (notes || []).filter((n) => n.follow_up && !n.done_at).length, orders: ord, quotes: qts, mail, courses, timeline: T.slice(0, 300) });
 };
 // edit a customer: read it live from Unleashed, change only the fields that differ, write it back, then update our copy.
 // Not editable here on purpose: price tier, salesperson, payment terms, stop credit (those stay in Unleashed).
@@ -1653,7 +1664,7 @@ A.crm = async (req, res) => {
   const owners = isSuper ? [...new Set((await db.select('ul_customers', 'select=salesperson&salesperson=not.is.null&limit=2000')).map((x) => x.salesperson).concat(all.map((d) => d.owner).filter(Boolean)).concat([CRM_OWNER]))].sort() : [];
   // a photo is found by the mapped salesperson, or else by the admin's name (full name, then first name), so it shows before the mapping is done
   const photos = {}; (await db.select('admins', 'select=email,name,first_name,salesperson,photo&active=eq.true').catch(() => [])).forEach((r) => { const ph = r.photo || TEAM_PH[String(r.email).toLowerCase()]; if (!ph) return; [r.salesperson, r.name, r.first_name, String(r.name||'').trim().split(/\s+/)[0]].forEach((k) => { k = String(k || '').trim(); if (k && !photos[k]) photos[k] = ph; }); });
-  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all, stages, isSuper), ai: aiOn(req) });
+  return res.json({ stages, deals: all, mySp: sc.sp, isSuper, owners, photos, team: (await teamList()).map((t) => ({ name: t.name, handle: t.handles[0], photo: t.photo })), ins: crmRules(all.filter((d) => d.source !== 'onsite_training'), stages, isSuper), insOnsite: crmRules(all.filter((d) => d.source === 'onsite_training'), stages, isSuper), ai: aiOn(req) });
 };
 // ---------------------------------------------------------------- proposals (Sales > CRM > deal > Proposal)
 const PROP = require('../lib/proposal');
@@ -2456,10 +2467,11 @@ A.audit = async (req, res) => {
 };
 
 // ---- access profiles: an admin can be limited to some screens. null = everything the role allows.
-const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'emails', 'social', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms'];
+const SCREENS = ['dash', 'dir', 'pipe', 'segments', 'clients', 'prospects', 'sa', 'crm', 'goals', 'campaigns', 'emails', 'social', 'vouchers', 'loyalty', 'products', 'events', 'bcomp', 'stream', 'terms', 'dta'];
 const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'], 'sales-commission': ['sa', 'goals'], 'commission-close': ['sa', 'goals'], 'sales-program': ['goals', 'sa', 'dash'], 'sales-program-save': ['goals'],
   crm: ['crm'], 'crm-deal': ['crm', 'dir'], 'proposal-get': ['crm'], 'proposal-search': ['crm'], 'proposal-save': ['crm'], 'proposal-preview': ['crm'], 'crm-save': ['crm'], 'crm-ai': ['crm'], 'crm-contacts': ['crm'], 'contact-save': ['crm'], 'crm-cust': ['crm', 'dir'],
   vouchers: ['vouchers'], 'voucher-save': ['vouchers'], 'voucher-toggle': ['vouchers'], campaigns: ['campaigns'], campaign: ['campaigns'], 'campaign-save': ['campaigns'], 'campaign-toggle': ['campaigns'], 'campaign-floors': ['campaigns'], 'campaign-banner': ['campaigns'], 'campaign-sample': ['campaigns'],
+  'dta-sales': ['dta'], 'dta-sync': ['dta'], 'dta-student': ['dta'],
   'social-list': ['social'], 'social-save': ['social'], 'social-upload': ['social'], 'social-img': ['social'],
   'mail-list': ['emails'], 'mail-insights': ['emails'], 'mail-layout': ['emails'], 'mail-upload': ['emails'], 'mail-layout-save': ['emails'], 'mail-exceptions-save': ['emails'], 'mail-get': ['emails'], 'mail-save': ['emails'], 'mail-copy': ['emails'], 'mail-archive': ['emails'], 'mail-preview': ['emails'], 'mail-audience': ['emails'], 'mail-test': ['emails'], 'mail-send': ['emails'], 'mail-cancel': ['emails'], 'mail-continue': ['emails'], 'mail-report': ['emails'], 'mail-tx-save': ['emails'], 'mail-tx-preview': ['emails'], 'mail-seed': ['emails'], 'mail-products': ['emails'],
   loyalty: ['loyalty'], 'loyalty-save': ['loyalty'], 'order-lead': ['crm'], 'catalog-category': ['products'], 'product-links': ['products'], 'product-card': ['products'], hidden: ['products'], 'hidden-set': ['products'], 'hidden-standard': ['products'], 'catalog-all': ['products', 'campaigns'],
@@ -2467,6 +2479,7 @@ const API_SCREEN = { 'sales-data': ['sa', 'goals', 'dash'], 'sales-mix': ['sa'],
   events: ['events', 'bcomp', 'stream'], 'behavior-companies': ['bcomp', 'events'], 'behavior-visitors': ['bcomp', 'events'], 'behavior-stream': ['stream', 'events'], terms: ['terms'], 'terms-save': ['terms'], 'terms-publish': ['terms'],
   segments: ['segments'], 'segment-save': ['segments'], 'segment-members': ['segments'], 'segment-delete': ['segments'], 'segment-import': ['segments'], 'segment-create': ['segments'], 'segment-invite': ['segments'], 'segment-template': ['segments'], 'tags-set': ['segments'], segment: ['segments'], 'invite-preview': ['segments'], invite: ['segments', 'dir'],
   prospects: ['prospects'], addprospect: ['prospects'], 'import-preview': ['prospects'], import: ['prospects'], 'company-remove': ['clients', 'prospects'], dir: ['dir'], 'dir-sync': ['dir'], pipeline: ['pipe'], 'pipeline-mark': ['pipe'], approve: ['clients'], reject: ['clients'], revoke: ['clients'] };
+require('../lib/admin-dta')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}) });
 require('../lib/admin-social')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}) });
 require('../lib/admin-mail')(A, { who, can, originOk, readBody, clean, audit: (...a) => PS.audit(...a).catch(() => {}), base, names });
 const scrMemo = new Map();

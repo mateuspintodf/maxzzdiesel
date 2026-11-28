@@ -255,12 +255,12 @@ def faq_ld(path, faq):
 
 def course_ld(c, url, price='297'):
     d = {'@type': 'Course', '@id': url + '#course-' + c['slug'], 'name': c['name'] + ' (Diesel Tech Academy)',
-         'description': c['sub'] + '. Online course by the Diesel Tech Academy with lifetime access and a 7-day guarantee.',
+         'description': c['sub'] + '. Online course by the Diesel Tech Academy with 1 year access and a 7-day guarantee.',
          'provider': {'@type': 'EducationalOrganization', 'name': 'Diesel Tech Academy', 'sameAs': 'https://www.dieseltechacademy.com/'},
          'offers': {'@type': 'Offer', 'price': price, 'priceCurrency': 'USD', 'category': 'Paid',
                     'url': C.utm('maxzzdiesel_ld'), 'availability': 'https://schema.org/InStock'},
          'inLanguage': 'en', 'educationalLevel': 'Professional',
-         'hasCourseInstance': {'@type': 'CourseInstance', 'courseMode': 'online', 'courseWorkload': 'Self-paced, lifetime access'}}
+         'hasCourseInstance': {'@type': 'CourseInstance', 'courseMode': 'online', 'courseWorkload': 'Self-paced, 1 year access'}}
     if c.get('who'):
         d['hasCourseInstance']['instructor'] = {'@type': 'Person', 'name': c['who']}
     return d
@@ -289,7 +289,7 @@ def page_shell(path, title, desc, og_img, graph, body, noindex=False, page_id='P
     return pre + '<main>\n' + MODAL + CSS + '\n' + body + '\n' + post
 
 
-BENE = [('<path d="M18.2 7.8a4.5 4.5 0 1 0 0 8.4c2-1.5 3.3-4.2 3.3-4.2s-1.3-2.7-3.3-4.2zM5.8 7.8a4.5 4.5 0 1 1 0 8.4C3.8 14.7 2.5 12 2.5 12s1.3-2.7 3.3-4.2z"/>', 'Lifetime access'),
+BENE = [('<path d="M18.2 7.8a4.5 4.5 0 1 0 0 8.4c2-1.5 3.3-4.2 3.3-4.2s-1.3-2.7-3.3-4.2zM5.8 7.8a4.5 4.5 0 1 1 0 8.4C3.8 14.7 2.5 12 2.5 12s1.3-2.7 3.3-4.2z"/>', '1 year access'),
         ('<path d="M12 3 4 6v5c0 5 3.4 8.4 8 10 4.6-1.6 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/>', '7-day guarantee'),
         ('<path d="M19 5 5 19"/><circle cx="7" cy="7" r="2.2"/><circle cx="17" cy="17" r="2.2"/>', '50% off your second course, by email'),
         ('<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>', 'Student discounts on Robiel tools and parts')]
@@ -402,7 +402,7 @@ def triad(s):
         courses += f'<p style="margin:12px 0 0"><b style="color:#1d2126">{E(c2["name"])}</b><br>{E(c2["sub"])}. Instructor: {E(c2["who"])}.</p>'
     dta_card = (f'<div class="sx-card" style="background:#1e1e87;color:#dfe0ff"><span class="sx-pill dk" style="color:#fff;border-color:rgba(255,255,255,.4)">3. Official training</span>'
                 f'<h3 class="sx-h3" style="margin-top:16px;color:#fff">Diesel Tech Academy: $297</h3>{courses.replace("color:#1d2126", "color:#fff")}'
-                f'<p style="margin:14px 0 18px;font-size:14px">Lifetime access, 7-day guarantee, and a 50% off voucher for your second course sent by email after your first purchase.</p>'
+                f'<p style="margin:14px 0 18px;font-size:14px">1 year access, 7-day guarantee, and a 50% off voucher for your second course sent by email after your first purchase.</p>'
                 f'<a class="sx-btn wh" href="{link}" target="_blank" rel="noopener">Enroll Now ($297) &#8599;</a> '
                 f'<a class="sx-btn gh" href="/training" style="margin-top:8px">All 10 courses</a></div>')
     return f'<div class="sx-grid3" style="align-items:stretch">{parts_card}{tool_card}{dta_card}</div>'
@@ -537,9 +537,9 @@ def testimonial_cards(dark=False):
 def build_training():
     path = '/training'
     title = 'Diesel Tech Academy: Official Training by Maxzz Diesel'
-    desc = 'Ten injector courses from the Diesel Tech Academy at $297 each, with lifetime access, a 7-day guarantee and Robiel tools and parts through Maxzz Diesel.'
+    desc = 'Ten injector courses from the Diesel Tech Academy at $297 each, with 1 year access, a 7-day guarantee and Robiel tools and parts through Maxzz Diesel.'
     h = hero([('Home', '/'), ('Training', None)], 'Diesel Tech Academy: <span style="color:#fc771d">Official Training</span> by Maxzz Diesel',
-             'Ten online courses by injector family, taught at a working bench. $297 each, lifetime access and a 7-day guarantee. After your first purchase we email you a 50% off voucher for the second course.',
+             'Ten online courses by injector family, taught at a working bench. $297 each, 1 year access and a 7-day guarantee. After your first purchase we email you a 50% off voucher for the second course.',
              cta_red(C.utm('training_hero'), 'Browse the courses', ' target="_blank" rel="noopener"') + cta_ghost('#bundles', 'Course bundles'),
              image='diesel-tech-academy-injector-repair-course.webp', eyebrow='Diesel Tech Academy', extra=bene_row())
     cards = ''.join(course_card(c) for c in C.COURSES)
